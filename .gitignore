@@ -1,0 +1,32 @@
+.DS_Store
+build
+###BrightScript specific
+dist/apps
+out/
+dist/
+
+### Eclipse project files
+
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+# Eclipse Core
+.project
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+#node
+node_modules/
