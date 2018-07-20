@@ -33,8 +33,8 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Controlling which tests run](#controlling-which-tests-run)
  - [Integrating with your app setup and util methods](#integrating-with-your-app-and-utils)
  - [Using mocks and stubs](#using-mocks-and-stubs)
- - [API reference](../docs/apiDocs/index.html)
- - [Assertion reference](../docs/apiDocs/module-BaseTestSuite.html)
+ - [API reference](https://georgejecook.github.io/rooibos)
+ - [Assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html)
  - [Integrating with your CI](#integrating-with-your-ci)
  - [Advanced Setup](#advanced-setup)
 
@@ -346,7 +346,7 @@ Rooibos 0.2.0, will include an `@OnlyParams` annotation for further convenience.
 If a test case has a `'@Only` or `'@Ignore` annotation, the _params_ will execute in accordance with their parent test case.
 
 ### Node specficic asserts
-Rooibos adds some node specifc asserts, which are fully described in the   [Assertion reference](../docs/apiDocs/module-BaseTestSuite.html). These are:
+Rooibos adds some node specifc asserts, which are fully described in the   [Assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html). These are:
 
  - AssertNodeCount             
  - AssertNodeNotCount          
@@ -359,7 +359,7 @@ Rooibos adds some node specifc asserts, which are fully described in the   [Asse
 
 
 ### Full list of asserts
-The full list of asserts can be found in the documentation  - [Assertion reference](../docs/apiDocs/module-BaseTestSuite.html)
+The full list of asserts can be found in the documentation  - [Assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html)
 
 ## Understanding test output
 Rooibos reports test output in an easy to read hiearhchical manner.
