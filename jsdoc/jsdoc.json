@@ -5,7 +5,7 @@
     "includePattern": ".+\\.brs?$"
   },
   "templates": {
-    "systemName": "rodash",
+    "systemName": "Rooibosh",
     "search": false
   }
 }
