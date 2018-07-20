@@ -1,4 +1,4 @@
-'@Only
+'@SGNode NodeExampleTests
 '@TestSuite [NET] Node Example Tests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -7,10 +7,17 @@
 
 '@Test a function on the node
 function NET__nodeFunction() as void
+    ? " >>>"
+    ? " >>>"
+    ? " >>>"
+    ? " >>>"
     m.AssertTrue(true)
-    node = createObject("roSGNode", "NodeExampleTests")
-    ? " >>>"
-    stop
-    node.callFunc("Rooibos_RunNodeTests", {result: m.currentResult, testCase: m})
-    ? " >>>"
+    ? "TOP " ; m.node.top
+    ? "m" ; m.node
+    ? m
+    ? " >>>2"
+    ? " >>>2"
+    ? " >>>2"
+    ? " >>>2"
+    ? " >>>2"
 end function

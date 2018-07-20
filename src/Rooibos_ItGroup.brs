@@ -61,7 +61,7 @@ function RBS_ItG_GetRunnableTestSuite(group)
         if (testCase.isSolo)
             name += " [SOLO] "
         end if
-        runnableSuite.addTest(name, testCase.func)
+        runnableSuite.addTest(name, testCase.func, testCase.funcName)
         group.testCaseLookup[name] = testCase
     end for
     runnableSuite.SetUp = group.setupFunction

@@ -110,8 +110,8 @@ End Function
 ' @param name (string) A test name.
 ' @param func (string) A test function name.
 '----------------------------------------------------------------
-Sub RBS_BTS_AddTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object)
-    m.testCases.Push(m.createTest(name, func, setup, teardown))
+Sub RBS_BTS_AddTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object)
+    m.testCases.Push(m.createTest(name, func, funcName, setup, teardown))
 End Sub
 
 '----------------------------------------------------------------
@@ -120,10 +120,24 @@ End Sub
 ' @param name (string) A test name.
 ' @param func (string) A test function name.
 '----------------------------------------------------------------
-Function RBS_BTS_CreateTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object) as Object
+Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object) as Object
+
+    if (func = invalid) 
+        ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
+        ? " Looking it up now"
+        res = eval("functionPointer=" + funcName)
+        
+        if (res = 252 and functionPointer <> invalid)
+            ? "found the function"
+            func = functionPointer
+        else
+            ? " could not find function!"
+        end if
+    end if
     return {
         Name: name 
         Func: func
+        FuncName: funcName
         SetUp: setup
         TearDown: teardown
     }

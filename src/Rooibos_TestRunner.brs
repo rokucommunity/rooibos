@@ -53,8 +53,7 @@ end function
 ' Run main test loop.
 '----------------------------------------------------------------
 sub RBS_TR_Run()
-    alltestCount = 0
-    totalStatObj = m.logger.CreateTotalStatistic()
+    totalStatObj = RBS_STATS_CreateTotalStatistic()
     m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective)
     totalStatObj.testRunHasFailures = false
     
@@ -81,151 +80,173 @@ sub RBS_TR_Run()
             end if
             goto skipSuite
         end if
-        
-        '********************************************* 
-        ' NOW PROCESSES EACH TEST SUITE AS A SERIES OF '@It tags, which in turn become test suites
-        '********************************************* 
-        for each itGroup in metaTestSuite.itGroups
-            testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
-            
-            if (m.testUtilsDecorator <> invalid)
-                m.testUtilsDecorator(testSuite)
-            end if
-            
-            if (itGroup.isIgnored)
-                if (m.config.logLevel = 2)
-                    ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
-                end if
-                goto skipItGroup
-            end if
-            
-            if (m.runtimeConfig.hasSoloTests)
-                if (not itGroup.hasSoloTests)
-                    if (m.config.logLevel = 2)
-                        ? "Ignoring itGroup " ; itGroup.name ; " Because it has no solo tests"
-                    end if
-                    goto skipItGroup
-                end if
-            else if (m.runtimeConfig.hasSoloGroups)
-                if (not itGroup.isSolo)
-                    goto skipItGroup
-                end if
-            end if
-            
-            testCases = testSuite.testCases
-            testCount = testCases.Count()
-            if (testCount = 0)
-                if (m.config.logLevel = 2)
-                    ? "Ignoring TestSuite " ; itGroup.name ; " - NO TEST CASES"
-                end if
-                goto skipItGroup
-            end if
-            
-            alltestCount = alltestCount + testCount
-    
-            if RBS_CMN_IsFunction(testSuite.SetUp)
-                testSuite.SetUp()
-            end if
-    
-            suiteStatObj = m.logger.CreateSuiteStatistic(itGroup.Name)
-    
-            for each testCase in testCases
-                metaTestCase = itGroup.testCaseLookup[testCase.Name]
-                if (m.runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
-                    goto skipTestCase
-                end if
-                
-                if RBS_CMN_IsFunction(testSuite.beforeEach)
-                    testSuite.beforeEach()
-                end if
 
-                testTimer = CreateObject("roTimespan")
-                testStatObj = m.logger.CreateTestStatistic(testCase.Name)
-                testSuite.testCase = testCase.Func
-                testStatObj.filePath = metaTestSuite.filePath
-                testStatObj.metaTestCase = metaTestCase
-                testSuite.currentResult = UnitTestResult()
-                
-                testStatObj.metaTestCase.testResult = testSuite.currentResult
-                 
-                'TODO move execution logic to another method
-                'not doing now coz I'm not sure about scoping implications 
-                if (metaTestCase.rawParams <> invalid)
-                    testCaseParams = invalid
-                    isSucess = eval("testCaseParams = " + metaTestCase.rawParams)
-                    argsValid = RBS_CMN_IsArray(testCaseParams)
-                        
-                    if (argsValid)
-                        'up to 6 param args supported for now 
-                        if (testCaseParams.count() = 1)
-                            testSuite.testCase(testCaseParams[0])
-                        else if (testCaseParams.count() = 2)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1])
-                        else if (testCaseParams.count() = 3)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
-                        else if (testCaseParams.count() = 4)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
-                        else if (testCaseParams.count() = 5)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
-                        else if (testCaseParams.count() = 6)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
-                        end if                                                            
-                    else
-                        ? "Could not parse args for test " ; testCase.name
-                        testSuite.Fail("Could not parse args for test ")
-                    end if
-                else
-                    testSuite.testCase()                    
-                end if
-                testSuite.AssertMocks()
-                testSuite.CleanMocks()
-                testSuite.CleanStubs()
-                runResult = testSuite.currentResult.GetResult()
-
-
-                if runResult <> ""
-                    testStatObj.Result          = "Fail"
-                    testStatObj.Error.Code      = 1
-                    testStatObj.Error.Message   = runResult
-                else
-                    testStatObj.Result          = "Success"
-                end if
-
-                testStatObj.Time = testTimer.TotalMilliseconds()
-                m.logger.AppendTestStatistic(suiteStatObj, testStatObj)
-
-                if RBS_CMN_IsFunction(testCase.afterEach)
-                    testSuite.afterEach()
-                end if
-                
-                if testStatObj.Result <> "Success"
-                    totalStatObj.testRunHasFailures = true
-                end if 
-                
-                if testStatObj.Result = "Fail" and m.config.failFast = true
-                    exit for
-                end if
-                skipTestCase:
-            end for
-            
-            suiteStatObj.metaTestSuite = metaTestSuite
-            m.logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
-    
-            if RBS_CMN_IsFunction(testSuite.TearDown)
-                testSuite.TearDown()
+        if (metaTestSuite.isNodeTest and metaTestSuite.nodeTestFileName <> "")
+            ? " +++++RUNNING NODE TEST"
+            nodeType = metaTestSuite.nodeTestFileName
+            ? " node type is " ; nodeType
+            node = CreateObject("roSGNode", nodeType)
+            if (type(node) = "roSGNode" and node.subType() = nodeType)
+                args = {
+                    "metaTestSuite": metaTestSuite 
+                    "testUtilsDecorator": m.testUtilsDecorator 
+                    "config": m.config 
+                    "runtimeConfig": m.runtimeConfig
+                }
+                nodeStatResults = node.callFunc("Rooibos_RunNodeTests", args)
+                RBS_STATS_MergeTotalStatistic(totalStatObj, nodeStatResults)
+            else
+                ? " ERROR!! - could not create node required to execute tests for " ; metaTestSuite.name
+                ? " Node of type " ; nodeType ; " was not found/could not be instantiated"    
             end if
-    
-            if (testStatObj = invalid or testStatObj.Result = "Fail") and m.config.failFast = true
-                exit for
-            end if
-            skipItGroup:
-        end for
+        else
+            RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecorator, m.config, m.runtimeConfig)
+        end if
         skipSuite:
     end for
 
     m.logger.PrintStatistic(totalStatObj)
     END
     'RBS_TR_SendHomeKeypress()
+end sub
+
+sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecorator, config, runtimeConfig, nodeContext = invalid)
+    for each itGroup in metaTestSuite.itGroups
+        testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
+        if (nodeContext <> invalid)
+            testSuite.node = nodeContext
+        end if
+                
+        if (testUtilsDecorator <> invalid)
+            testUtilsDecorator(testSuite)
+        end if
+        
+        if (itGroup.isIgnored)
+            if (config.logLevel = 2)
+                ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
+            end if
+            goto skipItGroup
+        end if
+        
+        if (runtimeConfig.hasSoloTests)
+            if (not itGroup.hasSoloTests)
+                if (config.logLevel = 2)
+                    ? "Ignoring itGroup " ; itGroup.name ; " Because it has no solo tests"
+                end if
+                goto skipItGroup
+            end if
+        else if (runtimeConfig.hasSoloGroups)
+            if (not itGroup.isSolo)
+                goto skipItGroup
+            end if
+        end if
+        
+        if (testSuite.testCases.Count() = 0)
+            if (config.logLevel = 2)
+                ? "Ignoring TestSuite " ; itGroup.name ; " - NO TEST CASES"
+            end if
+            goto skipItGroup
+        end if
+        
+        if RBS_CMN_IsFunction(testSuite.SetUp)
+            testSuite.SetUp()
+        end if
+        
+        RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+
+        if RBS_CMN_IsFunction(testSuite.TearDown)
+            testSuite.TearDown()
+        end if
+
+        if (totalStatObj.testRunHasFailures = true and config.failFast = true)
+            exit for
+        end if
+        skipItGroup:
+    end for
+end sub
+
+sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+    suiteStatObj = RBS_STATS_CreateSuiteStatistic(itGroup.Name)
+
+    for each testCase in testSuite.testCases
+        metaTestCase = itGroup.testCaseLookup[testCase.Name]
+        if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
+            goto skipTestCase
+        end if
+        
+        if RBS_CMN_IsFunction(testSuite.beforeEach)
+            testSuite.beforeEach()
+        end if
+    
+        testTimer = CreateObject("roTimespan")
+        testStatObj = RBS_STATS_CreateTestStatistic(testCase.Name)
+        testSuite.testCase = testCase.Func
+        testStatObj.filePath = metaTestSuite.filePath
+        testStatObj.metaTestCase = metaTestCase
+        testSuite.currentResult = UnitTestResult()
+        
+        testStatObj.metaTestCase.testResult = testSuite.currentResult
+         
+        if (metaTestCase.rawParams <> invalid)
+            testCaseParams = invalid
+            isSucess = eval("testCaseParams = " + metaTestCase.rawParams)
+            argsValid = RBS_CMN_IsArray(testCaseParams)
+                
+            if (argsValid)
+                'up to 6 param args supported for now 
+                if (testCaseParams.count() = 1)
+                    testSuite.testCase(testCaseParams[0])
+                else if (testCaseParams.count() = 2)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1])
+                else if (testCaseParams.count() = 3)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
+                else if (testCaseParams.count() = 4)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
+                else if (testCaseParams.count() = 5)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
+                else if (testCaseParams.count() = 6)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
+                end if                                                            
+            else
+                ? "Could not parse args for test " ; testCase.name
+                testSuite.Fail("Could not parse args for test ")
+            end if
+        else
+            testSuite.testCase()                    
+        end if
+        testSuite.AssertMocks()
+        testSuite.CleanMocks()
+        testSuite.CleanStubs()
+        runResult = testSuite.currentResult.GetResult()
+    
+    
+        if runResult <> ""
+            testStatObj.Result          = "Fail"
+            testStatObj.Error.Code      = 1
+            testStatObj.Error.Message   = runResult
+        else
+            testStatObj.Result          = "Success"
+        end if
+    
+        testStatObj.Time = testTimer.TotalMilliseconds()
+        RBS_STATS_AppendTestStatistic(suiteStatObj, testStatObj)
+    
+        if RBS_CMN_IsFunction(testCase.afterEach)
+            testSuite.afterEach()
+        end if
+        
+        if testStatObj.Result <> "Success"
+            totalStatObj.testRunHasFailures = true
+        end if 
+        
+        if testStatObj.Result = "Fail" and m.config.failFast = true
+            exit for
+        end if
+        skipTestCase:
+    end for
+
+    suiteStatObj.metaTestSuite = metaTestSuite
+    RBS_STATS_AppendSuiteStatistic(totalStatObj, suiteStatObj)
 end sub
 
 sub RBS_TR_SendHomeKeypress()
@@ -238,7 +259,11 @@ end sub
 '** RunNodeTests
 '** executes the tests in a test suite, on the given node
 '*************************************************************
-function Rooibos_RunNodeTests(args) as void
-    ? " RUNNING NODE TESTS!!!!"
-    stop
+function Rooibos_RunNodeTests(args) as Object
+    ? " RUNNING NODE TESTS"
+    totalStatObj = RBS_STATS_CreateTotalStatistic()
+
+    RBS_RT_RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecorator, args.config, args.runtimeConfig, m)
+    return totalStatObj
 end function
+

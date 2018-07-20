@@ -5,6 +5,6 @@
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 '@Test AssertTrue
-function Simp__basic_AssertTrue(value, expectedAssertValue) as void
+function Simp__basic_AssertTrue() as void
     m.AssertTrue(true)
 end function

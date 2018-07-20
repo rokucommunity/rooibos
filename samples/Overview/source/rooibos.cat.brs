@@ -122,13 +122,25 @@ function BaseTestSuite() as Object
     this.g = RBS_BTS_rodash_get_
     return this
 End Function
-Sub RBS_BTS_AddTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object)
-    m.testCases.Push(m.createTest(name, func, setup, teardown))
+Sub RBS_BTS_AddTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object)
+    m.testCases.Push(m.createTest(name, func, funcName, setup, teardown))
 End Sub
-Function RBS_BTS_CreateTest(name as String, func as Object, setup = invalid as Object, teardown = invalid as Object) as Object
+Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object) as Object
+    if (func = invalid) 
+        ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
+        ? " Looking it up now"
+        res = eval("functionPointer=" + funcName)
+        if (res = 252 and functionPointer <> invalid)
+            ? "found the function"
+            func = functionPointer
+        else
+            ? " could not find function!"
+        end if
+    end if
     return {
         Name: name 
         Func: func
+        FuncName: funcName
         SetUp: setup
         TearDown: teardown
     }
@@ -1269,7 +1281,7 @@ function RBS_ItG_GetRunnableTestSuite(group)
         if (testCase.isSolo)
             name += " [SOLO] "
         end if
-        runnableSuite.addTest(name, testCase.func)
+        runnableSuite.addTest(name, testCase.func, testCase.funcName)
         group.testCaseLookup[name] = testCase
     end for
     runnableSuite.SetUp = group.setupFunction
@@ -1401,15 +1413,94 @@ function RBS_CreateSuites(testsDirectory, maxLinesWithoutSuiteDirective)
     end if
     return result
 end function
-function UnitTestCase(name as string, func as dynamic, isSolo as boolean, isIgnored as boolean, lineNumber as integer, isNodeTest as boolean, nodeTestFile ="" as string, params = invalid, paramTestIndex =0)
+function RBS_STATS_CreateTotalStatistic() as Object
+    statTotalItem = {
+        Suites      : []
+        Time        : 0
+        Total       : 0
+        Correct     : 0
+        Fail        : 0
+        Crash       : 0
+    }
+    return statTotalItem
+end function
+function RBS_STATS_MergeTotalStatistic(stat1, stat2) as void
+    for each suite in stat2.Suites
+        stat1.Suites.push(suite)
+    end for    
+    stat1.Time += stat2.Time
+    stat1.Total += stat2.Total
+    stat1.Correct += stat2.Correct
+    stat1.Fail += stat2.Fail
+    stat1.Crash += stat2.Crash
+end function
+function RBS_STATS_CreateSuiteStatistic(name as String) as Object
+    statSuiteItem = {
+        Name    : name
+        Tests   : []
+        Time    : 0
+        Total   : 0
+        Correct : 0
+        Fail    : 0
+        Crash   : 0
+    }
+    return statSuiteItem
+end function
+function RBS_STATS_CreateTestStatistic(name as String, result = "Success" as String, time = 0 as Integer, errorCode = 0 as Integer, errorMessage = "" as String) as Object
+    statTestItem = {
+        Name    : name
+        Result  : result
+        Time    : time
+        Error   : {
+            Code    : errorCode
+            Message : errorMessage
+        }
+    }
+    return statTestItem
+end function
+sub RBS_STATS_AppendTestStatistic(statSuiteObj as Object, statTestObj as Object)
+    if RBS_CMN_IsAssociativeArray(statSuiteObj) and RBS_CMN_IsAssociativeArray(statTestObj)
+        statSuiteObj.Tests.Push(statTestObj)
+        if RBS_CMN_IsInteger(statTestObj.time)
+            statSuiteObj.Time = statSuiteObj.Time + statTestObj.Time
+        end if
+        statSuiteObj.Total = statSuiteObj.Total + 1
+        if lCase(statTestObj.Result) = "success"
+            statSuiteObj.Correct = statSuiteObj.Correct + 1
+        else if lCase(statTestObj.result) = "fail"
+            statSuiteObj.Fail = statSuiteObj.Fail + 1
+        else
+            statSuiteObj.crash = statSuiteObj.crash + 1
+        end if
+    end if
+end sub
+sub RBS_STATS_AppendSuiteStatistic(statTotalObj as Object, statSuiteObj as Object)
+    if RBS_CMN_IsAssociativeArray(statTotalObj) and RBS_CMN_IsAssociativeArray(statSuiteObj)
+        statTotalObj.Suites.Push(statSuiteObj)
+        statTotalObj.Time = statTotalObj.Time + statSuiteObj.Time
+        if RBS_CMN_IsInteger(statSuiteObj.Total)
+            statTotalObj.Total = statTotalObj.Total + statSuiteObj.Total
+        end if
+        if RBS_CMN_IsInteger(statSuiteObj.Correct)
+            statTotalObj.Correct = statTotalObj.Correct + statSuiteObj.Correct
+        end if
+        if RBS_CMN_IsInteger(statSuiteObj.Fail)
+            statTotalObj.Fail = statTotalObj.Fail + statSuiteObj.Fail
+        end if
+        if RBS_CMN_IsInteger(statSuiteObj.Crash)
+            statTotalObj.Crash = statTotalObj.Crash + statSuiteObj.Crash
+        end if
+    end if
+end sub
+function UnitTestCase(name as string, func as dynamic, funcName as string, isSolo as boolean, isIgnored as boolean, lineNumber as integer, params = invalid, paramTestIndex =0)
     this = {}
     this.isSolo = isSolo
     this.func = func
+    this.funcName = funcName
     this.isIgnored = isIgnored
     this.name = name
     this.lineNumber = lineNumber
     this.assertIndex = 0
-    this.nodeTestFile = nodeTestFile
     this.assertLineNumberMap = {}
     this.AddAssertLine = RBS_TC_AddAssertLine
     this.getTestLineIndex = 0
@@ -1442,11 +1533,6 @@ function Logger(config) as Object
     }
     this.verbosity              = this.config.logLevel
     this.PrintStatistic         = RBS_LOGGER_PrintStatistic
-    this.CreateTotalStatistic   = RBS_LOGGER_CreateTotalStatistic
-    this.CreateSuiteStatistic   = RBS_LOGGER_CreateSuiteStatistic
-    this.CreateTestStatistic    = RBS_LOGGER_CreateTestStatistic
-    this.AppendSuiteStatistic   = RBS_LOGGER_AppendSuiteStatistic
-    this.AppendTestStatistic    = RBS_LOGGER_AppendTestStatistic
     this.PrintMetaSuiteStart    = RBS_LOGGER_PrintMetaSuiteStart
     this.PrintSuiteStatistic    = RBS_LOGGER_PrintSuiteStatistic
     this.PrintTestStatistic     = RBS_LOGGER_PrintTestStatistic
@@ -1479,75 +1565,6 @@ sub RBS_LOGGER_PrintStatistic(statObj as Object)
         overrallResult = "Fail"
     end if
     ? "RESULT: "; overrallResult
-end sub
-function RBS_LOGGER_CreateTotalStatistic() as Object
-    statTotalItem = {
-        Suites      : []
-        Time        : 0
-        Total       : 0
-        Correct     : 0
-        Fail        : 0
-        Crash       : 0
-    }
-    return statTotalItem
-end function
-function RBS_LOGGER_CreateSuiteStatistic(name as String) as Object
-    statSuiteItem = {
-        Name    : name
-        Tests   : []
-        Time    : 0
-        Total   : 0
-        Correct : 0
-        Fail    : 0
-        Crash   : 0
-    }
-    return statSuiteItem
-end function
-function RBS_LOGGER_CreateTestStatistic(name as String, result = "Success" as String, time = 0 as Integer, errorCode = 0 as Integer, errorMessage = "" as String) as Object
-    statTestItem = {
-        Name    : name
-        Result  : result
-        Time    : time
-        Error   : {
-            Code    : errorCode
-            Message : errorMessage
-        }
-    }
-    return statTestItem
-end function
-sub RBS_LOGGER_AppendTestStatistic(statSuiteObj as Object, statTestObj as Object)
-    if RBS_CMN_IsAssociativeArray(statSuiteObj) and RBS_CMN_IsAssociativeArray(statTestObj)
-        statSuiteObj.Tests.Push(statTestObj)
-        if RBS_CMN_IsInteger(statTestObj.time)
-            statSuiteObj.Time = statSuiteObj.Time + statTestObj.Time
-        end if
-        statSuiteObj.Total = statSuiteObj.Total + 1
-        if lCase(statTestObj.Result) = "success"
-            statSuiteObj.Correct = statSuiteObj.Correct + 1
-        else if lCase(statTestObj.result) = "fail"
-            statSuiteObj.Fail = statSuiteObj.Fail + 1
-        else
-            statSuiteObj.crash = statSuiteObj.crash + 1
-        end if
-    end if
-end sub
-sub RBS_LOGGER_AppendSuiteStatistic(statTotalObj as Object, statSuiteObj as Object)
-    if RBS_CMN_IsAssociativeArray(statTotalObj) and RBS_CMN_IsAssociativeArray(statSuiteObj)
-        statTotalObj.Suites.Push(statSuiteObj)
-        statTotalObj.Time = statTotalObj.Time + statSuiteObj.Time
-        if RBS_CMN_IsInteger(statSuiteObj.Total)
-            statTotalObj.Total = statTotalObj.Total + statSuiteObj.Total
-        end if
-        if RBS_CMN_IsInteger(statSuiteObj.Correct)
-            statTotalObj.Correct = statTotalObj.Correct + statSuiteObj.Correct
-        end if
-        if RBS_CMN_IsInteger(statSuiteObj.Fail)
-            statTotalObj.Fail = statTotalObj.Fail + statSuiteObj.Fail
-        end if
-        if RBS_CMN_IsInteger(statSuiteObj.Crash)
-            statTotalObj.Crash = statTotalObj.Crash + statSuiteObj.Crash
-        end if
-    end if
 end sub
 sub RBS_LOGGER_PrintSuiteStatistic(statSuiteObj as Object, hasFailures)
     m.PrintSuiteStart(statSuiteObj.Name)
@@ -1720,8 +1737,7 @@ function RBS_TR_TestRunner(args = {}) as Object
     return this
 end function
 sub RBS_TR_Run()
-    alltestCount = 0
-    totalStatObj = m.logger.CreateTotalStatistic()
+    totalStatObj = RBS_STATS_CreateTotalStatistic()
     m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective)
     totalStatObj.testRunHasFailures = false
     for each metaTestSuite in m.runtimeConfig.suites
@@ -1746,129 +1762,157 @@ sub RBS_TR_Run()
             end if
             goto skipSuite
         end if
-        for each itGroup in metaTestSuite.itGroups
-            testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
-            if (m.testUtilsDecorator <> invalid)
-                m.testUtilsDecorator(testSuite)
+        if (metaTestSuite.isNodeTest and metaTestSuite.nodeTestFileName <> "")
+            ? " +++++RUNNING NODE TEST"
+            nodeType = metaTestSuite.nodeTestFileName
+            ? " node type is " ; nodeType
+            node = CreateObject("roSGNode", nodeType)
+            if (type(node) = "roSGNode" and node.subType() = nodeType)
+                args = {
+                    "metaTestSuite": metaTestSuite 
+                    "testUtilsDecorator": m.testUtilsDecorator 
+                    "config": m.config 
+                    "runtimeConfig": m.runtimeConfig
+                }
+                nodeStatResults = node.callFunc("Rooibos_RunNodeTests", args)
+                RBS_STATS_MergeTotalStatistic(totalStatObj, nodeStatResults)
+            else
+                ? " ERROR!! - could not create node required to execute tests for " ; metaTestSuite.name
+                ? " Node of type " ; nodeType ; " was not found/could not be instantiated"    
             end if
-            if (itGroup.isIgnored)
-                if (m.config.logLevel = 2)
-                    ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
-                end if
-                goto skipItGroup
-            end if
-            if (m.runtimeConfig.hasSoloTests)
-                if (not itGroup.hasSoloTests)
-                    if (m.config.logLevel = 2)
-                        ? "Ignoring itGroup " ; itGroup.name ; " Because it has no solo tests"
-                    end if
-                    goto skipItGroup
-                end if
-            else if (m.runtimeConfig.hasSoloGroups)
-                if (not itGroup.isSolo)
-                    goto skipItGroup
-                end if
-            end if
-            testCases = testSuite.testCases
-            testCount = testCases.Count()
-            if (testCount = 0)
-                if (m.config.logLevel = 2)
-                    ? "Ignoring TestSuite " ; itGroup.name ; " - NO TEST CASES"
-                end if
-                goto skipItGroup
-            end if
-            alltestCount = alltestCount + testCount
-            if RBS_CMN_IsFunction(testSuite.SetUp)
-                testSuite.SetUp()
-            end if
-            suiteStatObj = m.logger.CreateSuiteStatistic(itGroup.Name)
-            for each testCase in testCases
-                metaTestCase = itGroup.testCaseLookup[testCase.Name]
-                if (m.runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
-                    goto skipTestCase
-                end if
-                if RBS_CMN_IsFunction(testSuite.beforeEach)
-                    testSuite.beforeEach()
-                end if
-                testTimer = CreateObject("roTimespan")
-                testStatObj = m.logger.CreateTestStatistic(testCase.Name)
-                testSuite.testCase = testCase.Func
-                testStatObj.filePath = metaTestSuite.filePath
-                testStatObj.metaTestCase = metaTestCase
-                testSuite.currentResult = UnitTestResult()
-                testStatObj.metaTestCase.testResult = testSuite.currentResult
-                if (metaTestCase.rawParams <> invalid)
-                    testCaseParams = invalid
-                    isSucess = eval("testCaseParams = " + metaTestCase.rawParams)
-                    argsValid = RBS_CMN_IsArray(testCaseParams)
-                    if (argsValid)
-                        if (testCaseParams.count() = 1)
-                            testSuite.testCase(testCaseParams[0])
-                        else if (testCaseParams.count() = 2)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1])
-                        else if (testCaseParams.count() = 3)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
-                        else if (testCaseParams.count() = 4)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
-                        else if (testCaseParams.count() = 5)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
-                        else if (testCaseParams.count() = 6)
-                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
-                        end if                                                            
-                    else
-                        ? "Could not parse args for test " ; testCase.name
-                        testSuite.Fail("Could not parse args for test ")
-                    end if
-                else
-                    testSuite.testCase()                    
-                end if
-                testSuite.AssertMocks()
-                testSuite.CleanMocks()
-                testSuite.CleanStubs()
-                runResult = testSuite.currentResult.GetResult()
-                if runResult <> ""
-                    testStatObj.Result          = "Fail"
-                    testStatObj.Error.Code      = 1
-                    testStatObj.Error.Message   = runResult
-                else
-                    testStatObj.Result          = "Success"
-                end if
-                testStatObj.Time = testTimer.TotalMilliseconds()
-                m.logger.AppendTestStatistic(suiteStatObj, testStatObj)
-                if RBS_CMN_IsFunction(testCase.afterEach)
-                    testSuite.afterEach()
-                end if
-                if testStatObj.Result <> "Success"
-                    totalStatObj.testRunHasFailures = true
-                end if 
-                if testStatObj.Result = "Fail" and m.config.failFast = true
-                    exit for
-                end if
-                skipTestCase:
-            end for
-            suiteStatObj.metaTestSuite = metaTestSuite
-            m.logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
-            if RBS_CMN_IsFunction(testSuite.TearDown)
-                testSuite.TearDown()
-            end if
-            if (testStatObj = invalid or testStatObj.Result = "Fail") and m.config.failFast = true
-                exit for
-            end if
-            skipItGroup:
-        end for
+        else
+            RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecorator, m.config, m.runtimeConfig)
+        end if
         skipSuite:
     end for
     m.logger.PrintStatistic(totalStatObj)
     END
+end sub
+sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecorator, config, runtimeConfig, nodeContext = invalid)
+    for each itGroup in metaTestSuite.itGroups
+        testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
+        if (nodeContext <> invalid)
+            testSuite.node = nodeContext
+        end if
+        if (testUtilsDecorator <> invalid)
+            testUtilsDecorator(testSuite)
+        end if
+        if (itGroup.isIgnored)
+            if (config.logLevel = 2)
+                ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
+            end if
+            goto skipItGroup
+        end if
+        if (runtimeConfig.hasSoloTests)
+            if (not itGroup.hasSoloTests)
+                if (config.logLevel = 2)
+                    ? "Ignoring itGroup " ; itGroup.name ; " Because it has no solo tests"
+                end if
+                goto skipItGroup
+            end if
+        else if (runtimeConfig.hasSoloGroups)
+            if (not itGroup.isSolo)
+                goto skipItGroup
+            end if
+        end if
+        if (testSuite.testCases.Count() = 0)
+            if (config.logLevel = 2)
+                ? "Ignoring TestSuite " ; itGroup.name ; " - NO TEST CASES"
+            end if
+            goto skipItGroup
+        end if
+        if RBS_CMN_IsFunction(testSuite.SetUp)
+            testSuite.SetUp()
+        end if
+        RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+        if RBS_CMN_IsFunction(testSuite.TearDown)
+            testSuite.TearDown()
+        end if
+        if (totalStatObj.testRunHasFailures = true and config.failFast = true)
+            exit for
+        end if
+        skipItGroup:
+    end for
+end sub
+sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+    suiteStatObj = RBS_STATS_CreateSuiteStatistic(itGroup.Name)
+    for each testCase in testSuite.testCases
+        metaTestCase = itGroup.testCaseLookup[testCase.Name]
+        if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
+            goto skipTestCase
+        end if
+        if RBS_CMN_IsFunction(testSuite.beforeEach)
+            testSuite.beforeEach()
+        end if
+        testTimer = CreateObject("roTimespan")
+        testStatObj = RBS_STATS_CreateTestStatistic(testCase.Name)
+        testSuite.testCase = testCase.Func
+        testStatObj.filePath = metaTestSuite.filePath
+        testStatObj.metaTestCase = metaTestCase
+        testSuite.currentResult = UnitTestResult()
+        testStatObj.metaTestCase.testResult = testSuite.currentResult
+        if (metaTestCase.rawParams <> invalid)
+            testCaseParams = invalid
+            isSucess = eval("testCaseParams = " + metaTestCase.rawParams)
+            argsValid = RBS_CMN_IsArray(testCaseParams)
+            if (argsValid)
+                if (testCaseParams.count() = 1)
+                    testSuite.testCase(testCaseParams[0])
+                else if (testCaseParams.count() = 2)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1])
+                else if (testCaseParams.count() = 3)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
+                else if (testCaseParams.count() = 4)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
+                else if (testCaseParams.count() = 5)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
+                else if (testCaseParams.count() = 6)
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
+                end if                                                            
+            else
+                ? "Could not parse args for test " ; testCase.name
+                testSuite.Fail("Could not parse args for test ")
+            end if
+        else
+            testSuite.testCase()                    
+        end if
+        testSuite.AssertMocks()
+        testSuite.CleanMocks()
+        testSuite.CleanStubs()
+        runResult = testSuite.currentResult.GetResult()
+        if runResult <> ""
+            testStatObj.Result          = "Fail"
+            testStatObj.Error.Code      = 1
+            testStatObj.Error.Message   = runResult
+        else
+            testStatObj.Result          = "Success"
+        end if
+        testStatObj.Time = testTimer.TotalMilliseconds()
+        RBS_STATS_AppendTestStatistic(suiteStatObj, testStatObj)
+        if RBS_CMN_IsFunction(testCase.afterEach)
+            testSuite.afterEach()
+        end if
+        if testStatObj.Result <> "Success"
+            totalStatObj.testRunHasFailures = true
+        end if 
+        if testStatObj.Result = "Fail" and m.config.failFast = true
+            exit for
+        end if
+        skipTestCase:
+    end for
+    suiteStatObj.metaTestSuite = metaTestSuite
+    RBS_STATS_AppendSuiteStatistic(totalStatObj, suiteStatObj)
 end sub
 sub RBS_TR_SendHomeKeypress()
     ut = CreateObject("roUrlTransfer")
     ut.SetUrl("http://localhost:8060/keypress/Home")
     ut.PostFromString("")
 end sub
-function Rooibos_RunNodeTests(args) as void
-    ? " RUNNING NODE TESTS!!!!"
-    stop
+function Rooibos_RunNodeTests(args) as Object
+    ? " RUNNING NODE TESTS"
+    totalStatObj = RBS_STATS_CreateTotalStatistic()
+    RBS_RT_RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecorator, args.config, args.runtimeConfig, m)
+    return totalStatObj
 end function
 function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
     this = {}
@@ -1885,6 +1929,7 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
     this.setupFunctionName = ""
     this.tearDownFunction = invalid
     this.tearDownFunctionName = ""
+    this.isNodeTest = false
     this.nodeTestFileName = ""
     this.ProcessSuite = RBS_TS_ProcessSuite
     this.ResetCurrentTestCase = RBS_TS_ResetCurrentTestCase
@@ -1894,7 +1939,7 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
 end function
 function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
     code = RBS_CMN_AsString(ReadAsciiFile(m.filePath))
-    TAG_TAG_TEST_SUTAG_ITE = "'@TestSuite"
+    TAG_TEST_SUITE = "'@TestSuite"
     TAG_IT = "'@It"
     TAG_IGNORE = "'@Ignore"
     TAG_SOLO = "'@Only"
@@ -1934,11 +1979,11 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 ? "IGNORING FILE WTAG_ITH NO @TAG_TESTSUTAG_ITE DIRECTIVE : "; currentLocation
                 goto exitProcessing
             end if
-            if (RBS_TS_IsTag(line, TAG_TAG_TEST_SUTAG_ITE))
+            if (RBS_TS_IsTag(line, TAG_TEST_SUITE))
                 if (isTestSuite)
                     ? "Multiple suites per file are not supported - use '@It tag"
                 end if
-                name = RBS_TS_GetTagText(line, TAG_TAG_TEST_SUTAG_ITE)
+                name = RBS_TS_GetTagText(line, TAG_TEST_SUITE)
                 if (name <> "")
                     m.name = name
                 end if
@@ -1949,6 +1994,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 isTestSuite = true
                 if (isNextTokenNodeTest)
                     m.nodeTestFileName = nodeTestFileName
+                    m.isNodeTest = true
                 end if
                 if (isNextTokenIgnore)
                     m.isIgnored = true
@@ -1988,17 +2034,20 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 isNextTokenIgnore = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_NODE_TEST))
-                ? ">>>>>>>>>>>>>>>> NODE TAG_TESTS ARE NOT SUPPORTED YET"
+                if (isTestSuite)
+                     ? "FOUND " ; TAG_NODE_TEST ; " AFTER '@TestSuite annotation - This test will subsequently not run as a node test. "
+                     ? "If you wish to run this suite of tests on a node, then make sure the " ; TAG_NODE_TEST ; " annotation appeares before the " ; TAG_TEST_SUITE ; " Annotation"
+                end if
                 nodeTestFileName = RBS_TS_GetTagText(line, TAG_NODE_TEST)
                 isNextTokenNodeTest = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEST))
                 if (not isTestSuite)
-                    ? "FOUND TAG_TEST BEFORE '@TestSuite declaration - skipping test file! "; currentLocation
+                    ? "FOUND " ; TAG_TEST; " BEFORE '@TestSuite declaration - skipping test file! "; currentLocation
                     goto exitProcessing
                 end if
                 if (m.currentGroup = invalid)
-                    ? "FOUND TAG_TEST BEFORE '@It declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_TEST; " BEFORE '@It declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 m.ResetCurrentTestCase()
@@ -2007,28 +2056,28 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_SETUP))
              if (not isTestSuite)
-                    ? "FOUND TAG_SETUP BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_SETUP ; " BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 isNextTokenSetup = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEAR_DOWN))
                 if (not isTestSuite)
-                    ? "FOUND TAG_TEAR_DOWN BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_TEAR_DOWN ; " BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 isNextTokenTeardown = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_BEFORE_EACH))
                 if (not isTestSuite)
-                    ? "FOUND TAG_BEFORE_EACH BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_BEFORE_EACH ; " BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 isNextTokenBeforeEach = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_AFTER_EACH))
                 if (not isTestSuite)
-                    ? "FOUND TAG_AFTER_EACH BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_AFTER_EACH ; " BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 isNextTokenAfterEach = true
@@ -2051,7 +2100,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEST_PARAMS))
                 if (not isNextTokenTest) 
-                    ? "FOUND TAG_TEST PARAM WTAG_ITHOUT @Test declaration "; currentLocation
+                    ? "FOUND " ; TAG_TEST; " PARAM WTAG_ITHOUT @Test declaration "; currentLocation
                 else
                     isNextTokenTestCaseParam = true
                     rawParams = RBS_TS_GetTagText(line, TAG_TEST_PARAMS)
@@ -2065,12 +2114,16 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                     res = eval("functionPointer=" + functionName)
                     if (res = 252 and functionPointer <> invalid)
                         if (isNextTokenTest)
-                            if nextName <> "" functionName = nextName
+                            if (nextName <> "") 
+                                testName = nextName
+                            else
+                                testName = functionName
+                            end if
                             if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
                             if (m.testCaseParams.count() >0)
                                 for index = 0 to m.testCaseParams.count() -1
                                     params = m.testCaseParams[index]
-                                    testCase = UnitTestCase(functionName,functionPointer,isNextTokenSolo,isNextTokenIgnore, lineNumber, isNextTokenNodeTest, nodeTestFileName, params, index)
+                                    testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber, params, index)
                                     testCase.isParamTest = true
                                     if (testCase <> invalid)
                                         m.currentTestCases.push(testCase)
@@ -2079,7 +2132,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                                     end if
                                 end for
                             else
-                                testCase = UnitTestCase(functionName,functionPointer,isNextTokenSolo,isNextTokenIgnore, lineNumber, isNextTokenNodeTest, nodeTestFileName)
+                                testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber)
                                 m.currentTestCases.push(testCase)
                             end if                            
                             for each testCase in m.currentTestCases 

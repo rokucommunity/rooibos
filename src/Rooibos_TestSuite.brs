@@ -16,6 +16,7 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
     this.setupFunctionName = ""
     this.tearDownFunction = invalid
     this.tearDownFunctionName = ""
+    this.isNodeTest = false
     this.nodeTestFileName = ""
     this.ProcessSuite = RBS_TS_ProcessSuite
     this.ResetCurrentTestCase = RBS_TS_ResetCurrentTestCase
@@ -27,7 +28,7 @@ end function
 function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
     'find a marker to indicate this is a test suite
     code = RBS_CMN_AsString(ReadAsciiFile(m.filePath))
-    TAG_TAG_TEST_SUTAG_ITE = "'@TestSuite"
+    TAG_TEST_SUITE = "'@TestSuite"
     TAG_IT = "'@It"
     TAG_IGNORE = "'@Ignore"
     TAG_SOLO = "'@Only"
@@ -69,12 +70,12 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 goto exitProcessing
             end if
 
-            if (RBS_TS_IsTag(line, TAG_TAG_TEST_SUTAG_ITE))
+            if (RBS_TS_IsTag(line, TAG_TEST_SUITE))
                 if (isTestSuite)
                     ? "Multiple suites per file are not supported - use '@It tag"
                 end if
                 
-                name = RBS_TS_GetTagText(line, TAG_TAG_TEST_SUTAG_ITE)
+                name = RBS_TS_GetTagText(line, TAG_TEST_SUITE)
                 
                 if (name <> "")
                     m.name = name
@@ -88,6 +89,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 
                 if (isNextTokenNodeTest)
                     m.nodeTestFileName = nodeTestFileName
+                    m.isNodeTest = true
                 end if
                 
                 if (isNextTokenIgnore)
@@ -135,17 +137,20 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 isNextTokenIgnore = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_NODE_TEST))
-                ? ">>>>>>>>>>>>>>>> NODE TAG_TESTS ARE NOT SUPPORTED YET"
+                if (isTestSuite)
+                     ? "FOUND " ; TAG_NODE_TEST ; " AFTER '@TestSuite annotation - This test will subsequently not run as a node test. "
+                     ? "If you wish to run this suite of tests on a node, then make sure the " ; TAG_NODE_TEST ; " annotation appeares before the " ; TAG_TEST_SUITE ; " Annotation"
+                end if
                 nodeTestFileName = RBS_TS_GetTagText(line, TAG_NODE_TEST)
                 isNextTokenNodeTest = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEST))
                 if (not isTestSuite)
-                    ? "FOUND TAG_TEST BEFORE '@TestSuite declaration - skipping test file! "; currentLocation
+                    ? "FOUND " ; TAG_TEST; " BEFORE '@TestSuite declaration - skipping test file! "; currentLocation
                     goto exitProcessing
                 end if
                 if (m.currentGroup = invalid)
-                    ? "FOUND TAG_TEST BEFORE '@It declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_TEST; " BEFORE '@It declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 m.ResetCurrentTestCase()
@@ -154,28 +159,28 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_SETUP))
              if (not isTestSuite)
-                    ? "FOUND TAG_SETUP BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_SETUP ; " BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 isNextTokenSetup = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEAR_DOWN))
                 if (not isTestSuite)
-                    ? "FOUND TAG_TEAR_DOWN BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_TEAR_DOWN ; " BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 isNextTokenTeardown = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_BEFORE_EACH))
                 if (not isTestSuite)
-                    ? "FOUND TAG_BEFORE_EACH BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_BEFORE_EACH ; " BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 isNextTokenBeforeEach = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_AFTER_EACH))
                 if (not isTestSuite)
-                    ? "FOUND TAG_AFTER_EACH BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
+                    ? "FOUND " ; TAG_AFTER_EACH ; " BEFORE '@TestSuite declaration - skipping test file!"; currentLocation
                     goto exitProcessing
                 end if
                 isNextTokenAfterEach = true
@@ -198,7 +203,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEST_PARAMS))
                 if (not isNextTokenTest) 
-                    ? "FOUND TAG_TEST PARAM WTAG_ITHOUT @Test declaration "; currentLocation
+                    ? "FOUND " ; TAG_TEST; " PARAM WTAG_ITHOUT @Test declaration "; currentLocation
                 else
 
                     isNextTokenTestCaseParam = true
@@ -217,14 +222,18 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                     res = eval("functionPointer=" + functionName)
                     if (res = 252 and functionPointer <> invalid)
                         if (isNextTokenTest)
-                            if nextName <> "" functionName = nextName
+                            if (nextName <> "") 
+                                testName = nextName
+                            else
+                                testName = functionName
+                            end if
                             if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
 
                             if (m.testCaseParams.count() >0)
                                 for index = 0 to m.testCaseParams.count() -1
                                     params = m.testCaseParams[index]
-'                                    ? ">>params " ; params
-                                    testCase = UnitTestCase(functionName,functionPointer,isNextTokenSolo,isNextTokenIgnore, lineNumber, isNextTokenNodeTest, nodeTestFileName, params, index)
+
+                                    testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber, params, index)
                                     testCase.isParamTest = true
                                     if (testCase <> invalid)
                                         m.currentTestCases.push(testCase)
@@ -233,21 +242,19 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                                     end if
                                 end for
                             else
-                                testCase = UnitTestCase(functionName,functionPointer,isNextTokenSolo,isNextTokenIgnore, lineNumber, isNextTokenNodeTest, nodeTestFileName)
+                                testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber)
                                 m.currentTestCases.push(testCase)
                             end if                            
 
                             for each testCase in m.currentTestCases 
                                 m.currentGroup.AddTestCase(testCase)
                             end for
-                            '? " created test case "; testCase
                             
                             m.hasCurrentTestCase = true
                             
                             if (isNextTokenSolo)
                                 m.currentGroup.hasSoloTests = true
                                 m.hasSoloTests = true
-                                '? "TAG_SOLO TAG_TEST FOUND : "; testCase.name ; ">"; m.filePath; "("; StrI(lineNumber).trim() ; ")"
                             end if
                             
                         else if (isNextTokenSetup)

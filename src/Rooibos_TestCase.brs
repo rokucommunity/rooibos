@@ -1,15 +1,15 @@
 ' /**
 '  * @module TestCase
 '  */
-function UnitTestCase(name as string, func as dynamic, isSolo as boolean, isIgnored as boolean, lineNumber as integer, isNodeTest as boolean, nodeTestFile ="" as string, params = invalid, paramTestIndex =0)
+function UnitTestCase(name as string, func as dynamic, funcName as string, isSolo as boolean, isIgnored as boolean, lineNumber as integer, params = invalid, paramTestIndex =0)
     this = {}
     this.isSolo = isSolo
     this.func = func
+    this.funcName = funcName
     this.isIgnored = isIgnored
     this.name = name
     this.lineNumber = lineNumber
     this.assertIndex = 0
-    this.nodeTestFile = nodeTestFile
     'Map with which the testsuite processor can take the index of a an assert line, and map it to the line Number
     this.assertLineNumberMap = {}
     this.AddAssertLine = RBS_TC_AddAssertLine
