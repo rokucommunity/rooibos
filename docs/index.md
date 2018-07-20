@@ -331,18 +331,18 @@ function SUT__Update_realData_success(dayOfMonth, hour, minute, expectedDayIndex
 end function	   
 ```
 
-####Parameterized test output
+#### Parameterized test output
 
 The output from paremeterized tests shows the test name, and all of param configurations that were executed, making it easy to ascertain which param config results in a failure
 
 ![Simple test output](images/paramTest.png)
 
-####Ignoring parameterized test configs
+#### Ignoring parameterized test configs
 If you have a couple of failing param tests, it can assist debugging to ignore the param configs you are not interested in. In this case, you can place the `'@Params` annotation with `'@IgnoreParams`, and that config will not execute.
 
 Rooibos 0.2.0, will include an `@OnlyParams` annotation for further convenience.
 
-####Paremeterized tests and other annotations
+#### Paremeterized tests and other annotations
 If a test case has a `'@Only` or `'@Ignore` annotation, the _params_ will execute in accordance with their parent test case.
 
 ### Node specficic asserts
@@ -727,7 +727,7 @@ I use theses practices as much as possible becuase:
 
 E.g.
 
-![Simple test output](images/testingExample.png)
+![Simple test output](images/TestingExample.png)
 
 I slap an `@Only` annotation on the suite, group and test I'm currently working on, and have a hotkey to run my tests.
 
