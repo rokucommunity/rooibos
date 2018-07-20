@@ -220,7 +220,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                     functionName = functionNameRegex.Match(line).Peek()
     
                     res = eval("functionPointer=" + functionName)
-                    if (res = 252 and functionPointer <> invalid)
+                    if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
                         if (isNextTokenTest)
                             if (nextName <> "") 
                                 testName = nextName

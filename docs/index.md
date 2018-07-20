@@ -65,6 +65,7 @@ An example config file looks like this:
 	"testsDirectory": "pkg:/source/Tests",
 	"testFilePrefix": "Test__",
 	"failFast": false,
+	"swallowRuntimeErrors": false,
 	"showOnlyFailures": false,
 	"maxLinesWithoutSuiteDirective": 100
 }
@@ -120,7 +121,7 @@ end function
 
 This results in the following test output:
 
-![Simple test output](/Users/georgecook/Documents/h7ci/hope/rooibos/docs/images/simpleReportOutput.png)
+![Simple test output](images/simpleReportOutput.png)
 
 Note the hierarchical display of the Testsuite _[Simp] Simple Tests_, the group _tests initialization of vm_ and the test itself _can instantiate with invalid modelLocator_. 
 
@@ -175,7 +176,7 @@ end function
 
 In this case, the test will fail
 
-![Simple test output](/Users/georgecook/Documents/h7ci/hope/rooibos/docs/images/simpleFail.png)
+![Simple test output](images/simpleFail.png)
 
 Observe how the test output indicates in which file the test suite resides, and the line of the failed assert, plus the reason for the failure. If your IDE has integrated brightscript support, such as eclipse, you will find that the locations are clickable. In this example, clicking on the Location link will navigate the IDE to the exact line of code of the assertion.
 
@@ -294,8 +295,68 @@ Note that in the example above, each of the tests in the `tests alternate data` 
 BeforeEach and AfterEach, can also be scoped to an it group. If the annotations appear _after_ an `'@It` group annotation, then they will only apply to that group. If the annotations appear _before the first it group annotation_ then they will be applied to all groups, _which do not have BeforeEach and AfterEach group-level-annotations_
 
 ### Paremeterized tests
+Many times, we want to test a broad range of values. Writing identical tests with different values is tedious and unneccessary, using Rooibos's `'@Params` mechanism
+
+You can run the same test several times, by adding one or more `'@Params[...]` annotations after the test annotation and before the method declaration, as follows:
+
+```
+'@Test AssertTrue
+'@Params[true, true]
+'@Params[false, false]
+'@Params[invalid, false]
+'@Params[0, false]
+'@Params[1, false]
+'@Params["test", false]
+function Simp__basic_AssertTrue(value, expectedAssertResult) as void
+...
+```
+
+In this case, the test will be run once for each of the `'@Params` annotations. Note that the method signature takes parameters which correspond to the arguments in the params arrays.
+
+This makes it easy for us to pass in values to our tests, and expected output values, e.g.
+
+```
+'@Test schedule shows correct index for now
+'@Params["04","10","15",0, 6]
+'@Params["04","11","00",0, 7]
+'@Params["05","15","20",1, 15]
+'@Params["05","16","05",1, 17]
+'@Params["05","18","00",1, 19]
+function SUT__Update_realData_success(dayOfMonth, hour, minute, expectedDayIndex, expectedShowIndex) as void
+	nowDate = SUT.CreateTestDatae(dayOfMonth, hour, minute)
+	
+	m.scheduleContent.callFunc("UpdateTime", nowDate.asSeconds())
+	m.AssertEqual(m.scheduleContent.nowDayIndex, expectedDayIndex)
+	m.AssertEqual(m.scheduleContent.nowShowIndex, expectedShowIndex)
+end function	   
+```
+
+####Parameterized test output
+
+The output from paremeterized tests shows the test name, and all of param configurations that were executed, making it easy to ascertain which param config results in a failure
+
+![Simple test output](images/paramTest.png)
+
+####Ignoring parameterized test configs
+If you have a couple of failing param tests, it can assist debugging to ignore the param configs you are not interested in. In this case, you can place the `'@Params` annotation with `'@IgnoreParams`, and that config will not execute.
+
+Rooibos 0.2.0, will include an `@OnlyParams` annotation for further convenience.
+
+####Paremeterized tests and other annotations
+If a test case has a `'@Only` or `'@Ignore` annotation, the _params_ will execute in accordance with their parent test case.
 
 ### Node specficic asserts
+Rooibos adds some node specifc asserts, which are fully described in the   [Assertion reference](../docs/apiDocs/module-BaseTestSuite.html). These are:
+
+ - AssertNodeCount             
+ - AssertNodeNotCount          
+ - AssertNodeEmpty             
+ - AssertNodeNotEmpty          
+ - AssertNodeContains          
+ - AssertNodeNotContains       
+ - AssertNodeContainsFields    
+ - AssertNodeNotContainsFields 
+
 
 ### Full list of asserts
 The full list of asserts can be found in the documentation  - [Assertion reference](../docs/apiDocs/module-BaseTestSuite.html)
@@ -308,12 +369,12 @@ Each test suite has it's own tree structure in the output, and in turn has branc
 ### Success and Failure output
 When a test passes, it is indicated by the presence of `Success` at the end of the line
 
-![Simple test output](/Users/georgecook/Documents/h7ci/hope/rooibos/docs/images/simpleReportOutput.png)
+![Simple test output](images/simpleReportOutput.png)
 
 
 When a test fails, it is indicated by a `-` in the trunk of the test output, and `Fail`, at the end of the line. In addition, failed tests contain a link to the line of the failed assertion, and the reason for the failure.
 
-![Simple test output](/Users/georgecook/Documents/h7ci/hope/rooibos/docs/images/simpleFail.png)
+![Simple test output](images/simpleFail.png)
 
 ### End of test report
 
@@ -321,7 +382,7 @@ At the end of the test report, you will get a report telling you how many tests 
 
 In addition, you get a simple to parse result as the last line of output, which makes it easy for you to ascertain the result for your Continuous Integration process.
 
-![Simple test output](/Users/georgecook/Documents/h7ci/hope/rooibos/docs/images/endOfTest.png)
+![Simple test output](images/endOfTest.png)
 
 ## Controlling which tests run
 Rooibos is built to facilitate TDD, and other test-based developer workflows. For this reason, I made it _very easy_ to specify which tests run, so you can simply execute 1 or a few tests while developing, then more as you finish the method you are currently working with.
@@ -506,6 +567,9 @@ detailsVM.LoadDetails()
 ? excecuteMock.invocations
 ```
 
+###Mock limitations
+Please note, mocks DO NOT work with globally scoped methods (i.e. subs and functions which are not assigned to an associative array). E.g. if you have a method, which is not accessed via `m.SomeMethod`, or `someObject.SomeMethod`, then you cannot mock it. This is a long term limitation. If you are hitting this problem, I suggest it's likely a code-smell anyhow, and you might consider using a pattern such as MVVM, which will better allow you to separate view and business logic.
+
 ## Integrating with your CI
 As of version 0.1.0, Rooibos does not have special test runners for outputting to files, or uploading to servers. However, that will not stop you integrating with your CI system.
 
@@ -574,3 +638,123 @@ You can rebuild by running the following command from the terminal:
 ```make dist```
 
 Which will compress all of the source files in the `src` folder into `dist/rooibos.cat.brs`, which can then be copied to your project
+
+## Testing scenegraph nodes
+I prefer to use [MVVM](https://medium.com/flawless-app-stories/how-to-use-a-model-view-viewmodel-architecture-for-ios-46963c67be1b) (link is for iOS pattern, so I don't personally run tests on my scene graph nodes (I have a preprocessor that does all the glueing for me, so I really have very little logic to test), however, I know not everyone works with that practice, so I went to considerable effort to make sure you can run unit tests on your scene graph nodes :)
+
+### Steps to test scenegraph nodes
+SceneGraph nodes are essentially _islands_ they cannot see any other code in your app, which is why they are not subject to name collisions. The only way to access methods in a node file, is to make an interface method and use `callFunc`. This is impractical for testing. We therefore need to create a _wrapper node_ which _extends_ the node we wish to test, and allows us to inject our tests into it.
+
+It's a simple process; but I'm fully documenting it to facilitate a deep understanding. Once you do it once, you'll just be copy and pasting a node file, adding an annotation and changing a filename reference.
+
+For now, here are the complete steps:
+
+1. For each SceneGraph node you want to test, you need to create a corresponding xml file. Example
+	- The name is not important; but I suggest `[NODE_NAME]Tests.xml`, so if you were testing `NetworkLayer.xml`, you would create a `NetworkLayerTests.xml` file. 
+	- This file should be located somewhere in your `components` folder, placing it under `components/tests` is a good idea, as you can easily exclude it from production builds.
+	- The file must extend the node you wish to test, e.g. `extends="NetworkLayer.xml"`
+	- You must also include an interface function definition for a function named `Rooibos_RunNodeTests`. You _must not_ implement it, it is mixed in for you automatically.
+	- You must import your unit test suite (e.g. `NetworkLayerTests.brs`) as well as the rooibos framework (e.g. `rooibos.cat.brs`)
+2. In your unit test suite, before the ``@TestSuite` delcaration you _must_ place a `'@SGNode` Annotation, with the name of the node that will be used to test this suite. e.g. `'@SGNode NetworkLayerTests`
+
+#### Example test suite: NetworkLayerTests.brs
+
+```
+'@SGNode NodeExampleTests
+'@TestSuite [NET] Node Example Tests
+
+'@Setup
+function NET_setup() as void
+    m.setupThing = "something created during setup"
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests methods present on the node
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+...
+```
+
+
+#### Example node test wrapper: NetworkLayerTests.xml
+
+This file is located in `components/tests`
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<component
+	name="NodeExampleTests"
+	extends="NodeExample"
+	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
+>
+	<interface>
+		<!-- public fields/functions -->
+		<function name="Rooibos_RunNodeTests" />
+	</interface>
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/tests/NodeExampleTests.brs" />
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/rooibos.cat.brs" />
+
+</component>
+```
+
+### Nuances of testing nodes
+The behaviour of your unit tests is identical to unit testing any other class, with 2 caveates:
+
+1. `m` does not refer to your node, it refers to the test suite, as per normal testing. If you wish to refer to the node use the `m.view` reference,to access your codebehind, or `m.view.top` reference, to acecess your actual node
+2. You **cannot** stub node methods. If there is no `.` reference to a method (via an associated array style object), then Rooibos cannot mock it. You may consider refactoring your code in these cases, as imho, it's better practice for things that you want to mock, to not be in the glue code of your code behdind files, in any case
+
+## Working with tests
+There are many articles on the benefits of TDD, and how to go about TDD, which you can readily find, such as [this link](https://builttoadapt.io/why-tdd-489fdcdda05e) which has a good overview, plus a great video with warnings of how to take it too far.
+
+Personally, I get great mileage doing TDD in roku by using MVVM pattern (I'm soon to release a lightweight MVVM framework). You can get more info on that [here](https://medium.com/flawless-app-stories/how-to-use-a-model-view-viewmodel-architecture-for-ios-46963c67be1b) (for iOS), and ideas on how that benefits roku dev [here](https://medium.com/plexlabs/xml-code-good-times-rsg-application-b963f0cec01b)
+
+I use theses practices as much as possible becuase:
+
+1. Keeps my view and business logic separated
+2. Tests are super fast to run (I generally run about 400 or so in each of my projects in < 5 seconds, and when running 1 test, turn around time is < 3 seconds)
+3. I can test all of my logic and ideas out in isolation, before I start up my app, navigate to the correct page
+4. Easy to mock my code, so that I can test a broad range of network conditions
+5. I get a Regression test suite as I write my code
+6. It's really the quickest way to develop. In my 20+ years professional experience those who follow TDD (or some less-strict form of it) write far more, and far better code than their counterparts, and their projects end up being way more maintainable over the years.
+
+As for me personally, I like to have my test in one window, the code I'm testing in another, and a third window with a telnet session, showing my testing output. This is especially handy, as Rooibos hyperlinks to the lines that assertions fail on, so I can easily navigate straight to the problematic tests.
+
+E.g.
+
+![Simple test output](images/testingExample.png)
+
+I slap an `@Only` annotation on the suite, group and test I'm currently working on, and have a hotkey to run my tests.
+
+Once my test passes, I test for regression, then run the whole suite, then run the app and test out in the UI.
+
+I also have templates for creating groups and test cases, which you are free to copy : they are for eclipse ide.
+
+Configured as name `test`
+
+```
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests ${itDescription}
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test ${testDescription}
+function ${prefix}__${itDescription}_${testName}() as void
+	m.AssertFail("implement me!")
+	${cursor}	
+end function
+```
+
+Configured as name `it`
+
+```
+'@Test ${testDescription}
+function ${prefix}__${testName}_${testCase}() as void
+	m.AssertFail("implementMe")
+	${cursor}	
+end function
+```

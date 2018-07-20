@@ -81,11 +81,11 @@ end function
 '    AssertNodeNotCount          
 '    AssertNodeEmpty             
 '    AssertNodeNotEmpty          
-'
 '    AssertNodeContains          
 '    AssertNodeNotContains       
 '    AssertNodeContainsFields    
 '    AssertNodeNotContainsFields 
+
 '    AssertArray   
 '    AssertAAContainsSubset   
 '

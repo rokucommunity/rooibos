@@ -37,13 +37,6 @@ End Function
 ' TODO: Create RBS_IG_GetInvalidItem function with random type fields
 
 
-' /**
-'  * @param {Array} first
-'  * @param {Array} second
-'  * @member wtf
-'  * @memberof module:ItemGenerator
-'  */
-
 '----------------------------------------------------------------
 ' Generate object according to specified scheme.
 '
@@ -54,19 +47,6 @@ End Function
 ' if scheme is not one of simple type, array or 
 ' associative array.
 '----------------------------------------------------------------
-' /**
-'  * @param {Array} first
-'  * @param {Array} second
-'  * @member difference
-'  * @memberof module:ItemGenerator
-'  * @instance
-'  * @description Return a new array of items from the first which are not in the second.
-'  * @example
-'  * 
-'  * difference = _.difference([1,2], [2])
-'  * ' => [1]
-'  * 
-'  */
 Function RBS_IG_GetItem(scheme as object) as object
     
     item = invalid

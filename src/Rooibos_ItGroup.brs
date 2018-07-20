@@ -50,7 +50,7 @@ function RBS_ItG_GetTestCases(group) as object
     end if
 end function
 
-function RBS_ItG_GetRunnableTestSuite(group)
+function RBS_ItG_GetRunnableTestSuite(group) as object
     testCases = RBS_ItG_GetTestCases(group)
    
     runnableSuite = BaseTestSuite()
@@ -64,11 +64,11 @@ function RBS_ItG_GetRunnableTestSuite(group)
         runnableSuite.addTest(name, testCase.func, testCase.funcName)
         group.testCaseLookup[name] = testCase
     end for
-    runnableSuite.SetUp = group.setupFunction
-    runnableSuite.TearDown =  group.teardownFunction
-    runnableSuite.BeforeEach =  group.beforeEachFunction
-    runnableSuite.AftrEach =  group.afterEachFunction
     
+    runnableSuite.SetUp = RBS_CMN_GetFunction(group.setupFunction, group.setupFunctionName)
+    runnableSuite.TearDown =  RBS_CMN_GetFunction(group.teardownFunction, group.teardownFunctionName)
+    runnableSuite.BeforeEach =  RBS_CMN_GetFunction(group.beforeEachFunction, group.beforeEachFunctionName) 
+    runnableSuite.AftrEach =  RBS_CMN_GetFunction(group.afterEachFunction, group.afterEachFunctionName) 
     
     return runnableSuite
 end function

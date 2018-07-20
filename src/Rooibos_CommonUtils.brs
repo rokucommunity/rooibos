@@ -29,6 +29,19 @@ function RBS_CMN_IsFunction(value as Dynamic) as Boolean
     return RBS_CMN_IsValid(value) and GetInterface(value, "ifFunction") <> invalid
 end function
 
+
+function RBS_CMN_GetFunction(func, name) as Object
+    if (RBS_CMN_IsFunction(func)) then return func
+    if (not RBS_CMN_IsNotEmptyString(name)) then return invalid
+    
+    res = eval("functionPointer=" + name)
+    if (RBS_CMN_IsInteger(res) and res = 252 and RBS_CMN_IsFunction(functionPointer))
+        return functionPointer
+    else
+        return invalid
+    end if
+    
+end function
 ' /**
 '  * @member RBS_CMN_IsBoolean
 '  * @description

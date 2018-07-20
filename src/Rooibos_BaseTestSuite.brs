@@ -1,12 +1,7 @@
 ' /**
 '  * @module BaseTestSuite
 '  */
-' /**
-'  * @member BaseTestSuite
-'  * @memberof module:rooibosh
-'  * @instance
-'  * @description Creates a new BaseTestSuite, used to execute tests. Used internally by the test runner
-'  */
+
 function BaseTestSuite() as Object
 
     this = {}
@@ -52,7 +47,6 @@ function BaseTestSuite() as Object
     this.AssertNodeNotContains         = RBS_BTS_AssertNodeNotContains
     this.AssertNodeContainsFields      = RBS_BTS_AssertNodeContainsFields
     this.AssertNodeNotContainsFields   = RBS_BTS_AssertNodeNotContainsFields
-    this.AssertArray   = RBS_BTS_AssertArray
     this.AssertAAContainsSubset   = RBS_BTS_AssertAAContainsSubset
 
     'Type Comparison Functionality
@@ -104,22 +98,28 @@ function BaseTestSuite() as Object
     return this
 End Function
 
-'----------------------------------------------------------------
-' Add a test to a suite's test cases array.
-' 
-' @param name (string) A test name.
-' @param func (string) A test function name.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AddTest
+'  * @function
+'  * @instance
+'  * @description Add a test to a suite's test cases array. Used internally.
+'  * @param {String} name - A test name.
+'  * @param {String} func - A test function name.
+'  */ 
 Sub RBS_BTS_AddTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object)
     m.testCases.Push(m.createTest(name, func, funcName, setup, teardown))
 End Sub
 
-'----------------------------------------------------------------
-' Create a test object.
-' 
-' @param name (string) A test name.
-' @param func (string) A test function name.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name CreateTest
+'  * @function
+'  * @instance
+'  * @description Create a test object. Used internally
+'  * @param {String} name - A test name.
+'  * @param {String} func - A test function name.
+'  */ 
 Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object) as Object
 
     if (func = invalid) 
@@ -127,7 +127,7 @@ Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, 
         ? " Looking it up now"
         res = eval("functionPointer=" + funcName)
         
-        if (res = 252 and functionPointer <> invalid)
+        if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
             ? "found the function"
             func = functionPointer
         else
@@ -143,33 +143,31 @@ Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, 
     }
 End Function
 
-'----------------------------------------------------------------
-' Assertion methods which determine test failure
-'----------------------------------------------------------------
-
-'----------------------------------------------------------------
-' Fail immediately, with the given message
-' 
-' @param msg (string) An error message.
-' Default value: "Error".
-'
-' @return true if assert passes, false otherwise.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name Fail
+'  * @function
+'  * @instance
+'  * @description Fail immediately, with the given message
+'  * @param {String} msg - message to display in the test report
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */
 Function RBS_BTS_Fail(msg = "Error" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     m.currentResult.AddResult(msg)
     return false
 End Function
 
-'----------------------------------------------------------------
-' Fail the test if the expression is true.
-' 
-' @param expr (dynamic) An expression to evaluate.
-' @param msg (string) An error message.
-' Default value: "Expression evaluates to true"
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertFalse
+'  * @function
+'  * @instance
+'  * @description Fail the test if the expression is true.
+'  * @param {dynamic} expr - An expression to evaluate.
+'  * @param {String} msg - alternate error message
+' Default value: "Expression evaluates to true"'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertFalse(expr as dynamic, msg = "Expression evaluates to true" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if not RBS_CMN_IsBoolean(expr) or expr 
@@ -180,15 +178,16 @@ Function RBS_BTS_AssertFalse(expr as dynamic, msg = "Expression evaluates to tru
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail the test unless the expression is true.
-' 
-' @param expr (dynamic) An expression to evaluate.
-' @param msg (string) An error message.
-' Default value: "Expression evaluates to false"
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertTrue
+'  * @function
+'  * @instance
+'  * @description Fail the test unless the expression is true.
+'  * @param {dynamic} expr - An expression to evaluate.
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertTrue(expr as dynamic, msg = "Expression evaluates to false" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if not RBS_CMN_IsBoolean(expr) or not expr then
@@ -199,16 +198,17 @@ Function RBS_BTS_AssertTrue(expr as dynamic, msg = "Expression evaluates to fals
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the two objects are unequal as determined by the '<>' operator.
-' 
-' @param first (dynamic) A first object to compare.
-' @param second (dynamic) A second object to compare.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertEqual
+'  * @function
+'  * @instance
+'  * @description Fail if the two objects are unequal as determined by the '<>' operator.
+'  * @param {dynamic} first - first object to compare
+'  * @param {dynamic} second - second object to compare
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if not m.eqValues(first, second)
@@ -224,15 +224,17 @@ Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as st
     return true
 End Function
 
-'*************************************************************
-'** does a fuzzy comparison
-' @param first (dynamic) A first object to compare.
-' @param second (dynamic) A second object to compare.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'*************************************************************
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertLike
+'  * @function
+'  * @instance
+'  * @description does a fuzzy comparison
+'  * @param {dynamic} first - first object to compare
+'  * @param {dynamic} second - second object to compare
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if first <> second
@@ -248,16 +250,17 @@ Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as str
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the two objects are equal as determined by the '=' operator.
-' 
-' @param first (dynamic) A first object to compare.
-' @param second (dynamic) A second object to compare.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNotEqual
+'  * @function
+'  * @instance
+'  * @description Fail if the two objects are equal as determined by the '=' operator.
+'  * @param {dynamic} first - first object to compare
+'  * @param {dynamic} second - second object to compare
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if m.eqValues(first, second)
@@ -273,15 +276,16 @@ Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the value is not invalid.
-' 
-' @param value (dynamic) A value to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertInvalid
+'  * @function
+'  * @instance
+'  * @description Fail if the value is not invalid.
+'  * @param {dynamic} value - value to check for
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if value <> Invalid
@@ -296,15 +300,16 @@ Function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as boolean
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the value is invalid.
-' 
-' @param value (dynamic) A value to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNotInvalid
+'  * @function
+'  * @instance
+'  * @description Fail if the value is invalid.
+'  * @param {dynamic} value - value to check for
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNotInvalid(value as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if value = Invalid
@@ -319,16 +324,17 @@ Function RBS_BTS_AssertNotInvalid(value as dynamic, msg = "" as string) as boole
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array doesn't have the key.
-' 
-' @param array (dynamic) A target array.
-' @param key (string) A key name.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertAAHasKey
+'  * @function
+'  * @instance
+'  * @description Fail if the array doesn't have the key.
+'  * @param {Object} array - target array
+'  * @param {String} key - key name
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertAAHasKey(array as dynamic, key as string, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array)
@@ -348,16 +354,17 @@ Function RBS_BTS_AssertAAHasKey(array as dynamic, key as string, msg = "" as str
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array has the key.
-' 
-' @param array (dynamic) A target array.
-' @param key (string) A key name.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertAANotHasKey
+'  * @function
+'  * @instance
+'  * @description Fail if the array has the key.
+'  * @param {Object} array - target array
+'  * @param {String} key - key name
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertAANotHasKey(array as dynamic, key as string, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array)
@@ -377,16 +384,17 @@ Function RBS_BTS_AssertAANotHasKey(array as dynamic, key as string, msg = "" as 
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array doesn't have the keys list.
-' 
-' @param array (dynamic) A target associative array.
-' @param keys (object) A key names array.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertAAHasKeys
+'  * @function
+'  * @instance
+'  * @description Fail if the array doesn't have the keys list.
+'  * @param {dynamic} array - A target associative array.
+'  * @param {Array} keys - Array of key names.
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
@@ -408,16 +416,17 @@ Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as s
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array has the keys list.
-' 
-' @param array (dynamic) A target associative array.
-' @param keys (object) A key names array.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertAANotHasKeys
+'  * @function
+'  * @instance
+'  * @description Fail if the array has the keys list.
+'  * @param {dynamic} array - A target associative array.
+'  * @param {Array} keys - Array of key names.
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
@@ -441,17 +450,18 @@ End Function
 
 
 
-'----------------------------------------------------------------
-' Fail if the array doesn't have the item.
-' 
-' @param array (dynamic) A target array.
-' @param value (dynamic) A value to check.
-' @param key (object) A key name for associative array.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertArrayContains
+'  * @function
+'  * @instance
+'  * @description Fail if the array doesn't have the item.
+'  * @param {Object} array - target array
+'  * @param {dynamic} value - value to check for
+'  * @param {String} key - key name in associative array
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
@@ -469,17 +479,19 @@ Function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = i
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array has the item.
-' 
-' @param array (dynamic) A target array.
-' @param value (dynamic) A value to check.
-' @param key (object) A key name for associative array.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertArrayNotContains
+'  * @function
+'  * @instance
+'  * @description Fail if the array has the item.
+'  * @param {Object} array - target array
+'  * @param {dynamic} array - target array
+'  * @param {dynamic} value - Value to check for
+'  * @param {String} key - A key name for associative array.
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertArrayNotContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
@@ -497,16 +509,17 @@ Function RBS_BTS_AssertArrayNotContains(array as dynamic, value as dynamic, key 
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array doesn't have the item subset.
-' 
-' @param array (dynamic) A target array.
-' @param subset (dynamic) An items array to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertArrayContainsSubset
+'  * @function
+'  * @instance
+'  * @description Fail if the array doesn't have the item subset.
+'  * @param {Object} array - target array
+'  * @param {dynamic} subset - items to check presnece of
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) or (RBS_CMN_IsArray(array) and RBS_CMN_IsArray(subset))
@@ -533,16 +546,17 @@ Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, 
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array have the item from subset.
-' 
-' @param array (dynamic) A target array.
-' @param subset (dynamic) A items array to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertArrayNotContainsSubset
+'  * @function
+'  * @instance
+'  * @description Fail if the array have the item from subset.
+'  * @param {Object} array - target array
+'  * @param {dynamic} subset - items to check presnece of
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) or (RBS_CMN_IsArray(array) and RBS_CMN_IsArray(subset))
@@ -569,16 +583,17 @@ Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynami
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array items count <> expected count
-' 
-' @param array (dynamic) A target array.
-' @param count (integer) An expected array items count.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertArrayCount
+'  * @function
+'  * @instance
+'  * @description Fail if the array items count <> expected count
+'  * @param {Object} array - target array
+'  * @param {integer} count - An expected array items count
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
@@ -596,16 +611,17 @@ Function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" a
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the array items count = expected count.
-' 
-' @param array (dynamic) A target array.
-' @param count (integer) An expected array items count.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertArrayNotCount
+'  * @function
+'  * @instance
+'  * @description Fail if the array items count = expected count.
+'  * @param {Object} array - target array
+'  * @param {integer} count - An expected array items count.
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertArrayNotCount(array as dynamic, count as integer, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
@@ -623,15 +639,16 @@ Function RBS_BTS_AssertArrayNotCount(array as dynamic, count as integer, msg = "
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the item is not empty array or string.
-' 
-' @param item (dynamic) An array or string to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertEmpty
+'  * @function
+'  * @instance
+'  * @description Fail if the item is not empty array or string.
+'  * @param {dynamic} item - item to check
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
@@ -655,15 +672,16 @@ Function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as boolean
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the item is empty array or string.
-' 
-' @param item (dynamic) An array or string to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNotEmpty
+'  * @function
+'  * @instance
+'  * @description Fail if the item is empty array or string.
+'  * @param {dynamic} item - item to check
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
@@ -683,15 +701,16 @@ Function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as boolean
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the item is empty array or string.
-' 
-' @param item (dynamic) An array or string to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertArratNotEmpty
+'  * @function
+'  * @instance
+'  * @description Fail if the item is empty array or string.
+'  * @param {dynamic} item - item to check
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertArratNotEmpty(item as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
@@ -711,16 +730,17 @@ End Function
 
 
 
-'----------------------------------------------------------------
-' Fail if the array doesn't contains items of specific type only.
-' 
-' @param array (dynamic) A target array.
-' @param typeStr (string) An items type name.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertArrayContainsOnly
+'  * @function
+'  * @instance
+'  * @description Fail if the array doesn't contains items of specific type only.
+'  * @param {Object} array - target array
+'  * @param {String} typeStr - type name
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertArrayContainsOnly(array as dynamic, typeStr as string, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
@@ -741,8 +761,17 @@ Function RBS_BTS_AssertArrayContainsOnly(array as dynamic, typeStr as string, ms
     return true
 End Function
 
-
-
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertType
+'  * @function
+'  * @instance
+'  * @description Asserts that the value is a node of designated type
+'  * @param {Object} value - target node
+'  * @param {String} typeStr - type name
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(value) <> typeStr
@@ -757,6 +786,17 @@ function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as stri
     return true
 end function
 
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertSubType
+'  * @function
+'  * @instance
+'  * @description Asserts that the value is a node of designated subtype
+'  * @param {Object} value - target node
+'  * @param {String} typeStr - type name
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(value) <> "roSGNode"
@@ -778,18 +818,16 @@ function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as s
     return true
 end function
 
-'----------------------------------------------------------------
-' Type Comparison Functionality
-'----------------------------------------------------------------
-
-'----------------------------------------------------------------
-' Compare two arbtrary values to eachother.
-' 
-' @param Value1 (dynamic) A first item to compare.
-' @param Value2 (dynamic) A second item to compare.
-'
-' @return True if values are equal or False in other case.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name EqValues
+'  * @function
+'  * @instance
+'  * @description Compare two arbtrary values to eachother.
+'  * @param {Object} Vallue1 - first item to compare
+'  * @param {Object} Vallue2 - second item to compare
+'  * @returns {boolean} - True if values are equal or False in other case.
+'  */ 
 Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as Boolean
     ' Workaraund for bug with string boxing, and box everything else
     val1Type = type(Value1)
@@ -850,14 +888,16 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as Boolean
     end if
 End Function 
 
-'----------------------------------------------------------------
-' Compare to roAssociativeArray objects for equality.
-' 
-' @param Value1 (object) A first associative array.
-' @param Value2 (object) A second associative array.
-' 
-' @return True if arrays are equal or False in other case.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name EqAssocArray
+'  * @function
+'  * @instance
+'  * @description Compare to roAssociativeArray objects for equality.
+'  * @param {Object} Vallue1 - first associative array
+'  * @param {Object} Vallue2 - second associative array
+'  * @returns {boolean} - True if arrays are equal or False in other case.
+'  */ 
 Function RBS_BTS_EqAssocArray(Value1 as Object, Value2 as Object) as Boolean
     l1 = Value1.Count()
     l2 = Value2.Count()
@@ -880,14 +920,16 @@ Function RBS_BTS_EqAssocArray(Value1 as Object, Value2 as Object) as Boolean
     end if
 End Function 
 
-'----------------------------------------------------------------
-' Compare to roArray objects for equality.
-' 
-' @param Value1 (object) A first array.
-' @param Value2 (object) A second array.
-' 
-' @return True if arrays are equal or False in other case.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name EqArray
+'  * @function
+'  * @instance
+'  * @description Compare to roArray objects for equality.
+'  * @param {Object} Vallue1 - first array
+'  * @param {Object} Vallue2 - second array
+'  * @returns {boolean} - True if arrays are equal or False in other case.
+'  */ 
 Function RBS_BTS_EqArray(Value1 as Object, Value2 as Object) as Boolean
     l1 = Value1.Count()
     l2 = Value2.Count()
@@ -913,7 +955,17 @@ End Function
 '++ NEW NODE ASSERTS
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeCount
+'  * @function
+'  * @instance
+'  * @description Asserts that the node contains the desginated number of children
+'  * @param {dynamic} node - target node
+'  * @param {integer} count - expected number of child items
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(node) = "roSGNode" 
@@ -931,16 +983,17 @@ Function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as 
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the node items count = expected count.
-' 
-' @param node (dynamic) A target node.
-' @param count (integer) An expected node items count.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeNotCount
+'  * @function
+'  * @instance
+'  * @description Fail if the node items count = expected count.
+'  * @param {dynamic} node - A target node
+'  * @param {integer} count - Expected item count
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNodeNotCount(node as dynamic, count as integer, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(node) = "roSGNode" 
@@ -958,15 +1011,16 @@ Function RBS_BTS_AssertNodeNotCount(node as dynamic, count as integer, msg = "" 
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the item is not empty node or string.
-' 
-' @param item (dynamic) An node or string to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeEmpty
+'  * @function
+'  * @instance
+'  * @description Asserts the node has no children
+'  * @param {dynamic} node - a node to check
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNodeEmpty(node as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(node) = "roSGNode" 
@@ -980,6 +1034,16 @@ Function RBS_BTS_AssertNodeEmpty(node as dynamic, msg = "" as string) as boolean
     return true
 End Function
 
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeNotEmpty
+'  * @function
+'  * @instance
+'  * @description Asserts the node has children
+'  * @param {dynamic} node - a node to check
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNodeNotEmpty(node as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(node) = "roSGNode" 
@@ -993,7 +1057,17 @@ Function RBS_BTS_AssertNodeNotEmpty(node as dynamic, msg = "" as string) as bool
     return true
 End Function
 
-
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeEmpty
+'  * @function
+'  * @instance
+'  * @description Asserts the node has contains the child _value_
+'  * @param {dynamic} node - a node to check
+'  * @param {dynamic} value - value to look for
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if  type(node) = "roSGNode" 
@@ -1011,7 +1085,18 @@ Function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" 
     return true
 End Function
 
-Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, typeStr as string, msg = "" as string) as boolean
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeContainsOnly
+'  * @function
+'  * @instance
+'  * @description Asserts the node contains only the child _value_
+'  * @param {dynamic} node - a node to check
+'  * @param {dynamic} value - value to look for
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
+Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if  type(node) = "roSGNode" 
         if not RBS_CMN_NodeContains(node, value)
@@ -1033,17 +1118,17 @@ Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, typeStr as string, msg 
 End Function
 
 
-'----------------------------------------------------------------
-' Fail if the node has the item.
-' 
-' @param node (dynamic) A target node.
-' @param value (object) a node child
-' @param key (object) A key name for associative node.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeNotContains
+'  * @function
+'  * @instance
+'  * @description Fail if the node has the item.
+'  * @param {dynamic} node - A target node
+'  * @param {Object} value - a node child
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNodeNotContains(node as dynamic, value as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if  type(node) = "roSGNode" 
@@ -1061,16 +1146,17 @@ Function RBS_BTS_AssertNodeNotContains(node as dynamic, value as dynamic, msg = 
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the node doesn't have the item subset.
-' 
-' @param node (dynamic) A target node.
-' @param subset (dynamic) An items node to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeContainsFields
+'  * @function
+'  * @instance
+'  * @description Fail if the node doesn't have the item subset.
+'  * @param {dynamic} node - A target node
+'  * @param {dynamic} subset - items to check
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ignoredFields=invalid, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if ( type(node) = "roSGNode" and RBS_CMN_IsAssociativeArray(subset)) or ( type(node) = "roSGNode"  and RBS_CMN_IsArray(subset))
@@ -1100,16 +1186,17 @@ Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ig
     return true
 End Function
 
-'----------------------------------------------------------------
-' Fail if the node have the item from subset.
-' 
-' @param node (dynamic) A target node.
-' @param subset (dynamic) A items node to check.
-' @param msg (string) An error message.
-' Default value: ""
-'
-' @return An error message.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertNodeNotContainsFields
+'  * @function
+'  * @instance
+'  * @description Fail if the node have the item from subset.
+'  * @param {dynamic} node - A target node
+'  * @param {dynamic} subset - the items to check for
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+' */
 Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if ( type(node) = "roSGNode"  and RBS_CMN_IsAssociativeArray(subset)) or ( type(node) = "roSGNode" and RBS_CMN_IsArray(subset))
@@ -1140,25 +1227,18 @@ End Function
 '++ END NODE ASSERTS
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'++ NEW ASSERTS 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-Function RBS_BTS_AssertArray(value as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
-    if not RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
-        if msg = ""
-            expr_as_string = RBS_CMN_AsString(value)
-            msg = expr_as_string + " was not array type"
-        end if
-        m.currentResult.AddResult(msg)
-        return false
-    end if
-    m.currentResult.AddResult("")
-    return true
-End Function
-
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertAAContainsSubset
+'  * @function
+'  * @instance
+'  * @description Asserts the associative array contains the fields contained in subset; while ignoring the fields in the ignoredFields array
+'  * @param {dynamic} array - associative array  to check
+'  * @param {dynamic} subset - associative array of values to check for
+'  * @param {Array} ignoredFields - array of fieldnames to ignore while comparing
+'  * @param {String} msg - alternate error message
+'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  */ 
 Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ignoredFields = invalid, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) 
@@ -1190,12 +1270,6 @@ End Function
 
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'++ END NEW ASSERTS 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ STubbing helpers
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1209,6 +1283,21 @@ End Function
 '** @param param as ObjectP paramdesc
 '** @return returnValue retdesc
 '*************************************************************
+
+
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name Stub
+'  * @function
+'  * @instance
+'  * @description Creates a stub to replace a real method with
+'  * @param {Object} target - object on which the method to be stubbed is found
+'  * @param {String} methodName - name of method to stub
+'  * @param {integer} expectedInvocations - number of invocations we expect
+'  * @param {Array} expectedArgs - array containing the arguments we expect the method to be invoked with
+'  * @param {dynamic} returnValue - value that the stub method will return when invoked
+'  * @returns {Object} - stub that was wired into the real method
+'  */ 
 function RBS_BTS_Stub(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
     if (m.stubs =invalid)
         m.__stubId = -1
@@ -1235,17 +1324,68 @@ function RBS_BTS_Stub(target, methodName, expectedInvocations = 1, expectedArgs 
     return fake
 end function
 
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name ExpectOnce
+'  * @function
+'  * @instance
+'  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
+'  * @param {Object} target - object on which the method to be stubbed is found
+'  * @param {String} methodName - name of method to stub
+'  * @param {Array} expectedArgs - array containing the arguments we expect the method to be invoked with
+'  * @param {dynamic} returnValue - value that the stub method will return when invoked
+'  * @returns {Object} - stub that was wired into the real method
+'  */ 
 function RBS_BTS_ExpectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid) as object
     return m.Mock(target, methodName, 1, expectedArgs, returnValue)
 end function 
 
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name ExpecTNone
+'  * @function
+'  * @instance
+'  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked, it will result in test failure
+'  * @param {Object} target - object on which the method to be stubbed is found
+'  * @param {String} methodName - name of method to stub
+'  * @param {Array} expectedArgs - array containing the arguments we expect the method to be invoked with
+'  * @param {dynamic} returnValue - value that the stub method will return when invoked
+'  * @returns {Object} - stub that was wired into the real method
+'  */ 
 function RBS_BTS_ExpectNone(target, methodName, expectedArgs = invalid, returnValue = invalid) as object
     return m.Mock(target, methodName, 0, expectedArgs, returnValue)
 end function 
 
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name Expect
+'  * @function
+'  * @instance
+'  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
+'  * @param {Object} target - object on which the method to be stubbed is found
+'  * @param {String} methodName - name of method to stub
+'  * @param {integer} expectedInvocations - number of invocations we expect
+'  * @param {Array} expectedArgs - array containing the arguments we expect the method to be invoked with
+'  * @param {dynamic} returnValue - value that the stub method will return when invoked
+'  * @returns {Object} - stub that was wired into the real method
+'  */ 
 function RBS_BTS_Expect(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
     return m.Mock(target, methodName, expectedInvocations, expectedArgs, returnValue)
 end function 
+
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name Mock
+'  * @function
+'  * @instance
+'  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
+'  * @param {Object} target - object on which the method to be stubbed is found
+'  * @param {String} methodName - name of method to stub
+'  * @param {integer} expectedInvocations - number of invocations we expect
+'  * @param {Array} expectedArgs - array containing the arguments we expect the method to be invoked with
+'  * @param {dynamic} returnValue - value that the stub method will return when invoked
+'  * @returns {Object} - stub that was wired into the real method
+'  */ 
 
 function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
     if (m.mocks = invalid)
@@ -1273,7 +1413,19 @@ function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs 
     return fake
 end function
 
-
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name CreateFake
+'  * @function
+'  * @instance
+'  * @description Creates a stub to replace a real method with. This is used internally.
+'  * @param {Object} target - object on which the method to be stubbed is found
+'  * @param {String} methodName - name of method to stub
+'  * @param {integer} expectedInvocations - number of invocations we expect
+'  * @param {Array} expectedArgs - array containing the arguments we expect the method to be invoked with
+'  * @param {dynamic} returnValue - value that the stub method will return when invoked
+'  * @returns {Object} - stub that was wired into the real method
+'  */ 
 function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, expectedArgs =invalid, returnValue=invalid ) as object
     fake = {
         id : id,
@@ -1296,7 +1448,13 @@ function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, exp
     return fake
 end function
 
-'TODO - add to end of testcase invocation
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name AssertMocks
+'  * @function
+'  * @instance
+'  * @description Will check all mocks that have been created to ensure they were invoked the expected amount of times, with the expected args.
+'  */ 
 function RBS_BTS_AssertMocks() as void
     if (m.__mockId = invalid ) return
     lastId = int(m.__mockId)
@@ -1321,6 +1479,13 @@ function RBS_BTS_AssertMocks() as void
     m.CleanMocks()
 end function
 
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name CleanMocks
+'  * @function
+'  * @instance
+'  * @description Cleans up all tracking data associated with mocks
+'  */ 
 function RBS_BTS_CleanMocks() as void
     if m.mocks = invalid return
     for each id in m.mocks
@@ -1330,7 +1495,13 @@ function RBS_BTS_CleanMocks() as void
     m.mocks = invalid
 end function
 
-
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name CleanStubs
+'  * @function
+'  * @instance
+'  * @description Cleans up all tracking data associated with stubs
+'  */ 
 function RBS_BTS_CleanStubs() as void
     if m.stubs = invalid return
     for each id in m.stubs
@@ -1339,6 +1510,7 @@ function RBS_BTS_CleanStubs() as void
     end for
     m.stubs = invalid
 end function
+
 
 Function RBS_BTS_MockFail(methodName, message) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
@@ -1456,16 +1628,20 @@ Function RBS_BTS_rodash_pathsAsArray_(path)
     return segments
 End Function
 
-'*************************************************************
-'** ripped and adapted from rodash - thanks @veeta!
-'** use this method to safely get anything. useful for when unit testing a collection
-'** or something and you're not sure if it's gonna crash!
-'** @param aa as ObjectP collection - node, array or assoArray
-'** @param path as string path to target field. Can use .0. or [0] index notation
-'**             e.g. "children.0.title" or "children[0].title"
-'** @param default as dynamic - what to return if data is not found/reachable
-'** @return ObjectR retdesc
-'*************************************************************
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name g
+'  * @function
+'  * @instance
+'  * @description ripped and adapted from rodash - thanks @veeta!
+'  * use this method to safely get anything. useful for when unit testing a collection
+'  * or something and you're not sure if it's gonna crash!
+'  * @param {dynamic} aa - node, array or assoArray
+'  * @param {dynamic} subset - the items to check for
+'  * @param {String} path -as string path to target field. Can use .0. or [0] index notation e.g. "children.0.title" or "children[0].title"
+'  * @returns {dynamic} - matched item, on aa at path
+' */
+
 Function RBS_BTS_rodash_get_(aa, path, default=invalid)
     if type(aa) <> "roAssociativeArray" and type(aa) <> "roArray" and type(aa) <> "roSGNode" then return default
     segments = m.pathAsArray_(path)

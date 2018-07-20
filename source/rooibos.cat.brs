@@ -91,7 +91,6 @@ function BaseTestSuite() as Object
     this.AssertNodeNotContains         = RBS_BTS_AssertNodeNotContains
     this.AssertNodeContainsFields      = RBS_BTS_AssertNodeContainsFields
     this.AssertNodeNotContainsFields   = RBS_BTS_AssertNodeNotContainsFields
-    this.AssertArray   = RBS_BTS_AssertArray
     this.AssertAAContainsSubset   = RBS_BTS_AssertAAContainsSubset
     this.EqValues                       = RBS_BTS_EqValues
     this.EqAssocArrays                  = RBS_BTS_EqAssocArray
@@ -130,7 +129,7 @@ Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, 
         ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
         ? " Looking it up now"
         res = eval("functionPointer=" + funcName)
-        if (res = 252 and functionPointer <> invalid)
+        if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
             ? "found the function"
             func = functionPointer
         else
@@ -689,7 +688,7 @@ Function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" 
     m.currentResult.AddResult("")
     return true
 End Function
-Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, typeStr as string, msg = "" as string) as boolean
+Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, msg = "" as string) as boolean
     if (m.currentResult.isFail) then return false ' skip test we already failed
     if  type(node) = "roSGNode" 
         if not RBS_CMN_NodeContains(node, value)
@@ -772,19 +771,6 @@ Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic,
         end for
     else
         msg = "Input value is not an Node."
-        m.currentResult.AddResult(msg)
-        return false
-    end if
-    m.currentResult.AddResult("")
-    return true
-End Function
-Function RBS_BTS_AssertArray(value as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
-    if not RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
-        if msg = ""
-            expr_as_string = RBS_CMN_AsString(value)
-            msg = expr_as_string + " was not array type"
-        end if
         m.currentResult.AddResult(msg)
         return false
     end if
@@ -1054,6 +1040,16 @@ end function
 function RBS_CMN_IsFunction(value as Dynamic) as Boolean
     return RBS_CMN_IsValid(value) and GetInterface(value, "ifFunction") <> invalid
 end function
+function RBS_CMN_GetFunction(func, name) as Object
+    if (RBS_CMN_IsFunction(func)) then return func
+    if (not RBS_CMN_IsNotEmptyString(name)) then return invalid
+    res = eval("functionPointer=" + name)
+    if (RBS_CMN_IsInteger(res) and res = 252 and RBS_CMN_IsFunction(functionPointer))
+        return functionPointer
+    else
+        return invalid
+    end if
+end function
 function RBS_CMN_IsBoolean(value as Dynamic) as Boolean
     return RBS_CMN_IsValid(value) and GetInterface(value, "ifBoolean") <> invalid
 end function
@@ -1272,7 +1268,7 @@ function RBS_ItG_GetTestCases(group) as object
         return group.testCases
     end if
 end function
-function RBS_ItG_GetRunnableTestSuite(group)
+function RBS_ItG_GetRunnableTestSuite(group) as object
     testCases = RBS_ItG_GetTestCases(group)
     runnableSuite = BaseTestSuite()
     runnableSuite.name = group.name
@@ -1284,10 +1280,10 @@ function RBS_ItG_GetRunnableTestSuite(group)
         runnableSuite.addTest(name, testCase.func, testCase.funcName)
         group.testCaseLookup[name] = testCase
     end for
-    runnableSuite.SetUp = group.setupFunction
-    runnableSuite.TearDown =  group.teardownFunction
-    runnableSuite.BeforeEach =  group.beforeEachFunction
-    runnableSuite.AftrEach =  group.afterEachFunction
+    runnableSuite.SetUp = RBS_CMN_GetFunction(group.setupFunction, group.setupFunctionName)
+    runnableSuite.TearDown =  RBS_CMN_GetFunction(group.teardownFunction, group.teardownFunctionName)
+    runnableSuite.BeforeEach =  RBS_CMN_GetFunction(group.beforeEachFunction, group.beforeEachFunctionName) 
+    runnableSuite.AftrEach =  RBS_CMN_GetFunction(group.afterEachFunction, group.afterEachFunctionName) 
     return runnableSuite
 end function
 Function ItemGenerator(scheme as object) as Object
@@ -2112,7 +2108,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 if functionNameRegex.IsMatch(line)
                     functionName = functionNameRegex.Match(line).Peek()
                     res = eval("functionPointer=" + functionName)
-                    if (res = 252 and functionPointer <> invalid)
+                    if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
                         if (isNextTokenTest)
                             if (nextName <> "") 
                                 testName = nextName

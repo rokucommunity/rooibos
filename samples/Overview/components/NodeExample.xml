@@ -7,6 +7,9 @@
 >
 	<interface>
 		<!-- public fields/functions -->
+		<field
+			type="string"
+			id="state" />
 	</interface>
 
 	<script
@@ -15,7 +18,16 @@
 
 
 	<children>
+		<Label
+			id="nameText"
+			text="name" />
 
+		<Button
+			id="button1"
+			text="button1" />
+		<Button
+			id="button2"
+			text="button2" />
 	</children>
 
 </component>

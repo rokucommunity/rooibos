@@ -4,6 +4,7 @@ build
 dist/apps
 out/
 dist/
+apiDocs/
 
 ### Eclipse project files
 
