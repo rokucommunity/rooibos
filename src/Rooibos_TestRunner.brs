@@ -6,7 +6,6 @@ function RBS_TR_TestRunner(args = {}) as Object
         testsDirectory: "pkg:/source/Tests", 
         testFilePrefix: "Test__",
         failFast: false,
-        swallowRuntimeErrors: false,
         showOnlyFailures: false,
         maxLinesWithoutSuiteDirective: 100
     }
@@ -34,10 +33,6 @@ function RBS_TR_TestRunner(args = {}) as Object
     
     if (args.failFast <> invalid)
         config.failFast = args.failFast = "true"
-    end if
-    
-    if (args.swallowRuntimeErrors <> invalid)
-        config.swallowRuntimeErrors = args.swallowRuntimeErrors = "true"
     end if
     
     this.testUtilsDecorator = args.testUtilsDecorator
@@ -91,7 +86,7 @@ sub RBS_TR_Run()
         ' NOW PROCESSES EACH TEST SUITE AS A SERIES OF '@It tags, which in turn become test suites
         '********************************************* 
         for each itGroup in metaTestSuite.itGroups
-            testSuite = itGroup.GetRunnableTestSuite()
+            testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
             
             if (m.testUtilsDecorator <> invalid)
                 m.testUtilsDecorator(testSuite)
@@ -129,7 +124,6 @@ sub RBS_TR_Run()
             alltestCount = alltestCount + testCount
     
             if RBS_CMN_IsFunction(testSuite.SetUp)
-                m.logger.PrintSuiteSetUp(itGroup.Name)
                 testSuite.SetUp()
             end if
     
@@ -142,7 +136,6 @@ sub RBS_TR_Run()
                 end if
                 
                 if RBS_CMN_IsFunction(testSuite.beforeEach)
-                    m.logger.PrintTestSetUp(testCase.Name)
                     testSuite.beforeEach()
                 end if
 
@@ -155,46 +148,40 @@ sub RBS_TR_Run()
                 
                 testStatObj.metaTestCase.testResult = testSuite.currentResult
                  
-                'TODO move execution logic to another calss
+                'TODO move execution logic to another method
                 'not doing now coz I'm not sure about scoping implications 
-                if (m.config.swallowRuntimeErrors = true)
-                    isSucess = eval("testSuite.testCase()")
-                    if isSucess <> 252
-                        runResult = "Crashed while running code"
-                    end if
-                else 
-                    if (metaTestCase.rawParams <> invalid)
-                        testCaseParams = invalid
-                        isSucess = eval("testCaseParams = " + metaTestCase.rawParams)
-                        argsValid = RBS_CMN_IsArray(testCaseParams)
-                            
-                        if (argsValid)
-                            'up to 6 param args supported for now 
-                            if (testCaseParams.count() = 1)
-                                testSuite.testCase(testCaseParams[0])
-                            else if (testCaseParams.count() = 2)
-                                testSuite.testCase(testCaseParams[0], testCaseParams[1])
-                            else if (testCaseParams.count() = 3)
-                                testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
-                            else if (testCaseParams.count() = 4)
-                                testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
-                            else if (testCaseParams.count() = 5)
-                                testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
-                            else if (testCaseParams.count() = 6)
-                                testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
-                            end if                                                            
-                        else
-                            ? "Could not parse args for test " ; testCase.name
-                            testSuite.Fail("Could not parse args for test ")
-                        end if
+                if (metaTestCase.rawParams <> invalid)
+                    testCaseParams = invalid
+                    isSucess = eval("testCaseParams = " + metaTestCase.rawParams)
+                    argsValid = RBS_CMN_IsArray(testCaseParams)
+                        
+                    if (argsValid)
+                        'up to 6 param args supported for now 
+                        if (testCaseParams.count() = 1)
+                            testSuite.testCase(testCaseParams[0])
+                        else if (testCaseParams.count() = 2)
+                            testSuite.testCase(testCaseParams[0], testCaseParams[1])
+                        else if (testCaseParams.count() = 3)
+                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
+                        else if (testCaseParams.count() = 4)
+                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
+                        else if (testCaseParams.count() = 5)
+                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
+                        else if (testCaseParams.count() = 6)
+                            testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
+                        end if                                                            
                     else
-                        testSuite.testCase()                    
+                        ? "Could not parse args for test " ; testCase.name
+                        testSuite.Fail("Could not parse args for test ")
                     end if
-                    testSuite.AssertMocks()
-                    testSuite.CleanMocks()
-                    testSuite.CleanStubs()
-                    runResult = testSuite.currentResult.GetResult()
+                else
+                    testSuite.testCase()                    
                 end if
+                testSuite.AssertMocks()
+                testSuite.CleanMocks()
+                testSuite.CleanStubs()
+                runResult = testSuite.currentResult.GetResult()
+
 
                 if runResult <> ""
                     testStatObj.Result          = "Fail"
@@ -208,7 +195,6 @@ sub RBS_TR_Run()
                 m.logger.AppendTestStatistic(suiteStatObj, testStatObj)
 
                 if RBS_CMN_IsFunction(testCase.afterEach)
-                    m.logger.PrintTestTearDown(testCase.Name)
                     testSuite.afterEach()
                 end if
                 
@@ -226,7 +212,6 @@ sub RBS_TR_Run()
             m.logger.AppendSuiteStatistic(totalStatObj, suiteStatObj)
     
             if RBS_CMN_IsFunction(testSuite.TearDown)
-                m.logger.PrintSuiteTearDown(testSuite.Name)
                 testSuite.TearDown()
             end if
     
@@ -248,3 +233,12 @@ sub RBS_TR_SendHomeKeypress()
     ut.SetUrl("http://localhost:8060/keypress/Home")
     ut.PostFromString("")
 end sub
+
+'*************************************************************
+'** RunNodeTests
+'** executes the tests in a test suite, on the given node
+'*************************************************************
+function Rooibos_RunNodeTests(args) as void
+    ? " RUNNING NODE TESTS!!!!"
+    stop
+end function

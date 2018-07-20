@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component
+	name="NodeExample"
+	extends="Group"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
+>
+	<interface>
+		<!-- public fields/functions -->
+	</interface>
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/components/NodeExample.brs" />
+
+
+	<children>
+
+	</children>
+
+</component>

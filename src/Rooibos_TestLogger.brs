@@ -13,11 +13,9 @@ function Logger(config) as Object
 
     ' Internal properties
     this.verbosity              = this.config.logLevel
-    this.serverURL              = invalid
 
     ' Interface
     this.PrintStatistic         = RBS_LOGGER_PrintStatistic
-
     this.CreateTotalStatistic   = RBS_LOGGER_CreateTotalStatistic
     this.CreateSuiteStatistic   = RBS_LOGGER_CreateSuiteStatistic
     this.CreateTestStatistic    = RBS_LOGGER_CreateTestStatistic
@@ -30,14 +28,7 @@ function Logger(config) as Object
     this.PrintTestStatistic     = RBS_LOGGER_PrintTestStatistic
     this.PrintStart             = RBS_LOGGER_PrintStart
     this.PrintEnd               = RBS_LOGGER_PrintEnd
-    this.PrintSuiteSetUp        = RBS_LOGGER_PrintSuiteSetUp
     this.PrintSuiteStart        = RBS_LOGGER_PrintSuiteStart
-    this.PrintSuiteEnd          = RBS_LOGGER_PrintSuiteEnd
-    this.PrintSuiteTearDown     = RBS_LOGGER_PrintSuiteTearDown
-    this.PrintTestSetUp         = RBS_LOGGER_PrintTestSetUp
-    this.PrintTestStart         = RBS_LOGGER_PrintTestStart
-    this.PrintTestEnd           = RBS_LOGGER_PrintTestEnd
-    this.PrintTestTearDown      = RBS_LOGGER_PrintTestTearDown
 
     return this
 end function
@@ -64,7 +55,7 @@ sub RBS_LOGGER_PrintStatistic(statObj as Object)
     ? ""
     m.PrintEnd()
 
-    ? "Total  = "; RBS_CMN_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Crashes  = "; statObj.Crash;
+    ? "Total  = "; RBS_CMN_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail
     ? " Time spent: "; statObj.Time; "ms"
     ? ""
     ? ""
@@ -235,12 +226,11 @@ end sub
 ' @param statTestObj (object) A target test object to print.
 '----------------------------------------------------------------
 sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
-    m.PrintTestStart(testCase.Name)
     metaTestCase = testCase.metaTestCase
     if (LCase(testCase.Result) <> "success")
         testChar = "-"
         assertIndex = metaTestCase.testResult.failedAssertIndex
-        locationLine = StrI(metaTestCase.GetAssertLine(assertIndex)).trim()
+        locationLine = StrI(RBS_TC_GetAssertLine(metaTestCase,assertIndex)).trim()
     else
         testChar = "|"
         locationLine = StrI(metaTestCase.lineNumber).trim()
@@ -332,15 +322,6 @@ sub RBS_LOGGER_PrintSuiteStart(sName as String)
 end sub
 
 '----------------------------------------------------------------
-' Print test suite end message.
-'----------------------------------------------------------------
-sub RBS_LOGGER_PrintSuiteEnd(sName as String)
-'    ? "==="
-'    ? "===   End "; sName
-'    ? "================================================================="
-End Sub
-
-'----------------------------------------------------------------
 ' Print test suite TearDown message.
 '----------------------------------------------------------------
 sub RBS_LOGGER_PrintSuiteTearDown(sName as String)
@@ -360,24 +341,6 @@ sub RBS_LOGGER_PrintTestSetUp(tName as String)
         ? "---   SetUp "; tName; " test."
         ? "----------------------------------------------------------------"
     end if
-end sub
-
-'----------------------------------------------------------------
-' Print test start message.
-'----------------------------------------------------------------
-sub RBS_LOGGER_PrintTestStart(tName as String)
-'    ? "----------------------------------------------------------------"
-'    ? "---   Tests "; tName
-'    ? "---"
-end sub
-
-'----------------------------------------------------------------
-' Print test end message.
-'----------------------------------------------------------------
-sub RBS_LOGGER_PrintTestEnd(tName as String)
-'    ? "---"
-'    ? "---   End "; tName; " test."
-'    ? "----------------------------------------------------------------"
 end sub
 
 '----------------------------------------------------------------

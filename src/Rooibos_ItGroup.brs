@@ -25,8 +25,7 @@ function UnitTestItGroup(name as string, isSolo as boolean, isIgnored as boolean
     this.hasSoloTests = false
     this.name = name
     this.AddTestCase = RBS_ItG_AddTestCase
-    this.GetTestCases = RBS_ItG_GetTestCases
-    this.GetRunnableTestSuite = RBS_ItG_GetRunnableTestSuite
+    
     return this
 end function
 
@@ -43,19 +42,19 @@ function RBS_ItG_AddTestCase(testCase)
 end function
 
 
-function RBS_ItG_GetTestCases() as object
-    if (m.hasSoloTests)
-        return m.soloTestCases
+function RBS_ItG_GetTestCases(group) as object
+    if (group.hasSoloTests)
+        return group.soloTestCases
     else
-        return m.testCases
+        return group.testCases
     end if
 end function
 
-function RBS_ItG_GetRunnableTestSuite()
-    testCases = m.GetTestCases()
+function RBS_ItG_GetRunnableTestSuite(group)
+    testCases = RBS_ItG_GetTestCases(group)
    
     runnableSuite = BaseTestSuite()
-    runnableSuite.name = m.name
+    runnableSuite.name = group.name
     
     for each testCase in testCases
         name = testCase.name
@@ -63,12 +62,12 @@ function RBS_ItG_GetRunnableTestSuite()
             name += " [SOLO] "
         end if
         runnableSuite.addTest(name, testCase.func)
-        m.testCaseLookup[name] = testCase
+        group.testCaseLookup[name] = testCase
     end for
-    runnableSuite.SetUp = m.setupFunction
-    runnableSuite.TearDown =  m.teardownFunction
-    runnableSuite.BeforeEach =  m.beforeEachFunction
-    runnableSuite.AftrEach =  m.afterEachFunction
+    runnableSuite.SetUp = group.setupFunction
+    runnableSuite.TearDown =  group.teardownFunction
+    runnableSuite.BeforeEach =  group.beforeEachFunction
+    runnableSuite.AftrEach =  group.afterEachFunction
     
     
     return runnableSuite

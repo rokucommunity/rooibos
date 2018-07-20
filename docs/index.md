@@ -65,7 +65,6 @@ An example config file looks like this:
 	"testsDirectory": "pkg:/source/Tests",
 	"testFilePrefix": "Test__",
 	"failFast": false,
-	"swallowRuntimeErrors": false,
 	"showOnlyFailures": false,
 	"maxLinesWithoutSuiteDirective": 100
 }

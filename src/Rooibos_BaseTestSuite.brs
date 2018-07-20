@@ -139,12 +139,12 @@ End Function
 ' @param msg (string) An error message.
 ' Default value: "Error".
 '
-' @return An error message.
+' @return true if assert passes, false otherwise.
 '----------------------------------------------------------------
-Function RBS_BTS_Fail(msg = "Error" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_Fail(msg = "Error" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     m.currentResult.AddResult(msg)
-    return m.currentResult.AddResult(msg)
+    return false
 End Function
 
 '----------------------------------------------------------------
@@ -156,13 +156,14 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertFalse(expr as dynamic, msg = "Expression evaluates to true" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertFalse(expr as dynamic, msg = "Expression evaluates to true" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if not RBS_CMN_IsBoolean(expr) or expr 
         m.currentResult.AddResult(msg)
         return m.fail(msg)
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -174,13 +175,14 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertTrue(expr as dynamic, msg = "Expression evaluates to false" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertTrue(expr as dynamic, msg = "Expression evaluates to false" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if not RBS_CMN_IsBoolean(expr) or not expr then
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     End if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -193,8 +195,8 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if not m.eqValues(first, second)
         if msg = ""
             first_as_string = RBS_CMN_AsString(first)
@@ -202,9 +204,10 @@ Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as st
             msg = first_as_string + " != " + second_as_string 
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '*************************************************************
@@ -216,8 +219,8 @@ End Function
 '
 ' @return An error message.
 '*************************************************************
-Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if first <> second
         if msg = ""
             first_as_string = RBS_CMN_AsString(first)
@@ -225,9 +228,10 @@ Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as str
             msg = first_as_string + " != " + second_as_string 
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -240,8 +244,8 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if m.eqValues(first, second)
         if msg = ""
             first_as_string = RBS_CMN_AsString(first)
@@ -249,9 +253,10 @@ Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as
             msg = first_as_string + " == " + second_as_string 
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -263,17 +268,18 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if value <> Invalid
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " <> Invalid"
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -285,17 +291,18 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertNotInvalid(value as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNotInvalid(value as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if value = Invalid
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " = Invalid"
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -308,22 +315,23 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertAAHasKey(array as dynamic, key as string, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertAAHasKey(array as dynamic, key as string, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array)
         if not array.DoesExist(key)
             if msg = ""
                 msg = "Array doesn't have the '" + key + "' key."
             end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
         end if
     else
         msg = "Input value is not an Associative Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -336,22 +344,23 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertAANotHasKey(array as dynamic, key as string, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertAANotHasKey(array as dynamic, key as string, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array)
         if array.DoesExist(key)
             if msg = ""
                 msg = "Array has the '" + key + "' key."
             end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
         end if
     else
         msg = "Input value is not an Associative Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -364,8 +373,8 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
         for each key in keys
             if not array.DoesExist(key)
@@ -373,15 +382,16 @@ Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as s
                     msg = "Array doesn't have the '" + key + "' key."
                 end if
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
             end if
         end for
     else
         msg = "Input value is not an Associative Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -394,8 +404,8 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
         for each key in keys
             if array.DoesExist(key)
@@ -403,15 +413,16 @@ Function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" a
                     msg = "Array has the '" + key + "' key."
                 end if
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
             end if
         end for
     else
         msg = "Input value is not an Associative Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 
@@ -427,20 +438,21 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         if not RBS_CMN_ArrayContains(array, value, key)
             msg = "Array doesn't have the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -454,20 +466,21 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertArrayNotContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArrayNotContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         if RBS_CMN_ArrayContains(array, value, key)
             msg = "Array has the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -480,8 +493,8 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) or (RBS_CMN_IsArray(array) and RBS_CMN_IsArray(subset))
         isAA = RBS_CMN_IsAssociativeArray(subset)
         for each item in subset
@@ -494,15 +507,16 @@ Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, 
             if not RBS_CMN_ArrayContains(array, value, key)
                 msg = "Array doesn't have the '" + RBS_CMN_AsString(value) + "' value."
                 m.currentResult.AddResult(msg)
-                return m.currentResult.AddResult(msg)
+                return false
             end if
         end for
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -515,8 +529,8 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) or (RBS_CMN_IsArray(array) and RBS_CMN_IsArray(subset))
         isAA = RBS_CMN_IsAssociativeArray(subset)
         for each item in subset
@@ -529,15 +543,16 @@ Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynami
             if RBS_CMN_ArrayContains(array, value, key)
                 msg = "Array has the '" + RBS_CMN_AsString(value) + "' value."
                 m.currentResult.AddResult(msg)
-                return m.currentResult.AddResult(msg)
+                return false
             end if
         end for
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -550,20 +565,21 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         if array.Count() <> count
             msg = "Array items count " + RBS_CMN_AsString(array.Count()) + " <> " + RBS_CMN_AsString(count) + "."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -576,20 +592,21 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertArrayNotCount(array as dynamic, count as integer, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArrayNotCount(array as dynamic, count as integer, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         if array.Count() = count
             msg = "Array items count = " + RBS_CMN_AsString(count) + "."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -601,26 +618,27 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
         if item.Count() > 0
             msg = "Array is not empty."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else if (RBS_CMN_IsString(item))
         if (RBS_CMN_AsString(item) <> "")
             msg = "Input value is not empty."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else 
         msg = "AssertEmpty: Input value was not an array or a string"
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -632,22 +650,23 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
         if item.Count() = 0
             msg = "Array is empty."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else if RBS_CMN_IsString(item)
         if (item = "")
             msg = "Input value is empty."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -659,20 +678,21 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertArratNotEmpty(item as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArratNotEmpty(item as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
         if item.Count() = 0
             msg = "Array is empty."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else if RBS_CMN_AsString(item) = ""
         msg = "Input value is empty."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 
@@ -687,58 +707,61 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertArrayContainsOnly(array as dynamic, typeStr as string, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArrayContainsOnly(array as dynamic, typeStr as string, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         methodName = "RBS_CMN_Is" + typeStr
         for each item in array
             if not methodName(item)
                 msg = RBS_CMN_AsString(item) + "is not a '" + typeStr + "' type."
                 m.currentResult.AddResult(msg)
-                return m.currentResult.AddResult(msg)
+                return false
             end if    
         end for
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 
 
-function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(value) <> typeStr
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " was not expected type " + typeStr
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 end function
 
-function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(value) <> "roSGNode"
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " was not a node, so could not match subtype " + typeStr
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     else if (value.subType() <> typeStr)
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + "( type : " + value.subType() +") was not of subType " + typeStr
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 end function
 
 '----------------------------------------------------------------
@@ -877,20 +900,21 @@ End Function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-Function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(node) = "roSGNode" 
         if node.getChildCount() <> count
             msg = "node items count <> " + RBS_CMN_AsString(count) + ". Received " + RBS_CMN_AsString(node.getChildCount())
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an node."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -903,20 +927,21 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertNodeNotCount(node as dynamic, count as integer, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeNotCount(node as dynamic, count as integer, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(node) = "roSGNode" 
         if node.getChildCount() = count
             msg = "node items count = " + RBS_CMN_AsString(count) + "."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an node."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -928,65 +953,69 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertNodeEmpty(node as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeEmpty(node as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(node) = "roSGNode" 
         if node.getChildCount() > 0
             msg = "node is not empty."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
-Function RBS_BTS_AssertNodeNotEmpty(node as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeNotEmpty(node as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if type(node) = "roSGNode" 
         if node.Count() = 0
             msg = "Array is empty."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 
-Function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if  type(node) = "roSGNode" 
         if not RBS_CMN_NodeContains(node, value)
             msg = "Node doesn't have the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
-Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, typeStr as string, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, typeStr as string, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if  type(node) = "roSGNode" 
         if not RBS_CMN_NodeContains(node, value)
             msg = "Node doesn't have the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         else if node.getChildCount() <> 1
             msg = "Node Contains speicified value; but other values as well"
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 
@@ -1001,20 +1030,21 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertNodeNotContains(node as dynamic, value as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeNotContains(node as dynamic, value as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if  type(node) = "roSGNode" 
         if RBS_CMN_NodeContains(node, value)
             msg = "Node has the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
         end if
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -1027,8 +1057,8 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ignoredFields=invalid, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ignoredFields=invalid, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if ( type(node) = "roSGNode" and RBS_CMN_IsAssociativeArray(subset)) or ( type(node) = "roSGNode"  and RBS_CMN_IsArray(subset))
         isAA = RBS_CMN_IsAssociativeArray(subset)
         isIgnoredFields = RBS_CMN_IsArray(ignoredFields)
@@ -1040,7 +1070,7 @@ Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ig
                     if not m.eqValues(nodeValue, subsetValue)
                         msg = key + ": Expected '" + RBS_CMN_AsString(subsetValue) + "', got '" + RBS_CMN_AsString(nodeValue) + "'"
                         m.currentResult.AddResult(msg)
-                        return m.currentResult.AddResult(msg)
+                        return false
                     end if
                 end if
             else
@@ -1050,9 +1080,10 @@ Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ig
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '----------------------------------------------------------------
@@ -1065,8 +1096,8 @@ End Function
 '
 ' @return An error message.
 '----------------------------------------------------------------
-Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if ( type(node) = "roSGNode"  and RBS_CMN_IsAssociativeArray(subset)) or ( type(node) = "roSGNode" and RBS_CMN_IsArray(subset))
         isAA = RBS_CMN_IsAssociativeArray(subset)
         for each item in subset
@@ -1079,15 +1110,16 @@ Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic,
             if RBS_CMN_NodeContains(node, value, key)
                 msg = "Node has the '" + RBS_CMN_AsString(value) + "' value."
                 m.currentResult.AddResult(msg)
-            return m.currentResult.AddResult(msg)
+            return false
             end if
         end for
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1099,21 +1131,22 @@ End Function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-Function RBS_BTS_AssertArray(value as dynamic, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertArray(value as dynamic, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if not RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " was not array type"
         end if
         m.currentResult.AddResult(msg)
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
-Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ignoredFields = invalid, msg = "" as string) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
+Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ignoredFields = invalid, msg = "" as string) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) 
         isAA = RBS_CMN_IsAssociativeArray(subset)
         isIgnoredFields = RBS_CMN_IsArray(ignoredFields)
@@ -1125,7 +1158,7 @@ Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ign
                     if not m.eqValues(arrayValue, subsetValue)
                         msg = key + ": Expected '" + RBS_CMN_AsString(subsetValue) + "', got '" + RBS_CMN_AsString(arrayValue) + "'"
                         m.currentResult.AddResult(msg)
-                        return m.currentResult.AddResult(msg)
+                        return false
                     end if
                 end if
             else
@@ -1135,9 +1168,10 @@ Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ign
     else
         msg = "Input values are not an Associative Array."
         
-        return m.currentResult.AddResult(msg)
+        return false
     end if
-    return m.currentResult.AddResult("")
+    m.currentResult.AddResult("")
+    return true
 End Function
 
 
@@ -1292,9 +1326,10 @@ function RBS_BTS_CleanStubs() as void
     m.stubs = invalid
 end function
 
-Function RBS_BTS_MockFail(methodName, message) as string
-    if (m.currentResult.isFail) return m.currentResult.AddResult("") ' skip test we already failed
-    return m.currentResult.AddResult("mock failure on '" + methodName + "' : "  + message)
+Function RBS_BTS_MockFail(methodName, message) as boolean
+    if (m.currentResult.isFail) then return false ' skip test we already failed
+    m.currentResult.AddResult("mock failure on '" + methodName + "' : "  + message)
+    return false
 End Function
 
 

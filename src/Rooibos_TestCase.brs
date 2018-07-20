@@ -13,7 +13,6 @@ function UnitTestCase(name as string, func as dynamic, isSolo as boolean, isIgno
     'Map with which the testsuite processor can take the index of a an assert line, and map it to the line Number
     this.assertLineNumberMap = {}
     this.AddAssertLine = RBS_TC_AddAssertLine
-    this.GetAssertLine = RBS_TC_GetAssertLine
     this.getTestLineIndex = 0
     this.rawParams = params
     this.paramTestIndex = paramTestIndex 
@@ -29,10 +28,11 @@ function RBS_TC_AddAssertLine(lineNumber as integer)
     m.assertIndex++
 end function
 
-function RBS_TC_GetAssertLine(index)
-    if (m.assertLineNumberMap.doesExist(stri(index).trim()))
-        return m.assertLineNumberMap[stri(index).trim()]
+'Static, becuase the result might be created across node boundaries, therefore stripping methods
+function RBS_TC_GetAssertLine(testCase, index)
+    if (testCase.assertLineNumberMap.doesExist(stri(index).trim()))
+        return testCase.assertLineNumberMap[stri(index).trim()]
     else
-        return m.lineNumber
+        return testCase.lineNumber
     end if
 end function

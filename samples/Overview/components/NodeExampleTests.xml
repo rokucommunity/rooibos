@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component
+	name="NodeExampleTests"
+	extends="NodeExample"
+	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
+>
+	<interface>
+		<!-- public fields/functions -->
+		<function name="Rooibos_RunNodeTests" />
+	</interface>
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/tests/NodeExampleTests.brs" />
+
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/rooibos.cat.brs" />
+
+</component>
