@@ -1,19 +1,23 @@
 ' /**
 '  * @module ItemGenerator
 '  */
-'----------------------------------------------------------------
-' Main function to generate object according to specified scheme.
-'
-' @param scheme (object) A scheme with desired object structure. Can be 
-' any simple type, array of types or associative array in form 
-'     { propertyName1 : "propertyType1"
-'       propertyName2 : "propertyType2"
-'       ...
-'       propertyNameN : "propertyTypeN" }
-'
-' @return An object according to specified scheme or invalid, 
-' if scheme is not valid.
-'----------------------------------------------------------------
+
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name ItemGenerator
+'  * @function
+'  * @instance
+'  * @param {Dynamic} scheme  - A scheme with desired object structure. Can be 
+'  * any simple type, array of types or associative array in form 
+'  *
+'  * ``` { propertyName1 : "propertyType1"
+'  *     propertyName2 : "propertyType2"
+'  *     ...
+'  *     propertyNameN : "propertyTypeN" }
+'  * ```
+'  * @description Creates an ItemGenerator instance
+'  * @returns {Object} An object according to specified scheme or invalid, if scheme is not valid.
+'  */ 
 Function ItemGenerator(scheme as object) as Object
     
     this = {}
@@ -34,19 +38,22 @@ Function ItemGenerator(scheme as object) as Object
     return this.getItem(scheme)
 End Function
 
-' TODO: Create RBS_IG_GetInvalidItem function with random type fields
-
-
-'----------------------------------------------------------------
-' Generate object according to specified scheme.
-'
-' @param scheme (object) A scheme with desired object structure. 
-' Can be any simple type, array of types or associative array.
-'
-' @return An object according to specified scheme or invalid,  
-' if scheme is not one of simple type, array or 
-' associative array.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name GetItem
+'  * @function
+'  * @instance
+'  * @param {Dynamic} scheme  - A scheme with desired object structure. Can be 
+'  * any simple type, array of types or associative array in form 
+'  *
+'  * ``` { propertyName1 : "propertyType1"
+'  *     propertyName2 : "propertyType2"
+'  *     ...
+'  *     propertyNameN : "propertyTypeN" }
+'  * ```
+'  * @description Gets an item according to the schem
+'  * @returns {Object}  An object according to specified scheme or invalid if scheme is not one of simple type, array or associative array.
+'  */ 
 Function RBS_IG_GetItem(scheme as object) as object
     
     item = invalid
@@ -62,18 +69,22 @@ Function RBS_IG_GetItem(scheme as object) as object
     return item
 End Function
 
-'----------------------------------------------------------------
-' Generates associative array according to specified scheme.
-'
-' @param scheme (object) An associative array with desired 
-'    object structure in form 
-'     { propertyName1 : "propertyType1"
-'       propertyName2 : "propertyType2"
-'       ...
-'       propertyNameN : "propertyTypeN" }
-'
-' @return An associative array according to specified scheme.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name GetAssocArray
+'  * @function
+'  * @instance
+'  * @param {Dynamic} scheme  - A scheme with desired object structure. Can be 
+'  * any simple type, array of types or associative array in form 
+'  *
+'  * ``` { propertyName1 : "propertyType1"
+'  *     propertyName2 : "propertyType2"
+'  *     ...
+'  *     propertyNameN : "propertyTypeN" }
+'  * ```
+'  * @description Generates associative array according to specified scheme.
+'  * @returns {Object} An associative array according to specified scheme.
+'  */ 
 Function RBS_IG_GetAssocArray(scheme as object) as object
     
     item = {}
@@ -87,13 +98,21 @@ Function RBS_IG_GetAssocArray(scheme as object) as object
     return item
 End Function
 
-'----------------------------------------------------------------
-' Generates array according to specified scheme.
-'
-' @param scheme (object) An array with desired object types. 
-'
-' @return An array according to specified scheme.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name GetArray
+'  * @function
+'  * @instance
+'  * @param {Dynamic} An array with desired object types. 
+'  *
+'  * ``` { propertyName1 : "propertyType1"
+'  *     propertyName2 : "propertyType2"
+'  *     ...
+'  *     propertyNameN : "propertyTypeN" }
+'  * ```
+'  * @description Generates array according to specified scheme.
+'  * @returns {Object} An array according to specified scheme.
+'  */ 
 Function RBS_IG_GetArray(scheme as object) as object
     
     item = []
@@ -105,13 +124,15 @@ Function RBS_IG_GetArray(scheme as object) as object
     return item
 End Function
 
-'----------------------------------------------------------------
-' Generates random value of specified type.
-'
-' @param typeStr (string) A name of desired object type. 
-'
-' @return A simple type object or invalid if type is not supported.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name GetSimpleType
+'  * @function
+'  * @instance
+'  * @description Generates random value of specified type
+'  * @param {Dynamic} typeStr - name of desired object type.
+'  * @returns {Object} A simple type object or invalid if type is not supported.
+'  */ 
 Function RBS_IG_GetSimpleType(typeStr as string) as object
     
     item = invalid
@@ -129,43 +150,52 @@ Function RBS_IG_GetSimpleType(typeStr as string) as object
     return item
 End Function
 
-'----------------------------------------------------------------
-' Generates random boolean value.
-'
-' @return A random boolean value.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name GetBoolean
+'  * @function
+'  * @instance
+'  * @description Generates random boolean value.
+'  * @returns {Boolean} A random boolean value.
+'  */ 
 Function RBS_IG_GetBoolean() as boolean
     return RBS_CMN_AsBoolean(Rnd(2) \ Rnd(2))
 End Function
 
-'----------------------------------------------------------------
-' Generates random integer value from 1 to specified seed value.
-'
-' @param seed (integer) A seed value for Rnd function. 
-' Default value: 100.
-'
-' @return A random integer value.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name GetInteger
+'  * @function
+'  * @instance
+'  * @description Generates random integer value from 1 to specified seed value.
+'  * @param {Dynamic} seed - seed value for Rnd function. 
+'  * @returns {integer} A random integer value.
+'  */ 
 Function RBS_IG_GetInteger(seed = 100 as integer) as integer
     return Rnd(seed)
 End Function
 
-'----------------------------------------------------------------
-' Generates random float value.
-'
-' @return A random float value.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name GetFloat
+'  * @function
+'  * @instance
+'  * @description Generates random float value.
+'  * @returns {float} A random float value.
+'  */ 
 Function RBS_IG_GetFloat() as float
     return Rnd(0)
 End Function
 
-'----------------------------------------------------------------
-' Generates random string with specified length.
-'
-' @param seed (integer) A string length.
-'
-' @return A random string value or empty string if seed is 0.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name GetString
+'  * @function
+'  * @instance
+'  * @description Generates random string with specified length.
+'  * @param {Dynamic} seed - A string length
+'  * @returns {string} A random string value or empty string if seed is 0.
+'  */ 
 Function RBS_IG_GetString(seed as integer) as string
     
     item = ""

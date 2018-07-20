@@ -1,3 +1,16 @@
+' /**
+'  * @module TestRunner
+'  */
+
+' /**
+'  * @memberof module:TestRunner
+'  * @name RBS_TR_TestRunner
+'  * @function
+'  * @description Creates an instance of the test runner
+'  * @param {Dynamic} args - contains the application launch args, and other settings required for test execution
+'  * @returns {Object} TestRunner
+'  */ 
+
 function RBS_TR_TestRunner(args = {}) as Object
     this = {}
 
@@ -49,9 +62,13 @@ function RBS_TR_TestRunner(args = {}) as Object
     return this
 end function
 
-'----------------------------------------------------------------
-' Run main test loop.
-'----------------------------------------------------------------
+' /**
+'  * @memberof module:TestRunner
+'  * @name Run
+'  * @function
+'  * @instance
+'  * @description Executes all tests for a project, as per the config
+'  */ 
 sub RBS_TR_Run()
     totalStatObj = RBS_STATS_CreateTotalStatistic()
     m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective)
@@ -255,10 +272,15 @@ sub RBS_TR_SendHomeKeypress()
     ut.PostFromString("")
 end sub
 
-'*************************************************************
-'** RunNodeTests
-'** executes the tests in a test suite, on the given node
-'*************************************************************
+' /**
+'  * @memberof module:TestRunner
+'  * @name Rooibos_RunNodeTests
+'  * @function
+'  * @instance
+'  * @description interface hook for exeucting tests on nodes. This method is for internal use only. Only the Rooibos framework should invoke this method
+'  * @param {Dynamic} args - associated array, containing all the information required to execute the tests.
+'  * @returns {Object} test stats object, for merging into main test stats
+'  */ 
 function Rooibos_RunNodeTests(args) as Object
     ? " RUNNING NODE TESTS"
     totalStatObj = RBS_STATS_CreateTotalStatistic()

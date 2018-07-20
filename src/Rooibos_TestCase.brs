@@ -1,6 +1,3 @@
-' /**
-'  * @module TestCase
-'  */
 function UnitTestCase(name as string, func as dynamic, funcName as string, isSolo as boolean, isIgnored as boolean, lineNumber as integer, params = invalid, paramTestIndex =0)
     this = {}
     this.isSolo = isSolo

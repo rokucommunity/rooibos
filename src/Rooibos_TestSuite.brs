@@ -1,6 +1,3 @@
-' /**
-'  * @module TestSuite
-'  */
 function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
     this = {}
     this.filePath = filePath

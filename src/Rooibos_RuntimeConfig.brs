@@ -1,6 +1,3 @@
-' /**
-'  * @module UnitTestRuntimeConfig
-'  */
 function UnitTestRuntimeConfig(testsDirectory, maxLinesWithoutSuiteDirective)
     this = {}
     this.testsDirectory = testsDirectory

@@ -1,6 +1,3 @@
-' /**
-'  * @module ItGroup
-'  */
 function UnitTestItGroup(name as string, isSolo as boolean, isIgnored as boolean)
     this = {}
     this.testCases = createObject("roArray", 0, true)

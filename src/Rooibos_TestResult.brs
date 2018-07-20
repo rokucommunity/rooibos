@@ -1,6 +1,3 @@
-' /**
-'  * @module TestResult
-'  */
 function UnitTestResult() as object
     this = {}
     this.messages = CreateObject("roArray", 0, true)

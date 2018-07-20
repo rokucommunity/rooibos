@@ -1,6 +1,3 @@
-' /**
-'  * @module Logger
-'  */
 function Logger(config) as Object
     this = {}
     this.config = config

@@ -24,7 +24,7 @@ dist:
 	cp dist/rooibos.cat.brs samples/Overview/source
 doc:
 	cd jsdoc && npm install
-	./jsdoc/node_modules/.bin/jsdoc -c jsdoc/jsdoc.json -t jsdoc/node_modules/ink-docstrap/template -d apiDocs
+	./jsdoc/node_modules/.bin/jsdoc -c jsdoc/jsdoc.json -t jsdoc/node_modules/minami -d apiDocs
 
 test: dist remove install
 	echo "Running tests"
