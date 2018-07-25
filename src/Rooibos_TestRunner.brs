@@ -13,7 +13,7 @@
 
 function RBS_TR_TestRunner(args = {}) as Object
     this = {}
-
+    fs = CreateObject("roFileSystem")
     defaultConfig = {
         logLevel : 1,
         testsDirectory: "pkg:/source/Tests", 
@@ -23,19 +23,25 @@ function RBS_TR_TestRunner(args = {}) as Object
         maxLinesWithoutSuiteDirective: 100
     }
     
-    if (args.testConfigPath <> invalid) 
+    rawConfig = invalid
+    config = invalid
+    
+    if (args.testConfigPath <> invalid and fs.Exists(args.testConfigPath)) 
         ? "Loading test config from " ; args.testConfigPath 
         rawConfig = ReadAsciiFile(args.testConfigPath)
+    else if (fs.Exists("pkg:/source/tests/testconfig.json"))
+        ? "Loading test config from default location : pkg:/source/tests/testconfig.json" 
+        rawConfig = ReadAsciiFile("pkg:/source/tests/testconfig.json")
     else
-        ? "Loading test config from default location : pkg:/source/Tests/testconfig.json" 
-        rawConfig = ReadAsciiFile("pkg:/source/Tests/testconfig.json")
+        ? "None of the testConfig.json locations existed"  
     end if
     
     if (rawConfig <> invalid)
         config = ParseJson(rawConfig)
     end if
     
-    if config = invalid
+    if (config = invalid or not RBS_CMN_IsAssociativeArray(config) or RBS_CMN_IsNotEmptyString(config.rawtestsDirectory))
+        ? "WARNING : specified config is invalid - using default"
         config = defaultConfig    
     end if
     
@@ -123,8 +129,7 @@ sub RBS_TR_Run()
     end for
 
     m.logger.PrintStatistic(totalStatObj)
-    END
-    'RBS_TR_SendHomeKeypress()
+    RBS_TR_SendHomeKeypress()
 end sub
 
 sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecorator, config, runtimeConfig, nodeContext = invalid)
@@ -256,7 +261,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
             totalStatObj.testRunHasFailures = true
         end if 
         
-        if testStatObj.Result = "Fail" and m.config.failFast = true
+        if testStatObj.Result = "Fail" and config.failFast = true
             exit for
         end if
         skipTestCase:
