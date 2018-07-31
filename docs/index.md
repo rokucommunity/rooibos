@@ -612,6 +612,13 @@ To use Rooibos, you need to provide a scene (default name `TestsScene.xml`). Thi
 	extends="Scene"
 	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
 >
+>  <interface>
+    <function name="Rooibos_CreateTestNode" />
+  </interface>
+
+  <script type="text/brightscript" uri="TestsScene.brs" />
+
+  <script type="text/brightscript" uri="pkg:/source/rooibos.cat.brs" />
 </component>
 ```
 
@@ -653,12 +660,12 @@ It's a simple process; but I'm fully documenting it to facilitate a deep underst
 For now, here are the complete steps:
 
 1. For each SceneGraph node you want to test, you need to create a corresponding xml file. Example
-	- The name is not important; but I suggest `[NODE_NAME]Tests.xml`, so if you were testing `NetworkLayer.xml`, you would create a `NetworkLayerTests.xml` file. 
+	- The name is not important; but I suggest `[NODE_NAME]TestProxy.xml`, so if you were testing `NetworkLayer.xml`, you would create a `NetworkLayerTestProxy.xml` file. 
 	- This file should be located somewhere in your `components` folder, placing it under `components/tests` is a good idea, as you can easily exclude it from production builds.
 	- The file must extend the node you wish to test, e.g. `extends="NetworkLayer.xml"`
 	- You must also include an interface function definition for a function named `Rooibos_RunNodeTests`. You _must not_ implement it, it is mixed in for you automatically.
 	- You must import your unit test suite (e.g. `NetworkLayerTests.brs`) as well as the rooibos framework (e.g. `rooibos.cat.brs`)
-2. In your unit test suite, before the ``@TestSuite` delcaration you _must_ place a `'@SGNode` Annotation, with the name of the node that will be used to test this suite. e.g. `'@SGNode NetworkLayerTests`
+2. In your unit test suite, before the ``@TestSuite` delcaration you _must_ place a `'@SGNode` Annotation, with the name of the node that will be used to test this suite. e.g. `'@SGNode NodeExampleTests.brs `
 
 #### Example test suite: NetworkLayerTests.brs
 
@@ -679,15 +686,15 @@ end function
 ```
 
 
-#### Example node test wrapper: NetworkLayerTests.xml
+#### Example node test wrapper: NetworkLayerTestProxy.xml
 
 This file is located in `components/tests`
 
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <component
-	name="NodeExampleTests"
-	extends="NodeExample"
+	name="NetworkLayerTestProxy.xml"
+	extends="NetworkLayer"
 	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
 >
 	<interface>
@@ -709,8 +716,13 @@ This file is located in `components/tests`
 ### Nuances of testing nodes
 The behaviour of your unit tests is identical to unit testing any other class, with 2 caveates:
 
-1. `m` does not refer to your node, it refers to the test suite, as per normal testing. If you wish to refer to the node use the `m.view` reference,to access your codebehind, or `m.view.top` reference, to acecess your actual node
+1. `m` does not refer to your node, it refers to the test suite, as per normal testing. The following variables are available to you in your test as a convenience:
+ 
+  - `m.node` - codebehind for your xml file (e.g. your brs's m)
+  - `m.top` the node you are testing
+  - `m.global` access to the global node
 2. You **cannot** stub node methods. If there is no `.` reference to a method (via an associated array style object), then Rooibos cannot mock it. You may consider refactoring your code in these cases, as imho, it's better practice for things that you want to mock, to not be in the glue code of your code behdind files, in any case
+3. If you use mixins, which use eval to locate methods by name (common practice if you are doing anything complex) then be aware that the eval namespace is NOT the code in your unit test; but the code in your node's brs file and your test node's brs file. If you need to add more methods, such as callbck stubs, you can add them to the .brs file of your test. 
 
 ## Working with tests
 There are many articles on the benefits of TDD, and how to go about TDD, which you can readily find, such as [this link](https://builttoadapt.io/why-tdd-489fdcdda05e) which has a good overview, plus a great video with warnings of how to take it too far.
