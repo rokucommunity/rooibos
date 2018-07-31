@@ -16,7 +16,7 @@ function NET_BeforeEach() as void
 end function
 
 '@Test HelloFromNode
-function NET__HelloFromNode() as void
+function NET__HelloFromNode_simple() as void
     text = HelloFromNode("georgejecook")
     m.AssertEqual(text, "HELLO georgejecook")
 end function
@@ -26,13 +26,7 @@ end function
 '@Params["ringo"]
 '@Params["george"]
 '@Params["paul"]
-function NET__HelloFromNode(name) as void
+function NET__HelloFromNode_params(name) as void
     text = HelloFromNode(name)
     m.AssertEqual(text, "HELLO " + name)
-end function
-
-'@Test setting node properties
-function NET__nodeFunction() as void
-
-    m.AssertEqual(text, "HELLO GEORGE")
 end function

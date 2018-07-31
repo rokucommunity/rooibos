@@ -42,6 +42,7 @@ function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecorator = inval
     end if
     ? "#########################################################################" 
     ? "#TEST START : ###" ; testId ; "###"
+    args.testScene = scene
     runner = RBS_TR_TestRunner(args)
     runner.Run()
     while(true)
@@ -1698,6 +1699,7 @@ function RBS_TRes_GetResult() as string
 end function
 function RBS_TR_TestRunner(args = {}) as Object
     this = {}
+    this.testScene = args.testScene
     fs = CreateObject("roFileSystem")
     defaultConfig = {
         logLevel : 1,
@@ -1768,7 +1770,8 @@ sub RBS_TR_Run()
             ? " +++++RUNNING NODE TEST"
             nodeType = metaTestSuite.nodeTestFileName
             ? " node type is " ; nodeType
-            node = CreateObject("roSGNode", nodeType)
+            node = createObject("roSGNode", nodeType)
+            m.testScene.AppendChild(node)
             if (type(node) = "roSGNode" and node.subType() = nodeType)
                 args = {
                     "metaTestSuite": metaTestSuite 
@@ -1778,6 +1781,7 @@ sub RBS_TR_Run()
                 }
                 nodeStatResults = node.callFunc("Rooibos_RunNodeTests", args)
                 RBS_STATS_MergeTotalStatistic(totalStatObj, nodeStatResults)
+                m.testScene.RemoveChild(node)
             else
                 ? " ERROR!! - could not create node required to execute tests for " ; metaTestSuite.name
                 ? " Node of type " ; nodeType ; " was not found/could not be instantiated"    

@@ -47,6 +47,7 @@ function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecorator = inval
     ? "#########################################################################" 
     ? "#TEST START : ###" ; testId ; "###"
 
+    args.testScene = scene
     runner = RBS_TR_TestRunner(args)
     runner.Run()
 
