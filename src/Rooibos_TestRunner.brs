@@ -55,7 +55,7 @@ function RBS_TR_TestRunner(args = {}) as Object
         config.failFast = args.failFast = "true"
     end if
     
-    this.testUtilsDecorator = args.testUtilsDecorator
+    this.testUtilsDecoratorMethodName = args.testUtilsDecoratorMethodName
     this.config = config
     
     ' Internal properties
@@ -110,13 +110,12 @@ sub RBS_TR_Run()
             nodeType = metaTestSuite.nodeTestFileName
             ? " node type is " ; nodeType
 
-            node = createObject("roSGNode", nodeType)
-            m.testScene.AppendChild(node)
+            node = m.testScene.CallFunc("Rooibos_CreateTestNode", nodeType)
 
             if (type(node) = "roSGNode" and node.subType() = nodeType)
                 args = {
                     "metaTestSuite": metaTestSuite 
-                    "testUtilsDecorator": m.testUtilsDecorator 
+                    "testUtilsDecoratorMethodName": m.testUtilsDecoratorMethodName 
                     "config": m.config 
                     "runtimeConfig": m.runtimeConfig
                 }
@@ -130,7 +129,7 @@ sub RBS_TR_Run()
                 ? " Node of type " ; nodeType ; " was not found/could not be instantiated"    
             end if
         else
-            RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecorator, m.config, m.runtimeConfig)
+            RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig)
         end if
         skipSuite:
     end for
@@ -139,15 +138,22 @@ sub RBS_TR_Run()
     RBS_TR_SendHomeKeypress()
 end sub
 
-sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecorator, config, runtimeConfig, nodeContext = invalid)
+sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)
     for each itGroup in metaTestSuite.itGroups
         testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
         if (nodeContext <> invalid)
             testSuite.node = nodeContext
+            testSuite.global = nodeContext.global
+            testSuite.top = nodeContext.top
         end if
                 
-        if (testUtilsDecorator <> invalid)
-            testUtilsDecorator(testSuite)
+        if (testUtilsDecoratorMethodName <> invalid)
+            testUtilsDecorator = RBS_CMN_GetFunction(invalid, testUtilsDecoratorMethodName)
+            if (RBS_CMN_IsFunction(testUtilsDecorator))
+                testUtilsDecorator(testSuite)
+            else
+                ? "Test utils decorator method `" ; testUtilsDecoratorMethodName ;"` was not in scope!" 
+            end if
         end if
         
         if (itGroup.isIgnored)
@@ -297,7 +303,28 @@ function Rooibos_RunNodeTests(args) as Object
     ? " RUNNING NODE TESTS"
     totalStatObj = RBS_STATS_CreateTotalStatistic()
 
-    RBS_RT_RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecorator, args.config, args.runtimeConfig, m)
+    RBS_RT_RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
     return totalStatObj
 end function
 
+' /**
+'  * @memberof module:TestRunner
+'  * @name Rooibos_CreateTestNode
+'  * @function
+'  * @instance
+'  * @description interface hook for correctly creating nodes that get tested. This ensures they are in the correct scope.
+'  * This method must be defined in your tests scene xml.
+'  * @param {String} nodeType - name of node to create. The framework will pass this in as required
+'  * @returns {Object} the required node, or invalid if it could not be invoked.
+'  */ 
+Function Rooibos_CreateTestNode(nodeType) as Object
+  node = createObject("roSGNode", nodeType)
+  
+  if (type(node) = "roSGNode" and node.subType() = nodeType)
+    m.top.AppendChild(node)
+    return node
+  else 
+    ? " Error creating test node of type " ; nodeType
+    return invalid
+  end if
+End Function

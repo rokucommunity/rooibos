@@ -20,11 +20,11 @@
 ' LICENSE: LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 ' LICENSE: OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' LICENSE: SOFTWARE.
-function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecorator = invalid, testSceneName = "TestsScene") as void
+function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = "TestsScene") as void
     if args.RunTests = invalid or args.RunTests <> "true" then
         return
     end if
-    args.testUtilsDecorator = testUtilsDecorator
+    args.testUtilsDecoratorMethodName = testUtilsDecoratorMethodName
     screen = CreateObject("roSGScreen")
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
@@ -127,14 +127,11 @@ Sub RBS_BTS_AddTest(name as String, func as Object, funcName as String, setup = 
 End Sub
 Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object) as Object
     if (func = invalid) 
-        ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
-        ? " Looking it up now"
         res = eval("functionPointer=" + funcName)
         if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
-            ? "found the function"
             func = functionPointer
         else
-            ? " could not find function!"
+            ? "RBS_BTS_CreateTest could not find test function for " ; name
         end if
     end if
     return {
@@ -1733,7 +1730,7 @@ function RBS_TR_TestRunner(args = {}) as Object
     if (args.failFast <> invalid)
         config.failFast = args.failFast = "true"
     end if
-    this.testUtilsDecorator = args.testUtilsDecorator
+    this.testUtilsDecoratorMethodName = args.testUtilsDecoratorMethodName
     this.config = config
     this.config.testsDirectory = config.testsDirectory        
     this.logger = Logger(this.config)
@@ -1770,12 +1767,11 @@ sub RBS_TR_Run()
             ? " +++++RUNNING NODE TEST"
             nodeType = metaTestSuite.nodeTestFileName
             ? " node type is " ; nodeType
-            node = createObject("roSGNode", nodeType)
-            m.testScene.AppendChild(node)
+            node = m.testScene.CallFunc("Rooibos_CreateTestNode", nodeType)
             if (type(node) = "roSGNode" and node.subType() = nodeType)
                 args = {
                     "metaTestSuite": metaTestSuite 
-                    "testUtilsDecorator": m.testUtilsDecorator 
+                    "testUtilsDecoratorMethodName": m.testUtilsDecoratorMethodName 
                     "config": m.config 
                     "runtimeConfig": m.runtimeConfig
                 }
@@ -1787,21 +1783,28 @@ sub RBS_TR_Run()
                 ? " Node of type " ; nodeType ; " was not found/could not be instantiated"    
             end if
         else
-            RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecorator, m.config, m.runtimeConfig)
+            RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig)
         end if
         skipSuite:
     end for
     m.logger.PrintStatistic(totalStatObj)
     RBS_TR_SendHomeKeypress()
 end sub
-sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecorator, config, runtimeConfig, nodeContext = invalid)
+sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)
     for each itGroup in metaTestSuite.itGroups
         testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
         if (nodeContext <> invalid)
             testSuite.node = nodeContext
+            testSuite.global = nodeContext.global
+            testSuite.top = nodeContext.top
         end if
-        if (testUtilsDecorator <> invalid)
-            testUtilsDecorator(testSuite)
+        if (testUtilsDecoratorMethodName <> invalid)
+            testUtilsDecorator = RBS_CMN_GetFunction(invalid, testUtilsDecoratorMethodName)
+            if (RBS_CMN_IsFunction(testUtilsDecorator))
+                testUtilsDecorator(testSuite)
+            else
+                ? "Test utils decorator method `" ; testUtilsDecoratorMethodName ;"` was not in scope!" 
+            end if
         end if
         if (itGroup.isIgnored)
             if (config.logLevel = 2)
@@ -1917,9 +1920,19 @@ end sub
 function Rooibos_RunNodeTests(args) as Object
     ? " RUNNING NODE TESTS"
     totalStatObj = RBS_STATS_CreateTotalStatistic()
-    RBS_RT_RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecorator, args.config, args.runtimeConfig, m)
+    RBS_RT_RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
     return totalStatObj
 end function
+Function Rooibos_CreateTestNode(nodeType) as Object
+  node = createObject("roSGNode", nodeType)
+  if (type(node) = "roSGNode" and node.subType() = nodeType)
+    m.top.AppendChild(node)
+    return node
+  else 
+    ? " Error creating test node of type " ; nodeType
+    return invalid
+  end if
+End Function
 function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
     this = {}
     this.filePath = filePath
@@ -1945,6 +1958,7 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
 end function
 function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
     code = RBS_CMN_AsString(ReadAsciiFile(m.filePath))
+    isTestSuite = false
     TAG_TEST_SUITE = "'@TestSuite"
     TAG_IT = "'@It"
     TAG_IGNORE = "'@Ignore"

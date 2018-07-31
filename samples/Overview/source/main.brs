@@ -3,18 +3,11 @@ sub Main(args as dynamic)
     ? args
     m.args = args
 
-    if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, AddTestUtils)
+    if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, "AddTestUtils")
 
     InitScreen()
 end sub
 
-sub AddTestUtils(testCase)
-    'add your own test utils you want access to when testing here
-    
-    'e.g.
-    'testCase.testUtils = TestUtils()
-    'testCase.r = rodash()
-end sub
 
 function InitScreen() as void
     'this will be where you setup your typical roku app

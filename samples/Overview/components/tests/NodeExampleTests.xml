@@ -16,5 +16,8 @@
 	<script
 		type="text/brightscript"
 		uri="pkg:/source/rooibos.cat.brs" />
+	<script
+		type="text/brightscript"
+		uri="pkg:/source/TestUtils.brs" />
 
 </component>

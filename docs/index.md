@@ -51,7 +51,7 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibos.ca
 	```    
 	if (type(Rooibos__Init) = "Function") then Rooibos__Init(args)
 	```
-3. Create an empty Scene named `TestsScene.xml`, in your `components` folder, which Rooibos will use when running tests
+3. Create a Scene named `TestsScene.xml`, in your `components` folder, which Rooibos will use when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`. `samples/Overview/` contains a reference implementation.
 4. Create `.brs` test files within your `tests` folder, which corresponds to the `testsDirectory` config setting (default is "pkg:/source/Tests"). Test files can (and are encouraged to) be stored in nested folders, to match your source/component folder hiearchy
 
 ### Configuring Rooibos
@@ -443,7 +443,7 @@ If you wish, you can provide a third function pointer to the `Rooibos_Init` meth
 
 
 ```    
-if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, DecorateTestUtils)
+if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, "DecorateTestUtils")
 
 ....
 
@@ -466,6 +466,9 @@ function MyNS_DataReceived() as void
 end function
 ```
 
+Note: The test utils decorator and all of it's dependencies must be visible to the current exeucting test. That means if you have a node test you must include the script file containing the `testCase.testUtils` method, and all other methods it invokes. The sample app contains an example.
+
+Non-node tests should find all methods are automatically in scope
 
 ## Using mocks and stubs
 Rooibos can be used for integration, behaviour, unit testing, and TDD. In many cases (particularly TDD and unit testing), we will not want to execute all of the methods invoked by our code; but will instead prefer to mock and stub those method calls.
@@ -628,7 +631,7 @@ The scene name can be overriden by passing in the desired scene name as the thir
 
 
 ```    
-if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, DecorateTestUtils, "MyOtherTestsScene")
+if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, "DecorateTestUtils", "MyOtherTestsScene")
 ```
 
  

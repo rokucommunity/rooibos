@@ -16,13 +16,13 @@
 '  * @param testsSceneName as string - name of scene to create. All unit tests run in the scene thread
 '  *                                   and therefore require a screen and scene are created.
 '  */ 
-function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecorator = invalid, testSceneName = "TestsScene") as void
+function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = "TestsScene") as void
 
     if args.RunTests = invalid or args.RunTests <> "true" then
         return
     end if
     
-    args.testUtilsDecorator = testUtilsDecorator
+    args.testUtilsDecoratorMethodName = testUtilsDecoratorMethodName
     
     screen = CreateObject("roSGScreen")
     m.port = CreateObject("roMessagePort")

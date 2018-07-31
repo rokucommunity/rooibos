@@ -125,15 +125,15 @@ End Sub
 Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object) as Object
 
     if (func = invalid) 
-        ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
-        ? " Looking it up now"
+'        ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
+'        ? " Looking it up now"
         res = eval("functionPointer=" + funcName)
         
         if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
-            ? "found the function"
+'            ? "found the function"
             func = functionPointer
         else
-            ? " could not find function!"
+            ? "RBS_BTS_CreateTest could not find test function for " ; name
         end if
     end if
     return {

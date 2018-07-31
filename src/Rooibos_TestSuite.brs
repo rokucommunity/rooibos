@@ -25,6 +25,9 @@ end function
 function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
     'find a marker to indicate this is a test suite
     code = RBS_CMN_AsString(ReadAsciiFile(m.filePath))
+
+    isTestSuite = false
+
     TAG_TEST_SUITE = "'@TestSuite"
     TAG_IT = "'@It"
     TAG_IGNORE = "'@Ignore"
