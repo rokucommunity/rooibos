@@ -52,6 +52,7 @@ function RBS_ItG_GetRunnableTestSuite(group) as object
    
     runnableSuite = BaseTestSuite()
     runnableSuite.name = group.name
+    runnableSuite.isLegacy = group.isLegacy = true
     
     for each testCase in testCases
         name = testCase.name

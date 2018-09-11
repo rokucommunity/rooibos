@@ -44,7 +44,7 @@ function RBS_CMN_GetFunction(func, name) as Object
     if (not RBS_CMN_IsNotEmptyString(name)) then return invalid
     
     res = eval("functionPointer=" + name)
-    if (RBS_CMN_IsInteger(res) and res = 252 and RBS_CMN_IsFunction(functionPointer))
+    if (RBS_CMN_IsInteger(res) and RBS_CMN_IsFunction(functionPointer))
         return functionPointer
     else
         return invalid

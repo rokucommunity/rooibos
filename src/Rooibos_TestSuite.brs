@@ -1,4 +1,4 @@
-function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
+function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100, supportLegacyTests  = false)
     this = {}
     this.filePath = filePath
     this.name = ""
@@ -17,12 +17,13 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
     this.nodeTestFileName = ""
     this.ProcessSuite = RBS_TS_ProcessSuite
     this.ResetCurrentTestCase = RBS_TS_ResetCurrentTestCase
-    this.ProcessSuite(maxLinesWithoutSuiteDirective)
+    this.ProcessLegacySuite = RBS_TS_ProcessLegacySuite  
+    this.ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     this.currentGroup = invalid
     return this
 end function
 
-function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
+function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     'find a marker to indicate this is a test suite
     code = RBS_CMN_AsString(ReadAsciiFile(m.filePath))
 
@@ -41,8 +42,8 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
     TAG_TEST_PARAMS = "'@Params"
     TAG_TEST_IGNORE_PARAMS = "'@IgnoreParams"
     functionNameRegex = CreateObject("roRegex", "^(function|sub)\s([0-9a-z\_]*)\s*\(", "i")
-    assertFunctionRegex = CreateObject("roRegex", "^([^']).*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
-    assertFunctionEndRegex = CreateObject("roRegex", "([^'])(end sub|end function)", "i")
+    assertInvocationRegex = CreateObject("roRegex", "^\s*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
+    functionEndRegex = CreateObject("roRegex", "^\s*(end sub|end function)", "i")
     
     if code <> ""
         isTokenItGroup = false
@@ -66,7 +67,8 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
             lineNumber++
             currentLocation = m.filePath + ":" + stri(lineNumber)
             if (lineNumber > maxLinesWithoutSuiteDirective and not isTestSuite)
-                ? "IGNORING FILE WTAG_ITH NO @TAG_TESTSUTAG_ITE DIRECTIVE : "; currentLocation
+                'TODO add logging option for this             
+'                ? "IGNORING FILE WITH NO TESTSUITE DIRECTIVE : "; currentLocation
                 goto exitProcessing
             end if
 
@@ -185,7 +187,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 end if
                 isNextTokenAfterEach = true
                 goto exitLoop
-            else if (assertFunctionRegex.IsMatch(line))
+            else if (assertInvocationRegex.IsMatch(line))
                 if (not m.hasCurrentTestCase)
                     ? "Found assert before test case was declared! " ; currentLocation 
                 else                
@@ -195,7 +197,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                     end for
                 end if
                 goto exitLoop
-            else if (isNextTokenTest and assertFunctionEndRegex.IsMatch(line))
+            else if (isNextTokenTest and functionEndRegex.IsMatch(line))
                 m.ResetCurrentTestCase()
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEST_IGNORE_PARAMS))
@@ -219,8 +221,8 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 if functionNameRegex.IsMatch(line)
                     functionName = functionNameRegex.Match(line).Peek()
     
-                    res = eval("functionPointer=" + functionName)
-                    if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
+                    functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+                    if (functionPointer <> invalid)
                         if (isNextTokenTest)
                             if (nextName <> "") 
                                 testName = nextName
@@ -326,7 +328,18 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
     m.delete("testCaseParams")
     m.delete("currentTestCases")
     m.delete("hasCurrentTestCase")
-    m.isValid = isTestSuite
+    
+    if (isTestSuite)
+      m.isValid = true
+    else if (supportLegacyTests = true)
+'    TODO add logging option for this
+'      ? "File appears to not be a test suite - checking if it's a legacy suite"
+      m.ProcessLegacySuite(maxLinesWithoutSuiteDirective)
+    else
+'    TODO add logging option for this
+      ? "Ignoring non test/legacy test file "; filePath
+      m.isValid = false
+    end if
 end function
 
 function RBS_TS_IsTag(text, tag) as boolean
@@ -343,3 +356,187 @@ function RBS_TS_ResetCurrentTestCase() as void
     m.currentTestCases = CreateObject("roArray",0, true) ' we can have multiple test cases based on our params
     m.hasCurrentTestCase = false
 end function
+
+
+'Legacy test suite support
+function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
+    'find a marker to indicate this is a test suite
+    code = RBS_CMN_AsString(ReadAsciiFile(m.filePath))
+
+    isTestSuite = false
+    dblQ = chr(34)
+    
+    testSuiteFunctionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s*testSuite_([0-9a-z\_]*)\s*\(", "i")
+    testCaseFunctionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s*testCase_([0-9a-z\_]*)\s*\(", "i")
+    functionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s([0-9a-z\_]*)\s*\(", "i")
+    assertInvocationRegex = CreateObject("roRegex", "^\s*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
+    functionEndRegex = CreateObject("roRegex", "^\s*(end sub|end function)", "i")
+    
+    testSuiteNameRegex = CreateObject("roRegex", "^\s*this\.name\s*=\s*\" + dblQ + "([0-9a-z\_]*)\s*\" + dblQ, "i")
+    setupregex = CreateObject("roRegex", "^\s*this\.setup\s*=\s*([a-z_0-9]*)","i")
+    addTestregex = CreateObject("roRegex", "^\s*this\.addTest\s*\(\" + dblQ + "([0-9a-z\_]*)\" + dblQ + "\s*,\s*([0-9a-z\_]*)\s*\)", "i")
+
+    'support ignoring/onlying entire test suites    
+    TAG_IGNORE = "'@Ignore"
+    TAG_SOLO = "'@Only"
+
+    isIgnore = false
+    isSolo = false
+    if code <> ""
+        m.testCaseMap = {} ' map of legacy test cases to function names
+        
+        isInInitFunction = false
+        isTestSuite = false
+        nodeTestFileName = ""
+        m.name = m.filePath
+        lineNumber = 0
+        m.ResetCurrentTestCase()
+        currentTestCase = invalid
+        currentLocation =""
+        for each line in code.Split(chr(10))
+          lineNumber++
+          currentLocation = m.filePath + ":" + stri(lineNumber)
+          if (lineNumber > maxLinesWithoutSuiteDirective and not isTestSuite)
+              ? "IGNORING FILE WITH NO testSuiteInit function : "; currentLocation
+              goto exitProcessing
+          end if
+          
+          if (RBS_TS_IsTag(line, TAG_SOLO))
+            m.isSolo = true
+            ? " IS SOLO TEST!"
+            goto exitLoop
+          end if
+          
+          if (RBS_TS_IsTag(line, TAG_IGNORE))
+            m.isIgnored = true
+            ? " IS IGNORED TEST!"
+            goto exitLoop
+          end if
+          
+          'check if test suite init function
+          if testSuiteFunctionNameRegex.IsMatch(line)
+'            ? "Detected legacy test suite function name with line: " ; line
+            isTestSuite = true
+            isInInitFunction = true
+            goto exitLoop
+          end if
+              
+          if setupregex.IsMatch(line)
+            if not isInInitFunction
+              ? "Found test suite setup invocation outside of test suite init function"
+              goto exitLoop
+            end if
+            functionName = setupregex.Match(line).peek()
+            functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+            if (functionPointer <> invalid)
+              m.setupFunctionName = functionName
+              m.setupFunction = functionPointer
+            else
+              ? " the function name for the setup method "; functionName ; " could not be found"
+            end if
+            goto exitLoop
+          end if         
+                 
+          'check if init function ended
+          if functionEndRegex.IsMatch(line)
+            if (isInInitFunction)
+'              print "detected end of init function - creatign test group named " ; m.name
+              m.currentGroup = UnitTestItGroup(m.name, false, false)
+              
+              'inherit all suite functions that were set up to now
+              m.currentGroup.setupFunctionName = m.setupFunctionName
+              m.currentGroup.setupFunction = m.setupFunction
+              m.currentGroup.isLegacy = true
+              m.itGroups.push(m.currentGroup)
+              isInInitFunction = false
+            end if
+            
+            currentTestCase = invalid
+            goto exitLoop
+          end if
+              
+          'init function test suite name
+          if testSuiteNameRegex.IsMatch(line)
+            if (not isInInitFunction)
+              ? "Found set testsuite name, when not in a legacy test suite init function. ignoring"
+              goto exitLoop
+            end if
+            
+            name = testSuiteNameRegex.Match(line).Peek()
+            
+            if (name <> "")
+              m.name = name
+            end if
+            
+            goto exitLoop
+          end if
+
+          'init function add test cases
+          if addTestregex.IsMatch(line)
+              if (not isInInitFunction)
+                  ? "Found addTestCase, when not in a legacy test suite init function. Ignoring"
+                  goto exitLoop
+              end if
+              
+              match = addTestregex.Match(line)
+              testCaseName = match[1]
+              testCaseFunctionName = match[2]
+
+              if (testCaseName <> "" and testCaseFunctionName <> "")
+                  m.testCaseMap[lcase(testCaseFunctionName)] = testCaseName 
+              else
+                ? " found badly formed add test case function call in test suite init fuction. Ignoring" 
+              end if
+              
+              goto exitLoop
+          end if
+
+          'assert line            
+          if (assertInvocationRegex.IsMatch(line))
+            if (not m.hasCurrentTestCase)
+              ? "Found assert before test case was declared! " ; currentLocation 
+            else                
+                currentTestCase.AddAssertLine(lineNumber)
+            end if
+            goto exitLoop
+          end if
+
+          'test case function impl
+          if testCaseFunctionNameRegex.IsMatch(line)
+            if (m.currentGroup = invalid)
+              ? " found test case before a group was setup - could be that the init function never terminated"
+              goto exitLoop
+            end if
+            functionName = testCaseFunctionNameRegex.Match(line).peek()
+            m.ResetCurrentTestCase()
+            if (functionName <> "")
+              'We have a match add the test
+              functionName = "testcase_" + lcase(functionName)
+              testName = m.testCaseMap[functionName]
+              if (testName = invalid or testName = "")
+                print "Encountered test function " ; functionName; " but found no matching AddTestCase invocation"
+                goto exitLoop
+              end if
+              
+              functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+              if (functionPointer <> invalid)
+                if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
+                currentTestCase = UnitTestCase(testName, functionPointer, functionName, false, false, lineNumber)
+                m.currentGroup.AddTestCase(currentTestCase)
+                m.hasCurrentTestCase = true
+              else
+                  ? " could not get function pointer for "; functionName ; " ignoring"
+              end if
+            else
+              ? " found badly named test case function. ignoring" 
+            end if
+          end if
+          exitLoop:
+        end for
+        exitProcessing:
+    else
+        ? " Error opening potential test file " ; filePath ; " ignoring..."
+    end if
+    m.isValid = isTestSuite
+end function
+

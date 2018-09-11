@@ -78,7 +78,7 @@ end function
 '  */ 
 sub RBS_TR_Run()
     totalStatObj = RBS_STATS_CreateTotalStatistic()
-    m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective)
+    m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective, m.config.supportLegacyTests = true)
     totalStatObj.testRunHasFailures = false
     
     for each metaTestSuite in m.runtimeConfig.suites

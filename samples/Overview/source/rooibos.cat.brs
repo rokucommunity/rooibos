@@ -28,7 +28,7 @@ function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodNa
     screen = CreateObject("roSGScreen")
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
-    ? "Starting test using test scene with name TestsScene" ; testSceneNam
+    ? "Starting test using test scene with name TestsScene" ; testSceneName
     scene = screen.CreateScene(testSceneName)
     scene.id = "ROOT"
     screen.show()
@@ -61,6 +61,7 @@ function BaseTestSuite() as Object
     this.TestCases = []
     this.AddTest                        = RBS_BTS_AddTest
     this.CreateTest                     = RBS_BTS_CreateTest
+    this.GetLegacyCompatibleReturnValue = RBS_BTS_GetLegacyCompatibleReturnValue
     this.Fail                           = RBS_BTS_Fail
     this.AssertFalse                    = RBS_BTS_AssertFalse
     this.AssertTrue                     = RBS_BTS_AssertTrue
@@ -142,31 +143,46 @@ Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, 
         TearDown: teardown
     }
 End Function
-Function RBS_BTS_Fail(msg = "Error" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_Fail(msg = "Error" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     m.currentResult.AddResult(msg)
-    return false
+    return m.GetLegacyCompatibleReturnValue(false)
 End Function
-Function RBS_BTS_AssertFalse(expr as dynamic, msg = "Expression evaluates to true" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_GetLegacyCompatibleReturnValue(value) as Object
+  if (value = true)
+    if (m.isLegacy = true)
+      return ""
+    else
+      return true
+    end if
+  else  
+    if (m.isLegacy = true)
+      return "ERROR"
+    else
+      return false
+    end if
+  end if 
+End Function
+Function RBS_BTS_AssertFalse(expr as dynamic, msg = "Expression evaluates to true" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if not RBS_CMN_IsBoolean(expr) or expr 
         m.currentResult.AddResult(msg)
         return m.fail(msg)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertTrue(expr as dynamic, msg = "Expression evaluates to false" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertTrue(expr as dynamic, msg = "Expression evaluates to false" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if not RBS_CMN_IsBoolean(expr) or not expr then
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     End if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if not m.eqValues(first, second)
         if msg = ""
             first_as_string = RBS_CMN_AsString(first)
@@ -174,13 +190,13 @@ Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as st
             msg = first_as_string + " != " + second_as_string 
         end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if first <> second
         if msg = ""
             first_as_string = RBS_CMN_AsString(first)
@@ -188,13 +204,13 @@ Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as str
             msg = first_as_string + " != " + second_as_string 
         end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if m.eqValues(first, second)
         if msg = ""
             first_as_string = RBS_CMN_AsString(first)
@@ -202,75 +218,75 @@ Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as
             msg = first_as_string + " == " + second_as_string 
         end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if value <> Invalid
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " <> Invalid"
         end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNotInvalid(value as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNotInvalid(value as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if value = Invalid
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " = Invalid"
         end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertAAHasKey(array as dynamic, key as string, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertAAHasKey(array as dynamic, key as string, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array)
         if not array.DoesExist(key)
             if msg = ""
                 msg = "Array doesn't have the '" + key + "' key."
             end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Associative Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertAANotHasKey(array as dynamic, key as string, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertAANotHasKey(array as dynamic, key as string, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array)
         if array.DoesExist(key)
             if msg = ""
                 msg = "Array has the '" + key + "' key."
             end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Associative Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
         for each key in keys
             if not array.DoesExist(key)
@@ -278,19 +294,19 @@ Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as s
                     msg = "Array doesn't have the '" + key + "' key."
                 end if
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
             end if
         end for
     else
         msg = "Input value is not an Associative Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
         for each key in keys
             if array.DoesExist(key)
@@ -298,51 +314,51 @@ Function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" a
                     msg = "Array has the '" + key + "' key."
                 end if
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
             end if
         end for
     else
         msg = "Input value is not an Associative Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         if not RBS_CMN_ArrayContains(array, value, key)
             msg = "Array doesn't have the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArrayNotContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertArrayNotContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         if RBS_CMN_ArrayContains(array, value, key)
             msg = "Array has the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) or (RBS_CMN_IsArray(array) and RBS_CMN_IsArray(subset))
         isAA = RBS_CMN_IsAssociativeArray(subset)
         for each item in subset
@@ -355,19 +371,19 @@ Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, 
             if not RBS_CMN_ArrayContains(array, value, key)
                 msg = "Array doesn't have the '" + RBS_CMN_AsString(value) + "' value."
                 m.currentResult.AddResult(msg)
-                return false
+                return m.GetLegacyCompatibleReturnValue(false)
             end if
         end for
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) or (RBS_CMN_IsArray(array) and RBS_CMN_IsArray(subset))
         isAA = RBS_CMN_IsAssociativeArray(subset)
         for each item in subset
@@ -380,158 +396,158 @@ Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynami
             if RBS_CMN_ArrayContains(array, value, key)
                 msg = "Array has the '" + RBS_CMN_AsString(value) + "' value."
                 m.currentResult.AddResult(msg)
-                return false
+                return m.GetLegacyCompatibleReturnValue(false)
             end if
         end for
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         if array.Count() <> count
             msg = "Array items count " + RBS_CMN_AsString(array.Count()) + " <> " + RBS_CMN_AsString(count) + "."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArrayNotCount(array as dynamic, count as integer, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertArrayNotCount(array as dynamic, count as integer, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         if array.Count() = count
             msg = "Array items count = " + RBS_CMN_AsString(count) + "."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
         if item.Count() > 0
             msg = "Array is not empty."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else if (RBS_CMN_IsString(item))
         if (RBS_CMN_AsString(item) <> "")
             msg = "Input value is not empty."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else 
         msg = "AssertEmpty: Input value was not an array or a string"
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
         if item.Count() = 0
             msg = "Array is empty."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else if RBS_CMN_IsString(item)
         if (item = "")
             msg = "Input value is empty."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArratNotEmpty(item as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertArratNotEmpty(item as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
         if item.Count() = 0
             msg = "Array is empty."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else if RBS_CMN_AsString(item) = ""
         msg = "Input value is empty."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArrayContainsOnly(array as dynamic, typeStr as string, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertArrayContainsOnly(array as dynamic, typeStr as string, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         methodName = "RBS_CMN_Is" + typeStr
         for each item in array
             if not methodName(item)
                 msg = RBS_CMN_AsString(item) + "is not a '" + typeStr + "' type."
                 m.currentResult.AddResult(msg)
-                return false
+                return m.GetLegacyCompatibleReturnValue(false)
             end if    
         end for
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if type(value) <> typeStr
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " was not expected type " + typeStr
         end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 end function
-function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if type(value) <> "roSGNode"
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " was not a node, so could not match subtype " + typeStr
         end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     else if (value.subType() <> typeStr)
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + "( type : " + value.subType() +") was not of subType " + typeStr
         end if
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 end function
-Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as Boolean
+Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
     val1Type = type(Value1)
     val2Type = type(Value2)
     if val1Type = "<uninitialized>" or val2Type = "<uninitialized>"
@@ -556,11 +572,11 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as Boolean
         Value1 = box(Cdbl(Value1))
     end if
     if val1Type <> val2Type
-        return False
+        return false
     else
         valtype = val1Type
         if valtype = "<uninitialized>"
-            return False
+            return false
         else if valtype = "roList"
             return m.eqArrays(Value1, Value2)
         else if valtype = "roAssociativeArray"
@@ -578,152 +594,152 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as Boolean
         end if    
     end if
 End Function 
-Function RBS_BTS_EqAssocArray(Value1 as Object, Value2 as Object) as Boolean
+Function RBS_BTS_EqAssocArray(Value1 as Object, Value2 as Object) as dynamic
     l1 = Value1.Count()
     l2 = Value2.Count()
     if not l1 = l2
-        return False
+        return false
     else
         for each k in Value1
             if not Value2.DoesExist(k)
-                return False
+                return false
             else
                 v1 = Value1[k]
                 v2 = Value2[k]
                 if not m.eqValues(v1, v2)
-                    return False
+                    return false
                 end if
             end if
         end for
-        return True
+        return true
     end if
 End Function 
-Function RBS_BTS_EqArray(Value1 as Object, Value2 as Object) as Boolean
+Function RBS_BTS_EqArray(Value1 as Object, Value2 as Object) as dynamic
     l1 = Value1.Count()
     l2 = Value2.Count()
     if not l1 = l2
-        return False
+        return false
     else
         for i = 0 to l1 - 1
             v1 = Value1[i]
             v2 = Value2[i]
             if not m.eqValues(v1, v2) then
-                return False
+                return false
             end if
         end for
-        return True
+        return true
     end if
 End Function
-Function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if type(node) = "roSGNode" 
         if node.getChildCount() <> count
             msg = "node items count <> " + RBS_CMN_AsString(count) + ". Received " + RBS_CMN_AsString(node.getChildCount())
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an node."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNodeNotCount(node as dynamic, count as integer, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeNotCount(node as dynamic, count as integer, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if type(node) = "roSGNode" 
         if node.getChildCount() = count
             msg = "node items count = " + RBS_CMN_AsString(count) + "."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an node."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNodeEmpty(node as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeEmpty(node as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if type(node) = "roSGNode" 
         if node.getChildCount() > 0
             msg = "node is not empty."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNodeNotEmpty(node as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeNotEmpty(node as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if type(node) = "roSGNode" 
         if node.Count() = 0
             msg = "Array is empty."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if  type(node) = "roSGNode" 
         if not RBS_CMN_NodeContains(node, value)
             msg = "Node doesn't have the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if  type(node) = "roSGNode" 
         if not RBS_CMN_NodeContains(node, value)
             msg = "Node doesn't have the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         else if node.getChildCount() <> 1
             msg = "Node Contains speicified value; but other values as well"
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNodeNotContains(node as dynamic, value as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeNotContains(node as dynamic, value as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if  type(node) = "roSGNode" 
         if RBS_CMN_NodeContains(node, value)
             msg = "Node has the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
         end if
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ignoredFields=invalid, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ignoredFields=invalid, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if ( type(node) = "roSGNode" and RBS_CMN_IsAssociativeArray(subset)) or ( type(node) = "roSGNode"  and RBS_CMN_IsArray(subset))
         isAA = RBS_CMN_IsAssociativeArray(subset)
         isIgnoredFields = RBS_CMN_IsArray(ignoredFields)
@@ -735,7 +751,7 @@ Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ig
                     if not m.eqValues(nodeValue, subsetValue)
                         msg = key + ": Expected '" + RBS_CMN_AsString(subsetValue) + "', got '" + RBS_CMN_AsString(nodeValue) + "'"
                         m.currentResult.AddResult(msg)
-                        return false
+                        return m.GetLegacyCompatibleReturnValue(false)
                     end if
                 end if
             else
@@ -745,13 +761,13 @@ Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ig
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if ( type(node) = "roSGNode"  and RBS_CMN_IsAssociativeArray(subset)) or ( type(node) = "roSGNode" and RBS_CMN_IsArray(subset))
         isAA = RBS_CMN_IsAssociativeArray(subset)
         for each item in subset
@@ -764,19 +780,19 @@ Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic,
             if RBS_CMN_NodeContains(node, value, key)
                 msg = "Node has the '" + RBS_CMN_AsString(value) + "' value."
                 m.currentResult.AddResult(msg)
-            return false
+            return m.GetLegacyCompatibleReturnValue(false)
             end if
         end for
     else
         msg = "Input value is not an Node."
         m.currentResult.AddResult(msg)
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ignoredFields = invalid, msg = "" as string) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ignoredFields = invalid, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) 
         isAA = RBS_CMN_IsAssociativeArray(subset)
         isIgnoredFields = RBS_CMN_IsArray(ignoredFields)
@@ -788,7 +804,7 @@ Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ign
                     if not m.eqValues(arrayValue, subsetValue)
                         msg = key + ": Expected '" + RBS_CMN_AsString(subsetValue) + "', got '" + RBS_CMN_AsString(arrayValue) + "'"
                         m.currentResult.AddResult(msg)
-                        return false
+                        return m.GetLegacyCompatibleReturnValue(false)
                     end if
                 end if
             else
@@ -797,10 +813,10 @@ Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ign
         end for
     else
         msg = "Input values are not an Associative Array."
-        return false
+        return m.GetLegacyCompatibleReturnValue(false)
     end if
     m.currentResult.AddResult("")
-    return true
+    return m.GetLegacyCompatibleReturnValue(true)
 End Function
 function RBS_BTS_Stub(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
     if (m.stubs =invalid)
@@ -913,10 +929,10 @@ function RBS_BTS_CleanStubs() as void
     end for
     m.stubs = invalid
 end function
-Function RBS_BTS_MockFail(methodName, message) as boolean
-    if (m.currentResult.isFail) then return false ' skip test we already failed
+Function RBS_BTS_MockFail(methodName, message) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     m.currentResult.AddResult("mock failure on '" + methodName + "' : "  + message)
-    return false
+    return m.GetLegacyCompatibleReturnValue(false)
 End Function
 function RBS_BTS_StubCallback0(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
     fake = m.__Stubs["0"]
@@ -1042,7 +1058,7 @@ function RBS_CMN_GetFunction(func, name) as Object
     if (RBS_CMN_IsFunction(func)) then return func
     if (not RBS_CMN_IsNotEmptyString(name)) then return invalid
     res = eval("functionPointer=" + name)
-    if (RBS_CMN_IsInteger(res) and res = 252 and RBS_CMN_IsFunction(functionPointer))
+    if (RBS_CMN_IsInteger(res) and RBS_CMN_IsFunction(functionPointer))
         return functionPointer
     else
         return invalid
@@ -1270,6 +1286,7 @@ function RBS_ItG_GetRunnableTestSuite(group) as object
     testCases = RBS_ItG_GetTestCases(group)
     runnableSuite = BaseTestSuite()
     runnableSuite.name = group.name
+    runnableSuite.isLegacy = group.isLegacy = true
     for each testCase in testCases
         name = testCase.name
         if (testCase.isSolo)
@@ -1366,17 +1383,17 @@ Function RBS_IG_GetString(seed as integer) as string
     end if
     return item
 End Function
-function UnitTestRuntimeConfig(testsDirectory, maxLinesWithoutSuiteDirective)
+function UnitTestRuntimeConfig(testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests = false)
     this = {}
     this.testsDirectory = testsDirectory
     this.CreateSuites = RBS_CreateSuites
     this.hasSoloSuites = false
     this.hasSoloGroups = false
     this.hasSoloTests = false
-    this.suites = this.CreateSuites(this.testsDirectory, maxLinesWithoutSuiteDirective)
+    this.suites = this.CreateSuites(this.testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests)
     return this
 end function
-function RBS_CreateSuites(testsDirectory, maxLinesWithoutSuiteDirective)
+function RBS_CreateSuites(testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests )
     result =  CreateObject("roArray", 0, true)
     testsFileRegex = CreateObject("roRegex", "^[0-9a-z\_]*\.brs$", "i")
     if testsDirectory <> ""
@@ -1386,9 +1403,9 @@ function RBS_CreateSuites(testsDirectory, maxLinesWithoutSuiteDirective)
             itemPath = testsDirectory + "/" + item
             itemStat = fileSystem.Stat(itemPath)
             if itemStat.type = "directory" then
-                result.append(m.CreateSuites(itemPath, maxLinesWithoutSuiteDirective))
+                result.append(m.CreateSuites(itemPath, maxLinesWithoutSuiteDirective, supportLegacyTests ))
             else if testsFileRegex.IsMatch(item) then
-                suite = UnitTestSuite(itemPath, maxLinesWithoutSuiteDirective)
+                suite = UnitTestSuite(itemPath, maxLinesWithoutSuiteDirective, supportLegacyTests)
                 if (suite.isValid)
                     if (suite.isSolo)
                         m.hasSoloSuites = true
@@ -1739,7 +1756,7 @@ function RBS_TR_TestRunner(args = {}) as Object
 end function
 sub RBS_TR_Run()
     totalStatObj = RBS_STATS_CreateTotalStatistic()
-    m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective)
+    m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective, m.config.supportLegacyTests = true)
     totalStatObj.testRunHasFailures = false
     for each metaTestSuite in m.runtimeConfig.suites
         if (m.runtimeConfig.hasSoloTests )
@@ -1933,7 +1950,7 @@ Function Rooibos_CreateTestNode(nodeType) as Object
     return invalid
   end if
 End Function
-function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
+function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100, supportLegacyTests  = false)
     this = {}
     this.filePath = filePath
     this.name = ""
@@ -1952,11 +1969,12 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100)
     this.nodeTestFileName = ""
     this.ProcessSuite = RBS_TS_ProcessSuite
     this.ResetCurrentTestCase = RBS_TS_ResetCurrentTestCase
-    this.ProcessSuite(maxLinesWithoutSuiteDirective)
+    this.ProcessLegacySuite = RBS_TS_ProcessLegacySuite  
+    this.ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     this.currentGroup = invalid
     return this
 end function
-function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
+function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     code = RBS_CMN_AsString(ReadAsciiFile(m.filePath))
     isTestSuite = false
     TAG_TEST_SUITE = "'@TestSuite"
@@ -1972,8 +1990,8 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
     TAG_TEST_PARAMS = "'@Params"
     TAG_TEST_IGNORE_PARAMS = "'@IgnoreParams"
     functionNameRegex = CreateObject("roRegex", "^(function|sub)\s([0-9a-z\_]*)\s*\(", "i")
-    assertFunctionRegex = CreateObject("roRegex", "^([^']).*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
-    assertFunctionEndRegex = CreateObject("roRegex", "([^'])(end sub|end function)", "i")
+    assertInvocationRegex = CreateObject("roRegex", "^\s*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
+    functionEndRegex = CreateObject("roRegex", "^\s*(end sub|end function)", "i")
     if code <> ""
         isTokenItGroup = false
         isNextTokenIgnore = false
@@ -1996,7 +2014,6 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
             lineNumber++
             currentLocation = m.filePath + ":" + stri(lineNumber)
             if (lineNumber > maxLinesWithoutSuiteDirective and not isTestSuite)
-                ? "IGNORING FILE WTAG_ITH NO @TAG_TESTSUTAG_ITE DIRECTIVE : "; currentLocation
                 goto exitProcessing
             end if
             if (RBS_TS_IsTag(line, TAG_TEST_SUITE))
@@ -2102,7 +2119,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                 end if
                 isNextTokenAfterEach = true
                 goto exitLoop
-            else if (assertFunctionRegex.IsMatch(line))
+            else if (assertInvocationRegex.IsMatch(line))
                 if (not m.hasCurrentTestCase)
                     ? "Found assert before test case was declared! " ; currentLocation 
                 else                
@@ -2112,7 +2129,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
                     end for
                 end if
                 goto exitLoop
-            else if (isNextTokenTest and assertFunctionEndRegex.IsMatch(line))
+            else if (isNextTokenTest and functionEndRegex.IsMatch(line))
                 m.ResetCurrentTestCase()
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEST_IGNORE_PARAMS))
@@ -2131,8 +2148,8 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
             if (isTokenItGroup or isNextTokenTest or isNextTokenSetup or isNextTokenBeforeEach or isNextTokenAfterEach or isNextTokenTeardown)
                 if functionNameRegex.IsMatch(line)
                     functionName = functionNameRegex.Match(line).Peek()
-                    res = eval("functionPointer=" + functionName)
-                    if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
+                    functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+                    if (functionPointer <> invalid)
                         if (isNextTokenTest)
                             if (nextName <> "") 
                                 testName = nextName
@@ -2228,7 +2245,14 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective)
     m.delete("testCaseParams")
     m.delete("currentTestCases")
     m.delete("hasCurrentTestCase")
-    m.isValid = isTestSuite
+    if (isTestSuite)
+      m.isValid = true
+    else if (supportLegacyTests = true)
+      m.ProcessLegacySuite(maxLinesWithoutSuiteDirective)
+    else
+      ? "Ignoring non test/legacy test file "; filePath
+      m.isValid = false
+    end if
 end function
 function RBS_TS_IsTag(text, tag) as boolean
     return Left(text,len(tag)) = tag
@@ -2240,4 +2264,148 @@ function RBS_TS_ResetCurrentTestCase() as void
     m.testCaseParams = CreateObject("roArray",0, true)
     m.currentTestCases = CreateObject("roArray",0, true) ' we can have multiple test cases based on our params
     m.hasCurrentTestCase = false
+end function
+function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
+    code = RBS_CMN_AsString(ReadAsciiFile(m.filePath))
+    isTestSuite = false
+    dblQ = chr(34)
+    testSuiteFunctionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s*testSuite_([0-9a-z\_]*)\s*\(", "i")
+    testCaseFunctionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s*testCase_([0-9a-z\_]*)\s*\(", "i")
+    functionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s([0-9a-z\_]*)\s*\(", "i")
+    assertInvocationRegex = CreateObject("roRegex", "^\s*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
+    functionEndRegex = CreateObject("roRegex", "^\s*(end sub|end function)", "i")
+    testSuiteNameRegex = CreateObject("roRegex", "^\s*this\.name\s*=\s*\" + dblQ + "([0-9a-z\_]*)\s*\" + dblQ, "i")
+    setupregex = CreateObject("roRegex", "^\s*this\.setup\s*=\s*([a-z_0-9]*)","i")
+    addTestregex = CreateObject("roRegex", "^\s*this\.addTest\s*\(\" + dblQ + "([0-9a-z\_]*)\" + dblQ + "\s*,\s*([0-9a-z\_]*)\s*\)", "i")
+    TAG_IGNORE = "'@Ignore"
+    TAG_SOLO = "'@Only"
+    isIgnore = false
+    isSolo = false
+    if code <> ""
+        m.testCaseMap = {} ' map of legacy test cases to function names
+        isInInitFunction = false
+        isTestSuite = false
+        nodeTestFileName = ""
+        m.name = m.filePath
+        lineNumber = 0
+        m.ResetCurrentTestCase()
+        currentTestCase = invalid
+        currentLocation =""
+        for each line in code.Split(chr(10))
+          lineNumber++
+          currentLocation = m.filePath + ":" + stri(lineNumber)
+          if (lineNumber > maxLinesWithoutSuiteDirective and not isTestSuite)
+              ? "IGNORING FILE WITH NO testSuiteInit function : "; currentLocation
+              goto exitProcessing
+          end if
+          if (RBS_TS_IsTag(line, TAG_SOLO))
+            m.isSolo = true
+            ? " IS SOLO TEST!"
+            goto exitLoop
+          end if
+          if (RBS_TS_IsTag(line, TAG_IGNORE))
+            m.isIgnored = true
+            ? " IS IGNORED TEST!"
+            goto exitLoop
+          end if
+          if testSuiteFunctionNameRegex.IsMatch(line)
+            isTestSuite = true
+            isInInitFunction = true
+            goto exitLoop
+          end if
+          if setupregex.IsMatch(line)
+            if not isInInitFunction
+              ? "Found test suite setup invocation outside of test suite init function"
+              goto exitLoop
+            end if
+            functionName = setupregex.Match(line).peek()
+            functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+            if (functionPointer <> invalid)
+              m.setupFunctionName = functionName
+              m.setupFunction = functionPointer
+            else
+              ? " the function name for the setup method "; functionName ; " could not be found"
+            end if
+            goto exitLoop
+          end if         
+          if functionEndRegex.IsMatch(line)
+            if (isInInitFunction)
+              m.currentGroup = UnitTestItGroup(m.name, false, false)
+              m.currentGroup.setupFunctionName = m.setupFunctionName
+              m.currentGroup.setupFunction = m.setupFunction
+              m.currentGroup.isLegacy = true
+              m.itGroups.push(m.currentGroup)
+              isInInitFunction = false
+            end if
+            currentTestCase = invalid
+            goto exitLoop
+          end if
+          if testSuiteNameRegex.IsMatch(line)
+            if (not isInInitFunction)
+              ? "Found set testsuite name, when not in a legacy test suite init function. ignoring"
+              goto exitLoop
+            end if
+            name = testSuiteNameRegex.Match(line).Peek()
+            if (name <> "")
+              m.name = name
+            end if
+            goto exitLoop
+          end if
+          if addTestregex.IsMatch(line)
+              if (not isInInitFunction)
+                  ? "Found addTestCase, when not in a legacy test suite init function. Ignoring"
+                  goto exitLoop
+              end if
+              match = addTestregex.Match(line)
+              testCaseName = match[1]
+              testCaseFunctionName = match[2]
+              if (testCaseName <> "" and testCaseFunctionName <> "")
+                  m.testCaseMap[lcase(testCaseFunctionName)] = testCaseName 
+              else
+                ? " found badly formed add test case function call in test suite init fuction. Ignoring" 
+              end if
+              goto exitLoop
+          end if
+          if (assertInvocationRegex.IsMatch(line))
+            if (not m.hasCurrentTestCase)
+              ? "Found assert before test case was declared! " ; currentLocation 
+            else                
+                currentTestCase.AddAssertLine(lineNumber)
+            end if
+            goto exitLoop
+          end if
+          if testCaseFunctionNameRegex.IsMatch(line)
+            if (m.currentGroup = invalid)
+              ? " found test case before a group was setup - could be that the init function never terminated"
+              goto exitLoop
+            end if
+            functionName = testCaseFunctionNameRegex.Match(line).peek()
+            m.ResetCurrentTestCase()
+            if (functionName <> "")
+              functionName = "testcase_" + lcase(functionName)
+              testName = m.testCaseMap[functionName]
+              if (testName = invalid or testName = "")
+                print "Encountered test function " ; functionName; " but found no matching AddTestCase invocation"
+                goto exitLoop
+              end if
+              functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+              if (functionPointer <> invalid)
+                if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
+                currentTestCase = UnitTestCase(testName, functionPointer, functionName, false, false, lineNumber)
+                m.currentGroup.AddTestCase(currentTestCase)
+                m.hasCurrentTestCase = true
+              else
+                  ? " could not get function pointer for "; functionName ; " ignoring"
+              end if
+            else
+              ? " found badly named test case function. ignoring" 
+            end if
+          end if
+          exitLoop:
+        end for
+        exitProcessing:
+    else
+        ? " Error opening potential test file " ; filePath ; " ignoring..."
+    end if
+    m.isValid = isTestSuite
 end function

@@ -1,15 +1,15 @@
-function UnitTestRuntimeConfig(testsDirectory, maxLinesWithoutSuiteDirective)
+function UnitTestRuntimeConfig(testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests = false)
     this = {}
     this.testsDirectory = testsDirectory
     this.CreateSuites = RBS_CreateSuites
     this.hasSoloSuites = false
     this.hasSoloGroups = false
     this.hasSoloTests = false
-    this.suites = this.CreateSuites(this.testsDirectory, maxLinesWithoutSuiteDirective)
+    this.suites = this.CreateSuites(this.testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests)
     return this
 end function
 
-function RBS_CreateSuites(testsDirectory, maxLinesWithoutSuiteDirective)
+function RBS_CreateSuites(testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests )
     result =  CreateObject("roArray", 0, true)
     testsFileRegex = CreateObject("roRegex", "^[0-9a-z\_]*\.brs$", "i")
 
@@ -21,10 +21,10 @@ function RBS_CreateSuites(testsDirectory, maxLinesWithoutSuiteDirective)
             itemStat = fileSystem.Stat(itemPath)
 
             if itemStat.type = "directory" then
-                result.append(m.CreateSuites(itemPath, maxLinesWithoutSuiteDirective))
+                result.append(m.CreateSuites(itemPath, maxLinesWithoutSuiteDirective, supportLegacyTests ))
             else if testsFileRegex.IsMatch(item) then
 '                ? "processing file " ; itemPath
-                suite = UnitTestSuite(itemPath, maxLinesWithoutSuiteDirective)
+                suite = UnitTestSuite(itemPath, maxLinesWithoutSuiteDirective, supportLegacyTests)
                 if (suite.isValid)
                     if (suite.isSolo)
                         m.hasSoloSuites = true

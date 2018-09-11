@@ -28,7 +28,7 @@ function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodNa
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
     
-    ? "Starting test using test scene with name TestsScene" ; testSceneNam
+    ? "Starting test using test scene with name TestsScene" ; testSceneName
     scene = screen.CreateScene(testSceneName)
     scene.id = "ROOT"
     screen.show()
