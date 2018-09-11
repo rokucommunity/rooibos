@@ -2279,7 +2279,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
     addTestregex = CreateObject("roRegex", "^\s*this\.addTest\s*\(\" + dblQ + "([0-9a-z\_]*)\" + dblQ + "\s*,\s*([0-9a-z\_]*)\s*\)", "i")
     TAG_IGNORE = "'@Ignore"
     TAG_SOLO = "'@Only"
-    isIgnore = false
+    isIgnored = false
     isSolo = false
     if code <> ""
         m.testCaseMap = {} ' map of legacy test cases to function names
@@ -2299,12 +2299,12 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
               goto exitProcessing
           end if
           if (RBS_TS_IsTag(line, TAG_SOLO))
-            m.isSolo = true
+            isSolo = true
             ? " IS SOLO TEST!"
             goto exitLoop
           end if
           if (RBS_TS_IsTag(line, TAG_IGNORE))
-            m.isIgnored = true
+            isIgnored = true
             ? " IS IGNORED TEST!"
             goto exitLoop
           end if
@@ -2336,6 +2336,10 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
               m.currentGroup.isLegacy = true
               m.itGroups.push(m.currentGroup)
               isInInitFunction = false
+              m.isSolo = isSolo
+              m.isIgnored = isIgnored
+              isIgnored = false
+              isSolo = false
             end if
             currentTestCase = invalid
             goto exitLoop
@@ -2391,15 +2395,20 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
               functionPointer = RBS_CMN_GetFunction(invalid, functionName)
               if (functionPointer <> invalid)
                 if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
-                currentTestCase = UnitTestCase(testName, functionPointer, functionName, false, false, lineNumber)
+                currentTestCase = UnitTestCase(testName, functionPointer, functionName, isSolo, isIgnored, lineNumber)
                 m.currentGroup.AddTestCase(currentTestCase)
                 m.hasCurrentTestCase = true
+                if (isSolo)
+                  m.isSolo = true
+                end if
               else
                   ? " could not get function pointer for "; functionName ; " ignoring"
               end if
             else
               ? " found badly named test case function. ignoring" 
             end if
+            isSolo = false
+            isIgnored = false
           end if
           exitLoop:
         end for
