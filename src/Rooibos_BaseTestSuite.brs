@@ -1321,7 +1321,12 @@ End Function
 '  * @param {Dynamic} returnValue - value that the stub method will return when invoked
 '  * @returns {Object} - stub that was wired into the real method
 '  */ 
-function RBS_BTS_Stub(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
+function RBS_BTS_Stub(target, methodName, returnValue = invalid) as object
+    if (type(target) <> "roAssociativeArray")
+      m.Fail("could not create Stub provided target was null")
+      return {}
+    end if
+
     if (m.stubs =invalid)
         m.__stubId = -1
         m.stubs = {}
@@ -1333,13 +1338,13 @@ function RBS_BTS_Stub(target, methodName, expectedInvocations = 1, expectedArgs 
          return invalid
     end if
     
-    id = stri(m.__mockId).trim()
+    id = stri(m.__stubId).trim()
 
-    fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
+    fake = m.CreateFake(id, target, methodName, 1, invalid, returnValue)
     m.stubs[id] = fake
     if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction")
-        target[methodName] = fake.callback
-        target.__mocks = m.stubs
+        target[methodName] = m["StubCallback" + id]
+        target.__stubs = m.stubs
     else
         ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName 
     end if
@@ -1411,6 +1416,11 @@ end function
 '  */ 
 
 function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
+    if (type(target) <> "roAssociativeArray")
+      m.Fail("could not create Stub provided target was null")
+      return {}
+    end if
+    
     if (m.mocks = invalid)
         m.__mockId = -1
         m.mocks = {}
@@ -1462,7 +1472,11 @@ function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, exp
         expectedInvocations: expectedInvocations,
         callback: function (arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
             ? "FAKE CALLBACK CALLED FOR " ; m.methodName 
-            m.invokedArgs = [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 ] 
+            if (m.allInvokedArgs = invalid)
+              m.allInvokedArgs = []
+            end if
+            m.invokedArgs = [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 ]
+            m.allInvokedArgs.push ([arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 ]) 
             m.isCalled = true
             m.invocations++
             return m.returnValue
