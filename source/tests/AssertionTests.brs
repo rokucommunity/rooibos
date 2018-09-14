@@ -56,6 +56,7 @@ end function
 '@It tests AssertArrayContainsAAs
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+'@Only
 '@Test Fail
 '@Params[[{"one":1}], [{"one":2}]]
 '@Params[[{"one":1}], [{"one":"a"}]]
@@ -68,10 +69,11 @@ end function
 '@Params[[{"one":1}], [2] ]
 '@Params[[{"one":"a"}], [{"one":1}] ]
 '@Params[[{"two":1}], [{"one":1}] ]
-'@Params[[{}], [{"one":1}] ]
 '@Params[[invalid], [{"one":1}] ]
 '@Params[invalid, [{"one":1}] ]
-'@Params[[], [{"one":1}] ]
+'@Params[[{"one":1, "two":2}], [{"one":"1"}] ]
+'@Params[[{"one":1}, {"two":2}], [{"one":"1"}, {"two":"a"}] ]
+'@Params[[{"one":1}, {"two":2}], [{"a":1}, {"a":1}, {"a":1}] ]
 function Simp__AssertArrayContainsAAs_Fail(expectedAAs, items) as void
     
     assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
@@ -84,7 +86,6 @@ function Simp__AssertArrayContainsAAs_Fail(expectedAAs, items) as void
 end function
 
 
-'@Only
 '@Test pass
 '@Params[[], []]
 '@Params[[{}], [{}]]

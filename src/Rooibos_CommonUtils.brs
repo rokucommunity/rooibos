@@ -254,6 +254,18 @@ function RBS_CMN_AsString(input as Dynamic) as String
         return Str(input).Trim()
     else if type(input) = "roSGNode"
         return "Node(" + input.subType() +")"
+    else if type(input) = "roAssociativeArray"
+        isFirst = true
+        text = "{"
+        if (not isFirst)
+          text += ","
+          isFirst = false
+        end if
+        for each key in input
+          text += key + ":" + RBS_CMN_AsString(input[key])
+        end for
+        text += "}"
+        return text
     else
         return ""
     end If
