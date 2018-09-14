@@ -1,4 +1,45 @@
-' /**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Rooibos_BaseTestSuite.brs - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Modules</li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-BaseTestSuite.html">BaseTestSuite</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AddTest">AddTest</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertAAContainsSubset">AssertAAContainsSubset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertAAHasKey">AssertAAHasKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertAAHasKeys">AssertAAHasKeys</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertAANotHasKey">AssertAANotHasKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertAANotHasKeys">AssertAANotHasKeys</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArratNotEmpty">AssertArratNotEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArrayContains">AssertArrayContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArrayContainsAAs">AssertArrayContainsAAs</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArrayContainsOnly">AssertArrayContainsOnly</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArrayContainsSubset">AssertArrayContainsSubset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArrayCount">AssertArrayCount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArrayNotContains">AssertArrayNotContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArrayNotContainsSubset">AssertArrayNotContainsSubset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertArrayNotCount">AssertArrayNotCount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertEmpty">AssertEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertEqual">AssertEqual</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertFalse">AssertFalse</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertInvalid">AssertInvalid</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertLike">AssertLike</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertMocks">AssertMocks</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeContainsFields">AssertNodeContainsFields</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeContainsOnly">AssertNodeContainsOnly</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeCount">AssertNodeCount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeEmpty">AssertNodeEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeEmpty">AssertNodeEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeNotContains">AssertNodeNotContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeNotContainsFields">AssertNodeNotContainsFields</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeNotCount">AssertNodeNotCount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNodeNotEmpty">AssertNodeNotEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNotEmpty">AssertNotEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNotEqual">AssertNotEqual</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertNotInvalid">AssertNotInvalid</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertSubType">AssertSubType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertTrue">AssertTrue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#AssertType">AssertType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#CleanMocks">CleanMocks</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#CleanStubs">CleanStubs</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#CreateFake">CreateFake</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#CreateTest">CreateTest</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#EqArray">EqArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#EqAssocArray">EqAssocArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#EqValues">EqValues</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#Expect">Expect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#ExpecTNone">ExpecTNone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#ExpectOnce">ExpectOnce</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#Fail">Fail</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#g">g</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#Mock">Mock</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-BaseTestSuite.html#Stub">Stub</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-CommonUtils.html">CommonUtils</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.ArrayContains">ArrayContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.AsArray">AsArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.AsBoolean">AsBoolean</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.AsDouble">AsDouble</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.AsFloat">AsFloat</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.AsInteger">AsInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.AsLongInteger">AsLongInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.AsString">AsString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.FindElementIndexInArray">FindElementIndexInArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.FindElementIndexInNode">FindElementIndexInNode</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.GetFunction">GetFunction</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsArray">IsArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsAssociativeArray">IsAssociativeArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsBoolean">IsBoolean</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsDateTime">IsDateTime</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsDouble">IsDouble</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsFloat">IsFloat</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsFunction">IsFunction</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsInteger">IsInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsList">IsList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsLongInteger">IsLongInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsNotEmptyString">IsNotEmptyString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsNullOrEmpty">IsNullOrEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsNumber">IsNumber</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsSGNode">IsSGNode</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsString">IsString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.IsValid">IsValid</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-CommonUtils.html#.ValidStr">ValidStr</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-ItemGenerator.html">ItemGenerator</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#GetArray">GetArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#GetAssocArray">GetAssocArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#GetBoolean">GetBoolean</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#GetFloat">GetFloat</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#GetInteger">GetInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#GetItem">GetItem</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#GetSimpleType">GetSimpleType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#GetString">GetString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-ItemGenerator.html#ItemGenerator">ItemGenerator</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-rooibosh.html">rooibosh</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-rooibosh.html#.Rooibos__Init">Rooibos__Init</a></span></li><li class="nav-heading"><span class="nav-item-type type-module">M</span><span class="nav-item-name"><a href="module-TestRunner.html">TestRunner</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-TestRunner.html#.RBS_TR_TestRunner">RBS_TR_TestRunner</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-TestRunner.html#Rooibos_CreateTestNode">Rooibos_CreateTestNode</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-TestRunner.html#Rooibos_RunNodeTests">Rooibos_RunNodeTests</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="module-TestRunner.html#Run">Run</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">Rooibos_BaseTestSuite.brs</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>' /**
 '  * @module BaseTestSuite
 '  * @description All brs files that include `'@TestSuite` annotations automatically extend the BaseTestSuite.
 '  * The base test suite contains all of the assertions, and utility methods required to writey our tests, as well as being responsible for tracking the state of the tests and groups.
@@ -131,7 +172,7 @@ Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, 
 '        ? " Looking it up now"
         res = eval("functionPointer=" + funcName)
         
-        if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
+        if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer &lt;> invalid)
 '            ? "found the function"
             func = functionPointer
         else
@@ -227,7 +268,7 @@ End Function
 '  * @name AssertEqual
 '  * @function
 '  * @instance
-'  * @description Fail if the two objects are unequal as determined by the '<>' operator.
+'  * @description Fail if the two objects are unequal as determined by the '&lt;>' operator.
 '  * @param {Dynamic} first - first object to compare
 '  * @param {Dynamic} second - second object to compare
 '  * @param {Dynamic} msg - alternate error message
@@ -261,7 +302,7 @@ End Function
 '  */ 
 Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as string) as dynamic
     if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
-    if first <> second
+    if first &lt;> second
         if msg = ""
             first_as_string = RBS_CMN_AsString(first)
             second_as_string = RBS_CMN_AsString(second)
@@ -312,10 +353,10 @@ End Function
 '  */ 
 Function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as dynamic
     if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
-    if value <> Invalid
+    if value &lt;> Invalid
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
-            msg = expr_as_string + " <> Invalid"
+            msg = expr_as_string + " &lt;> Invalid"
         end if
         m.currentResult.AddResult(msg)
         return m.GetLegacyCompatibleReturnValue(false)
@@ -674,7 +715,7 @@ End Function
 '  * @name AssertArrayCount
 '  * @function
 '  * @instance
-'  * @description Fail if the array items count <> expected count
+'  * @description Fail if the array items count &lt;> expected count
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} count - An expected array items count
 '  * @param {Dynamic} msg - alternate error message
@@ -683,8 +724,8 @@ End Function
 Function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as dynamic
     if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
-        if array.Count() <> count
-            msg = "Array items count " + RBS_CMN_AsString(array.Count()) + " <> " + RBS_CMN_AsString(count) + "."
+        if array.Count() &lt;> count
+            msg = "Array items count " + RBS_CMN_AsString(array.Count()) + " &lt;> " + RBS_CMN_AsString(count) + "."
             m.currentResult.AddResult(msg)
             return m.GetLegacyCompatibleReturnValue(false)
         end if
@@ -744,7 +785,7 @@ Function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as dynamic
             return m.GetLegacyCompatibleReturnValue(false)
         end if
     else if (RBS_CMN_IsString(item))
-        if (RBS_CMN_AsString(item) <> "")
+        if (RBS_CMN_AsString(item) &lt;> "")
             msg = "Input value is not empty."
             m.currentResult.AddResult(msg)
             return m.GetLegacyCompatibleReturnValue(false)
@@ -860,7 +901,7 @@ End Function
 '  */ 
 function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
     if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
-    if type(value) <> typeStr
+    if type(value) &lt;> typeStr
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " was not expected type " + typeStr
@@ -885,14 +926,14 @@ end function
 '  */ 
 function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
     if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
-    if type(value) <> "roSGNode"
+    if type(value) &lt;> "roSGNode"
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + " was not a node, so could not match subtype " + typeStr
         end if
         m.currentResult.AddResult(msg)
         return m.GetLegacyCompatibleReturnValue(false)
-    else if (value.subType() <> typeStr)
+    else if (value.subType() &lt;> typeStr)
         if msg = ""
             expr_as_string = RBS_CMN_AsString(value)
             msg = expr_as_string + "( type : " + value.subType() +") was not of subType " + typeStr
@@ -918,7 +959,7 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
     ' Workaraund for bug with string boxing, and box everything else
     val1Type = type(Value1)
     val2Type = type(Value2)
-    if val1Type = "<uninitialized>" or val2Type = "<uninitialized>"
+    if val1Type = "&lt;uninitialized>" or val2Type = "&lt;uninitialized>"
         ? "ERROR!!!! - undefined value passed"
         return false
     end if 
@@ -946,12 +987,12 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
         Value1 = box(Cdbl(Value1))
     end if
 
-    if val1Type <> val2Type
+    if val1Type &lt;> val2Type
         return false
     else
         valtype = val1Type
         
-        if valtype = "<uninitialized>"
+        if valtype = "&lt;uninitialized>"
             return false
         else if valtype = "roList"
             return m.eqArrays(Value1, Value2)
@@ -960,7 +1001,7 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
         else if valtype = "roArray"
             return m.eqArrays(Value1, Value2)
         else if (valtype = "roSGNode")
-            if (val2Type <> "roSGNode")
+            if (val2Type &lt;> "roSGNode")
                 return false
             else
                 return Value1.isSameNode(Value2)
@@ -1055,8 +1096,8 @@ End Function
 Function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as string) as dynamic
     if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
     if type(node) = "roSGNode" 
-        if node.getChildCount() <> count
-            msg = "node items count <> " + RBS_CMN_AsString(count) + ". Received " + RBS_CMN_AsString(node.getChildCount())
+        if node.getChildCount() &lt;> count
+            msg = "node items count &lt;> " + RBS_CMN_AsString(count) + ". Received " + RBS_CMN_AsString(node.getChildCount())
             m.currentResult.AddResult(msg)
             return m.GetLegacyCompatibleReturnValue(false)
         end if
@@ -1189,7 +1230,7 @@ Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, msg = "" as string) as 
             msg = "Node doesn't have the '" + RBS_CMN_AsString(value) + "' value."
             m.currentResult.AddResult(msg)
             return m.GetLegacyCompatibleReturnValue(false)
-        else if node.getChildCount() <> 1
+        else if node.getChildCount() &lt;> 1
             msg = "Node Contains speicified value; but other values as well"
             m.currentResult.AddResult(msg)
             return m.GetLegacyCompatibleReturnValue(false)
@@ -1249,7 +1290,7 @@ Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ig
         isAA = RBS_CMN_IsAssociativeArray(subset)
         isIgnoredFields = RBS_CMN_IsArray(ignoredFields)
         for each key in subset
-            if (key <> "")
+            if (key &lt;> "")
                 if (not isIgnoredFields or not RBS_CMN_ArrayContains(ignoredFields, key))
                     subsetValue = subset[key]
                     nodeValue = node[key]
@@ -1331,7 +1372,7 @@ Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ign
         isAA = RBS_CMN_IsAssociativeArray(subset)
         isIgnoredFields = RBS_CMN_IsArray(ignoredFields)
         for each key in subset
-            if (key <> "")
+            if (key &lt;> "")
                 if (not isIgnoredFields or not RBS_CMN_ArrayContains(ignoredFields, key))
                     subsetValue = subset[key]
                     arrayValue = array[key]
@@ -1385,7 +1426,7 @@ End Function
 '  * @returns {Object} - stub that was wired into the real method
 '  */ 
 function RBS_BTS_Stub(target, methodName, returnValue = invalid) as object
-    if (type(target) <> "roAssociativeArray")
+    if (type(target) &lt;> "roAssociativeArray")
       m.Fail("could not create Stub provided target was null")
       return {}
     end if
@@ -1479,7 +1520,7 @@ end function
 '  */ 
 
 function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
-    if (type(target) <> "roAssociativeArray")
+    if (type(target) &lt;> "roAssociativeArray")
       m.Fail("could not create Stub provided target was null")
       return {}
     end if
@@ -1561,7 +1602,7 @@ function RBS_BTS_AssertMocks() as void
     for each id in m.mocks
         mock = m.mocks[id]
         methodName = mock.methodName
-        if (mock.expectedInvocations <> mock.invocations)
+        if (mock.expectedInvocations &lt;> mock.invocations)
             m.MockFail(methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
             return
         else if (RBS_CMN_IsArray(mock.expectedArgs))
@@ -1710,7 +1751,7 @@ Function RBS_BTS_rodash_pathsAsArray_(path)
         dottedPath = pathRE.replaceAll(path, ".\1")
         stringSegments = dottedPath.tokenize(".")
         for each s in stringSegments
-            if (Asc(s) >= 48) and (Asc(s) <= 57)
+            if (Asc(s) >= 48) and (Asc(s) &lt;= 57)
                 segments.push(s.toInt())
             else
                 segments.push(s)
@@ -1743,7 +1784,7 @@ End Function
 ' */
 
 Function RBS_BTS_rodash_get_(aa, path, default=invalid)
-    if type(aa) <> "roAssociativeArray" and type(aa) <> "roArray" and type(aa) <> "roSGNode" then return default
+    if type(aa) &lt;> "roAssociativeArray" and type(aa) &lt;> "roArray" and type(aa) &lt;> "roSGNode" then return default
     segments = m.pathAsArray_(path)
 
     if (Type(path) = "roInt" or Type(path) = "roInteger" or Type(path) = "Integer")
@@ -1756,11 +1797,11 @@ Function RBS_BTS_rodash_get_(aa, path, default=invalid)
     while segments.count() > 0
         key = segments.shift()
         if (type(key) = "roInteger") 'it's a valid index
-            if (aa <> invalid and GetInterface(aa, "ifArray") <> invalid)
+            if (aa &lt;> invalid and GetInterface(aa, "ifArray") &lt;> invalid)
                 value = aa[key]
-            else if (aa <> invalid and GetInterface(aa, "ifSGNodeChildren") <> invalid)
+            else if (aa &lt;> invalid and GetInterface(aa, "ifSGNodeChildren") &lt;> invalid)
                 value = aa.getChild(key)
-            else if (aa <> invalid and GetInterface(aa, "ifAssociativeArray") <> invalid)
+            else if (aa &lt;> invalid and GetInterface(aa, "ifAssociativeArray") &lt;> invalid)
                 key = tostr(key)
                 if not aa.doesExist(key)
                     exit while
@@ -1783,7 +1824,7 @@ Function RBS_BTS_rodash_get_(aa, path, default=invalid)
             exit while
         end if
         
-        if type(value) <> "roAssociativeArray" and type(value) <> "roArray" and type(value) <> "roSGNode"
+        if type(value) &lt;> "roAssociativeArray" and type(value) &lt;> "roArray" and type(value) &lt;> "roSGNode"
             exit while
         end if
         aa = value
@@ -1792,3 +1833,22 @@ Function RBS_BTS_rodash_get_(aa, path, default=invalid)
     if result = invalid then return default
         return result
 End Function
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Sep 14 2018 15:30:29 GMT-0500 (-05) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

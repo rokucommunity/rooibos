@@ -42,6 +42,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     TAG_AFTER_EACH = "'@AfterEach"
     TAG_TEST_PARAMS = "'@Params"
     TAG_TEST_IGNORE_PARAMS = "'@IgnoreParams"
+    TAG_TEST_SOLO_PARAMS = "'@OnlyParams"
     functionNameRegex = CreateObject("roRegex", "^(function|sub)\s([0-9a-z\_]*)\s*\(", "i")
     assertInvocationRegex = CreateObject("roRegex", "^\s*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
     functionEndRegex = CreateObject("roRegex", "^\s*(end sub|end function)", "i")
@@ -129,7 +130,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                     m.hasSoloGroups = true
                 end if
                 isTokenItGroup = true           
-            else if (line = TAG_SOLO)
+            else if (RBS_TS_IsTag(line, TAG_SOLO) and not RBS_TS_IsTag(line, TAG_TEST_SOLO_PARAMS))
                 if (isNextTokenSolo)
                     ? "TAG_TEST MARKED FOR TAG_IGNORE AND TAG_SOLO"
                 else 
@@ -207,14 +208,23 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_TEST_PARAMS))
                 if (not isNextTokenTest) 
-                    ? "FOUND " ; TAG_TEST; " PARAM WTAG_ITHOUT @Test declaration "; currentLocation
+                    ? "FOUND " ; TAG_TEST; " PARAM WITHOUT @Test declaration "; currentLocation
                 else
-
                     isNextTokenTestCaseParam = true
                     rawParams = RBS_TS_GetTagText(line, TAG_TEST_PARAMS)
                     m.testCaseParams.push(rawParams)
                 end if
                 goto exitLoop
+            else if (RBS_TS_IsTag(line, TAG_TEST_SOLO_PARAMS))
+                if (not isNextTokenTest) 
+                    ? "FOUND " ; TAG_TEST_SOLO_PARAMS; " PARAM WITHOUT @Test declaration "; currentLocation
+                else
+                    isNextTokenTestCaseParam = true
+                    rawParams = RBS_TS_GetTagText(line, TAG_TEST_PARAMS)
+                    m.testCaseOnlyParams.push(rawParams)
+                end if
+                goto exitLoop
+            
             end if
             
             if (isTokenItGroup or isNextTokenTest or isNextTokenSetup or isNextTokenBeforeEach or isNextTokenAfterEach or isNextTokenTeardown)
@@ -233,10 +243,15 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                             end if
                             if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
 
-                            if (m.testCaseParams.count() >0)
-                                for index = 0 to m.testCaseParams.count() -1
-                                    params = m.testCaseParams[index]
-
+                            if (m.testCaseParams.count() >0 or m.testCaseOnlyParams.count() >0)
+                              if (m.testCaseOnlyParams.count() >0)
+                                paramsToUse = m.testCaseOnlyParams 
+                              else
+                                paramsToUse = m.testCaseParams
+                              end if
+                                for index = 0 to paramsToUse.count() -1
+                                    params = paramsToUse[index]
+  
                                     testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber, params, index)
                                     testCase.isParamTest = true
                                     if (testCase <> invalid)
@@ -244,7 +259,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                                     else
                                         ? "Skipping unparseable params for testcase " ; params ; " @" ; currentLocation
                                     end if
-                                end for
+                              end for
                             else
                                 testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber)
                                 m.currentTestCases.push(testCase)
@@ -327,6 +342,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     else
         ? " Error opening potential test file " ; filePath ; " ignoring..."
     end if
+    m.delete("testCaseOnlyParams")
     m.delete("testCaseParams")
     m.delete("currentTestCases")
     m.delete("hasCurrentTestCase")
@@ -354,8 +370,9 @@ end function
 
 
 function RBS_TS_ResetCurrentTestCase() as void
-    m.testCaseParams = CreateObject("roArray",0, true)
-    m.currentTestCases = CreateObject("roArray",0, true) ' we can have multiple test cases based on our params
+    m.testCaseOnlyParams = []
+    m.testCaseParams = []
+    m.currentTestCases = [] ' we can have multiple test cases based on our params
     m.hasCurrentTestCase = false
 end function
 

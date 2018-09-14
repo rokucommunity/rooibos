@@ -151,6 +151,7 @@ The following annotations are supported.
 |@Ignore   	|Preceds a TestSuite, It group or TestCase, to indicate that that item should be ignored. If an `@Ignore` tag is found before an item, then it will not be executed as part of the test run	|   	|
 |@Params[p1,p2,...,p6]   	|Indicates a Paremeterized test. Must come _after_ a `@Test` annotation. Can accept up to 6 arguments, which are comma separated. When using paremeterized tests, the test function signature _must_ accept the same number of arguments, and each of Params statemens, must also have the same number of params	|Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function  	|
 |@IgnoreParams[p1,p2,...,p6]   	|A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run. 	|As per `@Params`   	|
+|@OnlyParams[p1,p2,...,p6]   	|A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case	|As per `@Params`   	|
 
 
 ## Writing tests

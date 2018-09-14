@@ -33,9 +33,10 @@ function Simp__basic_AssertTrue(value, expectedAssertResult) as void
     m.AssertEqual(isFail, not expectedAssertResult)    		
 end function
 
+'@Only
 '@Test AssertFalse
 '@Params[false, true]
-'@Params[true, false]
+'@OnlyParams[true, false]
 '@Params[invalid, false]
 '@Params[0, false]
 '@Params[1, false]
