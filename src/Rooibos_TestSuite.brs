@@ -219,9 +219,10 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 if (not isNextTokenTest) 
                     ? "FOUND " ; TAG_TEST_SOLO_PARAMS; " PARAM WITHOUT @Test declaration "; currentLocation
                 else
-                    isNextTokenTestCaseParam = true
-                    rawParams = RBS_TS_GetTagText(line, TAG_TEST_SOLO_PARAMS)
-                    m.testCaseOnlyParams.push(rawParams)
+                  isNextTokenSolo = true
+                  isNextTokenTestCaseParam = true
+                  rawParams = RBS_TS_GetTagText(line, TAG_TEST_SOLO_PARAMS)
+                  m.testCaseOnlyParams.push(rawParams)
                 end if
                 goto exitLoop
             
