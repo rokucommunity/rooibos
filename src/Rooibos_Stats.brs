@@ -11,7 +11,9 @@ function RBS_STATS_CreateTotalStatistic() as Object
         Total       : 0
         Correct     : 0
         Fail        : 0
+        Ignored     : 0
         Crash       : 0
+        IgnoredTestNames: []
     }
 
     return statTotalItem
@@ -33,6 +35,8 @@ function RBS_STATS_MergeTotalStatistic(stat1, stat2) as void
     stat1.Correct += stat2.Correct
     stat1.Fail += stat2.Fail
     stat1.Crash += stat2.Crash
+    stat1.Ignored += stat2.Ignored
+    stat1.IgnoredTestNames.append(stat2.IgnoredTestNames)
 end function
 
 '----------------------------------------------------------------
@@ -51,6 +55,8 @@ function RBS_STATS_CreateSuiteStatistic(name as String) as Object
         Correct : 0
         Fail    : 0
         Crash   : 0
+        Ignored   : 0
+        IgnoredTestNames:[]
     }
 
     return statSuiteItem

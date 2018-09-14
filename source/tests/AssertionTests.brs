@@ -1,4 +1,3 @@
-'@Only
 '@TestSuite [RBSA] Rooibos assertion tests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -56,7 +55,6 @@ end function
 '@It tests AssertArrayContainsAAs
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Only
 '@Test Fail
 '@Params[[{"one":1}], [{"one":2}]]
 '@Params[[{"one":1}], [{"one":"a"}]]

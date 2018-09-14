@@ -5,6 +5,7 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100, 
     this.valid = false
     this.hasFailures = false
     this.hasSoloTests = false
+    this.hasIgnoredTests = false
     this.hasSoloGroups = false
     this.isSolo = false
     this.isIgnored = false
@@ -137,6 +138,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_IGNORE) and not RBS_TS_IsTag(line, TAG_TEST_IGNORE_PARAMS))
                 isNextTokenIgnore = true
+                m.hasIgnoredTests = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_NODE_TEST))
                 if (isTestSuite)

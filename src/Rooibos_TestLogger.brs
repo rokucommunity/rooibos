@@ -45,10 +45,18 @@ sub RBS_LOGGER_PrintStatistic(statObj as Object)
     ? ""
     m.PrintEnd()
 
-    ? "Total  = "; RBS_CMN_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail
+    ? "Total  = "; RBS_CMN_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Ignored   = "; statObj.Ignored
     ? " Time spent: "; statObj.Time; "ms"
     ? ""
     ? ""
+    
+    if (statObj.ignored > 0)
+      ? "IGNORED TESTS:"
+      for each ignoredItemName in statObj.IgnoredTestNames
+        print ignoredItemName
+      end for
+    end if
+    
     if (statObj.Total = statObj.Correct)
         overrallResult = "Success"
     else

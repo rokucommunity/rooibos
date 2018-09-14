@@ -1502,7 +1502,9 @@ function RBS_STATS_CreateTotalStatistic() as Object
         Total       : 0
         Correct     : 0
         Fail        : 0
+        Ignored     : 0
         Crash       : 0
+        IgnoredTestNames: []
     }
     return statTotalItem
 end function
@@ -1515,6 +1517,8 @@ function RBS_STATS_MergeTotalStatistic(stat1, stat2) as void
     stat1.Correct += stat2.Correct
     stat1.Fail += stat2.Fail
     stat1.Crash += stat2.Crash
+    stat1.Ignored += stat2.Ignored
+    stat1.IgnoredTestNames.append(stat2.IgnoredTestNames)
 end function
 function RBS_STATS_CreateSuiteStatistic(name as String) as Object
     statSuiteItem = {
@@ -1525,6 +1529,8 @@ function RBS_STATS_CreateSuiteStatistic(name as String) as Object
         Correct : 0
         Fail    : 0
         Crash   : 0
+        Ignored   : 0
+        IgnoredTestNames:[]
     }
     return statSuiteItem
 end function
@@ -1637,10 +1643,16 @@ sub RBS_LOGGER_PrintStatistic(statObj as Object)
     end for
     ? ""
     m.PrintEnd()
-    ? "Total  = "; RBS_CMN_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail
+    ? "Total  = "; RBS_CMN_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Ignored   = "; statObj.Ignored
     ? " Time spent: "; statObj.Time; "ms"
     ? ""
     ? ""
+    if (statObj.ignored > 0)
+      ? "IGNORED TESTS:"
+      for each ignoredItemName in statObj.IgnoredTestNames
+        print ignoredItemName
+      end for
+    end if
     if (statObj.Total = statObj.Correct)
         overrallResult = "Success"
     else
@@ -1846,9 +1858,12 @@ sub RBS_TR_Run()
             end if
         end if
         if (metaTestSuite.isIgnored)
+        stop
             if (m.config.logLevel = 2)
                 ? "Ignoring TestSuite " ; metaTestSuite.name ; " Due to Ignore flag"
             end if
+            totalstatobj.ignored ++
+            totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name + " [WHOLE SUITE]")
             goto skipSuite
         end if
         if (metaTestSuite.isNodeTest and metaTestSuite.nodeTestFileName <> "")
@@ -1871,6 +1886,9 @@ sub RBS_TR_Run()
                 ? " Node of type " ; nodeType ; " was not found/could not be instantiated"    
             end if
         else
+            if (metaTestSuite.hasIgnoredTests)
+              totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name)
+            end if
             RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig)
         end if
         skipSuite:
@@ -1894,11 +1912,30 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
                 ? "Test utils decorator method `" ; testUtilsDecoratorMethodName ;"` was not in scope!" 
             end if
         end if
+        totalStatObj.Ignored += itGroup.ignoredTestCases.count()
         if (itGroup.isIgnored)
             if (config.logLevel = 2)
                 ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
             end if
+            totalStatObj.ignored += itGroup.testCases.count()
+            totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name + " [WHOLE GROUP]")
             goto skipItGroup
+        else
+          if (itGroup.ignoredTestCases.count() > 0)
+            totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name)
+            totalStatObj.ignored += itGroup.ignoredTestCases.count()
+            for each testCase in itGroup.ignoredTestCases
+              if (not testcase.isParamTest)
+                totalStatObj.IgnoredTestNames.push("  | |--" + testCase.name)
+              else if (testcase.paramTestIndex = 0)
+                testCaseName = testCase.Name
+                if (len(testCaseName) > 1 and right(testCaseName, 1) = "0")
+                    testCaseName = left(testCaseName, len(testCaseName) - 1)
+                end if
+                totalStatObj.IgnoredTestNames.push("  | |--" + testCaseName)
+              end if
+            end for
+          end if
         end if
         if (runtimeConfig.hasSoloTests)
             if (not itGroup.hasSoloTests)
@@ -2028,6 +2065,7 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100, 
     this.valid = false
     this.hasFailures = false
     this.hasSoloTests = false
+    this.hasIgnoredTests = false
     this.hasSoloGroups = false
     this.isSolo = false
     this.isIgnored = false
@@ -2140,6 +2178,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_IGNORE) and not RBS_TS_IsTag(line, TAG_TEST_IGNORE_PARAMS))
                 isNextTokenIgnore = true
+                m.hasIgnoredTests = true
                 goto exitLoop
             else if (RBS_TS_IsTag(line, TAG_NODE_TEST))
                 if (isTestSuite)

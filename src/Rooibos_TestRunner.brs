@@ -102,6 +102,9 @@ sub RBS_TR_Run()
             if (m.config.logLevel = 2)
                 ? "Ignoring TestSuite " ; metaTestSuite.name ; " Due to Ignore flag"
             end if
+            totalstatobj.ignored ++
+            totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name + " [WHOLE SUITE]")
+            
             goto skipSuite
         end if
 
@@ -129,6 +132,9 @@ sub RBS_TR_Run()
                 ? " Node of type " ; nodeType ; " was not found/could not be instantiated"    
             end if
         else
+            if (metaTestSuite.hasIgnoredTests)
+              totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name)
+            end if
             RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig)
         end if
         skipSuite:
@@ -156,11 +162,31 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
             end if
         end if
         
+        totalStatObj.Ignored += itGroup.ignoredTestCases.count()
+
         if (itGroup.isIgnored)
             if (config.logLevel = 2)
                 ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
             end if
+            totalStatObj.ignored += itGroup.testCases.count()
+            totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name + " [WHOLE GROUP]")
             goto skipItGroup
+        else
+          if (itGroup.ignoredTestCases.count() > 0)
+            totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name)
+            totalStatObj.ignored += itGroup.ignoredTestCases.count()
+            for each testCase in itGroup.ignoredTestCases
+              if (not testcase.isParamTest)
+                totalStatObj.IgnoredTestNames.push("  | |--" + testCase.name)
+              else if (testcase.paramTestIndex = 0)
+                testCaseName = testCase.Name
+                if (len(testCaseName) > 1 and right(testCaseName, 1) = "0")
+                    testCaseName = left(testCaseName, len(testCaseName) - 1)
+                end if
+                totalStatObj.IgnoredTestNames.push("  | |--" + testCaseName)
+              end if
+            end for
+          end if
         end if
         
         if (runtimeConfig.hasSoloTests)
