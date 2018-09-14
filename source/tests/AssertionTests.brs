@@ -1,3 +1,4 @@
+'@Only
 '@TestSuite [RBSA] Rooibos assertion tests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -49,6 +50,58 @@ function Simp__basic_AssertFalse(value, expectedAssertResult) as void
     
     m.AssertEqual(assertResult, expectedAssertResult)           
     m.AssertEqual(isFail, not expectedAssertResult)           
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests AssertArrayContainsAAs
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test Fail
+'@Params[[{"one":1}], [{"one":2}]]
+'@Params[[{"one":1}], [{"one":"a"}]]
+'@Params[[{"one":1}], [{}]]
+'@Params[[{"one":1}], [invalid]]
+'@Params[[{"one":1}], []]
+'@Params[[{"one":1}], invalid]
+'@Params[[{"one":1}], [[]] ]
+'@Params[[{"one":1}], ["wrong"] ]
+'@Params[[{"one":1}], [2] ]
+'@Params[[{"one":"a"}], [{"one":1}] ]
+'@Params[[{"two":1}], [{"one":1}] ]
+'@Params[[{}], [{"one":1}] ]
+'@Params[[invalid], [{"one":1}] ]
+'@Params[invalid, [{"one":1}] ]
+'@Params[[], [{"one":1}] ]
+function Simp__AssertArrayContainsAAs_Fail(expectedAAs, items) as void
+    
+    assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
+
+    isFail = m.currentResult.isFail
+    m.currentResult.Reset()
+    
+    m.AssertFalse(assertResult)
+    m.AssertTrue(isFail)           
+end function
+
+
+'@Only
+'@Test pass
+'@Params[[], []]
+'@Params[[{}], [{}]]
+'@Params[[{"one":1}], [{"one":1}]]
+'@Params[[{"one":1, "two":2}], [{"one":1, "two":2}]]
+'@Params[[{"one":1, "two":2}], [{ "two":2, "one":1}]]
+'@Params[[{"one":1, "two":2}, {"one":1}], [{"one":1}, { "two":2, "one":1}]]
+'@Params[[{"one":1, "two":2}, {"one":1}, {"three":3}], [{"one":1}, {"three":3}, { "two":2, "one":1}]]
+function Simp__AssertArrayContainsAAs_Pass(expectedAAs, items) as void
+    
+    assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
+    
+    isFail = m.currentResult.isFail
+
+    m.currentResult.Reset()
+    m.AssertTrue(assertResult)
+    m.AssertFalse(isFail)           
 end function
 
 'ASSERTIONS TO WRITE TESTS FOR!

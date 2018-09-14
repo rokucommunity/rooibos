@@ -77,6 +77,7 @@ function BaseTestSuite() as Object
     this.AssertArrayContains            = RBS_BTS_AssertArrayContains
     this.AssertArrayNotContains         = RBS_BTS_AssertArrayNotContains
     this.AssertArrayContainsSubset      = RBS_BTS_AssertArrayContainsSubset
+    this.AssertArrayContainsAAs         = RBS_BTS_AssertArrayContainsAAs
     this.AssertArrayNotContainsSubset   = RBS_BTS_AssertArrayNotContainsSubset
     this.AssertArrayCount               = RBS_BTS_AssertArrayCount
     this.AssertArrayNotCount            = RBS_BTS_AssertArrayNotCount
@@ -333,6 +334,52 @@ Function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = i
             m.currentResult.AddResult(msg)
             return m.GetLegacyCompatibleReturnValue(false)
         end if
+    else
+        msg = "Input value is not an Array."
+        m.currentResult.AddResult(msg)
+        return m.GetLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.AddResult("")
+    return m.GetLegacyCompatibleReturnValue(true)
+End Function
+Function RBS_BTS_AssertArrayContainsAAs(array as dynamic, values as dynamic, msg = "" as string) as dynamic
+    if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
+    if not RBS_CMN_IsArray(values)
+        msg = "values to search for are not an Array."
+        m.currentResult.AddResult(msg)
+        return m.GetLegacyCompatibleReturnValue(false)
+    end if
+    if RBS_CMN_IsArray(array)
+      for each value in values
+        isMatched = false
+        if not RBS_CMN_IsAssociativeArray(value)
+          msg = "Value to search for was not associativeArray "+  RBS_CMN_AsString(value)
+          m.currentResult.AddResult(msg)
+          return m.GetLegacyCompatibleReturnValue(false)
+        end if
+        for each item in array
+          if (RBS_CMN_IsAssociativeArray(item))
+            isValueMatched = true
+            for each key in value
+              fieldValue = value[key]
+              itemValue = item[key]
+              if (not m.EqValues(fieldValue, itemValue))
+                isValueMatched = false
+                exit for
+              end if
+            end for
+            if (isValueMatched)
+              isMatched = true
+              exit for
+            end if
+          end if
+        end for ' items in array
+        if not isMatched
+          msg = "array missing value: "+  RBS_CMN_AsString(value)
+          m.currentResult.AddResult(msg)
+          return m.GetLegacyCompatibleReturnValue(false)
+        end if
+      end for 'values to match
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)
