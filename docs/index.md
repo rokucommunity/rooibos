@@ -42,13 +42,15 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 ## Getting started
 Rooibos is intentionally simple to work with. You simply copy in the `rooibos.cat.brs` file, setup your config, and start writing tests
 
- 
+
 ### Installation
 
-1. Copy `dist/rooibos.cat.brs` to your `source` folder
-2. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens 
+1. Clone or download this repo
+2. Run `make dist`
+3. Copy `dist/rooibos.cat.brs` to your `source` folder
+4. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens
 
-	```    
+	```
 	if (type(Rooibos__Init) = "Function") then Rooibos__Init(args)
 	```
 3. Create a Scene named `TestsScene.xml`, in your `components` folder, which Rooibos will use when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`. `samples/Overview/` contains a reference implementation.
@@ -123,7 +125,7 @@ This results in the following test output:
 
 ![Simple test output](images/simpleReportOutput.png)
 
-Note the hierarchical display of the Testsuite _[Simp] Simple Tests_, the group _tests initialization of vm_ and the test itself _can instantiate with invalid modelLocator_. 
+Note the hierarchical display of the Testsuite _[Simp] Simple Tests_, the group _tests initialization of vm_ and the test itself _can instantiate with invalid modelLocator_.
 
 ### Rooibos annotations
 Rooibos provides a library of annotations which can be used to define TestSuides, It groups, Test Cases, Parameterized tests, and more. All annotations are of the following form
@@ -132,7 +134,7 @@ Rooibos provides a library of annotations which can be used to define TestSuides
 '@ANNOTATION DATA
 ```
 
-Where `ANNOTATION`, is the roku annotation and DATA is the data passed to it. e.g. `'@Test that it handles an empty collection`, defines a test case, with the title `that it handles an empty collection` 
+Where `ANNOTATION`, is the roku annotation and DATA is the data passed to it. e.g. `'@Test that it handles an empty collection`, defines a test case, with the title `that it handles an empty collection`
 
 Some annotations act as modifiers. In these cases, they will affect some other annotation. For example `@Only`, and `@Ignore` will affect the following `@TestSuite`, `@It` or `@Test` annotation.
 
@@ -190,10 +192,10 @@ function Simpl_DataStore_index() as void
 	'1. setup your test data objects and values
 	values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
 	ds = CreateDataStore(values)
-	
+
 	'2. Execute the method you wish to test
 	item = ds.GetDataItemWithIndex(55)
-	
+
 	'3. Do your assertions
 	m.AssertNotInvald(item)
 	m.AssertEqual(item.name,"twelve")
@@ -207,9 +209,9 @@ So the final test would look like:
 function Simpl_DataStore_index() as void
 	values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
 	ds = CreateDataStore(values)
-	
+
 	item = ds.GetDataItemWithIndex(12)
-	
+
 	m.AssertNotInvald(item)
 	m.AssertEqual(item.name,"twelve")
 end function
@@ -223,9 +225,9 @@ The previous example can be written more succinctly using Rooibos's library of a
 function Simpl_DataStore_index() as void
 	values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
 	ds = CreateDataStore(values)
-	
+
 	item = ds.GetDataItemWithIndex(12)
-	
+
 	m.AssertAAContainsSubset(item, values[2])
 end function
 ```
@@ -244,7 +246,7 @@ end function
 '@Test that the correct index is found
 function Simpl_DataStore_index() as void
 	item = m.ds.GetDataItemWithIndex(12)
-	
+
 	m.AssertAAContainsSubset(item, m.values[2])
 end function
 ```
@@ -254,7 +256,7 @@ Setup and Teardown, can also be scoped to an it group. If the annotations appear
 
 
 ### Using BeforeEach and AfterEach
-In addition, we can also use beforeEach and afterEach to run before **each and every** test. 
+In addition, we can also use beforeEach and afterEach to run before **each and every** test.
 
 ```
 '@Setup
@@ -276,7 +278,7 @@ end function
 '@Test that the correct index is NOT found
 function Simpl_Datastore_alternate_failures() as void
 	item = m.alternateDS.GetDataItemWithIndex(12)
-	
+
 	m.AssertInvalid(item)
 end function
 
@@ -284,7 +286,7 @@ end function
 '@Test that the correct index is found
 function Simpl_Datastore_alternate_success() as void
 	item = m.alternateDS.GetDataItemWithIndex(3)
-	
+
 	m.AssertAAContainsSubset(item, m.alternateValues[1])
 end function
 
@@ -325,11 +327,11 @@ This makes it easy for us to pass in values to our tests, and expected output va
 '@Params["05","18","00",1, 19]
 function SUT__Update_realData_success(dayOfMonth, hour, minute, expectedDayIndex, expectedShowIndex) as void
 	nowDate = SUT.CreateTestDatae(dayOfMonth, hour, minute)
-	
+
 	m.scheduleContent.callFunc("UpdateTime", nowDate.asSeconds())
 	m.AssertEqual(m.scheduleContent.nowDayIndex, expectedDayIndex)
 	m.AssertEqual(m.scheduleContent.nowShowIndex, expectedShowIndex)
-end function	   
+end function
 ```
 
 #### Parameterized test output
@@ -349,14 +351,14 @@ If a test case has a `'@Only` or `'@Ignore` annotation, the _params_ will execut
 ### Node specficic asserts
 Rooibos adds some node specifc asserts, which are fully described in the   [Assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html). These are:
 
- - AssertNodeCount             
- - AssertNodeNotCount          
- - AssertNodeEmpty             
- - AssertNodeNotEmpty          
- - AssertNodeContains          
- - AssertNodeNotContains       
- - AssertNodeContainsFields    
- - AssertNodeNotContainsFields 
+ - AssertNodeCount
+ - AssertNodeNotCount
+ - AssertNodeEmpty
+ - AssertNodeNotEmpty
+ - AssertNodeContains
+ - AssertNodeNotContains
+ - AssertNodeContainsFields
+ - AssertNodeNotContainsFields
 
 
 ### Full list of asserts
@@ -398,7 +400,7 @@ You can give a reason for ignoring a test, as part of the annotation's data. e.g
 '@Test that the correct index is NOT found
 function Simpl_Datastore_alternate_failures() as void
 	item = m.alternateDS.GetDataItemWithIndex(12)
-	
+
 	m.AssertInvalid(item)
 end function
 ```
@@ -428,7 +430,7 @@ testFailures:
 ### Hooking into your global setup
 It is likely that your app will have some degree of setup (like loading config files, setting global properties, etc), that will be required to occur before starting your unit tests. You can have Rooibos invoke your setup methods, at the correct time during it's setup, by passing a function pointer into the `Rooibos__Init` method, as such:
 
-```    
+```
 if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals)
 
 ....
@@ -443,7 +445,7 @@ end sub
 If you wish, you can provide a third function pointer to the `Rooibos_Init` method, which will receive a _TestCase_ paremeter. You can decorate this TestCase with util methods you want to make accessible to your unit tests at runtime. e.g.
 
 
-```    
+```
 if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, "DecorateTestUtils")
 
 ....
@@ -533,7 +535,7 @@ We create mocks by using the methods:
  - ExpectNone - Creates a mock, which we _never_ expect to be invoked
 
 ### Asserting mocks
-Mocks are asserted by invoking `m.AssertMocks()`	
+Mocks are asserted by invoking `m.AssertMocks()`
 As a convenience, Rooibos will automatically assert any mocks for you when your test finishes executing. This saves you from having to manually add this line at the end of your code.
 
 When a mock fails, Rooibos will report to you what caused the failure. The possible reasons are:
@@ -588,14 +590,14 @@ ROKU_TEST_ID=[Some identifiter for your tests, should be set by CI as the buildi
 
 continuousIntegration: build install
 	echo "Running Rooibos Unit Tests"
-	curl -d '' "http://${ROKU_DEV_TARGET}:8060/keypress/home" 
+	curl -d '' "http://${ROKU_DEV_TARGET}:8060/keypress/home"
 	curl -d '' "http://${ROKU_DEV_TARGET}:8060/launch/dev?RunTests=true&testId=${ROKU_TEST_ID}"
 	-sleep ${ROKU_TEST_WAIT_DURATION} | telnet ${ROKU_DEV_TARGET} 8085 | tee dist/test.log
 	echo "=================== CI TESTS FINISHED =================== "
-	
+
 	if tail -2 dist/test.log | head | grep -q "RESULT: Success"; then echo "SUCCESS"; else exit -1; fi
-	
-```	
+
+```
 
 In the above example, we pipe the output of the telnet session to `dist/test.log`, wait for the test execution to finish, and finally, parse the line of test output to check for the SUCCESS flag.
 
@@ -629,7 +631,7 @@ sub Init()
 	'Example of an application using ModelLocator pattern
 	'many of the codefiles will expect to have access to a global ModelLocator
 	'so setting it on the `TestsScene`, makes sense.
-	
+
     m.global.addFields({"modelLocator": createObject("roSGNode", "ModelLocator")})
 end sub
 ```
@@ -638,11 +640,11 @@ end sub
 The scene name can be overriden by passing in the desired scene name as the third `Rooibos__Init` parameter. e.g.
 
 
-```    
+```
 if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, "DecorateTestUtils", "MyOtherTestsScene")
 ```
 
- 
+
 ### Make from source
 You can rebuild by running the following command from the terminal:
 
@@ -661,7 +663,7 @@ It's a simple process; but I'm fully documenting it to facilitate a deep underst
 For now, here are the complete steps:
 
 1. For each SceneGraph node you want to test, you need to create a corresponding xml file. Example
-	- The name is not important; but I suggest `[NODE_NAME]TestProxy.xml`, so if you were testing `NetworkLayer.xml`, you would create a `NetworkLayerTestProxy.xml` file. 
+	- The name is not important; but I suggest `[NODE_NAME]TestProxy.xml`, so if you were testing `NetworkLayer.xml`, you would create a `NetworkLayerTestProxy.xml` file.
 	- This file should be located somewhere in your `components` folder, placing it under `components/tests` is a good idea, as you can easily exclude it from production builds.
 	- The file must extend the node you wish to test, e.g. `extends="NetworkLayer.xml"`
 	- You must also include an interface function definition for a function named `Rooibos_RunNodeTests`. You _must not_ implement it, it is mixed in for you automatically.
@@ -718,12 +720,12 @@ This file is located in `components/tests`
 The behaviour of your unit tests is identical to unit testing any other class, with 2 caveates:
 
 1. `m` does not refer to your node, it refers to the test suite, as per normal testing. The following variables are available to you in your test as a convenience:
- 
+
   - `m.node` - codebehind for your xml file (e.g. your brs's m)
   - `m.top` the node you are testing
   - `m.global` access to the global node
 2. You **cannot** stub node methods. If there is no `.` reference to a method (via an associated array style object), then Rooibos cannot mock it. You may consider refactoring your code in these cases, as imho, it's better practice for things that you want to mock, to not be in the glue code of your code behdind files, in any case
-3. If you use mixins, which use eval to locate methods by name (common practice if you are doing anything complex) then be aware that the eval namespace is NOT the code in your unit test; but the code in your node's brs file and your test node's brs file. If you need to add more methods, such as callbck stubs, you can add them to the .brs file of your test. 
+3. If you use mixins, which use eval to locate methods by name (common practice if you are doing anything complex) then be aware that the eval namespace is NOT the code in your unit test; but the code in your node's brs file and your test node's brs file. If you need to add more methods, such as callbck stubs, you can add them to the .brs file of your test.
 
 ## Working with tests
 There are many articles on the benefits of TDD, and how to go about TDD, which you can readily find, such as [this link](https://builttoadapt.io/why-tdd-489fdcdda05e) which has a good overview, plus a great video with warnings of how to take it too far.
@@ -761,7 +763,7 @@ Configured as name `test`
 '@Test ${testDescription}
 function ${prefix}__${itDescription}_${testName}() as void
 	m.AssertFail("implement me!")
-	${cursor}	
+	${cursor}
 end function
 ```
 
@@ -771,6 +773,6 @@ Configured as name `it`
 '@Test ${testDescription}
 function ${prefix}__${testName}_${testCase}() as void
 	m.AssertFail("implementMe")
-	${cursor}	
+	${cursor}
 end function
 ```
