@@ -2167,6 +2167,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 m.itGroups.push(m.currentGroup)
                 if (isNextTokenSolo)
                     m.hasSoloGroups = true
+                    m.isSolo = true
                 end if
                 isTokenItGroup = true           
             else if (RBS_TS_IsTag(line, TAG_SOLO) and not RBS_TS_IsTag(line, TAG_TEST_SOLO_PARAMS))
@@ -2304,6 +2305,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                             if (isNextTokenSolo)
                                 m.currentGroup.hasSoloTests = true
                                 m.hasSoloTests = true
+                                m.isSolo = true
                             end if
                         else if (isNextTokenSetup)
                             if (m.currentGroup = invalid)
