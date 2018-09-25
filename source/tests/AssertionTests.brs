@@ -5,7 +5,7 @@
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 '@Test Fail
-function Simp__basic_Fail() as void
+function Simp_basic_Fail() as void
     
     assertResult = m.Fail("reason")
 
@@ -23,7 +23,7 @@ end function
 '@Params[0, false]
 '@Params[1, false]
 '@Params["test", false]
-function Simp__basic_AssertTrue(value, expectedAssertResult) as void
+function Simp_basic_AssertTrue(value, expectedAssertResult) as void
     
     assertResult = m.AssertTrue(value)
     isFail = m.currentResult.isFail
@@ -33,15 +33,14 @@ function Simp__basic_AssertTrue(value, expectedAssertResult) as void
     m.AssertEqual(isFail, not expectedAssertResult)    		
 end function
 
-'@Only
 '@Test AssertFalse
 '@Params[false, true]
-'@OnlyParams[true, false]
+'@Params[true, false]
 '@Params[invalid, false]
 '@Params[0, false]
 '@Params[1, false]
 '@Params["test", false]
-function Simp__basic_AssertFalse(value, expectedAssertResult) as void
+function Simp_basic_AssertFalse(value, expectedAssertResult) as void
     
     assertResult = m.AssertFalse(value)
 
@@ -73,7 +72,7 @@ end function
 '@Params[[{"one":1, "two":2}], [{"one":"1"}] ]
 '@Params[[{"one":1}, {"two":2}], [{"one":"1"}, {"two":"a"}] ]
 '@Params[[{"one":1}, {"two":2}], [{"a":1}, {"a":1}, {"a":1}] ]
-function Simp__AssertArrayContainsAAs_Fail(expectedAAs, items) as void
+function Simp_AssertArrayContainsAAs_Fail(expectedAAs, items) as void
     
     assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
 
@@ -93,7 +92,7 @@ end function
 '@Params[[{"one":1, "two":2}], [{ "two":2, "one":1}]]
 '@Params[[{"one":1, "two":2}, {"one":1}], [{"one":1}, { "two":2, "one":1}]]
 '@Params[[{"one":1, "two":2}, {"one":1}, {"three":3}], [{"one":1}, {"three":3}, { "two":2, "one":1}]]
-function Simp__AssertArrayContainsAAs_Pass(expectedAAs, items) as void
+function Simp_AssertArrayContainsAAs_Pass(expectedAAs, items) as void
     
     assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
     
@@ -102,6 +101,53 @@ function Simp__AssertArrayContainsAAs_Pass(expectedAAs, items) as void
     m.currentResult.Reset()
     m.AssertTrue(assertResult)
     m.AssertFalse(isFail)           
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests AssertArrayContainsOnlyValuesOfType
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test pass
+'@Params[["one", "two", "three"], "String"]
+'@Params[[1, 2, 3], "Integer"]
+'@Params[[true, true, false], "Boolean"]
+'@Params[[[true, true], [false, false]], "Array"]
+'@Params[[{"test":1}, {"test":1}], "AssociativeArray"]
+function Simp_AssertArrayContainsOnlyValuesOfType_Pass(values, typeName) as void
+
+    assertResult = m.AssertArrayContainsOnlyValuesOfType(values, typeName)
+    isFail = m.currentResult.isFail
+
+    m.currentResult.Reset()
+    m.AssertTrue(assertResult)
+    m.AssertFalse(isFail)           
+  
+end function
+
+'@Test fail 
+'@Params[["one", 2, "three"], "String"]
+'@Params[[1, "two", 3], "Integer"]
+'@Params[[true, "true", false], "Boolean"]
+'@Params[[[true, true], false, false], "Array"]
+'@Params[[{"test":1}, "notAA"], "AssociativeArray"]
+'@Params[["one", "two", "three"], "UnknownType"]
+'@Params[["one", "two", "three"], "Integer"]
+'@Params[[1, 2, 3], "String"]
+'@Params[[true, true, false], "String"]
+'@Params[[[true, true], [false, false]], "AssociativeArray"]
+'@Params[[{"test":1}, {"test":1}], "Array"]
+function Simp_AssertArrayContainsOnlyValuesOfType_Fail(values, typeName) as void
+
+    assertResult = m.AssertArrayContainsOnlyValuesOfType(values, typeName)
+    isFail = m.currentResult.isFail
+
+    isFail = m.currentResult.isFail
+    m.currentResult.Reset()
+    
+    m.AssertFalse(assertResult)
+    m.AssertTrue(isFail)          
+
+  
 end function
 
 'ASSERTIONS TO WRITE TESTS FOR!

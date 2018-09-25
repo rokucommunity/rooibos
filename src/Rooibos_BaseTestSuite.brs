@@ -37,7 +37,7 @@ function BaseTestSuite() as Object
     this.AssertArrayNotCount            = RBS_BTS_AssertArrayNotCount
     this.AssertEmpty                    = RBS_BTS_AssertEmpty
     this.AssertNotEmpty                 = RBS_BTS_AssertNotEmpty
-    this.AssertArrayContainsOnly        = RBS_BTS_AssertArrayContainsOnly
+    this.AssertArrayContainsOnlyValuesOfType        = RBS_BTS_AssertArrayContainsOnlyValuesOfType
     this.AssertType                   = RBS_BTS_AssertType
     this.AssertSubType                = RBS_BTS_AssertSubType
     
@@ -818,26 +818,39 @@ End Function
 
 ' /**
 '  * @memberof module:BaseTestSuite
-'  * @name AssertArrayContainsOnly
+'  * @name AssertArrayContainsOnlyValuesOfType
 '  * @function
 '  * @instance
 '  * @description Fail if the array doesn't contains items of specific type only.
 '  * @param {Dynamic} array - target array
-'  * @param {Dynamic} typeStr - type name
+'  * @param {Dynamic} typeStr - type name - must be String, Array, Boolean, or AssociativeArray
 '  * @param {Dynamic} msg - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
-Function RBS_BTS_AssertArrayContainsOnly(array as dynamic, typeStr as string, msg = "" as string) as dynamic
+Function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array as dynamic, typeStr as string, msg = "" as string) as dynamic
     if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
+    if typeStr <> "String" and typeStr <> "Integer" and typeStr <> "Boolean" and typeStr <> "Array" and typeStr <> "AssociativeArray"
+      msg = "Type must be Boolean, String, Array, Integer, or AssociativeArray"
+      m.currentResult.AddResult(msg)
+      return m.GetLegacyCompatibleReturnValue(false) 
+    end if
+    
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         methodName = "RBS_CMN_Is" + typeStr
-        for each item in array
-            if not methodName(item)
-                msg = RBS_CMN_AsString(item) + "is not a '" + typeStr + "' type."
-                m.currentResult.AddResult(msg)
-                return m.GetLegacyCompatibleReturnValue(false)
-            end if    
-        end for
+        typeCheckFunction = RBS_CMN_GetFunction(invalid, methodName)
+        if (typeCheckFunction <> invalid)
+            for each item in array
+                if not typeCheckFunction(item)
+                    msg = RBS_CMN_AsString(item) + "is not a '" + typeStr + "' type."
+                    m.currentResult.AddResult(msg)
+                    return m.GetLegacyCompatibleReturnValue(false)
+                end if    
+            end for
+        else
+            msg = "could not find comparator for type '" + typeStr + "' type."
+            m.currentResult.AddResult(msg)
+            return m.GetLegacyCompatibleReturnValue(false)    
+        end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)

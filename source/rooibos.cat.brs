@@ -21,7 +21,7 @@
 ' LICENSE: OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ' LICENSE: SOFTWARE.
 function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = "TestsScene") as void
-    if args.RunTests = invalid or args.RunTests <> "true" then
+    if args.RunTests = invalid or args.RunTests <> "true" or createObject("roAPPInfo").IsDev() <> true then
         return
     end if
     args.testUtilsDecoratorMethodName = testUtilsDecoratorMethodName
@@ -40,7 +40,7 @@ function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodNa
     if (testId = invalid)
         testId = "UNDEFINED_TEST_ID"
     end if
-    ? "#########################################################################" 
+    ? "#########################################################################"
     ? "#TEST START : ###" ; testId ; "###"
     args.testScene = scene
     runner = RBS_TR_TestRunner(args)
@@ -83,7 +83,7 @@ function BaseTestSuite() as Object
     this.AssertArrayNotCount            = RBS_BTS_AssertArrayNotCount
     this.AssertEmpty                    = RBS_BTS_AssertEmpty
     this.AssertNotEmpty                 = RBS_BTS_AssertNotEmpty
-    this.AssertArrayContainsOnly        = RBS_BTS_AssertArrayContainsOnly
+    this.AssertArrayContainsOnlyValuesOfType        = RBS_BTS_AssertArrayContainsOnlyValuesOfType
     this.AssertType                   = RBS_BTS_AssertType
     this.AssertSubType                = RBS_BTS_AssertSubType
     this.AssertNodeCount               = RBS_BTS_AssertNodeCount
@@ -542,17 +542,29 @@ Function RBS_BTS_AssertArratNotEmpty(item as dynamic, msg = "" as string) as dyn
     m.currentResult.AddResult("")
     return m.GetLegacyCompatibleReturnValue(true)
 End Function
-Function RBS_BTS_AssertArrayContainsOnly(array as dynamic, typeStr as string, msg = "" as string) as dynamic
+Function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array as dynamic, typeStr as string, msg = "" as string) as dynamic
     if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
+    if typeStr <> "String" and typeStr <> "Integer" and typeStr <> "Boolean" and typeStr <> "Array" and typeStr <> "AssociativeArray"
+      msg = "Type must be Boolean, String, Array, Integer, or AssociativeArray"
+      m.currentResult.AddResult(msg)
+      return m.GetLegacyCompatibleReturnValue(false) 
+    end if
     if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
         methodName = "RBS_CMN_Is" + typeStr
-        for each item in array
-            if not methodName(item)
-                msg = RBS_CMN_AsString(item) + "is not a '" + typeStr + "' type."
-                m.currentResult.AddResult(msg)
-                return m.GetLegacyCompatibleReturnValue(false)
-            end if    
-        end for
+        typeCheckFunction = RBS_CMN_GetFunction(invalid, methodName)
+        if (typeCheckFunction <> invalid)
+            for each item in array
+                if not typeCheckFunction(item)
+                    msg = RBS_CMN_AsString(item) + "is not a '" + typeStr + "' type."
+                    m.currentResult.AddResult(msg)
+                    return m.GetLegacyCompatibleReturnValue(false)
+                end if    
+            end for
+        else
+            msg = "could not find comparator for type '" + typeStr + "' type."
+            m.currentResult.AddResult(msg)
+            return m.GetLegacyCompatibleReturnValue(false)    
+        end if
     else
         msg = "Input value is not an Array."
         m.currentResult.AddResult(msg)

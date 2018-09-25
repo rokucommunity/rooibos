@@ -135,14 +135,6 @@ $(APPNAME): manifest
 
 	@echo "*** packaging $(APPNAME) complete ***"
 
-#if DISTDIR is not empty then copy the zip package to the DISTDIR.
-	@if [ $(DISTDIR) ];\
-	then \
-		rm -f $(DISTDIR)/$(DISTZIP).zip; \
-		mkdir -p $(DISTDIR); \
-		cp -f --preserve=ownership,timestamps --no-preserve=mode $(ZIPREL)/$(APPNAME).zip $(DISTDIR)/$(DISTZIP).zip; \
-	fi \
-
 install: $(APPNAME) home
 	@echo "Installing $(APPNAME) to host $(ROKU_DEV_TARGET)"
 	@$(CURLCMD) --user $(USERPASS) --digest -F "mysubmit=Install" -F "archive=@$(ZIPREL)/$(APPNAME).zip" -F "passwd=" http://$(ROKU_DEV_TARGET)/plugin_install | grep "<font color" | sed "s/<font color=\"red\">//" | sed "s[</font>[["
