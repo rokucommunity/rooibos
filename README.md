@@ -9,6 +9,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 </p>
 
 ## Links
+ - **[Youtube training videos](https://www.youtube.com/playlist?list=PLJRLV4QDx83vsYMD9bIs-cjoDXmNmO8Jv)**
  - **[Documentation](docs/index.md)**
  - **[API Documentaiton](https://georgejecook.github.io/rooibos)**
  - **[Release notes / History / Changes](CHANGELOG.md)**
