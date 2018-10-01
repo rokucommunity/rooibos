@@ -364,7 +364,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
 end function
 
 function RBS_TS_IsTag(text, tag) as boolean
-  return Left(text,len(tag)) = tag
+  return ucase(Left(text,len(tag))) = ucase(tag)
 end function
 
 function RBS_TS_GetTagText(text, tag) as string
