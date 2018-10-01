@@ -151,6 +151,35 @@ function Simp_AssertArrayContainsOnlyValuesOfType_Fail(values, typeName) as void
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests white spaces work with annotations
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'some comments to 
+'demonstrate
+'@Test comments between tests
+'that we can have comments
+'between functions and tags
+function Simp_whiteSpacing() as void
+  m.AssertTrue(true)
+end function
+
+'some comments to 
+'demonstrate
+'@Test comments between tests with params
+'@Params[1]
+
+'@Params[2]
+'that we can have comments
+'@Params[3]
+'between functions and tags
+'@Params[4]
+
+function Simp_whiteSpacing_params(value) as void
+  m.AssertTrue(true)
+end function
+
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests EqArray
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
