@@ -1,6 +1,6 @@
 Function BuildDate()
-  return "Oct 1 2018 20:03:00"
+  return "Oct 1 2018 20:06:40"
 End Function
 Function BuildCommit()
-  return "309dbb5"
+  return "2c130c6"
 End Function

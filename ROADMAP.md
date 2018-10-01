@@ -1,5 +1,7 @@
 # Rooibos roadmap
-Up to date as of July 19th, 2018
+Up to date as of October 1st, 2018
+
+Current version: 0.2.0
 
 ## 0.1.0 Initial release
 

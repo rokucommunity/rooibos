@@ -5,6 +5,9 @@
 Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 </h3>
 <p align="center">
+  Version 0.2.0
+</p>
+<p align="center">
   <img src="images/exampleImage.png" alt="Mocha test framework" />
 </p>
 
