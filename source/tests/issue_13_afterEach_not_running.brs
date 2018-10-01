@@ -1,28 +1,48 @@
-'@TestSuite [RBSA] Rooibos before after tests
+'@TestSuite [DGNT] Duplicate Group Name Tests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests before each and after each are running
+'@It group1
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@BeforeEach
-function RBSA__BeforeEach() as void
-  ? "!!! Before"
+'@Test simple
+function DGNT_group1_test()
+  m.AssertTrue(true)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It group2
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test simple
+function DGNT_group2_test()
+  m.AssertTrue(true)
 end function
 
 
-'@AfterEach
-function RBSA__AfterEach() as void
-    ? "!!! After"
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It group2
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test simple
+function DGNT_group2_dupe_test()
+  m.AssertTrue(true)
 end function
 
-'@Test before after
-function RBSA__before_after() as void
 
-    assertResult = m.Fail("reason")
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It group3
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    isFail = m.currentResult.isFail
-    m.currentResult.Reset()
+'@Test simple
+function DGNT_group3_test()
+  m.AssertTrue(true)
+end function
 
-    m.AssertFalse(assertResult)
-    m.AssertTrue(isFail)
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It group1
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test simple
+function DGNT_group1_dupe_test()
+  m.AssertTrue(true)
 end function

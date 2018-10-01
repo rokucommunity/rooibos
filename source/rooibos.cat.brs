@@ -2079,8 +2079,9 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100, 
   this.ProcessSuite = RBS_TS_ProcessSuite
   this.ResetCurrentTestCase = RBS_TS_ResetCurrentTestCase
   this.ProcessLegacySuite = RBS_TS_ProcessLegacySuite  
-  this.ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
   this.currentGroup = invalid
+  this.groupNames = {}
+  this.ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
   return this
 end function
 function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
@@ -2158,6 +2159,17 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         name = RBS_TS_GetTagText(line, TAG_IT)
         if (name = "")
           name = "UNNAMED TAG_TEST GROUP - name this group for better readability - e.g. 'Tests the Load method... '"
+        end if
+        if (m.groupNames[name] = invalid)
+          m.groupNames[name] = 0
+        end if
+        nameCount = m.groupNames[name]
+        nameCount++
+        m.groupNames[name] = nameCount
+        if (nameCount > 1)
+          ? "WARNING A Group already exists with the name '"; name ; " changing name to avoid collisions. New Name:"
+          name = "WARNING!! DUPLICATE_" + stri(nameCount - 1).trim() + ": " + name 
+          ? name
         end if
         m.currentGroup = UnitTestItGroup(name, isNextTokenSolo, isNextTokenIgnore)
         m.currentGroup.setupFunctionName = m.setupFunctionName
