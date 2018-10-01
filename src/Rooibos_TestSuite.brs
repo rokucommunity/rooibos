@@ -95,14 +95,17 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         if (isNextTokenNodeTest)
           m.nodeTestFileName = nodeTestFileName
           m.isNodeTest = true
-          isNextTokenNodeTest = false
         end if
         
         if (isNextTokenIgnore)
           m.isIgnored = true
           goto exitProcessing
         end if
-
+      
+        isNextTokenSolo = false
+        isNextTokenIgnore = false
+        isNextTokenNodeTest = false
+        
         goto exitLoop
       else if (RBS_TS_IsTag(line, TAG_IT))
         if (not isTestSuite)
