@@ -174,6 +174,85 @@ function Simp_EqArray_Pass(values, values2, expected) as void
   
 end function
 
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests AssertNotEmpty
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test pass
+'@Params[["one", "two", "three"]]
+'@Params[[1, 2, 3]]
+'@Params[[true]]
+'@Params[[[true, true], [false, false]]]
+'@Params[[{"test":1}]]
+'@Params["not empty"]
+'@Params[[invalid]]
+function Simp_AssertNotEmpty_Pass(values) as void
+
+    assertResult = m.AssertNotEmpty(values)
+    isFail = m.currentResult.isFail
+
+    m.currentResult.Reset()
+    m.AssertTrue(assertResult)
+    m.AssertFalse(isFail)           
+  
+end function
+
+'@Test fail
+'@Params[invalid]
+'@Params[[]]
+'@Params[{}]
+'@Params[1]
+'@Params[""]
+function Simp_AssertNotEmpty_Fail(values) as void
+
+    assertResult = m.AssertNotEmpty(values)
+    isFail = m.currentResult.isFail
+
+    m.currentResult.Reset()
+    m.AssertFalse(assertResult)
+    m.AssertTrue(isFail)           
+  
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests AssertEmpty
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test pass
+'@Params[[]]
+'@Params[{}]
+'@Params[""]
+function Simp_AssertEmpty_Pass(values) as void
+
+    assertResult = m.AssertEmpty(values)
+    isFail = m.currentResult.isFail
+
+    m.currentResult.Reset()
+    m.AssertTrue(assertResult)
+    m.AssertFalse(isFail)           
+
+end function
+
+'@Test fail
+'@Params[1]
+'@Params[invalid]
+'@Params[["one", "two", "three"]]
+'@Params[[1, 2, 3]]
+'@Params[[true]]
+'@Params[[[true, true], [false, false]]]
+'@Params[[{"test":1}]]
+'@Params["not empty"]
+'@Params[[invalid]]
+function Simp_AssertEmpty_Fail(values) as void
+
+    assertResult = m.AssertEmpty(values)
+    isFail = m.currentResult.isFail
+
+    m.currentResult.Reset()
+    m.AssertFalse(assertResult)
+    m.AssertTrue(isFail)           
+  
+end function
 
 'ASSERTIONS TO WRITE TESTS FOR!
 
@@ -193,8 +272,6 @@ end function
 '    AssertArrayNotContainsSubsetet
 '    AssertArrayCount            
 '    AssertArrayNotCount         
-'    AssertEmpty                 
-'    AssertNotEmpty              
 '    AssertArrayContainsOnly     
 '    AssertType                  
 '    AssertSubType               

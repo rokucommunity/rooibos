@@ -782,39 +782,14 @@ Function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as dynamic
       m.currentResult.AddResult(msg)
       return m.GetLegacyCompatibleReturnValue(false)
     end if
-  end if
-  m.currentResult.AddResult("")
-  return m.GetLegacyCompatibleReturnValue(true)
-End Function
-
-' /**
-'  * @memberof module:BaseTestSuite
-'  * @name AssertArratNotEmpty
-'  * @function
-'  * @instance
-'  * @description Fail if the item is empty array or string.
-'  * @param {Dynamic} item - item to check
-'  * @param {Dynamic} msg - alternate error message
-'  * @returns {boolean} - true if the assert was satisfied, false otherwise
-'  */ 
-Function RBS_BTS_AssertArratNotEmpty(item as dynamic, msg = "" as string) as dynamic
-  if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
-  if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
-    if item.Count() = 0
-      msg = "Array is empty."
-      m.currentResult.AddResult(msg)
-      return m.GetLegacyCompatibleReturnValue(false)
-    end if
-  else if RBS_CMN_AsString(item) = ""
-    msg = "Input value is empty."
+  else
+    msg = "Input value is not a string or array."
     m.currentResult.AddResult(msg)
     return m.GetLegacyCompatibleReturnValue(false)
   end if
   m.currentResult.AddResult("")
   return m.GetLegacyCompatibleReturnValue(true)
 End Function
-
-
 
 ' /**
 '  * @memberof module:BaseTestSuite
