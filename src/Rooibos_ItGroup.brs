@@ -66,7 +66,7 @@ function RBS_ItG_GetRunnableTestSuite(group) as object
   runnableSuite.SetUp = RBS_CMN_GetFunction(group.setupFunction, group.setupFunctionName)
   runnableSuite.TearDown =  RBS_CMN_GetFunction(group.teardownFunction, group.teardownFunctionName)
   runnableSuite.BeforeEach =  RBS_CMN_GetFunction(group.beforeEachFunction, group.beforeEachFunctionName) 
-  runnableSuite.AftrEach =  RBS_CMN_GetFunction(group.afterEachFunction, group.afterEachFunctionName) 
+  runnableSuite.AfterEach =  RBS_CMN_GetFunction(group.afterEachFunction, group.afterEachFunctionName) 
   
   return runnableSuite
 end function

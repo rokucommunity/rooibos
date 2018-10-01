@@ -1370,7 +1370,7 @@ function RBS_ItG_GetRunnableTestSuite(group) as object
   runnableSuite.SetUp = RBS_CMN_GetFunction(group.setupFunction, group.setupFunctionName)
   runnableSuite.TearDown =  RBS_CMN_GetFunction(group.teardownFunction, group.teardownFunctionName)
   runnableSuite.BeforeEach =  RBS_CMN_GetFunction(group.beforeEachFunction, group.beforeEachFunctionName) 
-  runnableSuite.AftrEach =  RBS_CMN_GetFunction(group.afterEachFunction, group.afterEachFunctionName) 
+  runnableSuite.AfterEach =  RBS_CMN_GetFunction(group.afterEachFunction, group.afterEachFunctionName) 
   return runnableSuite
 end function
 Function ItemGenerator(scheme as object) as Object
@@ -2023,7 +2023,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
     end if
     testStatObj.Time = testTimer.TotalMilliseconds()
     RBS_STATS_AppendTestStatistic(suiteStatObj, testStatObj)
-    if RBS_CMN_IsFunction(testCase.afterEach)
+    if RBS_CMN_IsFunction(testSuite.afterEach)
       testSuite.afterEach()
     end if
     if testStatObj.Result <> "Success"

@@ -292,7 +292,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
     testStatObj.Time = testTimer.TotalMilliseconds()
     RBS_STATS_AppendTestStatistic(suiteStatObj, testStatObj)
   
-    if RBS_CMN_IsFunction(testCase.afterEach)
+    if RBS_CMN_IsFunction(testSuite.afterEach)
       testSuite.afterEach()
     end if
     
