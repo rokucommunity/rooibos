@@ -150,6 +150,31 @@ function Simp_AssertArrayContainsOnlyValuesOfType_Fail(values, typeName) as void
   
 end function
 
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests EqArray
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test
+'@Params[invalid, [], false]
+'@Params[[], invalid, false]
+'@Params[invalid, invalid, false]
+'@Params[["one", "three"], [], false]
+'@Params[[], ["one", "three"], false]
+'@Params[[], [], true]
+'@Params[["one", "two", "three"], ["one", "three"], false]
+'@Params[["one", "two", "three"], ["one", "two", "three"], true]
+'@Params[[1, 2, 3], ["one", "two", "three"], false]
+'@Params[[1, 2, 3], [1, 2, 3], true]
+'@Params[[1, invalid, "3"], [1, invalid, "3"], true]
+'@Params[[3, 2, 1], [1, 2, 3], false]
+function Simp_EqArray_Pass(values, values2, expected) as void
+
+    result = m.EqArray(values, values2)
+    m.AssertEqual(result, expected)
+  
+end function
+
+
 'ASSERTIONS TO WRITE TESTS FOR!
 
 'This is coming soon!
@@ -163,7 +188,6 @@ end function
 '    AssertAANotHasKey           
 '    AssertAAHasKeys             
 '    AssertAANotHasKeys          
-'    AssertArrayContains         
 '    AssertArrayNotContains      
 '    AssertArrayContainsSubset   
 '    AssertArrayNotContainsSubsetet

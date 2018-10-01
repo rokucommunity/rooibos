@@ -97,7 +97,7 @@ function BaseTestSuite() as Object
   this.AssertAAContainsSubset   = RBS_BTS_AssertAAContainsSubset
   this.EqValues             = RBS_BTS_EqValues
   this.EqAssocArrays          = RBS_BTS_EqAssocArray
-  this.EqArrays             = RBS_BTS_EqArray
+  this.EqArray             = RBS_BTS_EqArray
   this.Stub       = RBS_BTS_Stub
   this.Mock       = RBS_BTS_Mock
   this.AssertMocks    = RBS_BTS_AssertMocks
@@ -674,6 +674,7 @@ Function RBS_BTS_EqAssocArray(Value1 as Object, Value2 as Object) as dynamic
   end if
 End Function 
 Function RBS_BTS_EqArray(Value1 as Object, Value2 as Object) as dynamic
+  if not (RBS_CMN_IsArray(Value1)) or not RBS_CMN_IsArray(Value2) then return false
   l1 = Value1.Count()
   l2 = Value2.Count()
   if not l1 = l2

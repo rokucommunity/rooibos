@@ -56,7 +56,7 @@ function BaseTestSuite() as Object
   'Type Comparison Functionality
   this.EqValues             = RBS_BTS_EqValues
   this.EqAssocArrays          = RBS_BTS_EqAssocArray
-  this.EqArrays             = RBS_BTS_EqArray
+  this.EqArray             = RBS_BTS_EqArray
 
   'Mocking and stubbing
   
@@ -1030,6 +1030,8 @@ End Function
 '  * @returns {boolean} - True if arrays are equal or False in other case.
 '  */ 
 Function RBS_BTS_EqArray(Value1 as Object, Value2 as Object) as dynamic
+  if not (RBS_CMN_IsArray(Value1)) or not RBS_CMN_IsArray(Value2) then return false
+  
   l1 = Value1.Count()
   l2 = Value2.Count()
   
