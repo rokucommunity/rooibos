@@ -58,6 +58,8 @@ end function
 function BaseTestSuite() as Object
   this = {}
   this.Name               = "BaseTestSuite"
+  this.invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
+  this.ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
   this.TestCases = []
   this.AddTest            = RBS_BTS_AddTest
   this.CreateTest           = RBS_BTS_CreateTest
@@ -866,7 +868,7 @@ Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ign
   m.currentResult.AddResult("")
   return m.GetLegacyCompatibleReturnValue(true)
 End Function
-function RBS_BTS_Stub(target, methodName, returnValue = invalid) as object
+function RBS_BTS_Stub(target, methodName, returnValue = invalid, allowNonExistingMethods = false) as object
   if (type(target) <> "roAssociativeArray")
     m.Fail("could not create Stub provided target was null")
     return {}
@@ -883,24 +885,27 @@ function RBS_BTS_Stub(target, methodName, returnValue = invalid) as object
   id = stri(m.__stubId).trim()
   fake = m.CreateFake(id, target, methodName, 1, invalid, returnValue)
   m.stubs[id] = fake
-  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction")
+  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExistingMethods)
     target[methodName] = m["StubCallback" + id]
     target.__stubs = m.stubs
+    if (allowNonExistingMethods)
+      ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
+    end if
   else
     ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName 
   end if
   return fake
 end function
-function RBS_BTS_ExpectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid) as object
-  return m.Mock(target, methodName, 1, expectedArgs, returnValue)
+function RBS_BTS_ExpectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+  return m.Mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
 end function 
-function RBS_BTS_ExpectNone(target, methodName, expectedArgs = invalid, returnValue = invalid) as object
-  return m.Mock(target, methodName, 0, expectedArgs, returnValue)
+function RBS_BTS_ExpectNone(target, methodName, expectedArgs = invalid, returnValue = invalid,  allowNonExistingMethods = false) as object
+  return m.Mock(target, methodName, 0, expectedArgs, returnValue, allowNonExistingMethods)
 end function 
-function RBS_BTS_Expect(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
-  return m.Mock(target, methodName, expectedInvocations, expectedArgs, returnValue)
+function RBS_BTS_Expect(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+  return m.Mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods)
 end function 
-function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
+function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
   if (type(target) <> "roAssociativeArray")
     m.Fail("could not create Stub provided target was null")
     return {}
@@ -918,15 +923,32 @@ function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs 
   id = stri(m.__mockId).trim()
   fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
   m.mocks[id] = fake 'this will bind it to m
-  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction")
+  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExistingMethods)
     target[methodName] =  m["MockCallback" + id]
     target.__mocks = m.mocks
+    if (allowNonExistingMethods)
+      ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
+    end if
   else
     ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName 
   end if
   return fake
 end function
 function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, expectedArgs =invalid, returnValue=invalid ) as object
+  expectedArgsValues = []
+  hasArgs = expectedArgs <> invalid
+  if (hasArgs)
+    defaultValue = m.invalidValue
+  else
+    defaultValue = m.ignoreValue
+  end if 
+  for i = 0 to 9
+    if (hasArgs and expectedArgs.count() > i)
+      expectedArgsValues.push(expectedArgs[i])    
+    else
+      expectedArgsValues.push(defaultValue)
+    end if
+  end for
   fake = {
     id : id,
     target: target,
@@ -935,7 +957,7 @@ function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, exp
     isCalled: false,
     invocations: 0,
     invokedArgs: [invalid, invalid, invalid, invalid, invalid, invalid, invalid, invalid, invalid],
-    expectedArgs: expectedArgs,
+    expectedArgs: expectedArgsValues,
     expectedInvocations: expectedInvocations,
     callback: function (arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
       ? "FAKE CALLBACK CALLED FOR " ; m.methodName 
@@ -964,7 +986,14 @@ function RBS_BTS_AssertMocks() as void
       for i = 0 to mock.expectedargs.count() -1
         value = mock.invokedArgs[i]
         expected = mock.expectedargs[i]
-        if (not m.eqValues(value,expected))
+        didNotExpectArg = expected = m.invalidValue 
+        if (didNotExpectArg)
+          expected = invalid
+        end if
+        if (not expected = m.ignoreValue and not m.eqValues(value,expected))
+          if (expected = invalid)
+            expected = "[INVALID]"
+          end if
           m.MockFail(methodName, "Expected arg #" + stri(i).trim() + "  to be '" + RBS_CMN_AsString(expected) + "' got '" + RBS_CMN_AsString(value) + "')")
           return
         end if

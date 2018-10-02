@@ -553,7 +553,7 @@ We create mocks by using the methods:
 
 ### Asserting mocks
 Mocks are asserted by invoking `m.AssertMocks()`
-As a convenience, Rooibos will automatically assert any mocks for you when your test finishes executing. This saves you from having to manually add this line at the end of your code.
+***As a convenience, Rooibos will automatically assert any mocks for you when your test finishes executing***. This saves you from having to manually add this line at the end of your code.
 
 When a mock fails, Rooibos will report to you what caused the failure. The possible reasons are:
 
@@ -589,6 +589,53 @@ detailsVM.LoadDetails()
 ? exceuteMock.invokedArgs
 ? excecuteMock.invocations
 ```
+
+#### Specifying expected invocation arguments
+You can save yourself a lot of time, and really think about and kick the tyres of your code, by defining the arguments you expect a function to be invoked with. This is done by passing in an array of the expected invocation arguments via the expectedArgs param. You may also really not care about the args, in which case you can set that value to `invalid` and the call to `m.AssertMocks()` will skip checking the invoked args.
+
+Up to 9 arguments are supported.
+
+
+####Specifying an expected value of invalid, with m.invalidValue
+
+If you specify the invoked args, then by default, rooibos will check that the invoked args match the arguments you specify. You can expect any value for an arg, or use the special `m.invalidValue` to indicate you expect the argument to be invalid. This is the default value.
+
+So for example, if one had the following mock
+
+```m.expectOnce(myObj, "myMethod", ["a", "b"], true)```
+
+and `myMethod` was invoked with `["a", "b", "c"]`, this would be a mock failure, because the 3rd argument was expected to be invalid, by default.
+
+In that case, the following mock definition would satisfy the assertion:
+
+```m.expectOnce(myObj, "myMethod", ["a", "b", "c"], true)```
+
+
+####Skipping value assertion with m.ignoreValue
+
+If you only care about some arguments, then you can use `m.ignoreValue` to instruct rooibos to not assert equality for the arguments you've ignored.
+
+In the above example, the assertion will be satisfied with a mock confiugred thusly:
+
+```m.expectOnce(myObj, "myMethod", ["a", "b", m.ignoreValue], true)```
+
+This will pass when `myMethod` is invoked with args: `["a", "b", "c"]`, as would the following mock definition:
+
+```m.expectOnce(myObj, "myMethod", [m.ignoreValue, "b", "c"], true)```
+
+
+###Allowing mocking of non-existent functions
+As a sanity check, rooibos will expect a method to exist on an object before allowing it to be stubbed or mocked. If it is not, it will fail log an error and lead to a failing mock assertion.
+
+This behaviour can be disabled by passing in the last argument of the mock/stub/fake function (`allowNonExistingMethods`) as `true`. In this case, rooibos will still log a warning; but you will be allowed to create the fake method.
+
+This is handy for quickly creating mock dependencies with simple _pobos_ (plain old brightscript objects). e.g.
+
+```
+videoService = {}
+m.expectOnce (videoService, "getVideos", invalid, someJson, true)
+```
+
 
 ###Mock limitations
 Please note, mocks DO NOT work with globally scoped methods (i.e. subs and functions which are not assigned to an associative array). E.g. if you have a method, which is not accessed via `m.SomeMethod`, or `someObject.SomeMethod`, then you cannot mock it. This is a long term limitation. If you are hitting this problem, I suggest it's likely a code-smell anyhow, and you might consider using a pattern such as MVVM, which will better allow you to separate view and business logic.

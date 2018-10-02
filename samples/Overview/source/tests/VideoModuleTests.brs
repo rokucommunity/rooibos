@@ -18,6 +18,7 @@ function VMT__constructor_basic() as void
 	m.AssertEqual(m.module.httpService_, m.httpService)
 end function
 
+
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests getVideos
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -39,4 +40,18 @@ function VMT__getVideos_basic(expectedCount, videoType, videoIds) as void
 	
 	m.AssertArrayContainsAAs(videos, expectedIds)
 end function
+
+'@Only
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests getVideosRealExample
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test basic test
+function VMT__getVideosRealExample_basic() as void
+  returnJson = {}
+  m.stub(m.httpService, "getJson", returnJson, true)
+  
+  videos = m.module.getVideosRealExample("mp4")
+end function
+
 

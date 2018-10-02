@@ -7,6 +7,7 @@ function VideoModule(constants, httpService)
     
     'public api
     getVideos: getVideos_
+    getVideosRealExample: getVideosRealExample_
   }
 end function
 
@@ -26,3 +27,22 @@ function getVideos_(videoType) as Object
   end for
   return videos
 end function
+
+
+function getVideosRealExample_(videoType) as Object
+  videos = []
+
+  'result = m.httpService_.getJson("https://myVideos.com/videos/", videoType)
+  result = invalid
+  if (type(result) = "roAssociativeArray")
+    for each video in result
+      videos.push(video)
+    end for
+  end if
+  
+  return videos
+end function
+
+
+
+
