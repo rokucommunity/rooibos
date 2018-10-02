@@ -1418,7 +1418,7 @@ end function
 
 ' /**
 '  * @memberof module:BaseTestSuite
-'  * @name ExpecTNone
+'  * @name ExpectNone
 '  * @function
 '  * @instance
 '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked, it will result in test failure
