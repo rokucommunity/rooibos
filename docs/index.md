@@ -8,6 +8,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 
 ## FEATURES
  - [Easy to integrate](#easy-to-integrate)
+ - [Compatible with legacy unit testing framework](#compatible-with-legacy-framework)
  - [Simple, annotation-based, syntax for writing tests](#simple-syntax-for-writing-tests)
  - [No need for special file names, or method names](#no-need-for-special-file-or-method-names)
  - [Common TDD methods such as Setup/TearDown/BeforeEach/AfterEach](#common-tdd-methods)
@@ -44,7 +45,7 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibos.ca
 
 
 ### Installation
-
+<a name="easy-to-integrate"></a>
 1. Clone or download this repo
 2. Run `make dist`
 3. Copy `dist/rooibos.cat.brs` to your `source` folder
@@ -83,6 +84,8 @@ testFailures:
 ```
 
 ## Creating test suites
+<a name="organize-tests-by-suites-groups-and-cases"></a>
+
 Rooibos has a hiearchy of tests as follows:
 
  - TestSuite
@@ -90,10 +93,13 @@ Rooibos has a hiearchy of tests as follows:
 		 - TestCase
 			 - Parameterized TestCase
 
-A file is considered a test suite if it contains a `@TestSuite` annotation. No special naming is required.
+
+A file is considered a test suite if it contains a `@TestSuite` annotation. No special naming is required. <a name="no-need-for-special-file-or-method-names"></a>
+
 
 ### Simple example
 The following is a minimum working example of a Rooibos TestSuite, named `Simple.brs`
+<a name="simple-syntax-for-writing-tests"></a>
 
 ```
 '@TestSuite [Simp] Simple Tests
@@ -128,7 +134,9 @@ This results in the following test output:
 Note the hierarchical display of the Testsuite _[Simp] Simple Tests_, the group _tests initialization of vm_ and the test itself _can instantiate with invalid modelLocator_.
 
 ### Rooibos annotations
-Rooibos provides a library of annotations which can be used to define TestSuides, It groups, Test Cases, Parameterized tests, and more. All annotations are of the following form
+<a name="simple-syntax-for-writing-tests"></a>
+
+Rooibos provides a library of annotations which can be used to define TestSuites, It groups, Test Cases, Parameterized tests, and more. All annotations are of the following form
 
 ```
 '@ANNOTATION DATA
@@ -143,7 +151,7 @@ The following annotations are supported.
 |Annotation   	|Description   	|Data   |
 |---	|---	|---	|
 |@TestSuite   	|Indicates a file is a test suite   	|Name of the test suite. Used in test output   	|
-|@Setup   	|Run once when the suite is executed	|   	|
+|@Setup   	|Run once when the suite is executed <a name="common-tdd-methods"></a>	|   	|
 |@TearDown   	|Run once when the suite is finished	|   	|
 |@BeforeEach   	|Run before each test. Can be specified for the `@TestSuite`, or for each `@It` group	|   	|
 |@AfterEach   	|Run after each test. Can be specified for the `@TestSuite`, or for each `@It` group	|   	|
@@ -161,6 +169,7 @@ Rooibos tests must be placed within a group, which in turn must be placed inside
 
 Tests then comprise assertions, which can test if values are equal, like (using fuzzy logic), contain values, etc.
 
+<a name="simple-assert-syntax"></a>
 An assertion looks like this:
 
 ```
@@ -298,6 +307,7 @@ Note that in the example above, each of the tests in the `tests alternate data` 
 BeforeEach and AfterEach, can also be scoped to an it group. If the annotations appear _after_ an `'@It` group annotation, then they will only apply to that group. If the annotations appear _before the first it group annotation_ then they will be applied to all groups, _which do not have BeforeEach and AfterEach group-level-annotations_
 
 ### Paremeterized tests
+<a name="parameterized-testing"></a>
 Many times, we want to test a broad range of values. Writing identical tests with different values is tedious and unneccessary, using Rooibos's `'@Params` mechanism
 
 You can run the same test several times, by adding one or more `'@Params[...]` annotations after the test annotation and before the method declaration, as follows:
@@ -349,6 +359,7 @@ Rooibos 0.2.0, will include an `@OnlyParams` annotation for further convenience.
 If a test case has a `'@Only` or `'@Ignore` annotation, the _params_ will execute in accordance with their parent test case.
 
 ### Node specficic asserts
+<a name="node-specific-assertions"></a>
 Rooibos adds some node specifc asserts, which are fully described in the   [Assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html). These are:
 
  - AssertNodeCount
@@ -367,6 +378,7 @@ The full list of asserts can be found in the documentation  - [Assertion referen
 ## Understanding test output
 Rooibos reports test output in an easy to read hiearhchical manner.
 
+<a name="readable-test-output"></a>
 Each test suite has it's own tree structure in the output, and in turn has branches for each group, then each testcase that was run.
 
 ### Success and Failure output
@@ -388,6 +400,7 @@ In addition, you get a simple to parse result as the last line of output, which 
 ![Simple test output](images/endOfTest.png)
 
 ## Controlling which tests run
+<a name="easily-control-test-execution"></a>
 Rooibos is built to facilitate TDD, and other test-based developer workflows. For this reason, I made it _very easy_ to specify which tests run, so you can simply execute 1 or a few tests while developing, then more as you finish the method you are currently working with.
 
 ### Ignore annotation
@@ -414,6 +427,7 @@ A good working practice is to put a `'@Only` annotaiton on the suite for the cla
 
 
 ### Only show output for failures
+<a name="only-show-output-for-failed-tests"></a>
 In addition to the the `'@Only` and `'@Ignore` annotations, Rooibos has another mechanism for aiding the TDD process. You are able to execute Rooibos in `showOnblyFailures` mode. In this mode, all tests are executed (according to the `'@Only` and `'@Ignore` annotations); but if any failures are encountered, then only the failures are displayed. If all tests pass, then the stanard test output is shown.
 
 This makes it easy to quickly dive into the test suite and see what regressions have been introduced, then you can simply navigate to the failed tests and annotate them with `'@Only` annotations (so that subsequent runs are much quicker)
@@ -428,6 +442,7 @@ testFailures:
 ## Integrating with your app setup and util methods
 
 ### Hooking into your global setup
+<a name="hook-into-your-global-setup-mechanisms"></a>
 It is likely that your app will have some degree of setup (like loading config files, setting global properties, etc), that will be required to occur before starting your unit tests. You can have Rooibos invoke your setup methods, at the correct time during it's setup, by passing a function pointer into the `Rooibos__Init` method, as such:
 
 ```
@@ -442,6 +457,7 @@ end sub
 ```
 
 ### Adding your own util functions to the unit tests
+<a name="incorporate-your-own-util-methods"></a>
 If you wish, you can provide a third function pointer to the `Rooibos_Init` method, which will receive a _TestCase_ paremeter. You can decorate this TestCase with util methods you want to make accessible to your unit tests at runtime. e.g.
 
 
@@ -474,6 +490,7 @@ Note: The test utils decorator and all of it's dependencies must be visible to t
 Non-node tests should find all methods are automatically in scope
 
 ## Using mocks and stubs
+<a name="mocks-and-stubs"></a>
 Rooibos can be used for integration, behaviour, unit testing, and TDD. In many cases (particularly TDD and unit testing), we will not want to execute all of the methods invoked by our code; but will instead prefer to mock and stub those method calls.
 
 In other cases, it may simply be impractical to execute code as part of our tests. Examples can be executing method that make network calls, require hardware, or playback, or just simply take to long.
@@ -577,7 +594,8 @@ detailsVM.LoadDetails()
 Please note, mocks DO NOT work with globally scoped methods (i.e. subs and functions which are not assigned to an associative array). E.g. if you have a method, which is not accessed via `m.SomeMethod`, or `someObject.SomeMethod`, then you cannot mock it. This is a long term limitation. If you are hitting this problem, I suggest it's likely a code-smell anyhow, and you might consider using a pattern such as MVVM, which will better allow you to separate view and business logic.
 
 ## Integrating with your CI
-As of version 0.1.0, Rooibos does not have special test runners for outputting to files, or uploading to servers. However, that will not stop you integrating with your CI system.
+<a name="easily-integrate-into-any-ci-system"></a>
+Rooibos does not have special test runners for outputting to files, or uploading to servers. However, that will not stop you integrating with your CI system.
 
 Becuase the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
 
@@ -653,6 +671,7 @@ You can rebuild by running the following command from the terminal:
 Which will compress all of the source files in the `src` folder into `dist/rooibos.cat.brs`, which can then be copied to your project
 
 ## Testing scenegraph nodes
+<a name="execute-tests-on-scenegraph-nodes"></a>
 I prefer to use [MVVM](https://medium.com/flawless-app-stories/how-to-use-a-model-view-viewmodel-architecture-for-ios-46963c67be1b) (link is for iOS pattern, so I don't personally run tests on my scene graph nodes (I have a preprocessor that does all the glueing for me, so I really have very little logic to test), however, I know not everyone works with that practice, so I went to considerable effort to make sure you can run unit tests on your scene graph nodes :)
 
 ### Steps to test scenegraph nodes
@@ -776,3 +795,22 @@ function ${prefix}__${testName}_${testCase}() as void
 	${cursor}
 end function
 ```
+
+## Backward compatability
+
+<a name="compatible-with-legacy-framework"></a>
+
+Rooibos is backward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/).
+
+It will automatically run your tests, *without any code modifications*. To use this feature, set the config setting `"supportLegacyTests": true` in your testconfig.json
+
+Note, in legacy compatability mode, the following must be considered.
+
+- The framework will infer which tests are legacy tests, by the lack of a `@TestSuite` directive
+- The result of an assert will be a string of either `"true"` or `"false"` values, for legacy tests.
+- The result of an assert will be `true` or `false` for tests using the modern syntax (the default)
+- The framework will automatically identify your test cases by running regex's against your testSuite function.
+	- ***Important!*** the framework will ignore all other code in that function. If you have been incorrectly doing test setup in your test suite function, you will need to refactor that and move it to a Setup function.
+- You can use `'@Ignore` and `'@Only` in a legacy test file; but _it will only apply to the whole test suite_
+
+It is recommended that you upgrade your legacy tests to the new syntax for maximum flexibility and comfort.
