@@ -944,11 +944,11 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
     if valtype = "<uninitialized>"
       return false
     else if valtype = "roList"
-      return m.eqArrays(Value1, Value2)
+      return m.eqArray(Value1, Value2)
     else if valtype = "roAssociativeArray"
       return m.eqAssocArrays(Value1, Value2)
     else if valtype = "roArray"
-      return m.eqArrays(Value1, Value2)
+      return m.eqArray(Value1, Value2)
     else if (valtype = "roSGNode")
       if (val2Type <> "roSGNode")
         return false
