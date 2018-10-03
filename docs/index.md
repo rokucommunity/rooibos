@@ -596,7 +596,7 @@ You can save yourself a lot of time, and really think about and kick the tyres o
 Up to 9 arguments are supported.
 
 
-####Specifying an expected value of invalid, with m.invalidValue
+#### Specifying an expected value of invalid, with m.invalidValue
 
 If you specify the invoked args, then by default, rooibos will check that the invoked args match the arguments you specify. You can expect any value for an arg, or use the special `m.invalidValue` to indicate you expect the argument to be invalid. This is the default value.
 
@@ -611,7 +611,7 @@ In that case, the following mock definition would satisfy the assertion:
 ```m.expectOnce(myObj, "myMethod", ["a", "b", "c"], true)```
 
 
-####Skipping value assertion with m.ignoreValue
+#### Skipping value assertion with m.ignoreValue
 
 If you only care about some arguments, then you can use `m.ignoreValue` to instruct rooibos to not assert equality for the arguments you've ignored.
 
@@ -624,7 +624,7 @@ This will pass when `myMethod` is invoked with args: `["a", "b", "c"]`, as would
 ```m.expectOnce(myObj, "myMethod", [m.ignoreValue, "b", "c"], true)```
 
 
-###Allowing mocking of non-existent functions
+### Allowing mocking of non-existent functions
 As a sanity check, rooibos will expect a method to exist on an object before allowing it to be stubbed or mocked. If it is not, it will fail log an error and lead to a failing mock assertion.
 
 This behaviour can be disabled by passing in the last argument of the mock/stub/fake function (`allowNonExistingMethods`) as `true`. In this case, rooibos will still log a warning; but you will be allowed to create the fake method.
@@ -637,7 +637,7 @@ m.expectOnce (videoService, "getVideos", invalid, someJson, true)
 ```
 
 
-###Mock limitations
+### Mock limitations
 Please note, mocks DO NOT work with globally scoped methods (i.e. subs and functions which are not assigned to an associative array). E.g. if you have a method, which is not accessed via `m.SomeMethod`, or `someObject.SomeMethod`, then you cannot mock it. This is a long term limitation. If you are hitting this problem, I suggest it's likely a code-smell anyhow, and you might consider using a pattern such as MVVM, which will better allow you to separate view and business logic.
 
 ## Integrating with your CI
