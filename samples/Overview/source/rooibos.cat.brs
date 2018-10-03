@@ -899,8 +899,8 @@ end function
 function RBS_BTS_ExpectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
   return m.Mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
 end function 
-function RBS_BTS_ExpectNone(target, methodName, expectedArgs = invalid, returnValue = invalid,  allowNonExistingMethods = false) as object
-  return m.Mock(target, methodName, 0, expectedArgs, returnValue, allowNonExistingMethods)
+function RBS_BTS_ExpectNone(target, methodName, allowNonExistingMethods = false) as object
+  return m.Mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods)
 end function 
 function RBS_BTS_Expect(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
   return m.Mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods)

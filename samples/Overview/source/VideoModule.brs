@@ -34,7 +34,7 @@ function getVideosRealExample_(videoType) as Object
 
   result = m.httpService_.getJson("https://myVideos.com/videos/", videoType)
   
-  if (type(result) = "roAssociativeArray")
+  if (type(result) = "roArray")
     for each video in result
       videos.push(video)
     end for

@@ -41,18 +41,22 @@ function VMT__getVideos_basic(expectedCount, videoType, videoIds) as void
 	m.AssertArrayContainsAAs(videos, expectedIds)
 end function
 
-'@Only
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests getVideosRealExample
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 '@Test basic test
-function VMT__getVideosRealExample_basic() as void
-  returnJson = {}
+'@Params["mp4", ["a", "b", "c"]]
+'@Params["mp3", ["a", "b", "c", "d", "e"]]
+function VMT__getVideosRealExample_basic(videoType, returnedJson) as void
+  getjsonMock = m.expectOnce(m.httpService, "getJson", [m.ignoreValue, videoType], returnedJson, true)
+
+  videos = m.module.getVideosRealExample(videoType)
   
-  m.expectNone(m.httpService, "getJson", true)
-  
-  videos = m.module.getVideosRealExample("mp4")
+  m.AssertArrayContainsSubset(videos, returnedJson)
 end function
+
+
+
 
 
