@@ -155,7 +155,7 @@ End Function
 '  * @function
 '  * @instance
 '  * @description Fail immediately, with the given message
-'  * @param {Dynamic} msg - message to display in the test report
+'  * @param {Dynamic} [msg=""] - message to display in the test report
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
 Function RBS_BTS_Fail(msg = "Error" as string) as dynamic
@@ -191,7 +191,7 @@ End Function
 '  * @instance
 '  * @description Fail the test if the expression is true.
 '  * @param {Dynamic} expr - An expression to evaluate.
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 ' Default value: "Expression evaluates to true"'  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertFalse(expr as dynamic, msg = "Expression evaluates to true" as string) as dynamic
@@ -211,7 +211,7 @@ End Function
 '  * @instance
 '  * @description Fail the test unless the expression is true.
 '  * @param {Dynamic} expr - An expression to evaluate.
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertTrue(expr as dynamic, msg = "Expression evaluates to false" as string) as dynamic
@@ -232,7 +232,7 @@ End Function
 '  * @description Fail if the two objects are unequal as determined by the '<>' operator.
 '  * @param {Dynamic} first - first object to compare
 '  * @param {Dynamic} second - second object to compare
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as string) as dynamic
@@ -258,7 +258,7 @@ End Function
 '  * @description does a fuzzy comparison
 '  * @param {Dynamic} first - first object to compare
 '  * @param {Dynamic} second - second object to compare
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as string) as dynamic
@@ -284,7 +284,7 @@ End Function
 '  * @description Fail if the two objects are equal as determined by the '=' operator.
 '  * @param {Dynamic} first - first object to compare
 '  * @param {Dynamic} second - second object to compare
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as string) as dynamic
@@ -309,7 +309,7 @@ End Function
 '  * @instance
 '  * @description Fail if the value is not invalid.
 '  * @param {Dynamic} value - value to check - value to check for
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as dynamic
@@ -333,7 +333,7 @@ End Function
 '  * @instance
 '  * @description Fail if the value is invalid.
 '  * @param {Dynamic} value - value to check - value to check for
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNotInvalid(value as dynamic, msg = "" as string) as dynamic
@@ -358,7 +358,7 @@ End Function
 '  * @description Fail if the array doesn't have the key.
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} key - key name
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertAAHasKey(array as dynamic, key as string, msg = "" as string) as dynamic
@@ -388,7 +388,7 @@ End Function
 '  * @description Fail if the array has the key.
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} key - key name
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertAANotHasKey(array as dynamic, key as string, msg = "" as string) as dynamic
@@ -418,7 +418,7 @@ End Function
 '  * @description Fail if the array doesn't have the keys list.
 '  * @param {Dynamic} array - A target associative array.
 '  * @param {Dynamic} keys - Array of key names.
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as string) as dynamic
@@ -450,7 +450,7 @@ End Function
 '  * @description Fail if the array has the keys list.
 '  * @param {Dynamic} array - A target associative array.
 '  * @param {Dynamic} keys - Array of key names.
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" as string) as dynamic
@@ -485,7 +485,7 @@ End Function
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} value - value to check - value to check for
 '  * @param {Dynamic} key - key name in associative array
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as dynamic
@@ -513,7 +513,7 @@ End Function
 '  * @description Fail if the array does not contain all of the aa's in the values array.
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} values - array of aas to look for in target array
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertArrayContainsAAs(array as dynamic, values as dynamic, msg = "" as string) as dynamic
@@ -577,7 +577,7 @@ End Function
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} value - value to check - Value to check for
 '  * @param {Dynamic} key - A key name for associative array.
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertArrayNotContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as dynamic
@@ -605,7 +605,7 @@ End Function
 '  * @description Fail if the array doesn't have the item subset.
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} subset - items to check presnece of
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as dynamic
@@ -642,7 +642,7 @@ End Function
 '  * @description Fail if the array have the item from subset.
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} subset - items to check presnece of
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as dynamic
@@ -679,7 +679,7 @@ End Function
 '  * @description Fail if the array items count <> expected count
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} count - An expected array items count
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as dynamic
@@ -707,7 +707,7 @@ End Function
 '  * @description Fail if the array items count = expected count.
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} count - An expected array items count.
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertArrayNotCount(array as dynamic, count as integer, msg = "" as string) as dynamic
@@ -734,7 +734,7 @@ End Function
 '  * @instance
 '  * @description Fail if the item is not empty array or string.
 '  * @param {Dynamic} item - item to check
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as dynamic
@@ -767,7 +767,7 @@ End Function
 '  * @instance
 '  * @description Fail if the item is empty array or string.
 '  * @param {Dynamic} item - item to check
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as dynamic
@@ -801,7 +801,7 @@ End Function
 '  * @description Fail if the array doesn't contains items of specific type only.
 '  * @param {Dynamic} array - target array
 '  * @param {Dynamic} typeStr - type name - must be String, Array, Boolean, or AssociativeArray
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array as dynamic, typeStr as string, msg = "" as string) as dynamic
@@ -845,7 +845,7 @@ End Function
 '  * @description Asserts that the value is a node of designated type
 '  * @param {Dynamic} value - value to check - target node
 '  * @param {Dynamic} typeStr - type name
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
@@ -870,7 +870,7 @@ end function
 '  * @description Asserts that the value is a node of designated subtype
 '  * @param {Dynamic} value - value to check - target node
 '  * @param {Dynamic} typeStr - type name
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
@@ -1041,7 +1041,7 @@ End Function
 '  * @description Asserts that the node contains the desginated number of children
 '  * @param {Dynamic} node - target node
 '  * @param {Dynamic} count - expected number of child items
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as string) as dynamic
@@ -1069,7 +1069,7 @@ End Function
 '  * @description Fail if the node items count = expected count.
 '  * @param {Dynamic} node - A target node
 '  * @param {Dynamic} count - Expected item count
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNodeNotCount(node as dynamic, count as integer, msg = "" as string) as dynamic
@@ -1096,7 +1096,7 @@ End Function
 '  * @instance
 '  * @description Asserts the node has no children
 '  * @param {Dynamic} node - a node to check
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNodeEmpty(node as dynamic, msg = "" as string) as dynamic
@@ -1119,7 +1119,7 @@ End Function
 '  * @instance
 '  * @description Asserts the node has children
 '  * @param {Dynamic} node - a node to check
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNodeNotEmpty(node as dynamic, msg = "" as string) as dynamic
@@ -1143,7 +1143,7 @@ End Function
 '  * @description Asserts the node has contains the child _value_
 '  * @param {Dynamic} node - a node to check
 '  * @param {Dynamic} value - value to check - value to look for
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" as string) as dynamic
@@ -1171,7 +1171,7 @@ End Function
 '  * @description Asserts the node contains only the child _value_
 '  * @param {Dynamic} node - a node to check
 '  * @param {Dynamic} value - value to check - value to look for
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNodeContainsOnly(node as dynamic, msg = "" as string) as dynamic
@@ -1204,7 +1204,7 @@ End Function
 '  * @description Fail if the node has the item.
 '  * @param {Dynamic} node - A target node
 '  * @param {Dynamic} value - value to check - a node child
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNodeNotContains(node as dynamic, value as dynamic, msg = "" as string) as dynamic
@@ -1232,7 +1232,7 @@ End Function
 '  * @description Fail if the node doesn't have the item subset.
 '  * @param {Dynamic} node - A target node
 '  * @param {Dynamic} subset - items to check
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ignoredFields=invalid, msg = "" as string) as dynamic
@@ -1272,7 +1272,7 @@ End Function
 '  * @description Fail if the node have the item from subset.
 '  * @param {Dynamic} node - A target node
 '  * @param {Dynamic} subset - the items to check for
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 ' */
 Function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic, msg = "" as string) as dynamic
@@ -1314,7 +1314,7 @@ End Function
 '  * @param {Dynamic} array - associative array  to check
 '  * @param {Dynamic} subset - associative array of values to check for
 '  * @param {Dynamic} ignoredFields - array of fieldnames to ignore while comparing
-'  * @param {Dynamic} msg - alternate error message
+'  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */ 
 Function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ignoredFields = invalid, msg = "" as string) as dynamic
@@ -1359,9 +1359,9 @@ End Function
 '  * @description Creates a stub to replace a real method with
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
-'  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
-'  * @param {Dynamic} returnValue - value that the stub method will return when invoked
-'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+'  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+'  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - stub that was wired into the real method
 '  */ 
 function RBS_BTS_Stub(target, methodName, returnValue = invalid, allowNonExistingMethods = false) as object
@@ -1407,9 +1407,9 @@ end function
 '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
-'  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
-'  * @param {Dynamic} returnValue - value that the stub method will return when invoked
-'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+'  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+'  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */ 
 function RBS_BTS_ExpectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
@@ -1424,7 +1424,7 @@ end function
 '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked, it will result in test failure
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
-'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */ 
 function RBS_BTS_ExpectNone(target, methodName, allowNonExistingMethods = false) as object
@@ -1439,10 +1439,10 @@ end function
 '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
-'  * @param {Dynamic} expectedInvocations - number of invocations we expect
-'  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
-'  * @param {Dynamic} returnValue - value that the stub method will return when invoked
-'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {Dynamic} [expectedInvocations=1] - number of invocations we expect
+'  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+'  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+'  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */ 
 function RBS_BTS_Expect(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
@@ -1458,9 +1458,9 @@ end function
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
 '  * @param {Dynamic} expectedInvocations - number of invocations we expect
-'  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
-'  * @param {Dynamic} returnValue - value that the stub method will return when invoked
-'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+'  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+'  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */ 
 
@@ -1507,9 +1507,9 @@ end function
 '  * @description Creates a stub to replace a real method with. This is used internally.
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
-'  * @param {Dynamic} expectedInvocations - number of invocations we expect
-'  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
-'  * @param {Dynamic} returnValue - value that the stub method will return when invoked
+'  * @param {Dynamic} [expectedInvocations=1] - number of invocations we expect
+'  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+'  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
 '  * @returns {Object} - stub that was wired into the real method
 '  */ 
 function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, expectedArgs =invalid, returnValue=invalid ) as object
