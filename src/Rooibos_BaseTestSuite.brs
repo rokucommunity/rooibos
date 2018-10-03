@@ -1573,12 +1573,12 @@ function RBS_BTS_AssertMocks() as void
       for i = 0 to mock.expectedargs.count() -1
         value = mock.invokedArgs[i]
         expected = mock.expectedargs[i]
-        didNotExpectArg = expected = m.invalidValue 
+        didNotExpectArg = RBS_CMN_IsString(expected) and expected = m.invalidValue 
         if (didNotExpectArg)
           expected = invalid
         end if
         
-        if (not expected = m.ignoreValue and not m.eqValues(value,expected))
+        if ((RBS_CMN_IsString(expected) and not expected = m.ignoreValue) and not m.eqValues(value,expected))
           if (expected = invalid)
             expected = "[INVALID]"
           end if
