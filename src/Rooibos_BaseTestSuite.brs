@@ -1360,8 +1360,8 @@ End Function
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
 '  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
-'  * @param {Bool} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @param {Dynamic} returnValue - value that the stub method will return when invoked
+'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - stub that was wired into the real method
 '  */ 
 function RBS_BTS_Stub(target, methodName, returnValue = invalid, allowNonExistingMethods = false) as object
@@ -1409,7 +1409,7 @@ end function
 '  * @param {Dynamic} methodName - name of method to stub
 '  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
 '  * @param {Dynamic} returnValue - value that the stub method will return when invoked
-'  * @param {Bool} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */ 
 function RBS_BTS_ExpectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
@@ -1424,13 +1424,11 @@ end function
 '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked, it will result in test failure
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
-'  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
-'  * @param {Dynamic} returnValue - value that the stub method will return when invoked
-'  * @param {Bool} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */ 
-function RBS_BTS_ExpectNone(target, methodName, expectedArgs = invalid, returnValue = invalid,  allowNonExistingMethods = false) as object
-  return m.Mock(target, methodName, 0, expectedArgs, returnValue, allowNonExistingMethods)
+function RBS_BTS_ExpectNone(target, methodName, allowNonExistingMethods = false) as object
+  return m.Mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods)
 end function 
 
 ' /**
@@ -1444,7 +1442,7 @@ end function
 '  * @param {Dynamic} expectedInvocations - number of invocations we expect
 '  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
 '  * @param {Dynamic} returnValue - value that the stub method will return when invoked
-'  * @param {Bool} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */ 
 function RBS_BTS_Expect(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
@@ -1462,7 +1460,7 @@ end function
 '  * @param {Dynamic} expectedInvocations - number of invocations we expect
 '  * @param {Dynamic} expectedArgs - array containing the arguments we expect the method to be invoked with
 '  * @param {Dynamic} returnValue - value that the stub method will return when invoked
-'  * @param {Bool} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @param {boolean} allowNonExistingMethods - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */ 
 

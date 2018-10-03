@@ -49,7 +49,8 @@ end function
 '@Test basic test
 function VMT__getVideosRealExample_basic() as void
   returnJson = {}
-  m.stub(m.httpService, "getJson", returnJson, true)
+  
+  m.expectNone(m.httpService, "getJson", true)
   
   videos = m.module.getVideosRealExample("mp4")
 end function
