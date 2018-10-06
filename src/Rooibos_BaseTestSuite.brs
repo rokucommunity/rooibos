@@ -1547,7 +1547,25 @@ function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, exp
       m.allInvokedArgs.push ([arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 ]) 
       m.isCalled = true
       m.invocations++
-      return m.returnValue
+      
+      if (type(m.returnValue) = "roAssociativeArray" and m.returnValue.doesExist("multiResult"))
+        returnValues = m.returnValue["multiResult"]
+        returnIndex = m.invocations -1
+
+        if (type(returnValues) = "roArray" and returnValues.count() > 0)
+
+        if returnValues.count() <= m.invocations
+          returnIndex = returnValues.count() -1
+          print "Multi return values all used up - repeating last value"
+        end if
+          return returnValues[returnIndex] 
+        else
+          ? "Multi return value was specified; but no array of results were found"
+          return invalid
+        end if
+      else
+        return m.returnValue
+      end if
     end function
     }
   return fake

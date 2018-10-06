@@ -283,6 +283,35 @@ function Simp_AssertEmpty_Fail(values) as void
   
 end function
 
+
+
+'@Only
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests expectOnce
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test multi return values
+function Simp_expect_multiValues()
+  obj = {}
+  m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
+  
+  result = obj.mockMethod()
+  m.AssertEqual(result, "one")
+
+  result = obj.mockMethod()
+  m.AssertEqual(result, 2)
+
+  result = obj.mockMethod()
+  m.AssertEqual(result, invalid)
+
+  result = obj.mockMethod()
+  m.AssertEqual(result, "last")
+  
+  result = obj.mockMethod()
+  m.AssertEqual(result, "last")
+
+end function
+
 'ASSERTIONS TO WRITE TESTS FOR!
 
 'This is coming soon!

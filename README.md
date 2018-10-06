@@ -47,7 +47,12 @@ I am actively invovled in Rooibos's development, and add more features and fixes
 5. I poured a _lot_ of work into the project (> 100 hours and counting), and expect to continue to do so. If I own the project, then I can do what I want, when I want. That goes for you guys as well, so get in touch with feature requests and PR's :)
 
 ### Is Rooibos itself unit tested?
-At this point, no. It is on the [roadmap](ROADMAP.md) though!
+At this point, it's WIP. It is on the [roadmap](ROADMAP.md) though!
 
+### Doens't rooibos use eval? that's bad right...?
+The official roku unit test framework also uses eval : https://github.com/rokudev/unit-testing-framework/search?q=eval&unscoped_q=eval
 
+However, should this ever pose a problem for whatever reason, I promise to provide a replacement mechanism. It will be a couple of hours for me to write a fix (I've meditated on it long and hard) and will result in an extra build step that will parse the test files, and create a build artifact, that will do the mappings for the eval use.
+
+Your usage or rooibos is safe, now and in the future :)
 
