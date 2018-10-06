@@ -54,5 +54,5 @@ The official roku unit test framework also uses eval : https://github.com/rokude
 
 However, should this ever pose a problem for whatever reason, I promise to provide a replacement mechanism. It will be a couple of hours for me to write a fix (I've meditated on it long and hard) and will result in an extra build step that will parse the test files, and create a build artifact, that will do the mappings for the eval use.
 
-Your usage or rooibos is safe, now and in the future :)
+Your usage of rooibos is safe, now and in the future :)
 
