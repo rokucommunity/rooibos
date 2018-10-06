@@ -627,23 +627,14 @@ This will pass when `myMethod` is invoked with args: `["a", "b", "c"]`, as would
 Simply set your return value to a non-invalid value, to specify a return value.
 You can also specify multiple return values, if you expect your mock to be executed multiple times, and would like to use different values. In that case, return a pobo, with the special key : `multiResult`. The value will be returned for each invocation - if the mock is invoked more than the number of return values, the last one is reutrned. e.g.
 
-```m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
+```
+  m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
 
-result = obj.mockMethod()
-  m.AssertEqual(result, "one")
-
-  result = obj.mockMethod()
-  m.AssertEqual(result, 2)
-
-  result = obj.mockMethod()
-  m.AssertEqual(result, invalid)
-
-  result = obj.mockMethod()
-  m.AssertEqual(result, "last")
-  
-  result = obj.mockMethod()
-  m.AssertEqual(result, "last")
-
+  m.AssertEqual(obj.mockMethod(), "one")
+  m.AssertEqual(obj.mockMethod(), 2)
+  m.AssertEqual(obj.mockMethod(), invalid)
+  m.AssertEqual(obj.mockMethod(), "last")
+  m.AssertEqual(obj.mockMethod(), "last")
 
 ```
 
