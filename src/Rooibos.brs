@@ -48,6 +48,8 @@ function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodNa
   ? "#TEST START : ###" ; testId ; "###"
 
   args.testScene = scene
+  args.global = m.global
+  
   runner = RBS_TR_TestRunner(args)
   runner.Run()
 

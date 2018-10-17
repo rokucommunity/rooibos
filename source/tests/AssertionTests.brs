@@ -104,6 +104,32 @@ function Simp_AssertArrayContainsAAs_Pass(expectedAAs, items) as void
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests global is present on testSuite
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@BeforeEach
+function Simp_AssertGlobal_beforeEach() as void
+  m.beforeEachGlobal = m.global
+end function
+
+'@AfterEach
+function Simp_AssertGlobal_afterEach() as void
+  m.afterEachGlobal = m.global
+end function
+
+'@Test global is in test
+function Simp_AssertGlobalIsPassedIntoTest() as void
+  m.AssertNotInvalid(m.global)
+end function
+
+'@Test global is in before each and after each
+function Simp_AssertGlobalIsPassedInto_beforeEach_and_afterEach() as void
+  m.AssertNotInvalid(m.global)
+  m.AssertNotInvalid(m.beforeEachGlobal)
+  m.AssertNotInvalid(m.afterEachGlobal)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests AssertArrayContainsOnlyValuesOfType
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -283,9 +309,6 @@ function Simp_AssertEmpty_Fail(values) as void
   
 end function
 
-
-
-'@Only
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests expectOnce
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -62,6 +62,7 @@ function RBS_TR_TestRunner(args = {}) as Object
   this.config.testsDirectory = config.testsDirectory    
 
   this.logger = Logger(this.config)
+  this.global = args.global
 
   ' Interface
   this.Run          = RBS_TR_Run
@@ -79,6 +80,7 @@ end function
 sub RBS_TR_Run()
   totalStatObj = RBS_STATS_CreateTotalStatistic()
   m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective, m.config.supportLegacyTests = true)
+  m.runtimeConfig.global = m.global
   totalStatObj.testRunHasFailures = false
   
   for each metaTestSuite in m.runtimeConfig.suites
@@ -228,7 +230,8 @@ end sub
 
 sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
   suiteStatObj = RBS_STATS_CreateSuiteStatistic(itGroup.Name)
-
+  testSuite.global = runtimeConfig.global
+  
   for each testCase in testSuite.testCases
     metaTestCase = itGroup.testCaseLookup[testCase.Name]
     if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
