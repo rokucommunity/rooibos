@@ -59,7 +59,8 @@ Ther eare snippets for common tasks, such as setting up your test suites, groups
 
 &nbsp;
 </p>
-```//rooibos snippets
+```
+//rooibos snippets
 	"rooibos beforeEach": {
 		"prefix": "beforeEach",
 		"body": [
@@ -448,5 +449,5 @@ Ther eare snippets for common tasks, such as setting up your test suites, groups
 		]
 	},
 	// end rooibos asserts
-```
 	
+```
