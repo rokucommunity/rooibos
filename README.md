@@ -16,6 +16,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - **[Documentation](docs/index.md)**
  - **[API Documentaiton](https://georgejecook.github.io/rooibos)**
  - **[Release notes / History / Changes](CHANGELOG.md)**
+ - **[VSCode snippets](docs/vsCodeSnippets.md)**
  - [Roku dev forum topic](https://forums.roku.com/viewforum.php?f=34)
  - [Roku developer slack group](https://join.slack.com/t/rokudevelopers/shared_invite/enQtMzgyODg0ODY0NDM5LTc2ZDdhZWI2MDBmYjcwYTk5MmE1MTYwMTA2NGVjZmJiNWM4ZWY2MjY1MDY0MmViNmQ1ZWRmMWUzYTVhNzJiY2M)
  - [Issue tracker](https://github.com/georgejecook/rooibos/issues)
