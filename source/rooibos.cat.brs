@@ -61,6 +61,7 @@ function BaseTestSuite() as Object
   this.Name               = "BaseTestSuite"
   this.invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
   this.ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
+  this.isAutoAssertingMocks = true
   this.TestCases = []
   this.AddTest            = RBS_BTS_AddTest
   this.CreateTest           = RBS_BTS_CreateTest
@@ -1006,7 +1007,7 @@ function RBS_BTS_AssertMocks() as void
         if (didNotExpectArg)
           expected = invalid
         end if
-        if ((RBS_CMN_IsString(expected) and not expected = m.ignoreValue) and not m.eqValues(value,expected))
+        if ((RBS_CMN_IsString(expected) and not expected = m.ignoreValue) or not m.eqValues(value,expected))
           if (expected = invalid)
             expected = "[INVALID]"
           end if
@@ -2058,9 +2059,11 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
     else
       testSuite.testCase()          
     end if
-    testSuite.AssertMocks()
-    testSuite.CleanMocks()
-    testSuite.CleanStubs()
+    if testSuite.isAutoAssertingMocks = true
+      testSuite.AssertMocks()
+      testSuite.CleanMocks()    
+      testSuite.CleanStubs()
+    end if
     runResult = testSuite.currentResult.GetResult()
     if runResult <> ""
       testStatObj.Result      = "Fail"

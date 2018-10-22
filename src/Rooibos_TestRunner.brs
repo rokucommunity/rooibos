@@ -278,9 +278,11 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
     else
       testSuite.testCase()          
     end if
-    testSuite.AssertMocks()
-    testSuite.CleanMocks()
-    testSuite.CleanStubs()
+    if testSuite.isAutoAssertingMocks = true
+      testSuite.AssertMocks()
+      testSuite.CleanMocks()    
+      testSuite.CleanStubs()
+    end if
     runResult = testSuite.currentResult.GetResult()
   
   
