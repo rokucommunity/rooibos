@@ -4,7 +4,6 @@
 '@It tests bug with expectOnce not matching values
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Only
 '@Test reported case
 '@Params[52, true]
 '@Params[invalid, true]
