@@ -1513,20 +1513,17 @@ end function
 '  * @returns {Object} - stub that was wired into the real method
 '  */
 function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, expectedArgs =invalid, returnValue=invalid ) as object
+  defaultValue = invalid
   expectedArgsValues = []
-  hasArgs = expectedArgs <> invalid
-  if (hasArgs)
-    defaultValue = m.invalidValue
-  else
-    defaultValue = m.ignoreValue
-  end if
+
+  hasArgs = expectedArgs <> invalid and expectedArgs.count() > 0
+  if not hasArgs then defaultValue = m.ignoreValue
 
   for i = 0 to 9
-    if (hasArgs and expectedArgs.count() > i)
-      expectedArgsValues.push(expectedArgs[i])
-    else
-      expectedArgsValues.push(defaultValue)
-    end if
+    value = defaultValue
+
+    if (hasArgs and expectedArgs[i] <> invalid) then value = expectedArgs[i]
+    expectedArgsValues.push(value)
   end for
   fake = {
     id : id,
