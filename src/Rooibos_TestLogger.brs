@@ -1,11 +1,11 @@
-function Logger(config) as Object
+function Logger(loggerConfig) as Object
   this = {}
-  this.config = config
+  this.config = loggerConfig
 
   this.verbosityLevel = {
     basic   : 0
     normal  : 1
-    verbose : 2   
+    verbose : 2
   }
 
   ' Internal properties
@@ -25,15 +25,15 @@ end function
 
 '----------------------------------------------------------------
 ' Print statistic object with specified verbosity.
-' 
+'
 ' @param statObj (object) A statistic object to print.
 '----------------------------------------------------------------
 sub RBS_LOGGER_PrintStatistic(statObj as Object)
   m.PrintStart()
   previousfile = invalid
-  
+
   for each testSuite in statObj.Suites
-    if (not statObj.testRunHasFailures or ((not m.config.showOnlyFailures) OR testSuite.fail > 0 or testSuite.crash > 0))  
+    if (not statObj.testRunHasFailures or ((not m.config.showOnlyFailures) OR testSuite.fail > 0 or testSuite.crash > 0))
       if (testSuite.metaTestSuite.filePath <> previousfile)
         m.PrintMetaSuiteStart(testSuite.metaTestSuite)
         previousfile = testSuite.metaTestSuite.filePath
@@ -49,14 +49,14 @@ sub RBS_LOGGER_PrintStatistic(statObj as Object)
   ? " Time spent: "; statObj.Time; "ms"
   ? ""
   ? ""
-  
+
   if (statObj.ignored > 0)
     ? "IGNORED TESTS:"
     for each ignoredItemName in statObj.IgnoredTestNames
     print ignoredItemName
     end for
   end if
-  
+
   if (statObj.Total = statObj.Correct)
     overrallResult = "Success"
   else
@@ -68,14 +68,14 @@ end sub
 
 '----------------------------------------------------------------
 ' Print test suite statistic.
-' 
+'
 ' @param statSuiteObj (object) A target test suite object to print.
 '----------------------------------------------------------------
 sub RBS_LOGGER_PrintSuiteStatistic(statSuiteObj as Object, hasFailures)
   m.PrintSuiteStart(statSuiteObj.Name)
-  
+
   for each testCase in statSuiteObj.Tests
-    if (not hasFailures or ((not m.config.showOnlyFailures) OR testCase.Result <> "Success"))  
+    if (not hasFailures or ((not m.config.showOnlyFailures) OR testCase.Result <> "Success"))
       m.PrintTestStatistic(testCase)
     end if
   end for
@@ -85,7 +85,7 @@ end sub
 
 '----------------------------------------------------------------
 ' Print test statistic.
-' 
+'
 ' @param statTestObj (object) A target test object to print.
 '----------------------------------------------------------------
 sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
@@ -99,11 +99,11 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
     locationLine = StrI(metaTestCase.lineNumber).trim()
   end if
   locationText = testCase.filePath.trim() + "(" + locationLine + ")"
-  
+
   insetText = ""
   if (not metaTestcase.isParamTest)
     messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
-    ? messageLine ; testCase.Result ; "    " ;locationText 
+    ? messageLine ; testCase.Result ; "    " ;locationText
   else if ( metaTestcase.paramTestIndex = 0)
     name = metaTestCase.Name
     if (len(name) > 1 and right(name, 1) = "0")
@@ -111,11 +111,11 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
     end if
     ? " " + testChar + " |--" + name+ " : "
   end if
-  
+
   if (metaTestcase.isParamTest)
     insetText = "  "
     messageLine = RBS_LOGGER_FillText(" " + testChar + insetText + " |--" + metaTestCase.rawParams + " : ", ".", 80)
-    ? messageLine ; testCase.Result ; "    " ;locationText 
+    ? messageLine ; testCase.Result ; "    " ;locationText
   end if
 
   if LCase(testCase.Result) <> "success"
