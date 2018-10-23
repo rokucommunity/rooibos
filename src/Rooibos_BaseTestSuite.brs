@@ -8,7 +8,6 @@ function BaseTestSuite() as Object
 
   this = {}
   this.Name               = "BaseTestSuite"
-  this.invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
   this.ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
   this.isAutoAssertingMocks = true
 
@@ -1592,12 +1591,10 @@ function RBS_BTS_AssertMocks() as void
       for i = 0 to mock.expectedargs.count() -1
         value = mock.invokedArgs[i]
         expected = mock.expectedargs[i]
-        didNotExpectArg = RBS_CMN_IsString(expected) and expected = m.invalidValue
-        if (didNotExpectArg)
-          expected = invalid
-        end if
 
-        if ((RBS_CMN_IsString(expected) and not expected = m.ignoreValue) or not m.eqValues(value,expected))
+        isIgnoreValue = RBS_CMN_IsString(expected) and expected = m.ignoreValue
+
+        if (not isIgnoreValue and not m.eqValues(value,expected))
           if (expected = invalid)
             expected = "[INVALID]"
           end if
