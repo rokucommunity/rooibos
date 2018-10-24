@@ -18,7 +18,7 @@ function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100, 
   this.nodeTestFileName = ""
   this.ProcessSuite = RBS_TS_ProcessSuite
   this.ResetCurrentTestCase = RBS_TS_ResetCurrentTestCase
-  this.ProcessLegacySuite = RBS_TS_ProcessLegacySuite  
+  this.ProcessLegacySuite = RBS_TS_ProcessLegacySuite
   this.currentGroup = invalid
   this.groupNames = {}
 
@@ -48,7 +48,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
   functionNameRegex = CreateObject("roRegex", "^(function|sub)\s([0-9a-z\_]*)\s*\(", "i")
   assertInvocationRegex = CreateObject("roRegex", "^\s*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
   functionEndRegex = CreateObject("roRegex", "^\s*(end sub|end function)", "i")
-  
+
   if code <> ""
     isTokenItGroup = false
     isNextTokenIgnore = false
@@ -61,7 +61,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     isNextTokenAfterEach = false
     isNextTokenNodeTest = false
     isNextTokenTestCaseParam = false
-    
+
     nodeTestFileName = ""
     nextName = ""
     m.name = m.filePath
@@ -72,7 +72,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
       lineNumber++
       currentLocation = m.filePath + ":" + stri(lineNumber)
       if (lineNumber > maxLinesWithoutSuiteDirective and not isTestSuite)
-        'TODO add logging option for this       
+        'TODO add logging option for this
 '        ? "IGNORING FILE WITH NO TESTSUITE DIRECTIVE : "; currentLocation
         goto exitProcessing
       end if
@@ -81,41 +81,41 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         if (isTestSuite)
           ? "Multiple suites per file are not supported - use '@It tag"
         end if
-        
+
         name = RBS_TS_GetTagText(line, TAG_TEST_SUITE)
-        
+
         if (name <> "")
           m.name = name
         end if
-        
+
         if (isNextTokenSolo)
           m.isSolo = true
           m.name += " [ONLY]"
         end if
         isTestSuite = true
-        
+
         if (isNextTokenNodeTest)
           m.nodeTestFileName = nodeTestFileName
           m.isNodeTest = true
         end if
-        
+
         if (isNextTokenIgnore)
           m.isIgnored = true
           goto exitProcessing
         end if
-      
+
         isNextTokenSolo = false
         isNextTokenIgnore = false
         isNextTokenNodeTest = false
-        
+
         goto exitLoop
       else if (RBS_TS_IsTag(line, TAG_IT))
         if (not isTestSuite)
           ? "File not identified as testsuite!"
         end if
-        
+
         name = RBS_TS_GetTagText(line, TAG_IT)
-        
+
         if (name = "")
           name = "UNNAMED TAG_TEST GROUP - name this group for better readability - e.g. 'Tests the Load method... '"
         end if
@@ -123,18 +123,18 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         if (m.groupNames[name] = invalid)
           m.groupNames[name] = 0
         end if
-        
+
         nameCount = m.groupNames[name]
         nameCount++
         m.groupNames[name] = nameCount
         if (nameCount > 1)
           ? "WARNING A Group already exists with the name '"; name ; " changing name to avoid collisions. New Name:"
-          name = "WARNING!! DUPLICATE_" + stri(nameCount - 1).trim() + ": " + name 
+          name = "WARNING!! DUPLICATE_" + stri(nameCount - 1).trim() + ": " + name
           ? name
         end if
-        
+
         m.currentGroup = UnitTestItGroup(name, isNextTokenSolo, isNextTokenIgnore)
-        
+
         'inherit all suite functions that were set up to now
         m.currentGroup.setupFunctionName = m.setupFunctionName
         m.currentGroup.setupFunction = m.setupFunction
@@ -144,17 +144,17 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         m.currentGroup.beforeEachFunction = m.beforeEachFunction
         m.currentGroup.afterEachFunctionName = m.afterEachFunctionName
         m.currentGroup.afterEachFunction = m.afterEachFunction
-        
+
         m.itGroups.push(m.currentGroup)
         if (isNextTokenSolo)
           m.hasSoloGroups = true
           m.isSolo = true
         end if
-        isTokenItGroup = true       
+        isTokenItGroup = true
       else if (RBS_TS_IsTag(line, TAG_SOLO) and not RBS_TS_IsTag(line, TAG_TEST_SOLO_PARAMS))
         if (isNextTokenSolo)
           ? "TAG_TEST MARKED FOR TAG_IGNORE AND TAG_SOLO"
-        else 
+        else
           isNextTokenSolo = true
         end if
         goto exitLoop
@@ -213,8 +213,8 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         goto exitLoop
       else if (assertInvocationRegex.IsMatch(line))
         if (not m.hasCurrentTestCase)
-          ? "Found assert before test case was declared! " ; currentLocation 
-        else        
+          ? "Found assert before test case was declared! " ; currentLocation
+        else
           for testCaseIndex = 0 to m.currentTestCases.count() -1
             tc = m.currentTestCases[testCaseIndex]
             tc.AddAssertLine(lineNumber)
@@ -228,7 +228,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         isNextTokenTestCaseParam = true ' this keeps the processing going down to the function
         goto exitLoop
       else if (RBS_TS_IsTag(line, TAG_TEST_PARAMS))
-        if (not isNextTokenTest) 
+        if (not isNextTokenTest)
           ? "FOUND " ; TAG_TEST; " PARAM WITHOUT @Test declaration "; currentLocation
         else
           isNextTokenTestCaseParam = true
@@ -237,7 +237,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         end if
         goto exitLoop
       else if (RBS_TS_IsTag(line, TAG_TEST_SOLO_PARAMS))
-        if (not isNextTokenTest) 
+        if (not isNextTokenTest)
           ? "FOUND " ; TAG_TEST_SOLO_PARAMS; " PARAM WITHOUT @Test declaration "; currentLocation
         else
           isNextTokenSolo = true
@@ -246,19 +246,19 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
           m.testCaseOnlyParams.push(rawParams)
         end if
         goto exitLoop
-      
+
       end if
-      
+
       if (isTokenItGroup or isNextTokenTest or isNextTokenSetup or isNextTokenBeforeEach or isNextTokenAfterEach or isNextTokenTeardown)
         'have to find a function definition here - if it's not then this i
-            
+
         if functionNameRegex.IsMatch(line)
           functionName = functionNameRegex.Match(line).Peek()
-  
+
           functionPointer = RBS_CMN_GetFunction(invalid, functionName)
           if (functionPointer <> invalid)
             if (isNextTokenTest)
-              if (nextName <> "") 
+              if (nextName <> "")
                 testName = nextName
               else
                 testName = functionName
@@ -267,13 +267,13 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
 
               if (m.testCaseParams.count() >0 or m.testCaseOnlyParams.count() >0)
                 if (m.testCaseOnlyParams.count() >0)
-                paramsToUse = m.testCaseOnlyParams 
+                paramsToUse = m.testCaseOnlyParams
                 else
                 paramsToUse = m.testCaseParams
                 end if
                 for index = 0 to paramsToUse.count() -1
                   params = paramsToUse[index]
-  
+
                   testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber, params, index)
                   testCase.isParamTest = true
                   if (testCase <> invalid)
@@ -285,20 +285,20 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
               else
                 testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber)
                 m.currentTestCases.push(testCase)
-              end if              
+              end if
 
-              for each testCase in m.currentTestCases 
+              for each testCase in m.currentTestCases
                 m.currentGroup.AddTestCase(testCase)
               end for
-              
+
               m.hasCurrentTestCase = true
-              
+
               if (isNextTokenSolo)
                 m.currentGroup.hasSoloTests = true
                 m.hasSoloTests = true
                 m.isSolo = true
               end if
-              
+
               isNextTokenSolo = false
               isNextTokenIgnore = false
               isNextTokenTestCaseParam = false
@@ -311,12 +311,12 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
               else
                 m.currentGroup.setupFunctionName = functionName
                 m.currentGroup.setupFunction = functionPointer
-              end if 
+              end if
             else if (isNextTokenTearDown)
               if (m.currentGroup = invalid)
                 m.tearDownFunctionName = functionName
                 m.tearDownFunction = functionPointer
-              else 
+              else
                 m.currentGroup.tearDownFunctionName = functionName
                 m.currentGroup.tearDownFunction = functionPointer
               end if
@@ -325,7 +325,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
               if (m.currentGroup = invalid)
                 m.beforeEachFunctionName = functionName
                 m.beforeEachFunction = functionPointer
-              else 
+              else
                 m.currentGroup.beforeEachFunctionName = functionName
                 m.currentGroup.beforeEachFunction = functionPointer
               end if
@@ -333,7 +333,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
               if (m.currentGroup = invalid)
                 m.afterEachFunctionName = functionName
                 m.afterEachFunction = functionPointer
-              else 
+              else
                 m.currentGroup.afterEachFunctionName = functionName
                 m.currentGroup.afterEachFunction = functionPointer
               end if
@@ -361,10 +361,10 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
           isNextTokenSolo = false
           isNextTokenIgnore = false
         end if
-        
+
         nodeTestFileName = ""
         nextName = ""
-         
+
       end if
       exitLoop:
     end for
@@ -376,7 +376,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
   m.delete("testCaseParams")
   m.delete("currentTestCases")
   m.delete("hasCurrentTestCase")
-  
+
   if (isTestSuite)
     m.isValid = true
   else if (supportLegacyTests = true)
@@ -414,18 +414,18 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
 
   isTestSuite = false
   dblQ = chr(34)
-  
+
   testSuiteFunctionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s*testSuite_([0-9a-z\_]*)\s*\(", "i")
   testCaseFunctionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s*testCase_([0-9a-z\_]*)\s*\(", "i")
   functionNameRegex = CreateObject("roRegex", "^\s*(function|sub)\s([0-9a-z\_]*)\s*\(", "i")
   assertInvocationRegex = CreateObject("roRegex", "^\s*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
   functionEndRegex = CreateObject("roRegex", "^\s*(end sub|end function)", "i")
-  
+
   testSuiteNameRegex = CreateObject("roRegex", "^\s*this\.name\s*=\s*\" + dblQ + "([0-9a-z\_]*)\s*\" + dblQ, "i")
   setupregex = CreateObject("roRegex", "^\s*this\.setup\s*=\s*([a-z_0-9]*)","i")
   addTestregex = CreateObject("roRegex", "^\s*this\.addTest\s*\(\" + dblQ + "([0-9a-z\_]*)\" + dblQ + "\s*,\s*([0-9a-z\_]*)\s*\)", "i")
 
-  'support ignoring/onlying entire test suites  
+  'support ignoring/onlying entire test suites
   TAG_IGNORE = "'@Ignore"
   TAG_SOLO = "'@Only"
 
@@ -433,7 +433,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
   isSolo = false
   if code <> ""
     m.testCaseMap = {} ' map of legacy test cases to function names
-    
+
     isInInitFunction = false
     isTestSuite = false
     nodeTestFileName = ""
@@ -449,19 +449,19 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
         ? "IGNORING FILE WITH NO testSuiteInit function : "; currentLocation
         goto exitProcessing
       end if
-      
+
       if (RBS_TS_IsTag(line, TAG_SOLO))
         isSolo = true
         ? " IS SOLO TEST!"
         goto exitLoop
       end if
-      
+
       if (RBS_TS_IsTag(line, TAG_IGNORE))
         isIgnored = true
         ? " IS IGNORED TEST!"
         goto exitLoop
       end if
-      
+
       'check if test suite init function
       if testSuiteFunctionNameRegex.IsMatch(line)
   '      ? "Detected legacy test suite function name with line: " ; line
@@ -469,7 +469,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
         isInInitFunction = true
         goto exitLoop
       end if
-        
+
       if setupregex.IsMatch(line)
         if not isInInitFunction
           ? "Found test suite setup invocation outside of test suite init function"
@@ -484,14 +484,14 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
           ? " the function name for the setup method "; functionName ; " could not be found"
         end if
         goto exitLoop
-      end if     
-         
+      end if
+
       'check if init function ended
       if functionEndRegex.IsMatch(line)
         if (isInInitFunction)
   '        print "detected end of init function - creatign test group named " ; m.name
           m.currentGroup = UnitTestItGroup(m.name, false, false)
-          
+
           'inherit all suite functions that were set up to now
           m.currentGroup.setupFunctionName = m.setupFunctionName
           m.currentGroup.setupFunction = m.setupFunction
@@ -503,24 +503,24 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
           isIgnored = false
           isSolo = false
         end if
-        
+
         currentTestCase = invalid
         goto exitLoop
       end if
-        
+
       'init function test suite name
       if testSuiteNameRegex.IsMatch(line)
         if (not isInInitFunction)
           ? "Found set testsuite name, when not in a legacy test suite init function. ignoring"
           goto exitLoop
         end if
-        
+
         name = testSuiteNameRegex.Match(line).Peek()
-        
+
         if (name <> "")
           m.name = name
         end if
-        
+
         goto exitLoop
       end if
 
@@ -530,25 +530,25 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
           ? "Found addTestCase, when not in a legacy test suite init function. Ignoring"
           goto exitLoop
         end if
-        
+
         match = addTestregex.Match(line)
         testCaseName = match[1]
         testCaseFunctionName = match[2]
 
         if (testCaseName <> "" and testCaseFunctionName <> "")
-          m.testCaseMap[lcase(testCaseFunctionName)] = testCaseName 
+          m.testCaseMap[lcase(testCaseFunctionName)] = testCaseName
         else
-        ? " found badly formed add test case function call in test suite init fuction. Ignoring" 
+        ? " found badly formed add test case function call in test suite init fuction. Ignoring"
         end if
-        
+
         goto exitLoop
       end if
 
-      'assert line      
+      'assert line
       if (assertInvocationRegex.IsMatch(line))
         if (not m.hasCurrentTestCase)
-          ? "Found assert before test case was declared! " ; currentLocation 
-        else        
+          ? "Found assert before test case was declared! " ; currentLocation
+        else
           currentTestCase.AddAssertLine(lineNumber)
         end if
         goto exitLoop
@@ -570,7 +570,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
           print "Encountered test function " ; functionName; " but found no matching AddTestCase invocation"
           goto exitLoop
           end if
-          
+
           functionPointer = RBS_CMN_GetFunction(invalid, functionName)
           if (functionPointer <> invalid)
           if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
@@ -584,7 +584,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
             ? " could not get function pointer for "; functionName ; " ignoring"
           end if
         else
-          ? " found badly named test case function. ignoring" 
+          ? " found badly named test case function. ignoring"
         end if
         isSolo = false
         isIgnored = false
@@ -597,4 +597,3 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
   end if
   m.isValid = isTestSuite
 end function
-
