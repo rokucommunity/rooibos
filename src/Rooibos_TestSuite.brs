@@ -421,9 +421,9 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
   assertInvocationRegex = CreateObject("roRegex", "^\s*(m.fail|m.Fail|m.assert|m.Assert)(.*)\(", "i")
   functionEndRegex = CreateObject("roRegex", "^\s*(end sub|end function)", "i")
 
-  testSuiteNameRegex = CreateObject("roRegex", "^\s*this\.name\s*=\s*\" + dblQ + "([0-9a-z\_]*)\s*\" + dblQ, "i")
+  testSuiteNameRegex = CreateObject("roRegex", "^\s*this\.name\s*=\s*\"+ dblQ +"\s*(.+?)\s*\"+ dblQ, "i")
   setupregex = CreateObject("roRegex", "^\s*this\.setup\s*=\s*([a-z_0-9]*)","i")
-  addTestregex = CreateObject("roRegex", "^\s*this\.addTest\s*\(\" + dblQ + "([0-9a-z\_]*)\" + dblQ + "\s*,\s*([0-9a-z\_]*)\s*\)", "i")
+  addTestregex = CreateObject("roRegex", "^\s*this\.addTest\s*\(\s*\"+ dblQ +"\s*(.+?)\s*\"+ dblQ +"\s*,\s*(.+?)\s*\)", "i")
 
   'support ignoring/onlying entire test suites
   TAG_IGNORE = "'@Ignore"
