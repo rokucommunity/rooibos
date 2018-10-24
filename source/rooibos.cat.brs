@@ -1007,7 +1007,7 @@ function RBS_BTS_AssertMocks() as void
         if (didNotExpectArg)
           expected = invalid
         end if
-        if ((RBS_CMN_IsString(expected) and not expected = m.ignoreValue) or not m.eqValues(value,expected))
+        if (not (RBS_CMN_IsString(expected) and expected = m.ignoreValue) and not m.eqValues(value, expected))
           if (expected = invalid)
             expected = "[INVALID]"
           end if
