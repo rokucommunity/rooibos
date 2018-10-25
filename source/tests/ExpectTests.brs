@@ -1,4 +1,3 @@
-'@Only
 '@TestSuite ET ExpectTests
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests bug with expectOnce not matching values

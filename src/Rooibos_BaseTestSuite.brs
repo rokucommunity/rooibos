@@ -1588,7 +1588,7 @@ function RBS_BTS_AssertMocks() as void
     if (mock.expectedInvocations <> mock.invocations)
       m.MockFail(methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
       return
-    else if (RBS_CMN_IsArray(mock.expectedArgs))
+    else if (mock.expectedInvocations > 0 and RBS_CMN_IsArray(mock.expectedArgs))
       for i = 0 to mock.expectedargs.count() -1
         value = mock.invokedArgs[i]
         expected = mock.expectedargs[i]
