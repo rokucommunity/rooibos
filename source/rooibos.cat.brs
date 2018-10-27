@@ -61,6 +61,7 @@ function BaseTestSuite() as Object
   this.Name               = "BaseTestSuite"
   this.invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
   this.ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
+  this.allowNonExistingMethodsOnMocks = true
   this.isAutoAssertingMocks = true
   this.TestCases = []
   this.AddTest            = RBS_BTS_AddTest
@@ -109,9 +110,10 @@ function BaseTestSuite() as Object
   this.MockFail     = RBS_BTS_MockFail
   this.CleanMocks     = RBS_BTS_CleanMocks
   this.CleanStubs     = RBS_BTS_CleanStubs
-  this.ExpectOnce     = RBS_BTS_ExpectOnce
-  this.ExpectNone     = RBS_BTS_ExpectNone
-  this.Expect     = RBS_BTS_Expect
+  this.ExpectOnce         = RBS_BTS_ExpectOnce
+  this.ExpectNone         = RBS_BTS_ExpectNone
+  this.Expect             = RBS_BTS_Expect
+  this.ExpectOnceOrNone   = RBS_BTS_ExpectOnceOrNone
   this.MockCallback0     = RBS_BTS_MockCallback0
   this.MockCallback1     = RBS_BTS_MockCallback1
   this.MockCallback2     = RBS_BTS_MockCallback2
@@ -601,7 +603,7 @@ end function
 Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
   val1Type = type(Value1)
   val2Type = type(Value2)
-  if val1Type = "<uninitialized>" or val2Type = "<uninitialized>"
+  if val1Type = "<uninitialized>" or val2Type = "<uninitialized>" or val1Type = "" or val2Type = ""
     ? "ERROR!!!! - undefined value passed"
     return false
   end if 
@@ -626,9 +628,7 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
     return false
   else
     valtype = val1Type
-    if valtype = "<uninitialized>"
-      return false
-    else if valtype = "roList"
+    if valtype = "roList"
       return m.eqArray(Value1, Value2)
     else if valtype = "roAssociativeArray"
       return m.eqAssocArrays(Value1, Value2)
@@ -887,10 +887,11 @@ function RBS_BTS_Stub(target, methodName, returnValue = invalid, allowNonExistin
   id = stri(m.__stubId).trim()
   fake = m.CreateFake(id, target, methodName, 1, invalid, returnValue)
   m.stubs[id] = fake
-  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExistingMethods)
+  allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExisting)
     target[methodName] = m["StubCallback" + id]
     target.__stubs = m.stubs
-    if (allowNonExistingMethods)
+    if (allowNonExisting)
       ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
     end if
   else
@@ -900,6 +901,13 @@ function RBS_BTS_Stub(target, methodName, returnValue = invalid, allowNonExistin
 end function
 function RBS_BTS_ExpectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
   return m.Mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
+end function 
+function RBS_BTS_ExpectOnceOrNone(target, methodName, isExpected, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+  if isExpected
+    return m.ExpectOnce(target, methodName, expectedArgs, returnValue, allowNonExistingMethods)
+  else
+    return m.ExpectNone(target, methodName, allowNonExistingMethods)
+  end if
 end function 
 function RBS_BTS_ExpectNone(target, methodName, allowNonExistingMethods = false) as object
   return m.Mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods)
@@ -925,10 +933,11 @@ function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs 
   id = stri(m.__mockId).trim()
   fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
   m.mocks[id] = fake 'this will bind it to m
-  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExistingMethods)
+  allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExisting)
     target[methodName] =  m["MockCallback" + id]
     target.__mocks = m.mocks
-    if (allowNonExistingMethods)
+    if (allowNonExisting)
       ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
     end if
   else
@@ -946,7 +955,12 @@ function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, exp
   end if 
   for i = 0 to 9
     if (hasArgs and expectedArgs.count() > i)
-      expectedArgsValues.push(expectedArgs[i])    
+      value = expectedArgs[i]
+      if not RBS_CMN_IsUndefined(value)
+        expectedArgsValues.push(expectedArgs[i])
+      else
+        expectedArgsValues.push("#ERR-UNDEFINED!")
+      end if    
     else
       expectedArgsValues.push(defaultValue)
     end if
@@ -1210,7 +1224,10 @@ function RBS_CMN_IsDateTime(value as Dynamic) as Boolean
   return RBS_CMN_IsValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
 end function
 function RBS_CMN_IsValid(value as Dynamic) as Boolean
-  return Type(value) <> "<uninitialized>" and value <> invalid
+  return not RBS_CMN_IsUndefined(value) and value <> invalid
+end function
+function RBS_CMN_IsUndefined(value as Dynamic) as Boolean
+  return type(value) = "" or Type(value) = "<uninitialized>"
 end function
 function RBS_CMN_ValidStr(obj as Object) as String
   if obj <> invalid and GetInterface(obj, "ifString") <> invalid
@@ -2386,6 +2403,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 m.currentGroup.setupFunctionName = functionName
                 m.currentGroup.setupFunction = functionPointer
               end if 
+              isNextTokenSetup = false
             else if (isNextTokenTearDown)
               if (m.currentGroup = invalid)
                 m.tearDownFunctionName = functionName
@@ -2403,6 +2421,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 m.currentGroup.beforeEachFunctionName = functionName
                 m.currentGroup.beforeEachFunction = functionPointer
               end if
+              isNextTokenBeforeEach = false
             else if (isNextTokenAfterEach)
               if (m.currentGroup = invalid)
                 m.afterEachFunctionName = functionName
@@ -2411,6 +2430,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 m.currentGroup.afterEachFunctionName = functionName
                 m.currentGroup.afterEachFunction = functionPointer
               end if
+              isNextTokenAfterEach = false
             end if
           else
             ? " could not get function pointer for "; functionName ; " ignoring"

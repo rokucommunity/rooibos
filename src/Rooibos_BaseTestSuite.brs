@@ -10,6 +10,7 @@ function BaseTestSuite() as Object
   this.Name               = "BaseTestSuite"
   this.invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
   this.ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
+  this.allowNonExistingMethodsOnMocks = true
   this.isAutoAssertingMocks = true
   
   'Test Cases methods
@@ -72,9 +73,10 @@ function BaseTestSuite() as Object
   this.CleanStubs     = RBS_BTS_CleanStubs
   
   'Mocking short hand methods
-  this.ExpectOnce     = RBS_BTS_ExpectOnce
-  this.ExpectNone     = RBS_BTS_ExpectNone
-  this.Expect     = RBS_BTS_Expect
+  this.ExpectOnce         = RBS_BTS_ExpectOnce
+  this.ExpectNone         = RBS_BTS_ExpectNone
+  this.Expect             = RBS_BTS_Expect
+  this.ExpectOnceOrNone   = RBS_BTS_ExpectOnceOrNone
   
   
   'note the following callbacks are mapped as we don't have reflection in brightscript
@@ -909,7 +911,7 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
   ' Workaraund for bug with string boxing, and box everything else
   val1Type = type(Value1)
   val2Type = type(Value2)
-  if val1Type = "<uninitialized>" or val2Type = "<uninitialized>"
+  if val1Type = "<uninitialized>" or val2Type = "<uninitialized>" or val1Type = "" or val2Type = ""
     ? "ERROR!!!! - undefined value passed"
     return false
   end if 
@@ -942,9 +944,7 @@ Function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
   else
     valtype = val1Type
     
-    if valtype = "<uninitialized>"
-      return false
-    else if valtype = "roList"
+    if valtype = "roList"
       return m.eqArray(Value1, Value2)
     else if valtype = "roAssociativeArray"
       return m.eqAssocArrays(Value1, Value2)
@@ -1386,11 +1386,12 @@ function RBS_BTS_Stub(target, methodName, returnValue = invalid, allowNonExistin
 
   fake = m.CreateFake(id, target, methodName, 1, invalid, returnValue)
   m.stubs[id] = fake
-  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExistingMethods)
+  allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExisting)
     target[methodName] = m["StubCallback" + id]
     target.__stubs = m.stubs
     
-    if (allowNonExistingMethods)
+    if (allowNonExisting)
       ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
     end if
   else
@@ -1416,6 +1417,29 @@ end function
 function RBS_BTS_ExpectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
   return m.Mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
 end function 
+
+' /**
+'  * @memberof module:BaseTestSuite
+'  * @name ExpectOnceOrNone
+'  * @function
+'  * @instance
+'  * @description Toggles between expectOnce and expectNone, to allow for easy paremeterized expect behaviour
+'  * @param {Dynamic} target - object on which the method to be stubbed is found
+'  * @param {Dynamic} methodName - name of method to stub
+'  * @param {Dynamic} isExpected - if true, then this is the same as expectOnce, if false, then this is the same as expectNone
+'  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+'  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+'  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
+'  * @returns {Object} - mock that was wired into the real method
+'  */ 
+function RBS_BTS_ExpectOnceOrNone(target, methodName, isExpected, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+  if isExpected
+    return m.ExpectOnce(target, methodName, expectedArgs, returnValue, allowNonExistingMethods)
+  else
+    return m.ExpectNone(target, methodName, allowNonExistingMethods)
+  end if
+end function 
+
 
 ' /**
 '  * @memberof module:BaseTestSuite
@@ -1486,11 +1510,12 @@ function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs 
   id = stri(m.__mockId).trim()
   fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
   m.mocks[id] = fake 'this will bind it to m
-  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExistingMethods)
+  allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExisting)
     target[methodName] =  m["MockCallback" + id]
     target.__mocks = m.mocks
     
-    if (allowNonExistingMethods)
+    if (allowNonExisting)
       ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
     end if
   else
@@ -1524,7 +1549,13 @@ function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, exp
   
   for i = 0 to 9
     if (hasArgs and expectedArgs.count() > i)
-      expectedArgsValues.push(expectedArgs[i])    
+      'guard against bad values
+      value = expectedArgs[i]
+      if not RBS_CMN_IsUndefined(value)
+        expectedArgsValues.push(expectedArgs[i])
+      else
+        expectedArgsValues.push("#ERR-UNDEFINED!")
+      end if    
     else
       expectedArgsValues.push(defaultValue)
     end if

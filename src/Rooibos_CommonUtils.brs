@@ -216,7 +216,11 @@ end function
 '  * @returns {Boolean} - true if value initialized and not equal invalid, else return false
 '  */
 function RBS_CMN_IsValid(value as Dynamic) as Boolean
-  return Type(value) <> "<uninitialized>" and value <> invalid
+  return not RBS_CMN_IsUndefined(value) and value <> invalid
+end function
+
+function RBS_CMN_IsUndefined(value as Dynamic) as Boolean
+  return type(value) = "" or Type(value) = "<uninitialized>"
 end function
 
 ' /**

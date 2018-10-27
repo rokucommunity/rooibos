@@ -312,6 +312,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 m.currentGroup.setupFunctionName = functionName
                 m.currentGroup.setupFunction = functionPointer
               end if 
+              isNextTokenSetup = false
             else if (isNextTokenTearDown)
               if (m.currentGroup = invalid)
                 m.tearDownFunctionName = functionName
@@ -329,6 +330,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 m.currentGroup.beforeEachFunctionName = functionName
                 m.currentGroup.beforeEachFunction = functionPointer
               end if
+              isNextTokenBeforeEach = false
             else if (isNextTokenAfterEach)
               if (m.currentGroup = invalid)
                 m.afterEachFunctionName = functionName
@@ -337,6 +339,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 m.currentGroup.afterEachFunctionName = functionName
                 m.currentGroup.afterEachFunction = functionPointer
               end if
+              isNextTokenAfterEach = false
             end if
           else
             ? " could not get function pointer for "; functionName ; " ignoring"
