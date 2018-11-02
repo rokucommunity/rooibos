@@ -33,11 +33,12 @@ function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodNa
   scene.id = "ROOT"
   screen.show()
 
+  m.global = screen.getGlobalNode()
+
   if (preTestSetup <> invalid)
     preTestSetup(screen)
   end if
 
-  m.global = screen.getGlobalNode()
 
   testId = args.TestId
   if (testId = invalid)
