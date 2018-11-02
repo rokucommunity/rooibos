@@ -90,6 +90,7 @@ end sub
 '----------------------------------------------------------------
 sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
   metaTestCase = testCase.metaTestCase
+  
   if (LCase(testCase.Result) <> "success")
     testChar = "-"
     assertIndex = metaTestCase.testResult.failedAssertIndex
@@ -103,7 +104,7 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
   insetText = ""
   if (not metaTestcase.isParamTest)
     messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
-    ? messageLine ; testCase.Result ; "    " ;locationText 
+    ? messageLine ; testCase.Result 
   else if ( metaTestcase.paramTestIndex = 0)
     name = metaTestCase.Name
     if (len(name) > 1 and right(name, 1) = "0")
@@ -111,26 +112,25 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
     end if
     ? " " + testChar + " |--" + name+ " : "
   end if
-  
+
   if (metaTestcase.isParamTest)
     insetText = "  "
     messageLine = RBS_LOGGER_FillText(" " + testChar + insetText + " |--" + metaTestCase.rawParams + " : ", ".", 80)
-    ? messageLine ; testCase.Result ; "    " ;locationText 
+    ? messageLine ; testCase.Result 
   end if
 
   if LCase(testCase.Result) <> "success"
     ? " | "; insettext ;"  |--Location: "; locationText
+    ? " | "; insettext ;"  |--Param Line: "; StrI(metaTestCase.paramlineNumber).trim()
     ? " | "; insettext ;"  |--Error Message: "; testCase.Error.Message
   end if
-
-'  m.PrintTestEnd(testCase.Name)
 end sub
 
 function RBS_LOGGER_FillText(text as string, fillChar = " ", numChars = 40) as string
   if (len(text) >= numChars)
     text = left(text, numChars - 5) + "..." + fillChar + fillChar
   else
-    numToFill= numChars - len(text)
+    numToFill= numChars - len(text) -1
     for i = 0 to numToFill
       text += fillChar
     end for

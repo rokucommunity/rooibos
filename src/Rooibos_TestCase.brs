@@ -1,4 +1,4 @@
-function UnitTestCase(name as string, func as dynamic, funcName as string, isSolo as boolean, isIgnored as boolean, lineNumber as integer, params = invalid, paramTestIndex =0)
+function UnitTestCase(name as string, func as dynamic, funcName as string, isSolo as boolean, isIgnored as boolean, lineNumber as integer, params = invalid, paramTestIndex =0, paramLineNumber = 0)
   this = {}
   this.isSolo = isSolo
   this.func = func
@@ -6,6 +6,7 @@ function UnitTestCase(name as string, func as dynamic, funcName as string, isSol
   this.isIgnored = isIgnored
   this.name = name
   this.lineNumber = lineNumber
+  this.paramLineNumber = paramLineNumber
   this.assertIndex = 0
   'Map with which the testsuite processor can take the index of a an assert line, and map it to the line Number
   this.assertLineNumberMap = {}

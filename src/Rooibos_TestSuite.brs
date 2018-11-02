@@ -234,6 +234,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
           isNextTokenTestCaseParam = true
           rawParams = RBS_TS_GetTagText(line, TAG_TEST_PARAMS)
           m.testCaseParams.push(rawParams)
+          m.testCaseParamLines.push(lineNumber)
         end if
         goto exitLoop
       else if (RBS_TS_IsTag(line, TAG_TEST_SOLO_PARAMS))
@@ -243,6 +244,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
           isNextTokenSolo = true
           isNextTokenTestCaseParam = true
           rawParams = RBS_TS_GetTagText(line, TAG_TEST_SOLO_PARAMS)
+          m.testCaseParamLines.push(lineNumber)
           m.testCaseOnlyParams.push(rawParams)
         end if
         goto exitLoop
@@ -273,8 +275,8 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
                 end if
                 for index = 0 to paramsToUse.count() -1
                   params = paramsToUse[index]
-  
-                  testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber, params, index)
+                  paramLineNumber = m.testCaseParamLines[index]  
+                  testCase = UnitTestCase(testName, functionPointer, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber, params, index, paramLineNumber)
                   testCase.isParamTest = true
                   if (testCase <> invalid)
                     m.currentTestCases.push(testCase)
@@ -405,6 +407,7 @@ end function
 function RBS_TS_ResetCurrentTestCase() as void
   m.testCaseOnlyParams = []
   m.testCaseParams = []
+  m.testCaseParamLines = []
   m.currentTestCases = [] ' we can have multiple test cases based on our params
   m.hasCurrentTestCase = false
 end function
