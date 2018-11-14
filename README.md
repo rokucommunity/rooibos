@@ -5,7 +5,8 @@
 Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 </h3>
 <p align="center">
-  Version 0.2.0
+  Version 0.2.0 (master)
+  Version 0.3.0 (beta, in evalErradication branch)  
 </p>
 <p align="center">
   <img src="images/exampleImage.png" alt="Mocha test framework" />
@@ -29,18 +30,22 @@ Rooibos is an independent open-source project, maintained exclusively by volunte
 You might want to help! Get in touch via the slack group, or raise issues.
 
 ## Thanks
+
 Rooibos was hacked together from the official roku unit testing framework. I'd like to say a big thank you to the guys at roku who gave me permission to build upon their work. The original framework can be found here : [https://github.com/rokudev/unit-testing-framework](https://github.com/rokudev/unit-testing-framework)
 
 Also thanks to the guys who made and maintain [mochaJs](https://mochajs.org/), on which many of my changes are based upon, as well as the structure of the documentation.
 
 ## FAQ
 ### Is Rooibos ready for production use?
+
 Rooibos has so far been used on a couple of production projects, running CI with over 800 tests between them. It does however, use the same test running mechanism of the official roku unit testing framework, which has been in circulation for several years.
 
 ### Is Rooibos actively maintained?
+
 I am actively invovled in Rooibos's development, and add more features and fixes on a weekly basis. You can expect rapid responses to issues.
 
 ### Why did you not just merge back your changes to roku's unit testing framework
+
 1. It does rewrite quite a lot of the original unit test framework code, so I doubt that roku would've merged it all back any time soon
 2. It's conceptually entirely different: e.g. using annotations instead of naming conventions and boiler-plate code, completely different test reporting output, assertions and test cases maintain their own state, runs in a scenegraph scene, to name but a few
 3. It has many more features than the original framework, not limited to : node specific assertions, exact assertion line failure reporting, better error messaging, easier setup, groupings, only and ignore for tests, mocks and stubs, etc, etc
@@ -48,12 +53,18 @@ I am actively invovled in Rooibos's development, and add more features and fixes
 5. I poured a _lot_ of work into the project (> 100 hours and counting), and expect to continue to do so. If I own the project, then I can do what I want, when I want. That goes for you guys as well, so get in touch with feature requests and PR's :)
 
 ### Is Rooibos itself unit tested?
+
 At this point, it's WIP. It is on the [roadmap](ROADMAP.md) though!
 
 ### Doens't rooibos use eval? that's bad right...?
-The official roku unit test framework also uses eval : https://github.com/rokudev/unit-testing-framework/search?q=eval&unscoped_q=eval
 
-However, should this ever pose a problem for whatever reason, I promise to provide a replacement mechanism. It will be a couple of hours for me to write a fix (I've meditated on it long and hard) and will result in an extra build step that will parse the test files, and create a build artifact, that will do the mappings for the eval use.
+<strike>The official roku unit test framework also uses eval : https://github.com/rokudev/unit-testing-framework/search?q=eval&unscoped_q=eval</strike>
 
+<strike>However, should this ever pose a problem for whatever reason, I promise to provide a replacement mechanism. It will be a couple of hours for me to write a fix (I've meditated on it long and hard) and will result in an extra build step that will parse the test files, and create a build artifact, that will do the mappings for the eval use.</strike>
+
+I've alread implemented a non-eval version of rooibos. It's currently in beta, on the [evalErradication branch](https://github.com/georgejecook/rooibos/tree/evalErradication)
+
+See the updated docs for guidance
+ 
 Your usage of rooibos is safe, now and in the future :)
 
