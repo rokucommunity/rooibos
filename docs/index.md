@@ -41,11 +41,12 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 
 
 ## Getting started
-Rooibos is intentionally simple to work with. You simply copy in the `rooibos.cat.brs` file, setup your config, and start writing tests
+Rooibos is intentionally simple to work with. You simply copy in the `rooibos.cat.brs` file, setup your config, install an npm package, and start writing tests
 
 
 ### Installation
 <a name="easy-to-integrate"></a>
+
 1. Clone or download this repo
 2. Run `make dist`
 3. Copy `dist/rooibos.cat.brs` to your `source` folder
@@ -56,6 +57,15 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibos.ca
 	```
 3. Create a Scene named `TestsScene.xml`, in your `components` folder, which Rooibos will use when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`. `samples/Overview/` contains a reference implementation.
 4. Create `.brs` test files within your `tests` folder, which corresponds to the `testsDirectory` config setting (default is "pkg:/source/Tests"). Test files can (and are encouraged to) be stored in nested folders, to match your source/component folder hiearchy
+5. Install [RooibosC](#rooibosC) preprocessor
+
+### RooibosC
+
+To get the best performance and test flexibility, rooibos leverages a javascript based preprocessor, which prepares some files which get sideloaded with your tests. Simply:
+
+1. `cd rooibosPreprocessor`
+2. `npm link`
+3. execute the following command from your ci/test run/make file/gulp script: `rooibosC m source/tests/`, or whatever the root path of your test folder is.
 
 ### Configuring Rooibos
 Rooibos's configuration is controlled via a json config file. The default location for this file is `pkg:/source/Tests/testconfig.json`. If the file is not found, then it is created with default values.
