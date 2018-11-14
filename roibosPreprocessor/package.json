@@ -1,0 +1,41 @@
+{
+	"name": "roibospreprocessor",
+	"version": "1.0.0",
+	"description": "processes rooibos test scripts",
+	"main": "index.js",
+	"scripts": {
+		"test": "mocha"
+	},
+	"dependencies": {
+		"babel-cli": "^6.26.0",
+		"chai": "^4.1.2",
+		"chai-subset": "^1.6.0",
+		"debug": "latest",
+		"dir-compare": "^1.4.0",
+		"fs-extra": "^5.0.0",
+		"lodash": "latest",
+		"mocha": "^5.1.1",
+		"replace-ext": "^1.0.0",
+		"splice-string": "^2.0.0",
+		"commander": "latest"
+	},
+	"devDependencies": {
+		"babel-core": "^6.26.3",
+		"babel-preset-env": "^1.6.1",
+		"mocha": "^5.1.1"
+	},
+	"preferGlobal": true,
+	"bin": {
+		"rProcess": "./index.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/georgejecook/rooibos.git"
+	},
+	"author": "george cook",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/georgejecook/rooibos/issues"
+	},
+	"homepage": "https://github.com/georgejecook/rooibos#readme"
+}

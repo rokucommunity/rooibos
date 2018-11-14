@@ -1207,7 +1207,7 @@ end function
 function RBS_CMN_GetFunction(filename, functionName) as Object
   if (not RBS_CMN_IsNotEmptyString(functionName)) then return invalid
   if (not RBS_CMN_IsNotEmptyString(filename)) then return invalid
-  mapFunction = RBSFM_getFuncitonsForFile(filename)
+  mapFunction = RBSFM_getFunctionsForFile(filename)
   if mapFunction <> invalid
     map = mapFunction()
     if (type(map) ="roAssociativeArray")
