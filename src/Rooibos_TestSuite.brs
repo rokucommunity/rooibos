@@ -65,6 +65,9 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     nodeTestFileName = ""
     nextName = ""
     m.name = m.filePath
+    'TODO harden this
+    filePathParts = m.filePath.split("/")
+    m.filename = filePathParts[filePathParts.count()-1].replace(".brs", "")
     lineNumber = 0
     m.ResetCurrentTestCase()
     currentLocation =""
@@ -133,7 +136,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
           ? name
         end if
         
-        m.currentGroup = UnitTestItGroup(name, isNextTokenSolo, isNextTokenIgnore)
+        m.currentGroup = UnitTestItGroup(name, isNextTokenSolo, isNextTokenIgnore, m.filename)
         
         'inherit all suite functions that were set up to now
         m.currentGroup.setupFunctionName = m.setupFunctionName
@@ -257,7 +260,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
         if functionNameRegex.IsMatch(line)
           functionName = functionNameRegex.Match(line).Peek()
   
-          functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+          functionPointer = RBS_CMN_GetFunction(m.filename, functionName)
           if (functionPointer <> invalid)
             if (isNextTokenTest)
               if (nextName <> "") 
@@ -485,7 +488,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
           goto exitLoop
         end if
         functionName = setupregex.Match(line).peek()
-        functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+        functionPointer = RBS_CMN_GetFunction(m.filename, functionName)
         if (functionPointer <> invalid)
           m.setupFunctionName = functionName
           m.setupFunction = functionPointer
@@ -499,7 +502,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
       if functionEndRegex.IsMatch(line)
         if (isInInitFunction)
   '        print "detected end of init function - creatign test group named " ; m.name
-          m.currentGroup = UnitTestItGroup(m.name, false, false)
+          m.currentGroup = UnitTestItGroup(m.name, false, false, m.filename)
           
           'inherit all suite functions that were set up to now
           m.currentGroup.setupFunctionName = m.setupFunctionName
@@ -580,7 +583,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
           goto exitLoop
           end if
           
-          functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+          functionPointer = RBS_CMN_GetFunction(m.filename, functionName)
           if (functionPointer <> invalid)
           if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
           currentTestCase = UnitTestCase(testName, functionPointer, functionName, isSolo, isIgnored, lineNumber)

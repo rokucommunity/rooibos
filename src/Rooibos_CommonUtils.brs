@@ -31,24 +31,28 @@ end function
 
 
 ' /**
-'  * @name GetFunction
+'  * @name RBS_CMN_GetFunction
 '  * @function
-'  * @description given the func, or name, will try to resolve a function pointer to the function, or return func, if it's already a valid funciton pointer
+'  * @description looks up the function by name, for the function map
 '  * @memberof module:CommonUtils
-'  * @param {Function} func - function pointer, which could be invalid
-'  * @param {String} name - name of the function to locate, if func is invalid
-'  * @returns {Function} - function pointer if func was not invalid, or the function could be resolved via the function name
+'  * @param {filename} string - name of the file where the function was found
+'  * @param {String} functionName - name of the function to locate
+'  * @returns {Function} - function pointer or invalid
 '  */
-function RBS_CMN_GetFunction(func, name) as Object
-  if (RBS_CMN_IsFunction(func)) then return func
-  if (not RBS_CMN_IsNotEmptyString(name)) then return invalid
-  
-  res = eval("functionPointer=" + name)
-  if (RBS_CMN_IsInteger(res) and RBS_CMN_IsFunction(functionPointer))
-    return functionPointer
-  else
-    return invalid
+function RBS_CMN_GetFunction(filename, functionName) as Object
+  if (not RBS_CMN_IsNotEmptyString(functionName)) then return invalid
+  if (not RBS_CMN_IsNotEmptyString(filename)) then return invalid
+  mapFunction = RBSFM_getFuncitonsForFile(filename)
+  if mapFunction <> invalid
+    map = mapFunction()
+    if (type(map) ="roAssociativeArray")
+      functionPointer = map[functionName]
+      return functionPointer
+    else
+      return invalid
+    end if
   end if
+  return invalid
   
 end function
 ' /**

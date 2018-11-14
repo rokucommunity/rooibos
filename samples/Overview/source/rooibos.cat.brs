@@ -130,17 +130,12 @@ function BaseTestSuite() as Object
   this.g = RBS_BTS_rodash_get_
   return this
 End Function
-Sub RBS_BTS_AddTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object)
-  m.testCases.Push(m.createTest(name, func, funcName, setup, teardown))
+Sub RBS_BTS_AddTest(name, func,funcName, setup = invalid, teardown = invalid)
+  m.testCases.Push(m.createTest(name, func, setup, teardown))
 End Sub
-Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object) as Object
+Function RBS_BTS_CreateTest(name, func, funcName, setup = invalid, teardown = invalid ) as Object
   if (func = invalid) 
-    res = eval("functionPointer=" + funcName)
-    if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
-      func = functionPointer
-    else
-      ? "RBS_BTS_CreateTest could not find test function for " ; name
-    end if
+    ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
   end if
   return {
     Name: name 
@@ -545,7 +540,7 @@ Function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array as dynamic, typeStr a
   end if
   if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
     methodName = "RBS_CMN_Is" + typeStr
-    typeCheckFunction = RBS_CMN_GetFunction(invalid, methodName)
+    typeCheckFunction = RBS_CMN_GetIsTypeFunction(methodName)
     if (typeCheckFunction <> invalid)
       for each item in array
         if not typeCheckFunction(item)
@@ -567,6 +562,41 @@ Function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array as dynamic, typeStr a
   m.currentResult.AddResult("")
   return m.GetLegacyCompatibleReturnValue(true)
 End Function
+function RBS_CMN_GetIsTypeFunction(name)
+  if name = "RBS_CMN_IsFunction"
+    return RBS_CMN_IsFunction
+  else if name = "RBS_CMN_IsXmlElement"
+    return RBS_CMN_IsXmlElement
+  else if name = "RBS_CMN_IsInteger"
+    return RBS_CMN_IsInteger
+  else if name = "RBS_CMN_IsBoolean"
+    return RBS_CMN_IsBoolean
+  else if name = "RBS_CMN_IsFloat"
+    return RBS_CMN_IsFloat
+  else if name = "RBS_CMN_IsDouble"
+    return RBS_CMN_IsDouble
+  else if name = "RBS_CMN_IsLongInteger"
+    return RBS_CMN_IsLongInteger
+  else if name = "RBS_CMN_IsNumber"
+    return RBS_CMN_IsNumber
+  else if name = "RBS_CMN_IsList"
+    return RBS_CMN_IsList
+  else if name = "RBS_CMN_IsArray"
+    return RBS_CMN_IsArray
+  else if name = "RBS_CMN_IsAssociativeArray"
+    return RBS_CMN_IsAssociativeArray
+  else if name = "RBS_CMN_IsSGNode"
+    return RBS_CMN_IsSGNode
+  else if name = "RBS_CMN_IsString"
+    return RBS_CMN_IsString
+  else if name = "RBS_CMN_IsDateTime"
+    return RBS_CMN_IsDateTime
+  else if name = "RBS_CMN_IsUndefined"
+    return RBS_CMN_IsUndefined
+  else
+    return invalid
+  end if
+end function
 function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if type(value) <> typeStr
@@ -1174,15 +1204,20 @@ end function
 function RBS_CMN_IsFunction(value as Dynamic) as Boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifFunction") <> invalid
 end function
-function RBS_CMN_GetFunction(func, name) as Object
-  if (RBS_CMN_IsFunction(func)) then return func
-  if (not RBS_CMN_IsNotEmptyString(name)) then return invalid
-  res = eval("functionPointer=" + name)
-  if (RBS_CMN_IsInteger(res) and RBS_CMN_IsFunction(functionPointer))
-    return functionPointer
-  else
-    return invalid
+function RBS_CMN_GetFunction(filename, functionName) as Object
+  if (not RBS_CMN_IsNotEmptyString(functionName)) then return invalid
+  if (not RBS_CMN_IsNotEmptyString(filename)) then return invalid
+  mapFunction = RBSFM_getFuncitonsForFile(filename)
+  if mapFunction <> invalid
+    map = mapFunction()
+    if (type(map) ="roAssociativeArray")
+      functionPointer = map[functionName]
+      return functionPointer
+    else
+      return invalid
+    end if
   end if
+  return invalid
 end function
 function RBS_CMN_IsBoolean(value as Dynamic) as Boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifBoolean") <> invalid
@@ -1377,11 +1412,12 @@ end function
 function RBS_CMN_NodeContains(node as Object, value as Object) as Boolean
   return (RBS_CMN_FindElementIndexInNode(node, value) > -1)
 end function
-function UnitTestItGroup(name as string, isSolo as boolean, isIgnored as boolean)
+function UnitTestItGroup(name, isSolo, isIgnored, filename)
   this = {}
   this.testCases = createObject("roArray", 0, true)
   this.ignoredTestCases = CreateObject("roArray",0, true)
   this.soloTestCases = CreateObject("roArray",0, true)
+  this.filename = filename
   this.testCaseLookup = {}
   this.setupFunction = invalid
   this.setupFunctionName = ""
@@ -1427,13 +1463,14 @@ function RBS_ItG_GetRunnableTestSuite(group) as object
     if (testCase.isSolo)
       name += " [SOLO] "
     end if
-    runnableSuite.addTest(name, testCase.func, testCase.funcName)
+    testFunction = RBS_CMN_GetFunction(group.filename, testCase.funcName)
+    runnableSuite.addTest(name, testFunction, testCase.funcName)
     group.testCaseLookup[name] = testCase
   end for
-  runnableSuite.SetUp = RBS_CMN_GetFunction(group.setupFunction, group.setupFunctionName)
-  runnableSuite.TearDown =  RBS_CMN_GetFunction(group.teardownFunction, group.teardownFunctionName)
-  runnableSuite.BeforeEach =  RBS_CMN_GetFunction(group.beforeEachFunction, group.beforeEachFunctionName) 
-  runnableSuite.AfterEach =  RBS_CMN_GetFunction(group.afterEachFunction, group.afterEachFunctionName) 
+  runnableSuite.SetUp = RBS_CMN_GetFunction(group.filename, group.setupFunctionName)
+  runnableSuite.TearDown =  RBS_CMN_GetFunction(group.filename, group.teardownFunctionName)
+  runnableSuite.BeforeEach =  RBS_CMN_GetFunction(group.filename, group.beforeEachFunctionName) 
+  runnableSuite.AfterEach =  RBS_CMN_GetFunction(group.filename, group.afterEachFunctionName) 
   return runnableSuite
 end function
 Function ItemGenerator(scheme as object) as Object
@@ -1972,7 +2009,7 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       testSuite.top = nodeContext.top
     end if
     if (testUtilsDecoratorMethodName <> invalid)
-      testUtilsDecorator = RBS_CMN_GetFunction(invalid, testUtilsDecoratorMethodName)
+      testUtilsDecorator = RBS_CMN_GetFunction("RBS_INTERNAL", testUtilsDecoratorMethodName)
       if (RBS_CMN_IsFunction(testUtilsDecorator))
         testUtilsDecorator(testSuite)
       else
@@ -2055,7 +2092,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
     testStatObj.metaTestCase.testResult = testSuite.currentResult
     if (metaTestCase.rawParams <> invalid)
       testCaseParams = invalid
-      isSucess = eval("testCaseParams = " + metaTestCase.rawParams)
+      testCaseParams = parseJson(metaTestCase.rawParams)
       argsValid = RBS_CMN_IsArray(testCaseParams)
       if (argsValid)
         if (testCaseParams.count() = 1)
@@ -2188,6 +2225,8 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
     nodeTestFileName = ""
     nextName = ""
     m.name = m.filePath
+    filePathParts = m.filePath.split("/")
+    m.filename = filePathParts[filePathParts.count()-1].replace(".brs", "")
     lineNumber = 0
     m.ResetCurrentTestCase()
     currentLocation =""
@@ -2241,7 +2280,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
           name = "WARNING!! DUPLICATE_" + stri(nameCount - 1).trim() + ": " + name 
           ? name
         end if
-        m.currentGroup = UnitTestItGroup(name, isNextTokenSolo, isNextTokenIgnore)
+        m.currentGroup = UnitTestItGroup(name, isNextTokenSolo, isNextTokenIgnore, m.filename)
         m.currentGroup.setupFunctionName = m.setupFunctionName
         m.currentGroup.setupFunction = m.setupFunction
         m.currentGroup.tearDownFunctionName = m.tearDownFunctionName
@@ -2357,7 +2396,7 @@ function RBS_TS_ProcessSuite(maxLinesWithoutSuiteDirective, supportLegacyTests )
       if (isTokenItGroup or isNextTokenTest or isNextTokenSetup or isNextTokenBeforeEach or isNextTokenAfterEach or isNextTokenTeardown)
         if functionNameRegex.IsMatch(line)
           functionName = functionNameRegex.Match(line).Peek()
-          functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+          functionPointer = RBS_CMN_GetFunction(m.filename, functionName)
           if (functionPointer <> invalid)
             if (isNextTokenTest)
               if (nextName <> "") 
@@ -2552,7 +2591,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
           goto exitLoop
         end if
         functionName = setupregex.Match(line).peek()
-        functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+        functionPointer = RBS_CMN_GetFunction(m.filename, functionName)
         if (functionPointer <> invalid)
           m.setupFunctionName = functionName
           m.setupFunction = functionPointer
@@ -2563,7 +2602,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
       end if     
       if functionEndRegex.IsMatch(line)
         if (isInInitFunction)
-          m.currentGroup = UnitTestItGroup(m.name, false, false)
+          m.currentGroup = UnitTestItGroup(m.name, false, false, m.filename)
           m.currentGroup.setupFunctionName = m.setupFunctionName
           m.currentGroup.setupFunction = m.setupFunction
           m.currentGroup.isLegacy = true
@@ -2625,7 +2664,7 @@ function RBS_TS_ProcessLegacySuite(maxLinesWithoutSuiteDirective)
           print "Encountered test function " ; functionName; " but found no matching AddTestCase invocation"
           goto exitLoop
           end if
-          functionPointer = RBS_CMN_GetFunction(invalid, functionName)
+          functionPointer = RBS_CMN_GetFunction(m.filename, functionName)
           if (functionPointer <> invalid)
           if nodeTestFileName = "" nodeTestFileName = m.nodeTestFileName
           currentTestCase = UnitTestCase(testName, functionPointer, functionName, isSolo, isIgnored, lineNumber)

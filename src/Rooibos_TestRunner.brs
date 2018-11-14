@@ -156,7 +156,7 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
     end if
         
     if (testUtilsDecoratorMethodName <> invalid)
-      testUtilsDecorator = RBS_CMN_GetFunction(invalid, testUtilsDecoratorMethodName)
+      testUtilsDecorator = RBS_CMN_GetFunction("RBS_INTERNAL", testUtilsDecoratorMethodName)
       if (RBS_CMN_IsFunction(testUtilsDecorator))
         testUtilsDecorator(testSuite)
       else
@@ -253,7 +253,8 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
      
     if (metaTestCase.rawParams <> invalid)
       testCaseParams = invalid
-      isSucess = eval("testCaseParams = " + metaTestCase.rawParams)
+      'TODO - allow some flag to create a node, perhaps..
+      testCaseParams = parseJson(metaTestCase.rawParams)
       argsValid = RBS_CMN_IsArray(testCaseParams)
         
       if (argsValid)

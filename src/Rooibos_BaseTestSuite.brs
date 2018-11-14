@@ -116,8 +116,8 @@ End Function
 '  * @param {Dynamic} name - A test name.
 '  * @param {Dynamic} func - A test function name.
 '  */ 
-Sub RBS_BTS_AddTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object)
-  m.testCases.Push(m.createTest(name, func, funcName, setup, teardown))
+Sub RBS_BTS_AddTest(name, func,funcName, setup = invalid, teardown = invalid)
+  m.testCases.Push(m.createTest(name, func, setup, teardown))
 End Sub
 
 ' /**
@@ -129,20 +129,12 @@ End Sub
 '  * @param {Dynamic} name - A test name.
 '  * @param {Dynamic} func - A test function name.
 '  */ 
-Function RBS_BTS_CreateTest(name as String, func as Object, funcName as String, setup = invalid as Object, teardown = invalid as Object) as Object
+Function RBS_BTS_CreateTest(name, func, funcName, setup = invalid, teardown = invalid ) as Object
 
   if (func = invalid) 
-'    ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
-'    ? " Looking it up now"
-    res = eval("functionPointer=" + funcName)
-    
-    if (RBS_CMN_IsInteger(res) and res = 252 and functionPointer <> invalid)
-'      ? "found the function"
-      func = functionPointer
-    else
-      ? "RBS_BTS_CreateTest could not find test function for " ; name
-    end if
+    ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
   end if
+  
   return {
     Name: name 
     Func: func
@@ -817,7 +809,7 @@ Function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array as dynamic, typeStr a
   
   if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
     methodName = "RBS_CMN_Is" + typeStr
-    typeCheckFunction = RBS_CMN_GetFunction(invalid, methodName)
+    typeCheckFunction = RBS_CMN_GetIsTypeFunction(methodName)
     if (typeCheckFunction <> invalid)
       for each item in array
         if not typeCheckFunction(item)
@@ -839,6 +831,42 @@ Function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array as dynamic, typeStr a
   m.currentResult.AddResult("")
   return m.GetLegacyCompatibleReturnValue(true)
 End Function
+
+function RBS_CMN_GetIsTypeFunction(name)
+  if name = "RBS_CMN_IsFunction"
+    return RBS_CMN_IsFunction
+  else if name = "RBS_CMN_IsXmlElement"
+    return RBS_CMN_IsXmlElement
+  else if name = "RBS_CMN_IsInteger"
+    return RBS_CMN_IsInteger
+  else if name = "RBS_CMN_IsBoolean"
+    return RBS_CMN_IsBoolean
+  else if name = "RBS_CMN_IsFloat"
+    return RBS_CMN_IsFloat
+  else if name = "RBS_CMN_IsDouble"
+    return RBS_CMN_IsDouble
+  else if name = "RBS_CMN_IsLongInteger"
+    return RBS_CMN_IsLongInteger
+  else if name = "RBS_CMN_IsNumber"
+    return RBS_CMN_IsNumber
+  else if name = "RBS_CMN_IsList"
+    return RBS_CMN_IsList
+  else if name = "RBS_CMN_IsArray"
+    return RBS_CMN_IsArray
+  else if name = "RBS_CMN_IsAssociativeArray"
+    return RBS_CMN_IsAssociativeArray
+  else if name = "RBS_CMN_IsSGNode"
+    return RBS_CMN_IsSGNode
+  else if name = "RBS_CMN_IsString"
+    return RBS_CMN_IsString
+  else if name = "RBS_CMN_IsDateTime"
+    return RBS_CMN_IsDateTime
+  else if name = "RBS_CMN_IsUndefined"
+    return RBS_CMN_IsUndefined
+  else
+    return invalid
+  end if
+end function
 
 ' /**
 '  * @memberof module:BaseTestSuite

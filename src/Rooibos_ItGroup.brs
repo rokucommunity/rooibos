@@ -1,9 +1,9 @@
-function UnitTestItGroup(name as string, isSolo as boolean, isIgnored as boolean)
+function UnitTestItGroup(name, isSolo, isIgnored, filename)
   this = {}
   this.testCases = createObject("roArray", 0, true)
   this.ignoredTestCases = CreateObject("roArray",0, true)
   this.soloTestCases = CreateObject("roArray",0, true)
-  
+  this.filename = filename
   this.testCaseLookup = {}
   
   this.setupFunction = invalid
@@ -59,14 +59,16 @@ function RBS_ItG_GetRunnableTestSuite(group) as object
     if (testCase.isSolo)
       name += " [SOLO] "
     end if
-    runnableSuite.addTest(name, testCase.func, testCase.funcName)
+    testFunction = RBS_CMN_GetFunction(group.filename, testCase.funcName)
+    runnableSuite.addTest(name, testFunction, testCase.funcName)
     group.testCaseLookup[name] = testCase
   end for
   
-  runnableSuite.SetUp = RBS_CMN_GetFunction(group.setupFunction, group.setupFunctionName)
-  runnableSuite.TearDown =  RBS_CMN_GetFunction(group.teardownFunction, group.teardownFunctionName)
-  runnableSuite.BeforeEach =  RBS_CMN_GetFunction(group.beforeEachFunction, group.beforeEachFunctionName) 
-  runnableSuite.AfterEach =  RBS_CMN_GetFunction(group.afterEachFunction, group.afterEachFunctionName) 
   
+  runnableSuite.SetUp = RBS_CMN_GetFunction(group.filename, group.setupFunctionName)
+  runnableSuite.TearDown =  RBS_CMN_GetFunction(group.filename, group.teardownFunctionName)
+  runnableSuite.BeforeEach =  RBS_CMN_GetFunction(group.filename, group.beforeEachFunctionName) 
+  runnableSuite.AfterEach =  RBS_CMN_GetFunction(group.filename, group.afterEachFunctionName) 
+
   return runnableSuite
 end function

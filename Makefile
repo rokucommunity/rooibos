@@ -27,6 +27,7 @@ dist:
 	cd src && ls | xargs -J % sed -E -e ${COMMENT_LINES_RE} -e ${BLANK_LINES_RE} % >> ../$(DISTDIR)/rooibos.cat.brs
 	cp $(DISTDIR)/rooibos.cat.brs source
 	cp $(DISTDIR)/rooibos.cat.brs samples/Overview/source
+	cp $(DISTDIR)/rooibos.cat.brs samples/nonEvalSample/source
 doc:
 	cd jsdoc && npm install
 	./jsdoc/node_modules/.bin/jsdoc -c jsdoc/jsdoc.json -t jsdoc/node_modules/minami -d apiDocs
