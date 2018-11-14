@@ -6,6 +6,7 @@ const debug = require('debug')('fileProcessor');
 class FileProcessor {
 	constructor(filePath) {
 		this._filePath = filePath;
+		this._mapFileName = "rooibos.function.map.brs";
 		this._warnings = [];
 		this._errors = [];
 	}
@@ -18,10 +19,12 @@ class FileProcessor {
 	}
 
 	writeMapsToFile(filePath, fileText) {
-		console.log(`going to write to ${filePath}`);
+		let outputFilePath = path.join(this._filePath, this._mapFileName);
+		console.log(`going to write to ${outputFilePath}`);
 		console.log(`===========`);
 		console.log(fileText);
 		console.log(`===========`);
+		fs.writeFileSync(outputFilePath, fileText,'utf8');
 	}
 
 	createMapFileContent(maps) {
@@ -83,7 +86,7 @@ class FileProcessor {
 				this.getFunctionMaps(fullPath);
 			} else {
 				const extension = path.extname(filename).toLowerCase();
-				if (extension == '.brs' && filename != "rooibos.function.map.brs") {
+				if (extension == '.brs' && filename != this._mapFileName) {
 					var map = this.getFunctionMap(directory, filename);
 					functionMaps[filename.replace(".brs", "")] = map
 				}
