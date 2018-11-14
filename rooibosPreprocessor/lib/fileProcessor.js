@@ -20,11 +20,11 @@ class FileProcessor {
 
 	writeMapsToFile(filePath, fileText) {
 		let outputFilePath = path.join(this._filePath, this._mapFileName);
-		console.log(`going to write to ${outputFilePath}`);
-		console.log(`===========`);
-		console.log(fileText);
-		console.log(`===========`);
+		// console.log(`===========`);
+		// console.log(fileText);
+		// console.log(`===========`);
 		fs.writeFileSync(outputFilePath, fileText,'utf8');
+		console.log(`Wrote file to ${outputFilePath}`);
 	}
 
 	createMapFileContent(maps) {

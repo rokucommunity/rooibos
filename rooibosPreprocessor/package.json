@@ -1,5 +1,5 @@
 {
-	"name": "roibospreprocessor",
+	"name": "rooibosCompile",
 	"version": "1.0.0",
 	"description": "processes rooibos test scripts",
 	"main": "index.js",
@@ -26,7 +26,7 @@
 	},
 	"preferGlobal": true,
 	"bin": {
-		"rProcess": "./index.js"
+		"rooibosC": "./index.js"
 	},
 	"repository": {
 		"type": "git",

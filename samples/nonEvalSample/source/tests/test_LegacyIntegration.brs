@@ -1,4 +1,3 @@
-'@Ignore - not supported
 Function testSuite_LegacyIntegration()
   this = BaseTestSuite()
 
