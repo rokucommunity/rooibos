@@ -6,7 +6,8 @@ const debug = require('debug')('fileProcessor');
 class FileProcessor {
 	constructor(filePath) {
 		this._filePath = filePath;
-		this._mapFileName = "rooibos.function.map.brs";
+		this._mapFilename = "rooibos.function.map.brs";
+		this._frameworkFilename = "rooibos.cat.brs";
 		this._warnings = [];
 		this._errors = [];
 	}
@@ -19,7 +20,7 @@ class FileProcessor {
 	}
 
 	writeMapsToFile(filePath, fileText) {
-		let outputFilePath = path.join(this._filePath, this._mapFileName);
+		let outputFilePath = path.join(this._filePath, this._mapFilename);
 		// console.log(`===========`);
 		// console.log(fileText);
 		// console.log(`===========`);
@@ -86,9 +87,10 @@ class FileProcessor {
 				this.getFunctionMaps(fullPath);
 			} else {
 				const extension = path.extname(filename).toLowerCase();
-				if (extension == '.brs' && filename != this._mapFileName) {
-					var map = this.getFunctionMap(directory, filename);
-					functionMaps[filename.replace(".brs", "")] = map
+				if (extension == '.brs' && filename != this._mapFilename && filename != this._frameworkFilename) {
+					var normalizedFileName = filename.replace(".brs", "").replace("-", "_").replace(".", "_")
+					var map = this.getFunctionMap(directory, filename, normalizedFileName );
+					functionMaps[normalizedFileName] = map
 				}
 			}
 		});
@@ -103,7 +105,7 @@ class FileProcessor {
 	 * @param filename
 	 * @param assoicatedFile
 	 */
-	getFunctionMap(directory, filename) {
+	getFunctionMap(directory, filename, normalizedFileName) {
 		let fullPath = path.join(directory, filename);
 		console.debug(`processing file `, fullPath)
 		let fileContents = fs.readFileSync(fullPath, 'utf8');
