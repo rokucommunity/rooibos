@@ -11,13 +11,17 @@ program
   .description('Rooibos Preprocessor');
 
 program
-  .command('process <config>')
+  .command('process <testsFolder>')
   .alias('p')
-  .description('process project')
+  .description(`
+  processes a brightscript SceneGraph project and creates json data strcutures
+  which can be used by the rooibos unit testing framework, or vsCode IDE
+
+  HAPPY TESTING :)
+  `)
   .action((testsPath) => {
-    let config = JSON.parse(fs.readFileSync(testsPath, 'utf8'));
     console.log(`Processing test path ${testsPath}`);
-    let processor = new RooibosProcessor(config);
+    let processor = new RooibosProcessor(testsPath);
     processor.processFiles();
   });
 
