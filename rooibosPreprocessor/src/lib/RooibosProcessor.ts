@@ -14,7 +14,7 @@ export default class RooibosProcessor {
     this._testsPath = testsPath;
     this._warnings = [];
     this._errors = [];
-    this._mapFilename = `rooibos.function.map.brs`;
+    this._mapFilename = `rooibosFunctionMap.brs`;
   }
 
   private readonly _testsPath: string;

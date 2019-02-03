@@ -9,6 +9,8 @@ ZIP_EXCLUDE= -x xml/* -x artwork/* -x \*.pkg -x storeassets\* -x keys\* -x \*/.\
 
 include app.mk
 
+echo "wtf"
+	
 # Smash the library down to one file
 BLANK_LINES_RE="/^[ \t]*'.*/d"
 COMMENT_LINES_RE="/^[ ]*$$/d"

@@ -15,7 +15,7 @@
 
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/rooibos.function.map.brs" />
+		uri="pkg:/source/tests/rooibosFunctionMap.brs" />
 
 	<script
 		type="text/brightscript"

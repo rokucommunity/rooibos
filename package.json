@@ -1,0 +1,43 @@
+{
+  "name": "rooibos",
+  "version": "2.0.0",
+  "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "gulp-header": "^2.0.7",
+    "roku-deploy": "^2.0.0",
+    "ts-node": "^8.0.2"
+  },
+  "devDependencies": {
+    "del": "^3.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-copy": "^4.0.1",
+    "gulp-rm-lines": "0.0.9",
+    "gulpclass": "^0.2.0",
+    "typescript": "^3.3.1",
+    "vinyl-paths": "^2.1.0"
+  },
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgejecook/rooibos.git"
+  },
+  "keywords": [
+    "brightscript",
+    "unit",
+    "testing",
+    "rooibos",
+    "tdd"
+  ],
+  "author": "George Cook",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/georgejecook/rooibos/issues"
+  },
+  "homepage": "https://github.com/georgejecook/rooibos#readme"
+}

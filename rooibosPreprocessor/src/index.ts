@@ -7,14 +7,14 @@ const inspect = require('util').inspect;
 console.log(`Running`);
 
 program
-  .version('0.1.0')
+  .version('1.0.1')
   .description('Rooibos Preprocessor');
 
 program
   .command('process <testsFolder>')
   .alias('p')
   .description(`
-  processes a brightscript SceneGraph project and creates json data strcutures
+  processes a brightscript SceneGraph project and creates json data structures
   which can be used by the rooibos unit testing framework, or vsCode IDE
 
   HAPPY TESTING :)

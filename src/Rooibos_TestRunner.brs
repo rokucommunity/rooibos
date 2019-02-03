@@ -78,8 +78,13 @@ end function
 '  * @description Executes all tests for a project, as per the config
 '  */ 
 sub RBS_TR_Run()
+  if RBSFM_getTestSuitesForProject = invalid
+    ? " ERROR! RBSFM_getTestSuitesForProject is not found! That looks like you didn't run the preprocessor as part of your test process. Please refer to the docs."
+    return 
+  end if
+  
   totalStatObj = RBS_STATS_CreateTotalStatistic()
-  m.runtimeConfig = UnitTestRuntimeConfig(m.config.testsDirectory, m.config.maxLinesWithoutSuiteDirective, m.config.supportLegacyTests = true)
+  m.runtimeConfig = UnitTestRuntimeConfig()
   m.runtimeConfig.global = m.global
   totalStatObj.testRunHasFailures = false
   
