@@ -4,7 +4,7 @@
 '
 ' @return An empty statistic object.
 '----------------------------------------------------------------
-function RBS_STATS_CreateTotalStatistic() as Object
+function RBS_STATS_CreateTotalStatistic() as object
   statTotalItem = {
     Suites    : []
     Time    : 0
@@ -28,8 +28,8 @@ end function
 function RBS_STATS_MergeTotalStatistic(stat1, stat2) as void
   for each suite in stat2.Suites
     stat1.Suites.push(suite)
-  end for  
-  
+  end for
+
   stat1.Time += stat2.Time
   stat1.Total += stat2.Total
   stat1.Correct += stat2.Correct
@@ -46,7 +46,7 @@ end function
 '
 ' @return An empty statistic object for test suite.
 '----------------------------------------------------------------
-function RBS_STATS_CreateSuiteStatistic(name as String) as Object
+function RBS_STATS_CreateSuiteStatistic(name as string) as object
   statSuiteItem = {
     Name  : name
     Tests   : []
@@ -87,7 +87,7 @@ end function
 '
 ' @return A statistic object for test.
 '----------------------------------------------------------------
-function RBS_STATS_CreateTestStatistic(name as String, result = "Success" as String, time = 0 as Integer, errorCode = 0 as Integer, errorMessage = "" as String) as Object
+function RBS_STATS_CreateTestStatistic(name as string, result = "Success" as string, time = 0 as integer, errorCode = 0 as integer, errorMessage = "" as string) as object
   statTestItem = {
     Name  : name
     Result  : result
@@ -107,7 +107,7 @@ end function
 ' @param statSuiteObj (object) A target test suite object.
 ' @param statTestObj (object) A test statistic to append.
 '----------------------------------------------------------------
-sub RBS_STATS_AppendTestStatistic(statSuiteObj as Object, statTestObj as Object)
+sub RBS_STATS_AppendTestStatistic(statSuiteObj as object, statTestObj as object)
   if RBS_CMN_IsAssociativeArray(statSuiteObj) and RBS_CMN_IsAssociativeArray(statTestObj)
     statSuiteObj.Tests.Push(statTestObj)
 
@@ -134,7 +134,7 @@ end sub
 ' @param statTotalObj (object) A target total statistic object.
 ' @param statSuiteObj (object) A test suite statistic object to append.
 '----------------------------------------------------------------
-sub RBS_STATS_AppendSuiteStatistic(statTotalObj as Object, statSuiteObj as Object)
+sub RBS_STATS_AppendSuiteStatistic(statTotalObj as object, statSuiteObj as object)
   if RBS_CMN_IsAssociativeArray(statTotalObj) and RBS_CMN_IsAssociativeArray(statSuiteObj)
     statTotalObj.Suites.Push(statSuiteObj)
     statTotalObj.Time = statTotalObj.Time + statSuiteObj.Time

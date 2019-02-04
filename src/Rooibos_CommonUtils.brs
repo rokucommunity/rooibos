@@ -13,7 +13,7 @@
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains XMLElement interface, else return false
 '  */
-function RBS_CMN_IsXmlElement(value as Dynamic) as Boolean
+function RBS_CMN_IsXmlElement(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifXMLElement") <> invalid
 end function
 
@@ -25,7 +25,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains Function interface, else return false
 '  */
-function RBS_CMN_IsFunction(value as Dynamic) as Boolean
+function RBS_CMN_IsFunction(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifFunction") <> invalid
 end function
 
@@ -39,7 +39,7 @@ end function
 '  * @param {String} functionName - name of the function to locate
 '  * @returns {Function} - function pointer or invalid
 '  */
-function RBS_CMN_GetFunction(filename, functionName) as Object
+function RBS_CMN_GetFunction(filename, functionName) as object
   if (not RBS_CMN_IsNotEmptyString(functionName)) then return invalid
   if (not RBS_CMN_IsNotEmptyString(filename)) then return invalid
   mapFunction = RBSFM_getFunctionsForFile(filename)
@@ -63,7 +63,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains Boolean interface, else return false
 '  */
-function RBS_CMN_IsBoolean(value as Dynamic) as Boolean
+function RBS_CMN_IsBoolean(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifBoolean") <> invalid
 end function
 
@@ -75,7 +75,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value type equals Integer, else return false
 '  */
-function RBS_CMN_IsInteger(value as Dynamic) as Boolean
+function RBS_CMN_IsInteger(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifInt") <> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
 end function
 
@@ -87,7 +87,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains Float interface, else return false
 '  */
-function RBS_CMN_IsFloat(value as Dynamic) as Boolean
+function RBS_CMN_IsFloat(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifFloat") <> invalid
 end function
 
@@ -99,7 +99,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains Double interface, else return false
 '  */
-function RBS_CMN_IsDouble(value as Dynamic) as Boolean
+function RBS_CMN_IsDouble(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifDouble") <> invalid
 end function
 
@@ -111,7 +111,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains LongInteger interface, else return false
 '  */
-function RBS_CMN_IsLongInteger(value as Dynamic) as Boolean
+function RBS_CMN_IsLongInteger(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifLongInt") <> invalid
 end function
 
@@ -123,7 +123,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value is number, else return false
 '  */
-function RBS_CMN_IsNumber(value as Dynamic) as Boolean
+function RBS_CMN_IsNumber(value as dynamic) as boolean
   return RBS_CMN_IsLongInteger(value) or RBS_CMN_IsDouble(value) or RBS_CMN_IsInteger(value) or RBS_CMN_IsFloat(value)
 end function
 
@@ -135,7 +135,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains List interface, else return false
 '  */
-function RBS_CMN_IsList(value as Dynamic) as Boolean
+function RBS_CMN_IsList(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifList") <> invalid
 end function
 
@@ -147,7 +147,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains Array interface, else return false
 '  */
-function RBS_CMN_IsArray(value as Dynamic) as Boolean
+function RBS_CMN_IsArray(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifArray") <> invalid
 end function
 
@@ -159,7 +159,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains AssociativeArray interface, else return false
 '  */
-function RBS_CMN_IsAssociativeArray(value as Dynamic) as Boolean
+function RBS_CMN_IsAssociativeArray(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifAssociativeArray") <> invalid
 end function
 
@@ -171,7 +171,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains SGNodeChildren interface, else return false
 '  */
-function RBS_CMN_IsSGNode(value as Dynamic) as Boolean
+function RBS_CMN_IsSGNode(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifSGNodeChildren") <> invalid
 end function
 
@@ -183,7 +183,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains String interface, else return false
 '  */
-function RBS_CMN_IsString(value as Dynamic) as Boolean
+function RBS_CMN_IsString(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifString") <> invalid
 end function
 
@@ -195,7 +195,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains String interface and length more 0, else return false
 '  */
-function RBS_CMN_IsNotEmptyString(value as Dynamic) as Boolean
+function RBS_CMN_IsNotEmptyString(value as dynamic) as boolean
   return RBS_CMN_IsString(value) and len(value) > 0
 end function
 
@@ -207,7 +207,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value contains DateTime interface, else return false
 '  */
-function RBS_CMN_IsDateTime(value as Dynamic) as Boolean
+function RBS_CMN_IsDateTime(value as dynamic) as boolean
   return RBS_CMN_IsValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
 end function
 
@@ -219,11 +219,11 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value initialized and not equal invalid, else return false
 '  */
-function RBS_CMN_IsValid(value as Dynamic) as Boolean
+function RBS_CMN_IsValid(value as dynamic) as boolean
   return not RBS_CMN_IsUndefined(value) and value <> invalid
 end function
 
-function RBS_CMN_IsUndefined(value as Dynamic) as Boolean
+function RBS_CMN_IsUndefined(value as dynamic) as boolean
   return type(value) = "" or Type(value) = "<uninitialized>"
 end function
 
@@ -235,13 +235,13 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {String} - value if his contains String interface else return empty string
 '  */
-function RBS_CMN_ValidStr(obj as Object) as String
+function RBS_CMN_ValidStr(obj as object) as string
   if obj <> invalid and GetInterface(obj, "ifString") <> invalid
     return obj
   else
     return ""
   end if
-end function 
+end function
 
 ' /**
 '  * @name AsString
@@ -251,7 +251,7 @@ end function
 '  * @param {Dynamic} input - value to check
 '  * @returns {String} - converted string
 '  */
-function RBS_CMN_AsString(input as Dynamic) as String
+function RBS_CMN_AsString(input as dynamic) as string
   if RBS_CMN_IsValid(input) = false
     return ""
   else if RBS_CMN_IsString(input)
@@ -276,7 +276,7 @@ function RBS_CMN_AsString(input as Dynamic) as String
     return text
   else
     return ""
-  end If
+  end if
 end function
 
 ' /**
@@ -287,7 +287,7 @@ end function
 '  * @param {Dynamic} input - value to check
 '  * @returns {Integer} - converted Integer
 '  */
-function RBS_CMN_AsInteger(input as Dynamic) as Integer
+function RBS_CMN_AsInteger(input as dynamic) as integer
   if RBS_CMN_IsValid(input) = false
     return 0
   else if RBS_CMN_IsString(input)
@@ -309,7 +309,7 @@ end function
 '  * @param {Dynamic} input - value to check
 '  * @returns {Integer} - converted LongInteger
 '  */
-function RBS_CMN_AsLongInteger(input as Dynamic) as LongInteger
+function RBS_CMN_AsLongInteger(input as dynamic) as longinteger
   if RBS_CMN_IsValid(input) = false
     return 0
   else if RBS_CMN_IsString(input)
@@ -329,7 +329,7 @@ end function
 '  * @param {Dynamic} input - value to check
 '  * @returns {Float} - converted Float
 '  */
-function RBS_CMN_AsFloat(input as Dynamic) as Float
+function RBS_CMN_AsFloat(input as dynamic) as float
   if RBS_CMN_IsValid(input) = false
     return 0.0
   else if RBS_CMN_IsString(input)
@@ -351,7 +351,7 @@ end function
 '  * @param {Dynamic} input - value to check
 '  * @returns {Float} - converted Double
 '  */
-function RBS_CMN_AsDouble(input as Dynamic) as Double
+function RBS_CMN_AsDouble(input as dynamic) as double
   if RBS_CMN_IsValid(input) = false
     return 0.0
   else if RBS_CMN_IsString(input)
@@ -371,7 +371,7 @@ end function
 '  * @param {Dynamic} input - value to check
 '  * @returns {Boolean} - converted boolean
 '  */
-function RBS_CMN_AsBoolean(input as Dynamic) as Boolean
+function RBS_CMN_AsBoolean(input as dynamic) as boolean
   if RBS_CMN_IsValid(input) = false
     return false
   else if RBS_CMN_IsString(input)
@@ -391,9 +391,9 @@ end function
 '  * @description if type of value equals array return value, else return array with one element [value]
 '  * @memberof module:CommonUtils
 '  * @param {Dynamic} value - value to check
-'  * @returns {Array} - converted array 
+'  * @returns {Array} - converted array
 '  */
-function RBS_CMN_AsArray(value as Object) as Object
+function RBS_CMN_AsArray(value as object) as object
   if RBS_CMN_IsValid(value)
     if not RBS_CMN_IsArray(value)
       return [value]
@@ -416,7 +416,7 @@ end function
 '  * @param {Dynamic} value - value to check
 '  * @returns {Boolean} - true if value is null or empty string, else return false
 '  */
-function RBS_CMN_IsNullOrEmpty(value as Dynamic) as Boolean
+function RBS_CMN_IsNullOrEmpty(value as dynamic) as boolean
   if RBS_CMN_IsString(value)
     return Len(value) = 0
   else
@@ -439,19 +439,19 @@ end function
 '  * @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
 '  * @returns {Integer} - element index if array contains a value, else return -1
 '  */
-function RBS_CMN_FindElementIndexInArray(array as Object, value as Object, compareAttribute = invalid as Dynamic, caseSensitive = false as Boolean) as Integer
+function RBS_CMN_FindElementIndexInArray(array as object, value as object, compareAttribute = invalid as dynamic, caseSensitive = false as boolean) as integer
   if RBS_CMN_IsArray(array)
     for i = 0 to RBS_CMN_AsArray(array).Count() - 1
       compareValue = array[i]
 
       if compareAttribute <> invalid and RBS_CMN_IsAssociativeArray(compareValue)
         compareValue = compareValue.LookupCI(compareAttribute)
-      end If
+      end if
 
       if RBS_CMN_IsString(compareValue) and RBS_CMN_IsString(value) and not caseSensitive
         if LCase(compareValue) = LCase(value)
           return i
-        end If
+        end if
       else if compareValue = value
         return i
       end if
@@ -472,7 +472,7 @@ end function
 '  * @param {Dynamic} compareAttribute - attribute to compare on
 '  * @returns {Boolean} - true if array contains a value, else return false
 '  */
-function RBS_CMN_ArrayContains(array as Object, value as Object, compareAttribute = invalid as Dynamic) as Boolean
+function RBS_CMN_ArrayContains(array as object, value as object, compareAttribute = invalid as dynamic) as boolean
   return (RBS_CMN_FindElementIndexInArray(array, value, compareAttribute) > -1)
 end function
 
@@ -490,8 +490,8 @@ end function
 '  * @param {Dynamic} value - child to search for
 '  * @returns {Integer} - element index if node contains a value, else return -1
 '  */
-function RBS_CMN_FindElementIndexInNode(node as Object, value as Object) as Integer
-  if type(node) = "roSGNode" 
+function RBS_CMN_FindElementIndexInNode(node as object, value as object) as integer
+  if type(node) = "roSGNode"
     for i = 0 to node.getChildCount() - 1
       compareValue = node.getChild(i)
       if type(compareValue) = "roSGNode" and compareValue.isSameNode(value)
@@ -510,6 +510,6 @@ end function
 '  * @param {Dynamic} value - child to look for
 '  * @returns {Boolean} - true if node contains a value, else return false
 '  */
-function RBS_CMN_NodeContains(node as Object, value as Object) as Boolean
+function RBS_CMN_NodeContains(node as object, value as object) as boolean
   return (RBS_CMN_FindElementIndexInNode(node, value) > -1)
 end function

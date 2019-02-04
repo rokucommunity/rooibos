@@ -8,7 +8,7 @@ function UnitTestResult() as object
   this.AddResult = RBS_TRes_AddResult
   this.GetResult = RBS_TRes_GetResult
   return this
-end function 
+end function
 
 function RBS_TRes_Reset() as void
   m.isFail = false
@@ -24,7 +24,7 @@ function RBS_TRes_AddResult(message as string) as string
     m.isFail = true
   end if
   m.currentAssertIndex++
-  return message  
+  return message
 end function
 
 function RBS_TRes_GetResult() as string

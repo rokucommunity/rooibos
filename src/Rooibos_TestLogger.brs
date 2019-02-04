@@ -1,11 +1,11 @@
-function Logger(config) as Object
+function Logger(config) as object
   this = {}
   this.config = config
 
   this.verbosityLevel = {
     basic   : 0
     normal  : 1
-    verbose : 2   
+    verbose : 2
   }
 
   ' Internal properties
@@ -25,15 +25,15 @@ end function
 
 '----------------------------------------------------------------
 ' Print statistic object with specified verbosity.
-' 
+'
 ' @param statObj (object) A statistic object to print.
 '----------------------------------------------------------------
-sub RBS_LOGGER_PrintStatistic(statObj as Object)
+sub RBS_LOGGER_PrintStatistic(statObj as object)
   m.PrintStart()
   previousfile = invalid
-  
+
   for each testSuite in statObj.Suites
-    if (not statObj.testRunHasFailures or ((not m.config.showOnlyFailures) OR testSuite.fail > 0 or testSuite.crash > 0))  
+    if (not statObj.testRunHasFailures or ((not m.config.showOnlyFailures) or testSuite.fail > 0 or testSuite.crash > 0))
       if (testSuite.metaTestSuite.filePath <> previousfile)
         m.PrintMetaSuiteStart(testSuite.metaTestSuite)
         previousfile = testSuite.metaTestSuite.filePath
@@ -49,14 +49,14 @@ sub RBS_LOGGER_PrintStatistic(statObj as Object)
   ? " Time spent: "; statObj.Time; "ms"
   ? ""
   ? ""
-  
+
   if (statObj.ignored > 0)
     ? "IGNORED TESTS:"
     for each ignoredItemName in statObj.IgnoredTestNames
-    print ignoredItemName
+      print ignoredItemName
     end for
   end if
-  
+
   if (statObj.Total = statObj.Correct)
     overrallResult = "Success"
   else
@@ -68,14 +68,14 @@ end sub
 
 '----------------------------------------------------------------
 ' Print test suite statistic.
-' 
+'
 ' @param statSuiteObj (object) A target test suite object to print.
 '----------------------------------------------------------------
-sub RBS_LOGGER_PrintSuiteStatistic(statSuiteObj as Object, hasFailures)
+sub RBS_LOGGER_PrintSuiteStatistic(statSuiteObj as object, hasFailures)
   m.PrintSuiteStart(statSuiteObj.Name)
-  
+
   for each testCase in statSuiteObj.Tests
-    if (not hasFailures or ((not m.config.showOnlyFailures) OR testCase.Result <> "Success"))  
+    if (not hasFailures or ((not m.config.showOnlyFailures) or testCase.Result <> "Success"))
       m.PrintTestStatistic(testCase)
     end if
   end for
@@ -85,12 +85,12 @@ end sub
 
 '----------------------------------------------------------------
 ' Print test statistic.
-' 
+'
 ' @param statTestObj (object) A target test object to print.
 '----------------------------------------------------------------
-sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
+sub RBS_LOGGER_PrintTestStatistic(testCase as object)
   metaTestCase = testCase.metaTestCase
-  
+
   if (LCase(testCase.Result) <> "success")
     testChar = "-"
     assertIndex = metaTestCase.testResult.failedAssertIndex
@@ -100,11 +100,11 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
     locationLine = StrI(metaTestCase.lineNumber).trim()
   end if
   locationText = testCase.filePath.trim() + "(" + locationLine + ")"
-  
+
   insetText = ""
   if (metaTestcase.isParamTest <> true)
     messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
-    ? messageLine ; testCase.Result 
+    ? messageLine ; testCase.Result
   else if ( metaTestcase.paramTestIndex = 0)
     name = metaTestCase.Name
     if (len(name) > 1 and right(name, 1) = "0")
@@ -115,8 +115,8 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
 
   if (metaTestcase.isParamTest = true)
     insetText = "  "
-    messageLine = RBS_LOGGER_FillText(" " + testChar + insetText + " |--" + metaTestCase.rawParams + " : ", ".", 80)
-    ? messageLine ; testCase.Result 
+    messageLine = RBS_LOGGER_FillText(" " + testChar + insetText + " |--" + formatJson(metaTestCase.rawParams) + " : ", ".", 80)
+    ? messageLine ; testCase.Result
   end if
 
   if LCase(testCase.Result) <> "success"
@@ -158,7 +158,7 @@ end sub
 '----------------------------------------------------------------
 ' Print test suite SetUp message.
 '----------------------------------------------------------------
-sub RBS_LOGGER_PrintSuiteSetUp(sName as String)
+sub RBS_LOGGER_PrintSuiteSetUp(sName as string)
   if m.verbosity = m.verbosityLevel.verbose
     ? "================================================================="
     ? "===   SetUp "; sName; " suite."
@@ -178,16 +178,16 @@ end sub
 '----------------------------------------------------------------
 ' Print '@It group start message.
 '----------------------------------------------------------------
-sub RBS_LOGGER_PrintSuiteStart(sName as String)
-'  ? "It "; sName
+sub RBS_LOGGER_PrintSuiteStart(sName as string)
+  '  ? "It "; sName
   ? " |-" ; sName
-'  ? ""
+  '  ? ""
 end sub
 
 '----------------------------------------------------------------
 ' Print test suite TearDown message.
 '----------------------------------------------------------------
-sub RBS_LOGGER_PrintSuiteTearDown(sName as String)
+sub RBS_LOGGER_PrintSuiteTearDown(sName as string)
   if m.verbosity = m.verbosityLevel.verbose
     ? "================================================================="
     ? "===   TearDown "; sName; " suite."
@@ -198,7 +198,7 @@ end sub
 '----------------------------------------------------------------
 ' Print test setUp message.
 '----------------------------------------------------------------
-sub RBS_LOGGER_PrintTestSetUp(tName as String)
+sub RBS_LOGGER_PrintTestSetUp(tName as string)
   if m.verbosity = m.verbosityLevel.verbose
     ? "----------------------------------------------------------------"
     ? "---   SetUp "; tName; " test."
@@ -209,7 +209,7 @@ end sub
 '----------------------------------------------------------------
 ' Print test TearDown message.
 '----------------------------------------------------------------
-sub RBS_LOGGER_PrintTestTearDown(tName as String)
+sub RBS_LOGGER_PrintTestTearDown(tName as string)
   if m.verbosity = m.verbosityLevel.verbose
     ? "----------------------------------------------------------------"
     ? "---   TearDown "; tName; " test."
