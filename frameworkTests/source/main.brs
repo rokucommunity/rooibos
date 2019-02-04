@@ -1,15 +1,7 @@
 sub Main(args as dynamic)
-    if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals, AddTestUtils)
+    if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals, "AddTestUtils")
 
     InitScreen()
-end sub
-
-sub AddTestUtils(testCase)
-    'add your own test utils you want access to when testing here
-    
-    'e.g.
-    'testCase.testUtils = TestUtils()
-    'testCase.r = rodash()
 end sub
 
 function InitScreen() as void
