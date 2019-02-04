@@ -1,12 +1,11 @@
 <p align="center">
-  <img src="images/logo.png" alt="Mocha test framework" width="200" height="200"/>
+  <img src="images/logo.png" alt="Rooibos test framework" width="200" height="200"/>
 </p>
 <h3 align="center">
 Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 </h3>
 <p align="center">
-  Version 0.2.0 (master)
-  Version 0.3.0 (beta, in evalErradication branch)  
+  Version 2.0.0
 </p>
 <p align="center">
   <img src="images/exampleImage.png" alt="Mocha test framework" />
@@ -38,7 +37,7 @@ Also thanks to the guys who made and maintain [mochaJs](https://mochajs.org/), o
 ## FAQ
 ### Is Rooibos ready for production use?
 
-Rooibos has so far been used on a couple of production projects, running CI with over 800 tests between them. It does however, use the same test running mechanism of the official roku unit testing framework, which has been in circulation for several years.
+Rooibos has so far been used on a couple of production projects, running CI with over 1500 tests between them. It does however, use the same test running mechanism of the official roku unit testing framework, which has been in circulation for several years.
 
 ### Is Rooibos actively maintained?
 
@@ -54,17 +53,8 @@ I am actively invovled in Rooibos's development, and add more features and fixes
 
 ### Is Rooibos itself unit tested?
 
-At this point, it's WIP. It is on the [roadmap](ROADMAP.md) though!
+At this point, it's WIP. I keep adding tests as bugs come up, and will continue to improve the test coverage. 
 
-### Doens't rooibos use eval? that's bad right...?
+### Why 2.0.0?
 
-<strike>The official roku unit test framework also uses eval : https://github.com/rokudev/unit-testing-framework/search?q=eval&unscoped_q=eval</strike>
-
-<strike>However, should this ever pose a problem for whatever reason, I promise to provide a replacement mechanism. It will be a couple of hours for me to write a fix (I've meditated on it long and hard) and will result in an extra build step that will parse the test files, and create a build artifact, that will do the mappings for the eval use.</strike>
-
-I've alread implemented a non-eval version of rooibos. It's currently in beta, on the [evalErradication branch](https://github.com/georgejecook/rooibos/tree/evalErradication)
-
-See the updated docs for guidance
- 
-Your usage of rooibos is safe, now and in the future :)
-
+The latest version of Rooibos introduces a preprocessor which is a requirement for running all tests. I thought that was a significant enough departure to warrant a whole version bump.
