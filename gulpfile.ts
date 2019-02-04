@@ -19,7 +19,7 @@ const args = {
   host: '192.168.16.3',
   password: 'aaaa',
   rootDir: './',
-  files: ['source/**/*.*'],
+  files: ['frameworkTests/**/*'],
   outDir: './out',
   retainStagingFolder: true
 };
@@ -38,25 +38,25 @@ function createDirectories() {
 }
 
 function squash() {
-  var banner = [`/**`,
-    ` * ${pkg.name} - ${pkg.description}`,
-    ` * @version v${pkg.version}`,
-    ` * @link ${pkg.homepage}`,
-    ` * @license ${pkg.license}`,
-    ` */`,
+  var banner = [`'/**`,
+    `' * ${pkg.name} - ${pkg.description}`,
+    `' * @version v${pkg.version}`,
+    `' * @link ${pkg.homepage}`,
+    `' * @license ${pkg.license}`,
+    `' */`,
     ``].join(`\n`);
 
   return gulp.src('./src/*.brs')
-    .pipe(header(banner, { pkg: pkg }))
     .pipe(concat(distFile))
     .pipe(rmLines({
       'filters': [/^\s*'/i, /((\r\n|\n|\r)$)|(^(\r\n|\n|\r))|^\s*$/i]
     }))
+    .pipe(header(banner, { pkg: pkg }))
     .pipe(gulp.dest(distDir));
 }
 
 function copyToSamples(cb) {
-  fs.copyFile(fullDistPath, path.join('source/tests', distFile), cb);
+  fs.copyFile(fullDistPath, path.join('frameworkTests/source/tests', distFile), cb);
   fs.copyFile(fullDistPath, path.join('samples/Overview/source/tests', distFile), cb);
   fs.copyFile(fullDistPath, path.join('samples/nonEvalSample/source/tests', distFile), cb);
 }
@@ -64,30 +64,21 @@ function copyToSamples(cb) {
 /**
  * This target is used for CI
  */
-export async function sendFrameworkTestsToDevice(cb) {
-  await rokuDeploy.prepublishToStaging(args);
-  console.log('wtf1');
-  let task = cp.exec('rooibosC p out/.roku-deploy-staging/tests');
+export function prepareFrameworkTests(cb) {
+  rokuDeploy.prepublishToStaging(args);
+  let task = cp.exec('rooibosC p out/.roku-deploy-staging/source/tests');
   task.stdout.pipe(process.stdout)
-  task.on('exit', async function() {
-    console.log('wtf4');
-    await rokuDeploy.zipPackage(args);
-    await rokuDeploy.publish(args);
-  })
+  return task;
 }
 
-// export async function executeTests(cb) {
-//   const args = {
-//     host: '192.168.16.3',
-//     password: 'aaaa',
-//     rootDir: 'source',
-//     outDir: outDir
-//   };
-//   await rokuDeploy.prepublishToStaging(args);
-//   // await rokuDeploy.zipPackage(args);
-//   // await rokuDeploy.publish(args);
-//   cb();
-// }
+export async function zipFrameworkTests(cb) {
+  await rokuDeploy.zipPackage(args);
+}
+
+export async function deployFrameworkTests(cb) {
+  await rokuDeploy.publish(args);
+}
 
 exports.build = series(clean, createDirectories, squash, copyToSamples);
-exports.runFrameworkTests = series(exports.build, sendFrameworkTestsToDevice)
+exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
+exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
