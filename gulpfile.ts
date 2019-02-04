@@ -80,7 +80,7 @@ export async function deployFrameworkTests(cb) {
 }
 
 export function doc(cb) {
-  let task = cp.exec('./node_modules/.bin/jsdoc -c jsdoc.json -t node_modules/minami -d apiDocs');
+  let task = cp.exec('./node_modules/.bin/jsdoc -c jsdoc.json -t node_modules/minami -d docs');
   return task;
 }
 
