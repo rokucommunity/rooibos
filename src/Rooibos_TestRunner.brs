@@ -166,7 +166,7 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       testSuite.global = nodeContext.global
       testSuite.top = nodeContext.top
     end if
-    
+
     if (RBS_CMN_IsFunction(testUtilsDecorator))
       testUtilsDecorator(testSuite)
     end if
@@ -199,7 +199,7 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
     end if
 
     if (runtimeConfig.hasSoloTests)
-      if (not itGroup.hasSoloTests)
+      if (itGroup.hasSoloTests <> true)
         if (config.logLevel = 2)
           ? "Ignoring itGroup " ; itGroup.name ; " Because it has no solo tests"
         end if
@@ -258,9 +258,9 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
 
     testStatObj.metaTestCase.testResult = testSuite.currentResult
 
-    if (metaTestCase.isParamTest)
-      testCaseParams = metaTestCase.rawParams
-      if (metaTestCase.isParamsValid)
+    if (metaTestCase.isParamsValid)
+      if (metaTestCase.isParamTest)
+        testCaseParams = metaTestCase.rawParams
         'up to 6 param args supported for now
         if (metaTestCase.expectedNumberOfParams = 1)
           testSuite.testCase(testCaseParams[0])
@@ -276,10 +276,10 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
         end if
       else
-        testSuite.Fail("Could not parse args for test ")
+        testSuite.testCase()
       end if
     else
-      testSuite.testCase()
+      testSuite.Fail("Could not parse args for test ")
     end if
     if testSuite.isAutoAssertingMocks = true
       testSuite.AssertMocks()

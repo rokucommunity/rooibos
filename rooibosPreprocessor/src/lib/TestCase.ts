@@ -47,7 +47,7 @@ export class TestCase {
       rawParams: this.rawParams || [],
       paramTestIndex: this.paramTestIndex,
       expectedNumberOfParams: this.expectedNumberOfParams,
-      isParamsValid: this.isParamTest && this.rawParams && this.rawParams.length === this.expectedNumberOfParams
+      isParamsValid: (this.rawParams || []).length === this.expectedNumberOfParams
     };
   }
 

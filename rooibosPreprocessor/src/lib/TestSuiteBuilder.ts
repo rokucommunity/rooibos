@@ -307,6 +307,7 @@ export class TestSuiteBuilder {
               }
             } else {
               let testCase = new TestCase(testName, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber);
+              testCase.expectedNumberOfParams = numberOfExpectedParams;
               this.currentTestCases.push(testCase);
             }
             if (this.currentGroup) {
