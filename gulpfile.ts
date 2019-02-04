@@ -79,6 +79,11 @@ export async function deployFrameworkTests(cb) {
   await rokuDeploy.publish(args);
 }
 
+export function doc(cb) {
+  let task = cp.exec('./node_modules/.bin/jsdoc -c jsdoc.json -t node_modules/minami -d apiDocs');
+  return task;
+}
+
 exports.build = series(clean, createDirectories, squash, copyToSamples);
 exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
 exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
