@@ -66,7 +66,7 @@ function copyToSamples(cb) {
  */
 export function prepareFrameworkTests(cb) {
   rokuDeploy.prepublishToStaging(args);
-  let task = cp.exec('rooibosC p out/.roku-deploy-staging/source/tests');
+  let task = cp.exec('rooibosC p out/.roku-deploy-staging/source/tests out/.roku-deploy-staging');
   task.stdout.pipe(process.stdout)
   return task;
 }
