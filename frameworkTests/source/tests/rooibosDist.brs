@@ -1,11 +1,13 @@
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
-function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = "TestsScene") as void
-  if args.RunTests = invalid or args.RunTests <> "true" or createObject("roAPPInfo").IsDev() <> true then
+'/**
+' * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
+' * @version v2.0.0
+' * @link https://github.com/georgejecook/rooibos#readme
+' * @license MIT
+' */
+function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = "TestsScene") as void
+  args = {}
+  if createObject("roAPPInfo").IsDev() <> true then
+    ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
     return
   end if
   args.testUtilsDecoratorMethodName = testUtilsDecoratorMethodName
@@ -40,12 +42,6 @@ function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodNa
     end if
   end while
 end function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function BaseTestSuite() as Object
   this = {}
   this.Name               = "BaseTestSuite"
@@ -1188,12 +1184,6 @@ Function RBS_BTS_rodash_get_(aa, path, default=invalid)
   if result = invalid then return default
     return result
 End Function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function RBS_CMN_IsXmlElement(value as Dynamic) as Boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifXMLElement") <> invalid
 end function
@@ -1408,12 +1398,6 @@ end function
 function RBS_CMN_NodeContains(node as Object, value as Object) as Boolean
   return (RBS_CMN_FindElementIndexInNode(node, value) > -1)
 end function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function UnitTestItGroup(name, isSolo, isIgnored, filename)
   this = {}
   this.testCases = createObject("roArray", 0, true)
@@ -1475,12 +1459,6 @@ function RBS_ItG_GetRunnableTestSuite(group) as object
   runnableSuite.AfterEach =  RBS_CMN_GetFunction(group.filename, group.afterEachFunctionName) 
   return runnableSuite
 end function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 Function ItemGenerator(scheme as object) as Object
   this = {}
   this.getItem    = RBS_IG_GetItem
@@ -1563,15 +1541,8 @@ Function RBS_IG_GetString(seed as integer) as string
   end if
   return item
 End Function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function UnitTestRuntimeConfig()
   this = {}
-  this.testsDirectory = testsDirectory
   this.CreateSuites = RBS_CreateSuites
   this.hasSoloSuites = false
   this.hasSoloGroups = false
@@ -1581,9 +1552,9 @@ function UnitTestRuntimeConfig()
 end function
 function RBS_CreateSuites()
   suites = RBSFM_getTestSuitesForProject()
-  for i = 0 to suites.length -1
+  for i = 0 to suites.count() -1
     suite = suites[i]
-    if (suite.isValid)
+    if (suite.valid)
       if (suite.isSolo)
         m.hasSoloSuites = true
       end if
@@ -1593,18 +1564,13 @@ function RBS_CreateSuites()
       if (suite.hasSoloGroups)
         m.hasSoloGroups = true
       end if
-      result.Push(suite)
+      suites.Push(suite)
     else
+      ? "ERROR! suite was not valid - ignoring"
     end if
   end for
   return suites
 end function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function RBS_STATS_CreateTotalStatistic() as Object
   statTotalItem = {
     Suites    : []
@@ -1690,12 +1656,6 @@ sub RBS_STATS_AppendSuiteStatistic(statTotalObj as Object, statSuiteObj as Objec
     end if
   end if
 end sub
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function UnitTestCase(name as string, func as dynamic, funcName as string, isSolo as boolean, isIgnored as boolean, lineNumber as integer, params = invalid, paramTestIndex =0, paramLineNumber = 0)
   this = {}
   this.isSolo = isSolo
@@ -1728,12 +1688,6 @@ function RBS_TC_GetAssertLine(testCase, index)
     return testCase.lineNumber
   end if
 end function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function Logger(config) as Object
   this = {}
   this.config = config
@@ -1880,12 +1834,6 @@ sub RBS_LOGGER_PrintTestTearDown(tName as String)
     ? "----------------------------------------------------------------"
   end if
 end sub
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function UnitTestResult() as object
   this = {}
   this.messages = CreateObject("roArray", 0, true)
@@ -1924,12 +1872,6 @@ function RBS_TRes_GetResult() as string
     return ""
   end if
 end function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function RBS_TR_TestRunner(args = {}) as Object
   this = {}
   this.testScene = args.testScene
@@ -2202,12 +2144,6 @@ Function Rooibos_CreateTestNode(nodeType) as Object
   return invalid
   end if
 End Function
-/**
- * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
- * @version v2.0.0
- * @link https://github.com/georgejecook/rooibos#readme
- * @license MIT
- */
 function UnitTestSuite(filePath as string, maxLinesWithoutSuiteDirective = 100, supportLegacyTests  = false)
   this = {}
   this.filePath = filePath

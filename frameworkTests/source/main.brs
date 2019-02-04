@@ -1,9 +1,5 @@
 sub Main(args as dynamic)
-    ? "Launching with args "
-    ? args
-    m.args = args
-
-    if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, AddTestUtils)
+    if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals, AddTestUtils)
 
     InitScreen()
 end sub
@@ -23,7 +19,7 @@ function InitScreen() as void
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
     
-    rootScene = screen.CreateScene("MainScene")
+    rootScene = screen.CreateScene("TestsScene")
     rootScene.id = "ROOT"
     
     screen.show()
