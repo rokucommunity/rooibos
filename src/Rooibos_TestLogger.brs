@@ -102,7 +102,7 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
   locationText = testCase.filePath.trim() + "(" + locationLine + ")"
   
   insetText = ""
-  if (not metaTestcase.isParamTest)
+  if (metaTestcase.isParamTest <> true)
     messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
     ? messageLine ; testCase.Result 
   else if ( metaTestcase.paramTestIndex = 0)
@@ -113,7 +113,7 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as Object)
     ? " " + testChar + " |--" + name+ " : "
   end if
 
-  if (metaTestcase.isParamTest)
+  if (metaTestcase.isParamTest = true)
     insetText = "  "
     messageLine = RBS_LOGGER_FillText(" " + testChar + insetText + " |--" + metaTestCase.rawParams + " : ", ".", 80)
     ? messageLine ; testCase.Result 

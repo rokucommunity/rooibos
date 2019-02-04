@@ -1,6 +1,5 @@
 function UnitTestRuntimeConfig()
   this = {}
-  this.testsDirectory = testsDirectory
   this.CreateSuites = RBS_CreateSuites
   this.hasSoloSuites = false
   this.hasSoloGroups = false
@@ -11,22 +10,22 @@ end function
 
 function RBS_CreateSuites()
   suites = RBSFM_getTestSuitesForProject()
-  for i = 0 to suites.length -1
+  for i = 0 to suites.count() -1
     suite = suites[i]
-    if (suite.isValid)
+    if (suite.valid)
       if (suite.isSolo)
         m.hasSoloSuites = true
       end if
-      if (suite.hasSoloTests)
+      if (suite.hasSoloTests = true)
         m.hasSoloTests = true
       end if
-      if (suite.hasSoloGroups)
+      if (suite.hasSoloGroups = true)
         m.hasSoloGroups = true
       end if
       '          ? "valid - suite"
-      result.Push(suite)
+      suites.Push(suite)
     else
-      '          ? "suite was not valid - ignoring"
+      ? "ERROR! suite was not valid - ignoring"
     end if
 
   end for

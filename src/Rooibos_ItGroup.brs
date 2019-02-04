@@ -27,11 +27,11 @@ function UnitTestItGroup(name, isSolo, isIgnored, filename)
 end function
 
 function RBS_ItG_AddTestCase(testCase)
-  if (testCase.isSolo)
+  if (testCase.isSolo = true)
     m.hasSoloTestCases = true
     m.soloTestCases.push(testCase)
     m.hasSoloTests = true
-  else if (testCase.isIgnored)
+  else if (testCase.isIgnored = true)
     m.ignoredTestCases.push(testCase)
   else
     m.testCases.push(testCase)
@@ -40,7 +40,7 @@ end function
 
 
 function RBS_ItG_GetTestCases(group) as object
-  if (group.hasSoloTests)
+  if (group.hasSoloTests = true)
     return group.soloTestCases
   else
     return group.testCases
@@ -56,7 +56,7 @@ function RBS_ItG_GetRunnableTestSuite(group) as object
   
   for each testCase in testCases
     name = testCase.name
-    if (testCase.isSolo)
+    if (testCase.isSolo = true)
       name += " [SOLO] "
     end if
     testFunction = RBS_CMN_GetFunction(group.filename, testCase.funcName)

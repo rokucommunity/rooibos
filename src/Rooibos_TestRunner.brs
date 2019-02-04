@@ -89,15 +89,15 @@ sub RBS_TR_Run()
   totalStatObj.testRunHasFailures = false
   
   for each metaTestSuite in m.runtimeConfig.suites
-    if (m.runtimeConfig.hasSoloTests )
-      if (not metaTestSuite.hasSoloTests)
+    if (m.runtimeConfig.hasSoloTests = true)
+      if (metaTestSuite.hasSoloTests <> true)
         if (m.config.logLevel = 2)
           ? "TestSuite " ; metaTestSuite.name ; " Is filtered because it has no solo tests"
         end if 
         goto skipSuite
       end if
     else if (m.runtimeConfig.hasSoloSuites)
-      if (not metaTestSuite.isSolo)
+      if (metaTestSuite.isSolo <> true)
         if (m.config.logLevel = 2)
           ? "TestSuite " ; metaTestSuite.name ; " Is filtered due to solo flag"
         end if
@@ -105,7 +105,7 @@ sub RBS_TR_Run()
       end if
     end if
     
-    if (metaTestSuite.isIgnored)
+    if (metaTestSuite.isIgnored = true)
       if (m.config.logLevel = 2)
         ? "Ignoring TestSuite " ; metaTestSuite.name ; " Due to Ignore flag"
       end if
@@ -115,7 +115,7 @@ sub RBS_TR_Run()
       goto skipSuite
     end if
 
-    if (metaTestSuite.isNodeTest and metaTestSuite.nodeTestFileName <> "")
+    if (metaTestSuite.isNodeTest = true and metaTestSuite.nodeTestFileName <> "")
       ? " +++++RUNNING NODE TEST"
       nodeType = metaTestSuite.nodeTestFileName
       ? " node type is " ; nodeType
@@ -171,7 +171,7 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
     
     totalStatObj.Ignored += itGroup.ignoredTestCases.count()
 
-    if (itGroup.isIgnored)
+    if (itGroup.isIgnored = true)
       if (config.logLevel = 2)
         ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
       end if
@@ -183,7 +183,7 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name)
       totalStatObj.ignored += itGroup.ignoredTestCases.count()
       for each testCase in itGroup.ignoredTestCases
-        if (not testcase.isParamTest)
+        if (testcase.isParamTest <> true)
         totalStatObj.IgnoredTestNames.push("  | |--" + testCase.name)
         else if (testcase.paramTestIndex = 0)
         testCaseName = testCase.Name
@@ -204,7 +204,7 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
         goto skipItGroup
       end if
     else if (runtimeConfig.hasSoloGroups)
-      if (not itGroup.isSolo)
+      if (itGroup.isSolo <> true)
         goto skipItGroup
       end if
     end if
