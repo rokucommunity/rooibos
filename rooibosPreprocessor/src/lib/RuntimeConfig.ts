@@ -48,7 +48,7 @@ export class RuntimeConfig {
    * @function processSourceFolder
    * @param directory
    */
-  public processPath(directory: string) {
+  public processPath(directory: string, rootPath?: string) {
     debug(`processing files at path ${directory} `);
     //TODO - make async.
     //TODO - cachetimestamps for files - for performance
@@ -63,7 +63,7 @@ export class RuntimeConfig {
           if (!this._excludeMatcher.match(directory)) {
             const fileDescriptor = new FileDescriptor(directory, filename, path.extname(filename));
             this._functionMap.processFile(fileDescriptor);
-            let testSuite = testSuiteBuilder.processFile(fileDescriptor);
+            let testSuite = testSuiteBuilder.processFile(fileDescriptor, rootPath);
             if (testSuite.isValid) {
               this.testSuites.push(testSuite);
               if (testSuite.isSolo) {

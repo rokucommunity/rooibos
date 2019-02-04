@@ -7,17 +7,19 @@ import { RuntimeConfig } from './RuntimeConfig';
 const debug = Debug('RooibosProcessor');
 
 export default class RooibosProcessor {
-  constructor(testsPath) {
+  constructor(testsPath: string, rootPath?: string) {
     if (!testsPath) {
       throw new Error('testsPath is empty');
     }
     this._testsPath = testsPath;
+    this._rootPath = rootPath || '';
     this._warnings = [];
     this._errors = [];
     this._mapFilename = `rooibosFunctionMap.brs`;
   }
 
   private readonly _testsPath: string;
+  private readonly _rootPath: string;
   private readonly _mapFilename: string;
   private readonly _warnings: string[];
   private readonly _errors: string[];
@@ -42,7 +44,7 @@ export default class RooibosProcessor {
 
     debug(`Adding runtimeConfig `);
     let runtimeConfig = new RuntimeConfig(functionMap);
-    runtimeConfig.processPath(this.testsPath);
+    runtimeConfig.processPath(this.testsPath, this._rootPath);
 
     debug(`Adding function map `);
     outputText += '\n' + functionMap.getFunctionMapText();

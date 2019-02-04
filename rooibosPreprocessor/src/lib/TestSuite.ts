@@ -19,6 +19,7 @@ export class TestSuite {
     this.nodeTestFileName = '';
   }
 
+  public filePath: string;
   public name: string;
   public isNodeTest: boolean;
   public isSolo: boolean;
@@ -40,6 +41,7 @@ export class TestSuite {
   public asJson(): object {
     return {
       name: this.name,
+      filePath: this.filePath,
       valid: this.isValid,
       hasFailures: this.hasFailures,
       hasSoloTests: this.hasSoloTests,

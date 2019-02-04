@@ -50,7 +50,7 @@ export class TestSuiteBuilder {
     return this._maxLinesWithoutSuiteDirective;
   }
 
-  public processFile(fileDescriptor: FileDescriptor): TestSuite {
+  public processFile(fileDescriptor: FileDescriptor, rootPath?: string): TestSuite {
     'find a marker to indicate this is a test suit';
     let code = fileDescriptor ? fileDescriptor.fileContents : null;
     let testSuite = new TestSuite();
@@ -80,7 +80,7 @@ export class TestSuiteBuilder {
     let currentLocation = '';
     let lines = code.split(/\r?\n/);
     let filePath = fileDescriptor.fullPath;
-
+    testSuite.filePath = fileDescriptor.getPackagePath(rootPath || '');
     this.groupNameCounts = {};
     this.currentGroup = null;
     this.reset();

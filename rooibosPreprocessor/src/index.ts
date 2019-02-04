@@ -7,7 +7,7 @@ program
   .description('Rooibos Preprocessor');
 
 program
-  .command('process <testsFolder>')
+  .command('process <testsFolder> <rootPath>')
   .alias('p')
   .description(`
   processes a brightscript SceneGraph project and creates json data structures
@@ -15,9 +15,10 @@ program
 
   HAPPY TESTING :)
   `)
-  .action((testsPath) => {
+  .action((testsPath, rootPath) => {
     console.log(`Processing test path ${testsPath}`);
-    let processor = new RooibosProcessor(testsPath);
+    console.log(`Processing rooth path is  ${rootPath}`);
+    let processor = new RooibosProcessor(testsPath, rootPath);
     processor.processFiles();
   });
 

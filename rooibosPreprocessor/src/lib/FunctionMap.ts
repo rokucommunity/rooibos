@@ -54,6 +54,7 @@ export default class FunctionMap {
     for (let filename in this.functionMaps) {
       text += this.createGetFunctionsMethod(filename, this.functionMaps[filename]);
     }
+    text += this.createGetFilenames();
     return text;
   }
 
@@ -65,6 +66,18 @@ export default class FunctionMap {
     }
     text +=	'  } \n' +
       '  return map[filename]\n' +
+      'end function\n\n';
+
+    return text;
+  }
+
+  public createGetFilenames() {
+    let text = 'function RBSFM_getFilenames()\n' +
+      '  return [\n';
+    for (let filename in this.functionMaps) {
+      text += `    "${filename}", \n`;
+    }
+    text +=	'  ] \n' +
       'end function\n\n';
 
     return text;
