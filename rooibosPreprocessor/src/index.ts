@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 import RooibosProcessor from './lib/RooibosProcessor';
 const program = require('commander');
-const fs = require('fs');
-const inspect = require('util').inspect;
-
-console.log(`Running`);
-
+const pkg = require('../package.json');
 program
-  .version('1.0.1')
+  .version(pkg.version)
   .description('Rooibos Preprocessor');
 
 program

@@ -39,7 +39,7 @@ export class ItGroup {
       afterEachFunctionName: this.afterEachFunctionName,
       isSolo: this.isSolo,
       isIgnored: this.isIgnored,
-      hasSoloTests: this.hasSoloTests,
+      hasSoloTests: this.hasSoloTests || false,
       name: this.name
     };
   }
