@@ -1,5 +1,6 @@
 export class TestCase {
-  constructor(name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number, params?: string, paramTestIndex: number = 0, paramLineNumber: number = 0) {
+  constructor(name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number,
+              params: any[] = null, paramTestIndex: number = 0, paramLineNumber: number = 0, expectedNumberOfParams: number = 0) {
 
     this.isSolo = isSolo;
     this.funcName = funcName;
@@ -9,7 +10,8 @@ export class TestCase {
     this.paramLineNumber = paramLineNumber;
     this.assertIndex = 0;
     this.assertLineNumberMap = {};
-    this.rawParams = params || '';
+    this.rawParams = params;
+    this.expectedNumberOfParams = expectedNumberOfParams;
     this.paramTestIndex = paramTestIndex;
     this.isParamTest = false;
 
@@ -26,8 +28,9 @@ export class TestCase {
   public lineNumber: number;
   public paramLineNumber: number;
   public assertIndex: number;
+  public expectedNumberOfParams: number;
   public assertLineNumberMap: object;
-  public rawParams: string;
+  public rawParams: any[];
   public paramTestIndex: number;
 
   public asJson(): object {
@@ -43,6 +46,8 @@ export class TestCase {
       assertLineNumberMap: this.assertLineNumberMap,
       rawParams: this.rawParams,
       paramTestIndex: this.paramTestIndex,
+      expectedNumberOfParams: this.expectedNumberOfParams,
+      isParamsValid: this.isParamTest && this.rawParams && this.rawParams.length === this.expectedNumberOfParams
     };
   }
 

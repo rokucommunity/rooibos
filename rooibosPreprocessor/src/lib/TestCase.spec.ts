@@ -25,7 +25,7 @@ function copyFiles() {
   }
 }
 
-describe('TestSuite tests ', function() {
+describe('TestCase tests ', function() {
   beforeEach(() => {
     builder = new TestSuiteBuilder(50);
   });
@@ -41,8 +41,12 @@ describe('TestSuite tests ', function() {
       let testSuite = builder.processFile(fileDescriptor);
       expect(testSuite).to.not.be.null;
       expect(testSuite.isValid).to.be.true;
-      let json = testSuite.asJson();
+      let json: any = testSuite.asJson();
       expect(json).to.not.be.null;
+      expect(json.itGroups['1'].testCases['1'].isParamsValid).to.be.true;
+      expect(json.itGroups['1'].testCases['1'].isParamTest).to.be.true;
+      expect(json.itGroups['1'].testCases['1'].expectedNumberOfParams).to.equal(3);
+      expect(json.itGroups['1'].testCases['1'].rawParams.length).to.equal(3);
     });
   });
 });

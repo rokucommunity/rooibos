@@ -5,6 +5,7 @@ import { ItGroup } from './ItGroup';
 import { Tag } from './Tag';
 import { TestCase } from './TestCase';
 import { TestSuite } from './TestSuite';
+import { expect } from 'chai';
 
 const debug = Debug('RooibosProcessor');
 
@@ -16,6 +17,7 @@ export class TestSuiteBuilder {
   constructor(maxLinesWithoutSuiteDirective: number) {
     this._maxLinesWithoutSuiteDirective = maxLinesWithoutSuiteDirective;
     this.functionNameRegex = new RegExp('^\\s*(function|sub)\\s*([0-9a-z_]*)s*\\(', 'i');
+    this.functionSignatureRegex = new RegExp('^\\s*(function|sub)\\s*[0-9a-z_]*s*\\((.*)\\)', 'i');
     this.assertInvocationRegex = new RegExp('^\s*(testSuite.fail|testSuite.Fail|testSuite.assert|testSuite.Assert)(.*)\\(', 'i');
     this.functionEndRegex = new RegExp('^\s*(end sub|end function)', 'i');
     this._warnings = [];
@@ -30,6 +32,7 @@ export class TestSuiteBuilder {
   public currentGroup?: ItGroup;
   private functionEndRegex: RegExp;
   private functionNameRegex: RegExp;
+  private functionSignatureRegex: RegExp;
   private assertInvocationRegex: RegExp;
 
   private hasCurrentTestCase: boolean;
@@ -274,6 +277,7 @@ export class TestSuiteBuilder {
         //have to find a function definition here - if it's !then this i {
         let functionName = this.getFunctionFromLine(line);
         if (functionName) {
+          let numberOfExpectedParams = this.getNumberOfExpectedParamsFromLine(line);
           if (isNextTokenTest) {
             let testName = nextName || functionName;
             nodeTestFileName = nodeTestFileName || testSuite.nodeTestFileName;
@@ -290,8 +294,9 @@ export class TestSuiteBuilder {
               }
               for (let index = 0; index < paramsToUse.length; index++) {
                 let params = paramsToUse[index];
+
                 let paramLineNumber = paramLineNumbersToUse[index];
-                let testCase = new TestCase(testName, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber, params, index, paramLineNumber);
+                let testCase = new TestCase(testName, functionName, isNextTokenSolo, isNextTokenIgnore, lineNumber, params, index, paramLineNumber, numberOfExpectedParams);
                 testCase.isParamTest = true;
                 if (testCase) {
                   this.currentTestCases.push(testCase);
@@ -409,6 +414,12 @@ export class TestSuiteBuilder {
     return matches ? matches[2] : null;
   }
 
+  public getNumberOfExpectedParamsFromLine(line: string): number {
+    let matches = line.match(this.functionSignatureRegex);
+    let text = matches ? matches[2] : null;
+    return text ? text.split(',').length : 0;
+  }
+
   public isTag(text: string, tag: Tag): boolean {
     return text.substring(0, tag.length).toUpperCase() === tag.toUpperCase();
   }
@@ -435,7 +446,7 @@ export class TestSuiteBuilder {
       targetParamsArray.push(jsonParams);
       targetParamLinesArray.push(lineNumber);
     } catch (e) {
-      this.errors.push(`illeagal params found at ${currentLocation}. Not adding test - params were : ${line}`);
+      this.errors.push(`illegal params found at ${currentLocation}. Not adding test - params were : ${line}`);
     }
   }
 }

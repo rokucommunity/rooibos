@@ -125,6 +125,11 @@ describe('TestSuiteBuilder tests ', function() {
       let testSuite = builder.processFile(fileDescriptor);
       expect(testSuite).to.not.be.null;
       expect(testSuite.isValid).to.be.true;
+      expect(testSuite.itGroups[0].testCases[0].expectedNumberOfParams).to.equal(2);
+      expect(testSuite.itGroups[0].testCases[0].rawParams.length).to.equal(2);
+
+      expect(testSuite.itGroups[0].testCases[1].expectedNumberOfParams).to.equal(2);
+      expect(testSuite.itGroups[0].testCases[1].rawParams.length).to.equal(2);
     });
 
   });
