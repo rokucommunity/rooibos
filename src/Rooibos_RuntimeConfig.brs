@@ -1,47 +1,33 @@
-function UnitTestRuntimeConfig(testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests = false)
+function UnitTestRuntimeConfig()
   this = {}
-  this.testsDirectory = testsDirectory
   this.CreateSuites = RBS_CreateSuites
   this.hasSoloSuites = false
   this.hasSoloGroups = false
   this.hasSoloTests = false
-  this.suites = this.CreateSuites(this.testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests)
+  this.suites = this.CreateSuites()
   return this
 end function
 
-function RBS_CreateSuites(testsDirectory, maxLinesWithoutSuiteDirective, supportLegacyTests )
-  result =  CreateObject("roArray", 0, true)
-  testsFileRegex = CreateObject("roRegex", "^[0-9a-z\_]*\.brs$", "i")
-
-  if testsDirectory <> ""
-    fileSystem = CreateObject("roFileSystem")
-    listing = fileSystem.GetDirectoryListing(testsDirectory)
-    for each item in listing
-      itemPath = testsDirectory + "/" + item
-      itemStat = fileSystem.Stat(itemPath)
-
-      if itemStat.type = "directory" then
-        result.append(m.CreateSuites(itemPath, maxLinesWithoutSuiteDirective, supportLegacyTests ))
-      else if testsFileRegex.IsMatch(item) then
-'        ? "processing file " ; itemPath
-        suite = UnitTestSuite(itemPath, maxLinesWithoutSuiteDirective, supportLegacyTests)
-        if (suite.isValid)
-          if (suite.isSolo)
-            m.hasSoloSuites = true
-          end if
-          if (suite.hasSoloTests)
-            m.hasSoloTests = true
-          end if
-          if (suite.hasSoloGroups)
-            m.hasSoloGroups = true
-          end if
-'          ? "valid - suite"
-          result.Push(suite)
-        else 
-'          ? "suite was not valid - ignoring"
-        end if
+function RBS_CreateSuites()
+  suites = RBSFM_getTestSuitesForProject()
+  for i = 0 to suites.count() -1
+    suite = suites[i]
+    if (suite.valid)
+      if (suite.isSolo)
+        m.hasSoloSuites = true
       end if
-    end for
-  end if
-  return result
+      if (suite.hasSoloTests = true)
+        m.hasSoloTests = true
+      end if
+      if (suite.hasSoloGroups = true)
+        m.hasSoloGroups = true
+      end if
+      '          ? "valid - suite"
+      suites.Push(suite)
+    else
+      ? "ERROR! suite was not valid - ignoring"
+    end if
+
+  end for
+  return suites
 end function

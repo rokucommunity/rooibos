@@ -13,7 +13,7 @@ function UnitTestCase(name as string, func as dynamic, funcName as string, isSol
   this.AddAssertLine = RBS_TC_AddAssertLine
   this.getTestLineIndex = 0
   this.rawParams = params
-  this.paramTestIndex = paramTestIndex 
+  this.paramTestIndex = paramTestIndex
   this.isParamTest = false
   if (params <> invalid)
     this.name += stri(this.paramTestIndex)

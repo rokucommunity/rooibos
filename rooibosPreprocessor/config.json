@@ -1,0 +1,12 @@
+{
+	"importRegex": "('@Import )(\\w*)",
+	"namespaceRegex": "('@Namepsace )(\\w*)",
+	"importXMLRegex": "<script(.|\n)*type=\"text\\/brightscript\"(.|\\n)*uri=\"pkg:\\/(.*)\"(.|\\n)/>",
+	"importTemplate": "<script type=\"text/brightscript\" uri=\"$PATH$\" />",
+	"observeRegex": "\"{\"",
+	"bindingRegex": "\"{\"",
+	"bindingObserverRegex": "\"{\"",
+	"excludedFolders": [
+		"components/screens/excluded"
+	]
+}
