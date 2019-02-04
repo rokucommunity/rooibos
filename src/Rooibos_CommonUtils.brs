@@ -53,8 +53,44 @@ function RBS_CMN_GetFunction(filename, functionName) as object
     end if
   end if
   return invalid
-  
+
 end function
+
+' /**
+'  * @name RBS_CMN_GetFunctionBruteforce
+'  * @function
+'  * @description looks up the function by name, from any function map
+'  *            in future, functions retrieved in this way are stored in the special RBS_INTERNAL file map
+'  * @memberof module:CommonUtils
+'  * @param {filename} string - name of the file where the function was found
+'  * @param {String} functionName - name of the function to locate
+'  * @returns {Function} - function pointer or invalid
+'  */
+function RBS_CMN_GetFunctionBruteForce(functionName) as object
+  if (not RBS_CMN_IsNotEmptyString(functionName)) then return invalid
+  ' func = RBS_CMN_GetFunction("RBS_INTERNAL", functionName)
+  ' if func <> invalid
+  '   return func
+  ' end if
+
+  filenames = RBSFM_getFilenames()
+  for i = 0 to filenames.count() - 1
+    filename = filenames[i]
+    mapFunction = RBSFM_getFunctionsForFile(filename)
+    if mapFunction <> invalid
+      map = mapFunction()
+      if (type(map) ="roAssociativeArray")
+        functionPointer = map[functionName]
+        if functionPointer <> invalid
+          return functionPointer
+        end if
+      end if
+    end if
+  end for
+  return invalid
+
+end function
+
 ' /**
 '  * @name IsBoolean
 '  * @function

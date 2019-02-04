@@ -152,6 +152,13 @@ sub RBS_TR_Run()
 end sub
 
 sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)
+  if (testUtilsDecoratorMethodName <> invalid)
+    testUtilsDecorator = RBS_CMN_GetFunctionBruteForce(testUtilsDecoratorMethodName)
+    if (not RBS_CMN_IsFunction(testUtilsDecorator))
+      ? "[ERROR] Test utils decorator method `" ; testUtilsDecoratorMethodName ;"` was not in scope! for testSuite: " + metaTestSuite.name
+    end if
+  end if
+
   for each itGroup in metaTestSuite.itGroups
     testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
     if (nodeContext <> invalid)
@@ -159,16 +166,11 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       testSuite.global = nodeContext.global
       testSuite.top = nodeContext.top
     end if
-        
-    if (testUtilsDecoratorMethodName <> invalid)
-      testUtilsDecorator = RBS_CMN_GetFunction("RBS_INTERNAL", testUtilsDecoratorMethodName)
-      if (RBS_CMN_IsFunction(testUtilsDecorator))
-        testUtilsDecorator(testSuite)
-      else
-        ? "Test utils decorator method `" ; testUtilsDecoratorMethodName ;"` was not in scope!" 
-      end if
-    end if
     
+    if (RBS_CMN_IsFunction(testUtilsDecorator))
+      testUtilsDecorator(testSuite)
+    end if
+
     totalStatObj.Ignored += itGroup.ignoredTestCases.count()
 
     if (itGroup.isIgnored = true)
