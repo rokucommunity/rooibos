@@ -7,7 +7,6 @@
 '  * @name Rooibos__Init
 '  * @function
 '  * @description Entry point for rooibos unit testing framework. Will identify, run, and report all tests in the app, before terminating the application.
-'  * @param {Dynamic} args - Associative array of args to pass into the test runner
 '  * @param {Dynamic} preTestSetup - called to do any initialization once the screen is created
 '  *                   Use this to configure anything such as globals, etc that you need
 '  * @param {Dynamic} testUtilsDecorator - will be invoked, with the test case as a param - the function
@@ -16,9 +15,10 @@
 '  * @param testsSceneName as string - name of scene to create. All unit tests run in the scene thread
 '  *                   and therefore require a screen and scene are created.
 '  */
-function Rooibos__Init(args, preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = "TestsScene") as void
-
-  if args.RunTests = invalid or args.RunTests <> "true" or createObject("roAPPInfo").IsDev() <> true then
+function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = "TestsScene") as void
+  args = {}
+  if createObject("roAPPInfo").IsDev() <> true then
+    ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
     return
   end if
 
