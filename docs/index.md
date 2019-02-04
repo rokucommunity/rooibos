@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../images/logo.png" alt="Mocha test framework" width="200" height="200"/>
+  <img src="../images/logo.png" alt="Rooibos test framework" width="200" height="200"/>
 </p>
 <h3 align="center">
 Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
@@ -48,24 +48,27 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibos.ca
 <a name="easy-to-integrate"></a>
 
 1. Clone or download this repo
-2. Run `make dist`
-3. Copy `dist/rooibos.cat.brs` to your `source` folder
-4. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens
+2. Run `npm install`
+3. Run `gulp build`
+4. Copy `dist/rooibosDist.brs` to your `source/tests` folder
+5. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens
 
 	```
-	if (type(Rooibos__Init) = "Function") then Rooibos__Init(args)
+	if (type(Rooibos__Init) = "Function") then Rooibos__Init()
 	```
-3. Create a Scene named `TestsScene.xml`, in your `components` folder, which Rooibos will use when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`. `samples/Overview/` contains a reference implementation.
-4. Create `.brs` test files within your `tests` folder, which corresponds to the `testsDirectory` config setting (default is "pkg:/source/Tests"). Test files can (and are encouraged to) be stored in nested folders, to match your source/component folder hiearchy
-5. Install [RooibosC](#rooibosC) preprocessor
+	
+	Note - rooibos will run if it is present. *You should be filtering out your tests folder, containing rooibosDist.brs, and your tests as part of your build process*, which is the preferred mechanism to disable/enable rooibos.
+	
+6. Create a Scene named `TestsScene.xml`, in your `components` folder, which Rooibos will use when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`. `samples/Overview/` contains a reference implementation.
+7. Create `.brs` test files within your `tests` folder, which corresponds to the `testsDirectory` config setting (default is "pkg:/source/Tests"). Test files can (and are encouraged to) be stored in nested folders, to match your source/component folder hiearchy
+8. Install [RooibosC](#rooibosC) preprocessor
 
 ### RooibosC
 
 To get the best performance and test flexibility, rooibos leverages a javascript based preprocessor, which prepares some files which get sideloaded with your tests. Simply:
 
-1. `cd rooibosPreprocessor`
-2. `npm link`
-3. execute the following command from your ci/test run/make file/gulp script: `rooibosC m source/tests/`, or whatever the root path of your test folder is.
+1. `npm install -g rooibos-preprocessor`
+2. execute the following command from your ci/test run/make file/gulp script: `rooibosC p build/path/source/tests/ build/path`, where the args are pathToYourTests, pathToRootFolder. The latter is used to fix the `pkg:/locations` in rooibos's output.
 
 ### Configuring Rooibos
 Rooibos's configuration is controlled via a json config file. The default location for this file is `pkg:/source/Tests/testconfig.json`. If the file is not found, then it is created with default values.
@@ -75,22 +78,10 @@ An example config file looks like this:
 ```
 {
 	"logLevel": 1,
-	"testsDirectory": "pkg:/source/Tests",
-	"testFilePrefix": "Test__",
 	"failFast": false,
 	"swallowRuntimeErrors": false,
 	"showOnlyFailures": false,
-	"maxLinesWithoutSuiteDirective": 100
 }
-```
-
-Each of these args can also be overridden, by passing them as query params when launching the tests. The default location of the `testconfig.json` file can also be set by passing the query argument `testConfigPath`
-
-e.g. you may have a run target in your `Makefile` to display only failed unit tests, as such:
-
-```
-testFailures:
-	curl -d '' "http://${ROKU_DEV_TARGET}:8060/launch/dev?RunTests=true&showOnlyFailures=true&logLevel=4"
 ```
 
 ## Creating test suites
@@ -354,6 +345,8 @@ function SUT__Update_realData_success(dayOfMonth, hour, minute, expectedDayIndex
 end function
 ```
 
+Paremeterized tests accept any valid json. However, the number of top level items in the params array must match the amount of arguments for your test method. If they don't the TestCase will fail.
+
 #### Parameterized test output
 
 The output from paremeterized tests shows the test name, and all of param configurations that were executed, making it easy to ascertain which param config results in a failure
@@ -456,7 +449,7 @@ testFailures:
 It is likely that your app will have some degree of setup (like loading config files, setting global properties, etc), that will be required to occur before starting your unit tests. You can have Rooibos invoke your setup methods, at the correct time during it's setup, by passing a function pointer into the `Rooibos__Init` method, as such:
 
 ```
-if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals)
+if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals)
 
 ....
 
@@ -472,7 +465,7 @@ If you wish, you can provide a third function pointer to the `Rooibos_Init` meth
 
 
 ```
-if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, "DecorateTestUtils")
+if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals, "DecorateTestUtils")
 
 ....
 
@@ -673,6 +666,8 @@ Rooibos does not have special test runners for outputting to files, or uploading
 
 Becuase the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
 
+Note that rooibos doesn't need any special paramters to run. If you follow the standard setup the tests will run. Simply ensure that your build system includes, or does not include rooibosDist.brs (and better still, _all_ of your tests), depending on whether you wish to run the tests or not.
+
 An example make target might look like
 
 ```
@@ -683,7 +678,7 @@ ROKU_TEST_ID=[Some identifiter for your tests, should be set by CI as the buildi
 continuousIntegration: build install
 	echo "Running Rooibos Unit Tests"
 	curl -d '' "http://${ROKU_DEV_TARGET}:8060/keypress/home"
-	curl -d '' "http://${ROKU_DEV_TARGET}:8060/launch/dev?RunTests=true&testId=${ROKU_TEST_ID}"
+	curl -d '' "http://${ROKU_DEV_TARGET}:8060/launch/dev?"
 	-sleep ${ROKU_TEST_WAIT_DURATION} | telnet ${ROKU_DEV_TARGET} 8085 | tee dist/test.log
 	echo "=================== CI TESTS FINISHED =================== "
 
@@ -692,6 +687,10 @@ continuousIntegration: build install
 ```
 
 In the above example, we pipe the output of the telnet session to `dist/test.log`, wait for the test execution to finish, and finally, parse the line of test output to check for the SUCCESS flag.
+
+### Coming soon: Gulp example
+
+The frameworkTests project is currently run using gulp with typescript. See `gulpfile.ts` for an example, until I get time to add specifics here.
 
 ## Advanced setup
 
@@ -825,7 +824,7 @@ There are many articles on the benefits of TDD, and how to go about TDD, which y
 
 Personally, I get great mileage doing TDD in roku by using MVVM pattern (I'm soon to release a lightweight MVVM framework). You can get more info on that [here](https://medium.com/flawless-app-stories/how-to-use-a-model-view-viewmodel-architecture-for-ios-46963c67be1b) (for iOS), and ideas on how that benefits roku dev [here](https://medium.com/plexlabs/xml-code-good-times-rsg-application-b963f0cec01b)
 
-I use theses practices as much as possible becuase:
+I use these practices as much as possible becuase:
 
 1. Keeps my view and business logic separated
 2. Tests are super fast to run (I generally run about 400 or so in each of my projects in < 5 seconds, and when running 1 test, turn around time is < 3 seconds)
@@ -874,17 +873,6 @@ end function
 
 <a name="compatible-with-legacy-framework"></a>
 
-Rooibos is backward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/).
-
-It will automatically run your tests, *without any code modifications*. To use this feature, set the config setting `"supportLegacyTests": true` in your testconfig.json
-
-Note, in legacy compatability mode, the following must be considered.
-
-- The framework will infer which tests are legacy tests, by the lack of a `@TestSuite` directive
-- The result of an assert will be a string of either `"true"` or `"false"` values, for legacy tests.
-- The result of an assert will be `true` or `false` for tests using the modern syntax (the default)
-- The framework will automatically identify your test cases by running regex's against your testSuite function.
-	- ***Important!*** the framework will ignore all other code in that function. If you have been incorrectly doing test setup in your test suite function, you will need to refactor that and move it to a Setup function.
-- You can use `'@Ignore` and `'@Only` in a legacy test file; but _it will only apply to the whole test suite_
+Rooibos is no longer backward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), since version 2.0.0.
 
 It is recommended that you upgrade your legacy tests to the new syntax for maximum flexibility and comfort.
