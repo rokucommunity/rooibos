@@ -34,7 +34,8 @@ function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = i
   screen.show()
 
   m.global = screen.getGlobalNode()
-
+  m.global.addFields({"testsScene": scene})
+  
   if (preTestSetup <> invalid)
     preTestSetup(screen)
   end if
