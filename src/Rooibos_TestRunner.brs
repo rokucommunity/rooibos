@@ -78,7 +78,7 @@ end function
 '  * @description Executes all tests for a project, as per the config
 '  */
 sub RBS_TR_Run()
-  if RBSFM_getTestSuitesForProject = invalid
+  if type(RBSFM_getTestSuitesForProject) <> "Function"
     ? " ERROR! RBSFM_getTestSuitesForProject is not found! That looks like you didn't run the preprocessor as part of your test process. Please refer to the docs."
     return
   end if
@@ -258,30 +258,24 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
 
     testStatObj.metaTestCase.testResult = testSuite.currentResult
 
-    testCaseParams = metaTestCase.rawParams
-    if (testCaseParams <> invalid and RBS_CMN_IsArray(testCaseParams) and testCaseParams.count() > 0)
-      'TODO - allow some flag to create a node, perhaps..
-      'TODO - introduce an isParamsValid value in the preprocessor so we can get a warning.
-      isParamsValid = true
-
-
-      if (isParamsValid)
+    if (metaTestCase.isParamTest)
+      testCaseParams = metaTestCase.rawParams
+      if (metaTestCase.isParamsValid)
         'up to 6 param args supported for now
-        if (testCaseParams.count() = 1)
+        if (metaTestCase.expectedNumberOfParams = 1)
           testSuite.testCase(testCaseParams[0])
-        else if (testCaseParams.count() = 2)
+        else if (metaTestCase.expectedNumberOfParams = 2)
           testSuite.testCase(testCaseParams[0], testCaseParams[1])
-        else if (testCaseParams.count() = 3)
+        else if (metaTestCase.expectedNumberOfParams = 3)
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
-        else if (testCaseParams.count() = 4)
+        else if (metaTestCase.expectedNumberOfParams = 4)
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
-        else if (testCaseParams.count() = 5)
+        else if (metaTestCase.expectedNumberOfParams = 5)
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
-        else if (testCaseParams.count() = 6)
+        else if (metaTestCase.expectedNumberOfParams = 6)
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
         end if
       else
-        ? "Could not parse args for test " ; testCase.name
         testSuite.Fail("Could not parse args for test ")
       end if
     else
