@@ -4,6 +4,7 @@ import * as fs from 'fs-extra';
 import { expect } from 'chai';
 
 import FileDescriptor from './FileDescriptor';
+import { TestCase } from './TestCase';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
 
 const chaiSubset = require('chai-subset');
@@ -47,6 +48,16 @@ describe('TestCase tests ', function() {
       expect(json.itGroups['1'].testCases['1'].isParamTest).to.be.true;
       expect(json.itGroups['1'].testCases['1'].expectedNumberOfParams).to.equal(3);
       expect(json.itGroups['1'].testCases['1'].rawParams.length).to.equal(3);
+    });
+
+    it('rawParams value for non params test', () => {
+      let testCase = new TestCase('test', 'testFunc', true, false, 10);
+      let json: any = testCase.asJson();
+      expect(json).to.not.be.null;
+      expect(json.isParamTest).to.be.false;
+      expect(json.isParamsValid).to.be.false;
+      expect(json.expectedNumberOfParams).to.equal(0);
+      expect(json.rawParams.length).to.equal(0);
     });
   });
 });

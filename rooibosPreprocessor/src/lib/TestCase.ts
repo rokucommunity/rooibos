@@ -44,7 +44,7 @@ export class TestCase {
       paramLineNumber: this.paramLineNumber,
       assertIndex: this.assertIndex,
       assertLineNumberMap: this.assertLineNumberMap,
-      rawParams: this.rawParams,
+      rawParams: this.rawParams || [],
       paramTestIndex: this.paramTestIndex,
       expectedNumberOfParams: this.expectedNumberOfParams,
       isParamsValid: this.isParamTest && this.rawParams && this.rawParams.length === this.expectedNumberOfParams
