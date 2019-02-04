@@ -16,10 +16,13 @@ program
   HAPPY TESTING :)
   `)
   .action((testsPath, rootPath) => {
-    console.log(`Processing test path ${testsPath}`);
-    console.log(`Processing rooth path is  ${rootPath}`);
+    console.log(`Processing....`);
+    console.log(`   test path ${testsPath}`);
+    console.log(`   root path is  ${rootPath}`);
+    console.time('Finished in:');
     let processor = new RooibosProcessor(testsPath, rootPath);
     processor.processFiles();
+    console.timeEnd('Finished in:');
   });
 
 program.parse(process.argv);

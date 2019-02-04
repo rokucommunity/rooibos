@@ -121,7 +121,9 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as object)
 
   if LCase(testCase.Result) <> "success"
     ? " | "; insettext ;"  |--Location: "; locationText
-    ? " | "; insettext ;"  |--Param Line: "; StrI(metaTestCase.paramlineNumber).trim()
+    if (metaTestcase.isParamTest = true)
+      ? " | "; insettext ;"  |--Param Line: "; StrI(metaTestCase.paramlineNumber).trim()
+    end if
     ? " | "; insettext ;"  |--Error Message: "; testCase.Error.Message
   end if
 end sub
