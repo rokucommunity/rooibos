@@ -31,3 +31,6 @@ local.properties
 
 #node
 node_modules/
+frameworkTests/source/tests/rooibosDist.brs
+samples/nonEvalSample/source/tests/rooibosDist.brs
+samples/Overview/source/tests/rooibosDist.brs
