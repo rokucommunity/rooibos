@@ -1,18 +1,18 @@
-'@TestSuite [VMT] VideoModuleTests
+'@TestSuite [SG] SoloGroup
 
 '@Setup
-function VMT_Setup()
+function SG_Setup()
   ? "setp"
 end function
 
 '@TearDown
-function VMT_TearDown()
+function SG_TearDown()
   ? "tearDown"
 end function
 
 
 '@BeforeEach
-function VMT_BeforeEach()
+function SG_BeforeEach()
   m.constants = {}
   m.httpService = {}
   
@@ -24,7 +24,7 @@ end function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 '@Test basic constructor values
-function VMT__constructor_basic() as void
+function SG__constructor_basic() as void
 	m.AssertEqual(m.module.constants_, m.constants)
 	m.AssertEqual(m.module.httpService_, m.httpService)
 end function
@@ -36,12 +36,12 @@ end function
 
 
 '@BeforeEach
-function VMT_GetVideosBeforeEach()
+function SG_GetVideosBeforeEach()
     ? "gtVideosBeforeEach"
 end function
 
 '@AfterEach
-function VMT_GetvideosAfterEach()
+function SG_GetvideosAfterEach()
     ? "getvideosAfterEach"
 end function
 
@@ -50,7 +50,7 @@ end function
 '@Params[3, "mp4", ["video_0", "video_1", "video_2"]]
 '@Params[2, "mpg", ["video_0", "video_1"]]
 '@Params[1, "vp8", ["video_0"]]
-function VMT__getVideos_basic(expectedCount, videoType, videoIds) as void
+function SG__getVideos_basic(expectedCount, videoType, videoIds) as void
 	videos = m.module.getVideos(videoType)
 
 	m.AssertArrayCount(videos, expectedCount)
@@ -71,7 +71,7 @@ end function
 '@Test basic test
 '@Params["mp4", ["a", "b", "c"]]
 '@Params["mp3", ["a", "b", "c", "d", "e"]]
-function VMT__getVideosRealExample_basic(videoType, returnedJson) as void
+function SG__getVideosRealExample_basic(videoType, returnedJson) as void
   getjsonMock = m.expectOnce(m.httpService, "getJson", [m.ignoreValue, videoType], returnedJson, true)
 
   videos = m.module.getVideosRealExample(videoType)

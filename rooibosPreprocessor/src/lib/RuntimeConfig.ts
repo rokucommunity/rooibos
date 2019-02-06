@@ -17,17 +17,20 @@ export class RuntimeConfig {
     this._testSuites = [];
     this._warnings = [];
     this._errors = [];
+    this.ignoredTestNames = [];
     this._functionMap = functionMap;
     this._excludeMatcher = new Minimatch(`rooibos.cat.brs`);
   }
 
+  private ignoredCount: number = 0;
+  private ignoredTestNames: string[];
   private readonly _warnings: string[];
   private readonly _errors: string[];
   private _excludeMatcher: M.IMinimatch;
   private _testSuites: TestSuite[];
-  private _hasSoloSuites: boolean;
-  private _hasSoloGroups: boolean;
-  private _hasSoloTests: boolean;
+  private _hasSoloSuites: boolean = false;
+  private _hasSoloGroups: boolean = false;
+  private _hasSoloTests: boolean = false;
   private _functionMap: FunctionMap;
 
   get testSuites(): TestSuite[] {
@@ -84,6 +87,9 @@ export class RuntimeConfig {
         }
       }
     });
+
+    this.updateIncludedFlags();
+
     this.errors.concat(testSuiteBuilder.errors);
     this.warnings.concat(testSuiteBuilder.warnings);
   }
@@ -93,13 +99,82 @@ export class RuntimeConfig {
     function RBSFM_getTestSuitesForProject()
         return [
         `;
-
     this.testSuites.forEach((testSuite) => {
-      text += `\n${JSON.stringify(testSuite.asJson(), null, 2)},\n`;
+      if (testSuite.isIncluded) {
+        text += `\n${testSuite.asText()},\n`;
+      }
     });
     text += `
       ]
     end function\n`;
     return text;
+  }
+
+  /**
+   * Once we know what's ignored/solo/etc, we can ascertain if we're going
+   * to include it in the final json payload
+   */
+  private updateIncludedFlags() {
+    this.testSuites.forEach( (testSuite) => {
+      if (this._hasSoloTests && !testSuite.hasSoloTests) {
+        testSuite.isIncluded = false;
+      } else if (this._hasSoloSuites && !testSuite.isSolo) {
+        testSuite.isIncluded = false;
+      } else if (testSuite.isIgnored) {
+        testSuite.isIncluded = false;
+        this.ignoredTestNames.push('|-' + testSuite.name + ' [WHOLE SUITE]');
+        this.ignoredCount++;
+      } else {
+        testSuite.isIncluded = true;
+      }
+      // console.log('testSuite  ' + testSuite.name);
+      testSuite.itGroups.forEach( (itGroup) => {
+        // console.log('GROUP  ' + itGroup.name);
+        if (itGroup.isIgnored) {
+          this.ignoredCount += itGroup.testCases.length;
+          this.ignoredTestNames.push('  |-' + itGroup.name + ' [WHOLE GROUP]');
+        } else {
+          if (itGroup.ignoredTestCases.length > 0) {
+            this.ignoredTestNames.push('  |-' + itGroup.name);
+            this.ignoredCount += itGroup.ignoredTestCases.length;
+            itGroup.ignoredTestCases.forEach((ignoredTestCase) => {
+              if (!ignoredTestCase.isParamTest) {
+                this.ignoredTestNames.push('  | |--' + ignoredTestCase.name);
+              } else if (ignoredTestCase.paramTestIndex === 0) {
+                let testCaseName = ignoredTestCase.name;
+                if (testCaseName.length > 1 && testCaseName.substr(testCaseName.length - 1) === '0') {
+                  testCaseName = testCaseName.substr(0, testCaseName.length - 1);
+                }
+                this.ignoredTestNames.push('  | |--' + testCaseName);
+              }
+            });
+          }
+          if (this._hasSoloTests && !itGroup.hasSoloTests && !itGroup.isSolo) {
+            itGroup.isIncluded = false;
+          } else if (itGroup.testCases.length === 0 && itGroup.soloTestCases.length === 0) {
+            itGroup.isIncluded = false;
+          } else {
+            itGroup.isIncluded = testSuite.isIncluded;
+          }
+          itGroup.testCases.forEach( (testCase) => {
+            // console.log(testCase.name + ' this._hasSoloTests ' + this._hasSoloTests + ' testCase.isSolo ' + testCase.isSolo);
+            if (this._hasSoloTests && !testCase.isSolo) {
+              testCase.isIncluded = false;
+            } else {
+              testCase.isIncluded = itGroup.isIncluded || testCase.isSolo;
+            }
+          });
+          itGroup.soloTestCases.forEach( (testCase) => {
+            // console.log(testCase.name + ' this._hasSoloTests ' + this._hasSoloTests + ' testCase.isSolo ' + testCase.isSolo);
+            testCase.isIncluded = true;
+          });
+        }
+      });
+    });
+  }
+
+  public asJson(): object[] {
+    return this.testSuites.filter( (testSuite) => testSuite.isIncluded)
+      .map((testSuite) => testSuite.asJson());
   }
 }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component
+	name="rLogSGTransport"
+	extends="ContentNode"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
+>
+	<script	type="text/brightscript" uri="rLogSGTransport.brs" />
+
+	<interface>
+		<!-- public fields/functions -->
+    <field id="_logOutput" type="stringarray" />
+    <field id="_logText" type="string" />
+    <field id="_jsonOutput" type="string" />
+    <field id="_rawItems" type="array" />
+    
+    <!-- pointer to rLog -->
+    <field id="rLog" type="node" />
+    
+    <field id="updateNow" type="boolean" onChange="updateLogOutput" alwaysNotify="true"/>    
+    <field id="maxItems" type="integer" value="500" />
+    
+    <function name="log" />
+	</interface>
+
+
+
+	<children>
+
+	</children>
+
+</component>

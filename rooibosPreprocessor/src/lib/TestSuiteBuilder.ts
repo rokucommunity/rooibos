@@ -5,7 +5,6 @@ import { ItGroup } from './ItGroup';
 import { Tag } from './Tag';
 import { TestCase } from './TestCase';
 import { TestSuite } from './TestSuite';
-import { expect } from 'chai';
 
 const debug = Debug('RooibosProcessor');
 
@@ -18,8 +17,10 @@ export class TestSuiteBuilder {
     this._maxLinesWithoutSuiteDirective = maxLinesWithoutSuiteDirective;
     this.functionNameRegex = new RegExp('^\\s*(function|sub)\\s*([0-9a-z_]*)s*\\(', 'i');
     this.functionSignatureRegex = new RegExp('^\\s*(function|sub)\\s*[0-9a-z_]*s*\\((.*)\\)', 'i');
-    this.assertInvocationRegex = new RegExp('^\s*(testSuite.fail|testSuite.Fail|testSuite.assert|testSuite.Assert)(.*)\\(', 'i');
+    this.assertInvocationRegex = new RegExp('^\\s*(m\\.fail|m\\.assert)(.*)\\(', 'i');
+    this.paramsInvalidToNullRegex = /(,|\:|\[)(\s*)(invalid)/g;
     this.functionEndRegex = new RegExp('^\s*(end sub|end function)', 'i');
+    this.badJsonRegex = /(['"])?([a-z0-9A-Z_]+)(['"])?:/g;
     this._warnings = [];
     this._errors = [];
   }
@@ -33,7 +34,9 @@ export class TestSuiteBuilder {
   private functionEndRegex: RegExp;
   private functionNameRegex: RegExp;
   private functionSignatureRegex: RegExp;
+  private paramsInvalidToNullRegex: RegExp;
   private assertInvocationRegex: RegExp;
+  private badJsonRegex: RegExp;
 
   private hasCurrentTestCase: boolean;
   private testCaseParams: object[];
@@ -78,7 +81,6 @@ export class TestSuiteBuilder {
     let nextName = '';
     let name = fileDescriptor.normalizedFileName;
     let filename = fileDescriptor.normalizedFileName;
-    let lineNumber = 0;
     this.reset();
     let currentLocation = '';
     let lines = code.split(/\r?\n/);
@@ -88,9 +90,10 @@ export class TestSuiteBuilder {
     this.currentGroup = null;
     this.reset();
 
-    for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
+    for (let lineNumber = 1; lineNumber <= lines.length; lineNumber++) {
       currentLocation = filePath + ':' + lineNumber.toString();
-      let line = lines[lineNumber];
+      let line = lines[lineNumber - 1];
+      // console.log(line);
       if (lineNumber > this._maxLinesWithoutSuiteDirective && !isTestSuite) {
         debug('IGNORING FILE WITH NO TESTSUITE DIRECTIVE : ' + currentLocation);
         this.warnings.push('Ignoring file with no test suite directive' + fileDescriptor.fullPath);
@@ -174,6 +177,7 @@ export class TestSuiteBuilder {
           this.warnings.push(`Tag.TEST MARKED FOR Tag.IGNORE AND Tag.SOLO ${currentLocation}`);
         } else {
           isNextTokenSolo = true;
+          // console.log('isNextTokenSolo is true!! ' + line + ' ' + currentLocation);
         }
         continue;
       } else if (this.isTag(line, Tag.IGNORE) && !this.isTag(line, Tag.TEST_IGNORE_PARAMS)) {
@@ -258,7 +262,7 @@ export class TestSuiteBuilder {
           this.warnings.push(`FOUND ` + Tag.TEST + ` PARAM WITHOUT @Test declaration ` + currentLocation);
         } else {
           isNextTokenTestCaseParam = true;
-          this.addParamsForLine(line, lineNumber, this.testCaseParamLines, this.testCaseParams, currentLocation);
+          this.addParamsForLine(line, Tag.TEST_PARAMS, lineNumber, this.testCaseParamLines, this.testCaseParams, currentLocation);
         }
         continue;
       } else if (this.isTag(line, Tag.TEST_SOLO_PARAMS)) {
@@ -268,7 +272,7 @@ export class TestSuiteBuilder {
         } else {
           isNextTokenSolo = true;
           isNextTokenTestCaseParam = true;
-          this.addParamsForLine(line, lineNumber, this.testCaseOnlyParamLines, this.testCaseOnlyParams, currentLocation);
+          this.addParamsForLine(line, Tag.TEST_SOLO_PARAMS, lineNumber, this.testCaseOnlyParamLines, this.testCaseOnlyParams, currentLocation);
         }
         continue;
       }
@@ -315,6 +319,7 @@ export class TestSuiteBuilder {
               this.currentTestCases.forEach((aTestCase) => {
                 this.currentGroup.addTestCase(aTestCase);
                 if (aTestCase.isSolo) {
+                  // console.log('>>> ' + aTestCase.name + ' IS SOLO!');
                   testSuite.hasSoloTests = true;
                 }
               });
@@ -430,9 +435,9 @@ export class TestSuiteBuilder {
   }
 
   public reset() {
-    this.testCaseOnlyParams = [];
     this.testCaseParams = [];
     this.testCaseParamLines = [];
+    this.testCaseOnlyParams = [];
     this.testCaseOnlyParamLines = [];
     this.currentTestCases = [];
 
@@ -440,10 +445,10 @@ export class TestSuiteBuilder {
     this.hasCurrentTestCase = false;
   }
 
-  public addParamsForLine(line: string, lineNumber: number, targetParamLinesArray: number[], targetParamsArray: object[], currentLocation: string) {
-    let rawParams = this.getTagText(line, Tag.TEST_PARAMS);
+  public addParamsForLine(line: string, tag: Tag, lineNumber: number, targetParamLinesArray: number[], targetParamsArray: object[], currentLocation: string) {
+    let rawParams = this.getTagText(line, tag);
     try {
-      let jsonParams = JSON.parse(rawParams);
+      let jsonParams = JSON.parse(rawParams.replace(this.badJsonRegex, '"$2": ').replace(this.paramsInvalidToNullRegex, '$1$2null'));
       targetParamsArray.push(jsonParams);
       targetParamLinesArray.push(lineNumber);
     } catch (e) {
