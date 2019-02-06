@@ -132,5 +132,17 @@ describe('TestSuiteBuilder tests ', function() {
       expect(testSuite.itGroups[0].testCases[1].rawParams.length).to.equal(2);
     });
 
+    it('complex params', () => {
+      let fileDescriptor = new FileDescriptor(`build/source/tests`, `complexParamsTests.brs`, `.brs`);
+      let testSuite = builder.processFile(fileDescriptor);
+      expect(testSuite).to.not.be.null;
+      expect(testSuite.isValid).to.be.true;
+      expect(testSuite.itGroups[0].testCases[0].expectedNumberOfParams).to.equal(3);
+      expect(testSuite.itGroups[0].testCases[0].rawParams.length).to.equal(3);
+
+      expect(testSuite.itGroups[0].testCases[1].expectedNumberOfParams).to.equal(3);
+      expect(testSuite.itGroups[0].testCases[1].rawParams.length).to.equal(3);
+    });
+
   });
 });

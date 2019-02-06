@@ -25,6 +25,7 @@ export class TestSuite {
   public isSolo: boolean;
   public isIgnored: boolean;
   public isValid: boolean;
+  public isIncluded: boolean;
 
   public itGroups: ItGroup[];
   public hasFailures: boolean;
@@ -49,7 +50,8 @@ export class TestSuite {
       hasSoloGroups: this.hasSoloGroups,
       isSolo: this.isSolo,
       isIgnored: this.isIgnored,
-      itGroups: this.itGroups.map((itGroup) => itGroup.asJson()),
+      itGroups: this.itGroups.filter( (itGroup) => itGroup.isIncluded)
+        .map((itGroup) => itGroup.asJson()),
       setupFunctionName: this.setupFunctionName,
       tearDownFunctionName: this.tearDownFunctionName,
       isNodeTest: this.isNodeTest,
@@ -57,5 +59,28 @@ export class TestSuite {
       beforeEachFunctionName: this.beforeEachFunctionName,
       afterEachFunctionName: this.afterEachFunctionName,
     };
+  }
+
+  public asText(): string {
+    let itGroups = this.itGroups.filter( (itGroup) => itGroup.isIncluded)
+      .map((itGroup) => itGroup.asText());
+    return `{
+      name: "${this.name}"
+      filePath: "${this.filePath}"
+      valid: ${this.isValid}
+      hasFailures: ${this.hasFailures}
+      hasSoloTests: ${this.hasSoloTests}
+      hasIgnoredTests: ${this.hasIgnoredTests}
+      hasSoloGroups: ${this.hasSoloGroups}
+      isSolo: ${this.isSolo}
+      isIgnored: ${this.isIgnored}
+      itGroups: [${itGroups}]
+      setupFunctionName: "${this.setupFunctionName || ''}"
+      tearDownFunctionName: "${this.tearDownFunctionName || ''}"
+      isNodeTest: ${this.isNodeTest}
+      nodeTestFileName: "${this.nodeTestFileName || ''}"
+      beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"
+      afterEachFunctionName: "${this.afterEachFunctionName || ''}"
+    }`;
   }
 }

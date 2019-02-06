@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="rLogScreenTransport" 
+  extends="Group" 
+  xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd">
+
+  <script type="text/brightscript"  uri="rLogScreenTransport.brs" />
+
+  <interface>
+    <field id="logLine" type="string" value=""/>
+    
+    <field id="maxVisibleLines" type="integer" value="12"/>
+    
+  </interface>
+
+
+  <children>
+    <Group>
+      <Rectangle id="background" 
+        translation="[0,380]" 
+        color="#aaaaaa"
+        width="1920" 
+        height="450" />
+      <ScrollableText
+        id="scrollableText"
+        translation="[40, 390]"
+        width="1880"
+        height="430"
+        color="#000000"
+        vertAlign="top"
+        horizAlign="left"
+        lineSpacing="8"
+        font="font:SmallestBoldSystemFont"
+        >
+      </ScrollableText>
+
+      </Group>
+  </children>
+</component>
