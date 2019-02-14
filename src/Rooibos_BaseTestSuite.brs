@@ -153,7 +153,7 @@ end function
 '  * @param {Dynamic} [msg=""] - message to display in the test report
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_Fail(msg = "Error" as string) as dynamic
+function RBS_BTS_Fail(msg = "Error" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   m.currentResult.AddResult(msg)
   return m.GetLegacyCompatibleReturnValue(false)
@@ -189,7 +189,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 ' Default value: "Expression evaluates to true"'  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertFalse(expr as dynamic, msg = "Expression evaluates to true" as string) as dynamic
+function RBS_BTS_AssertFalse(expr , msg = "Expression evaluates to true" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if not RBS_CMN_IsBoolean(expr) or expr
     m.currentResult.AddResult(msg)
@@ -209,7 +209,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertTrue(expr as dynamic, msg = "Expression evaluates to false" as string) as dynamic
+function RBS_BTS_AssertTrue(expr , msg = "Expression evaluates to false" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if not RBS_CMN_IsBoolean(expr) or not expr then
     m.currentResult.AddResult(msg)
@@ -230,7 +230,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertEqual(first as dynamic, second as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertEqual(first , second , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if not m.eqValues(first, second)
     if msg = ""
@@ -256,7 +256,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertLike(first as dynamic, second as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertLike(first , second , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if first <> second
     if msg = ""
@@ -282,7 +282,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNotEqual(first as dynamic, second as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNotEqual(first , second , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if m.eqValues(first, second)
     if msg = ""
@@ -307,7 +307,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertInvalid(value as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertInvalid(value , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if value <> invalid
     if msg = ""
@@ -331,7 +331,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNotInvalid(value as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNotInvalid(value , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if value = invalid
     if msg = ""
@@ -356,7 +356,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertAAHasKey(array as dynamic, key as string, msg = "" as string) as dynamic
+function RBS_BTS_AssertAAHasKey(array , key , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(array)
     if not array.DoesExist(key)
@@ -386,7 +386,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertAANotHasKey(array as dynamic, key as string, msg = "" as string) as dynamic
+function RBS_BTS_AssertAANotHasKey(array , key , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(array)
     if array.DoesExist(key)
@@ -416,7 +416,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertAAHasKeys(array as dynamic, keys as object, msg = "" as string) as dynamic
+function RBS_BTS_AssertAAHasKeys(array , keys , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
     for each key in keys
@@ -448,7 +448,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertAANotHasKeys(array as dynamic, keys as object, msg = "" as string) as dynamic
+function RBS_BTS_AssertAANotHasKeys(array , keys , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsArray(keys)
     for each key in keys
@@ -483,7 +483,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertArrayContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as dynamic
+function RBS_BTS_AssertArrayContains(array , value , key = invalid , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
     if not RBS_CMN_ArrayContains(array, value, key)
@@ -511,7 +511,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertArrayContainsAAs(array as dynamic, values as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertArrayContainsAAs(array , values , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
 
   if not RBS_CMN_IsArray(values)
@@ -575,7 +575,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertArrayNotContains(array as dynamic, value as dynamic, key = invalid as string, msg = "" as string) as dynamic
+function RBS_BTS_AssertArrayNotContains(array , value , key = invalid , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
     if RBS_CMN_ArrayContains(array, value, key)
@@ -603,7 +603,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertArrayContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertArrayContainsSubset(array , subset , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) or (RBS_CMN_IsArray(array) and RBS_CMN_IsArray(subset))
     isAA = RBS_CMN_IsAssociativeArray(subset)
@@ -640,7 +640,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertArrayNotContainsSubset(array as dynamic, subset as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertArrayNotContainsSubset(array , subset , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset)) or (RBS_CMN_IsArray(array) and RBS_CMN_IsArray(subset))
     isAA = RBS_CMN_IsAssociativeArray(subset)
@@ -677,7 +677,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertArrayCount(array as dynamic, count as integer, msg = "" as string) as dynamic
+function RBS_BTS_AssertArrayCount(array , count , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
     if array.Count() <> count
@@ -705,7 +705,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertArrayNotCount(array as dynamic, count as integer, msg = "" as string) as dynamic
+function RBS_BTS_AssertArrayNotCount(array , count , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(array) or RBS_CMN_IsArray(array)
     if array.Count() = count
@@ -732,7 +732,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertEmpty(item as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertEmpty(item , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
     if item.Count() > 0
@@ -765,7 +765,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNotEmpty(item as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNotEmpty(item , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if RBS_CMN_IsAssociativeArray(item) or RBS_CMN_IsArray(item)
     if item.Count() = 0
@@ -799,7 +799,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array as dynamic, typeStr as string, msg = "" as string) as dynamic
+function RBS_BTS_AssertArrayContainsOnlyValuesOfType(array , typeStr , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if typeStr <> "String" and typeStr <> "Integer" and typeStr <> "Boolean" and typeStr <> "Array" and typeStr <> "AssociativeArray"
     msg = "Type must be Boolean, String, Array, Integer, or AssociativeArray"
@@ -879,7 +879,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
+function RBS_BTS_AssertType(value , typeStr , msg ="" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if type(value) <> typeStr
     if msg = ""
@@ -904,7 +904,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertSubType(value as dynamic, typeStr as string, msg ="" as string) as dynamic
+function RBS_BTS_AssertSubType(value , typeStr , msg ="" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if type(value) <> "roSGNode"
     if msg = ""
@@ -935,7 +935,7 @@ end function
 '  * @param {Dynamic} Vallue2 - second item to compare
 '  * @returns {boolean} - True if values are equal or False in other case.
 '  */
-function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
+function RBS_BTS_EqValues(Value1 , Value2 ) as dynamic
   ' Workaraund for bug with string boxing, and box everything else
   val1Type = type(Value1)
   val2Type = type(Value2)
@@ -973,11 +973,11 @@ function RBS_BTS_EqValues(Value1 as dynamic, Value2 as dynamic) as dynamic
     valtype = val1Type
 
     if valtype = "roList"
-      return m.eqArray(Value1, Value2)
+      return RBS_BTS_EqArray(Value1, Value2)
     else if valtype = "roAssociativeArray"
-      return m.eqAssocArrays(Value1, Value2)
+      return RBS_BTS_EqAssocArray(Value1, Value2)
     else if valtype = "roArray"
-      return m.eqArray(Value1, Value2)
+      return RBS_BTS_EqArray(Value1, Value2)
     else if (valtype = "roSGNode")
       if (val2Type <> "roSGNode")
         return false
@@ -1003,7 +1003,7 @@ end function
 '  * @param {Dynamic} Vallue2 - second associative array
 '  * @returns {boolean} - True if arrays are equal or False in other case.
 '  */
-function RBS_BTS_EqAssocArray(Value1 as object, Value2 as object) as dynamic
+function RBS_BTS_EqAssocArray(Value1 , Value2 ) as dynamic
   l1 = Value1.Count()
   l2 = Value2.Count()
 
@@ -1016,7 +1016,7 @@ function RBS_BTS_EqAssocArray(Value1 as object, Value2 as object) as dynamic
       else
         v1 = Value1[k]
         v2 = Value2[k]
-        if not m.eqValues(v1, v2)
+        if not RBS_BTS_EqValues(v1, v2)
           return false
         end if
       end if
@@ -1035,7 +1035,7 @@ end function
 '  * @param {Dynamic} Vallue2 - second array
 '  * @returns {boolean} - True if arrays are equal or False in other case.
 '  */
-function RBS_BTS_EqArray(Value1 as object, Value2 as object) as dynamic
+function RBS_BTS_EqArray(Value1 , Value2 ) as dynamic
   if not (RBS_CMN_IsArray(Value1)) or not RBS_CMN_IsArray(Value2) then return false
 
   l1 = Value1.Count()
@@ -1047,7 +1047,7 @@ function RBS_BTS_EqArray(Value1 as object, Value2 as object) as dynamic
     for i = 0 to l1 - 1
       v1 = Value1[i]
       v2 = Value2[i]
-      if not m.eqValues(v1, v2) then
+      if not RBS_BTS_EqValues(v1, v2) then
         return false
       end if
     end for
@@ -1071,9 +1071,9 @@ end function
 '  * @param {Dynamic} node - target node
 '  * @param {Dynamic} count - expected number of child items
 '  * @param {Dynamic} [msg=""] - alternate error message
-'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  * @returns {boolean} - true if the assert w, false otherwise
 '  */
-function RBS_BTS_AssertNodeCount(node as dynamic, count as integer, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeCount(node , count , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if type(node) = "roSGNode"
     if node.getChildCount() <> count
@@ -1101,7 +1101,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNodeNotCount(node as dynamic, count as integer, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeNotCount(node , count , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if type(node) = "roSGNode"
     if node.getChildCount() = count
@@ -1128,7 +1128,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNodeEmpty(node as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeEmpty(node , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if type(node) = "roSGNode"
     if node.getChildCount() > 0
@@ -1151,7 +1151,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNodeNotEmpty(node as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeNotEmpty(node , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if type(node) = "roSGNode"
     if node.Count() = 0
@@ -1175,7 +1175,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNodeContains(node as dynamic, value as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeContains(node , value , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if  type(node) = "roSGNode"
     if not RBS_CMN_NodeContains(node, value)
@@ -1203,7 +1203,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNodeContainsOnly(node as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeContainsOnly(node , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if  type(node) = "roSGNode"
     if not RBS_CMN_NodeContains(node, value)
@@ -1230,13 +1230,13 @@ end function
 '  * @name AssertNodeNotContains
 '  * @function
 '  * @instance
-'  * @description Fail if the node has the item.
+'  * @description Fail if the node h item.
 '  * @param {Dynamic} node - A target node
 '  * @param {Dynamic} value - value to check - a node child
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNodeNotContains(node as dynamic, value as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeNotContains(node , value , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if  type(node) = "roSGNode"
     if RBS_CMN_NodeContains(node, value)
@@ -1264,7 +1264,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNodeContainsFields(node as dynamic, subset as dynamic, ignoredFields=invalid, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeContainsFields(node , subset , ignoredFields=invalid, msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if ( type(node) = "roSGNode" and RBS_CMN_IsAssociativeArray(subset)) or ( type(node) = "roSGNode"  and RBS_CMN_IsArray(subset))
     isAA = RBS_CMN_IsAssociativeArray(subset)
@@ -1302,9 +1302,9 @@ end function
 '  * @param {Dynamic} node - A target node
 '  * @param {Dynamic} subset - the items to check for
 '  * @param {Dynamic} [msg=""] - alternate error message
-'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+'  * @returns {boolean} - true if the assert w, false otherwise
 ' */
-function RBS_BTS_AssertNodeNotContainsFields(node as dynamic, subset as dynamic, msg = "" as string) as dynamic
+function RBS_BTS_AssertNodeNotContainsFields(node , subset , msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if ( type(node) = "roSGNode"  and RBS_CMN_IsAssociativeArray(subset)) or ( type(node) = "roSGNode" and RBS_CMN_IsArray(subset))
     isAA = RBS_CMN_IsAssociativeArray(subset)
@@ -1346,7 +1346,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertAAContainsSubset(array as dynamic, subset as dynamic, ignoredFields = invalid, msg = "" as string) as dynamic
+function RBS_BTS_AssertAAContainsSubset(array , subset , ignoredFields = invalid, msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if (RBS_CMN_IsAssociativeArray(array) and RBS_CMN_IsAssociativeArray(subset))
     isAA = RBS_CMN_IsAssociativeArray(subset)
