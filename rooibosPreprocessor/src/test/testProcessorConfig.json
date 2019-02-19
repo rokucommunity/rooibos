@@ -1,9 +1,0 @@
-{
-	"excludedFolders": [
-		"**/rLog",
-		"**/rLogComponents"
-	],
-	"exclude": "**/out/**",
-	"sourcePath": "build",
-	"logStyle": "ShortAtStart"
-}

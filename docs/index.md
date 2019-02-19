@@ -65,7 +65,7 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibos.ca
 
 ### RooibosC
 
-To get the best performance and test flexibility, rooibos leverages a javascript based preprocessor, which prepares some files which get sideloaded with your tests. Simply:
+To get the best performance and test flexibility, rooibos leverages a typescript preprocessor, named [rooibosC](https://github.com/georgejecook/rooibosPreprocessor), which prepares some files which get sideloaded with your tests. Simply:
 
 1. `npm install -g rooibos-preprocessor`
 2. execute the following command from your ci/test run/make file/gulp script: `rooibosC p build/path/source/tests/ build/path`, where the args are pathToYourTests, pathToRootFolder. The latter is used to fix the `pkg:/locations` in rooibos's output.

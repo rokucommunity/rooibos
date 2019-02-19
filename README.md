@@ -11,6 +11,8 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
   <img src="images/exampleImage.png" alt="Mocha test framework" />
 </p>
 
+[![Build Status](https://travis-ci.org/georgejecook/rooibos.svg?branch=master)](https://travis-ci.org/georgejecook/rooibos)
+
 ## Links
  - **[Youtube training videos](https://www.youtube.com/playlist?list=PLJRLV4QDx83vsYMD9bIs-cjoDXmNmO8Jv)**
  - **[Documentation](docs/index.md)**
