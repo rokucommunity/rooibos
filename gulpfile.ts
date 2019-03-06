@@ -16,8 +16,9 @@ const rokuDeploy = require('roku-deploy');
 const cp = require('child_process');
 
 const args = {
-  host: '192.168.16.3',
-  password: 'aaaa',
+  host: process.env.ROKU_HOST || '192.168.16.3',
+  username: process.env.ROKU_USER || 'rokudev',
+  password: process.env.ROKU_PASSWORD || 'aaaa',
   rootDir: './',
   files: ['frameworkTests/**/*'],
   outDir: './out',
