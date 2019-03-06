@@ -1,0 +1,5 @@
+{
+  "testDir": "source/tests/specs",
+  "rootDir": "",
+  "outputDir": "source/tests/framework"
+}
