@@ -19,7 +19,7 @@
 
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/framework/rooibos.cat.brs" />
+		uri="pkg:/source/tests/framework/rooibosDist.brs" />
 	<script
 		type="text/brightscript"
 		uri="pkg:/source/tests/framework/TestUtils.brs" />

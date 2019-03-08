@@ -10,7 +10,7 @@
 # 3) and set up the DEVPASSWORD environment variable, too
 ##########################################################################
 
-APPNAME = RooibosSampleOverview
+APPNAME = RooibosExampleApp
 VERSION = 0.1.0
 ROKU_TEST_ID = 1
 ROKU_TEST_WAIT_DURATION = 5
