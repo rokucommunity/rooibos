@@ -5,6 +5,9 @@ dist/apps
 out/
 dist/
 
+#Rooibos generated
+rooibosFunctionMap.brs
+
 ### Eclipse project files
 
 .metadata
