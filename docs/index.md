@@ -76,16 +76,15 @@ Then call `rooibosC -h` to check the install worked and see the help menu.
 There are two ways to invoke RooibosC:
 
 1. Define a config file that returns a JSON object and tell RooibosC to use that via the `-c` flag:
-<br>
 
 	```sh
 	rooibosC -c path/to/config.json
 	```
+
 	_To see an example config file take a look at the [Example app](../samples/example)_
 	<br>
 
 2. Use the `-t  -r -o` flags to set your paths like so:
-<br>
 
 	```sh
 	rooibosC -t source/tests/specs -r ./ -o source/tests/framework
