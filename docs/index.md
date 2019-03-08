@@ -91,7 +91,9 @@ There are two ways to invoke RooibosC:
 	```
 
 	`-t` is the _"testPath"_ where your `.brs` test specs live
+
 	`-r` is the _"rootPath"_, i.e. the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output.
+
 	`-o` is the _"outputPath"_. This is where rooibosC will write the map file which informs rooibos about your tests.
 
 ### Configuring Rooibos
