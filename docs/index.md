@@ -50,7 +50,7 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibosDis
 1. Clone or download this repo
 2. Run `npm install`
 3. Run `gulp build`
-4. Copy `dist/rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/framework`.
+4. Copy `dist/rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.
 5. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens
 
 	```sh
@@ -59,7 +59,7 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibosDis
 	
 	Note - rooibos will run if it is present. *You should be filtering out your tests folder, containing rooibosDist.brs, and your tests as part of your non-test build/release process*, which is the preferred mechanism to disable/enable rooibos.
 	
-6. Create a Scene named `TestsScene.xml`, in your `components` folder. Again, we'd suggest following an easy to understand structure like `components/test/framework`. Rooibos will use this when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`.
+6. Create a Scene named `TestsScene.xml`, in your `components` folder. Again, we'd suggest following an easy to understand structure like `components/test/rooibos`. Rooibos will use this when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`.
 7. Create a folder for your test specs. We'd suggest `source/tests/specs` to keep things simple. Write your `.brs` test files here.  
 	If you are testing RSG components you will also need to create a folder to hold the test components, such as `components/tests/specs`.
 
@@ -88,7 +88,7 @@ There are two ways to invoke RooibosC:
 2. Use the `-t  -r -o` flags to set your paths like so:
 
 	```sh
-	rooibosC -t source/tests/specs -r ./ -o source/tests/framework
+	rooibosC -t source/tests/specs -r ./ -o source/tests/rooibos
 	```
 
 	`-t` is the _"testPath"_ where your `.brs` test specs live
@@ -98,7 +98,7 @@ There are two ways to invoke RooibosC:
 	`-o` is the _"outputPath"_. This is where rooibosC will write the map file which informs rooibos about your tests.
 
 ### Configuring Rooibos
-Rooibos's configuration is controlled via a json config file. The default location for this file is `pkg:/source/tests/framework/testconfig.json`.
+Rooibos's configuration is controlled via a json config file. The default location for this file is `pkg:/source/tests/rooibos/testconfig.json`.
 See [Example app](../samples/example)
 If the no testconfig is found a default one will be used.
 
