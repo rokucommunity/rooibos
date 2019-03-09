@@ -61,7 +61,8 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibosDis
 	
 6. Create a Scene named `TestsScene.xml`, in your `components` folder. Again, we'd suggest following an easy to understand structure like `components/test/framework`. Rooibos will use this when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`.
 7. Create a folder for your test specs. We'd suggest `source/tests/specs` to keep things simple. Write your `.brs` test files here.  
-	If you are testing RSG components you will also need to create a folder to hold the test components, such as `components/tests/specs`.<br>
+	If you are testing RSG components you will also need to create a folder to hold the test components, such as `components/tests/specs`.
+
 	__See the example app to get a clearer understanding of the directory structures__ [Example app](../samples/example)
 	<br>
 8. Install [RooibosC](#rooibosC) preprocessor and run it.
