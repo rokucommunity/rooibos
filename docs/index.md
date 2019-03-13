@@ -41,7 +41,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 
 
 ## Getting started
-Rooibos is intentionally simple to work with. You simply copy in the `rooibos.cat.brs` file, setup your config, install an npm package, and start writing tests
+Rooibos is intentionally simple to work with. You simply copy in the `rooibosDist.brs` file, setup your config, install an npm package, and start writing tests
 
 
 ### Installation
@@ -50,37 +50,66 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibos.ca
 1. Clone or download this repo
 2. Run `npm install`
 3. Run `gulp build`
-4. Copy `dist/rooibosDist.brs` to your `source/tests` folder
+4. Copy `dist/rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.
 5. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens
 
-	```
+	```sh
 	if (type(Rooibos__Init) = "Function") then Rooibos__Init()
 	```
 	
-	Note - rooibos will run if it is present. *You should be filtering out your tests folder, containing rooibosDist.brs, and your tests as part of your build process*, which is the preferred mechanism to disable/enable rooibos.
+	Note - rooibos will run if it is present. *You should be filtering out your tests folder, containing rooibosDist.brs, and your tests as part of your non-test build/release process*, which is the preferred mechanism to disable/enable rooibos.
 	
-6. Create a Scene named `TestsScene.xml`, in your `components` folder, which Rooibos will use when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`. `samples/Overview/` contains a reference implementation.
-7. Create `.brs` test files within your `tests` folder, which corresponds to the `testsDirectory` config setting (default is "pkg:/source/Tests"). Test files can (and are encouraged to) be stored in nested folders, to match your source/component folder hiearchy
-8. Install [RooibosC](#rooibosC) preprocessor
+6. Create a Scene named `TestsScene.xml`, in your `components` folder. Again, we'd suggest following an easy to understand structure like `components/test/rooibos`. Rooibos will use this when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`.
+7. Create a folder for your test specs. We'd suggest `source/tests/specs` to keep things simple. Write your `.brs` test files here.  
+	If you are testing RSG components you will also need to create a folder to hold the test components, such as `components/tests/specs`.
+
+	__See the example app to get a clearer understanding of the directory structures__ [Example app](../samples/example)
+	<br>
+8. Install [RooibosC](#rooibosC) preprocessor and run it.
+9. Run your tests
 
 ### RooibosC
 
-To get the best performance and test flexibility, rooibos leverages a typescript preprocessor, named [rooibosC](https://github.com/georgejecook/rooibosPreprocessor), which prepares some files which get sideloaded with your tests. Simply:
+To get the best performance and test flexibility, rooibos leverages a typescript preprocessor, named [rooibosC](https://github.com/georgejecook/rooibosPreprocessor), which prepares some files which get sideloaded with your tests. Simply: `npm install -g rooibos-preprocessor`
 
-1. `npm install -g rooibos-preprocessor`
-2. execute the following command from your ci/test run/make file/gulp script: `rooibosC p build/path/source/tests/ build/path`, where the args are pathToYourTests, pathToRootFolder. The latter is used to fix the `pkg:/locations` in rooibos's output.
+Then call `rooibosC -h` to check the install worked and see the help menu.
+
+There are two ways to invoke RooibosC:
+
+1. Define a config file that returns a JSON object and tell RooibosC to use that via the `-c` flag:
+
+	```sh
+	rooibosC -c path/to/config.json
+	```
+
+	_To see an example config file take a look at the [Example app](../samples/example)_
+	<br>
+
+2. Use the `-t  -r -o` flags to set your paths like so:
+
+	```sh
+	rooibosC -t source/tests/specs -r ./ -o source/tests/rooibos
+	```
+
+	`-t` is the _"testPath"_ where your `.brs` test specs live
+
+	`-r` is the _"rootPath"_, i.e. the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output.
+
+	`-o` is the _"outputPath"_. This is where rooibosC will write the map file which informs rooibos about your tests.
 
 ### Configuring Rooibos
-Rooibos's configuration is controlled via a json config file. The default location for this file is `pkg:/source/Tests/testconfig.json`. If the file is not found, then it is created with default values.
+Rooibos's configuration is controlled via a json config file. The default location for this file is `pkg:/source/tests/rooibos/testconfig.json`.
+See [Example app](../samples/example)
+If the no testconfig is found a default one will be used.
 
 An example config file looks like this:
 
-```
+```json
 {
-	"logLevel": 1,
-	"failFast": false,
-	"swallowRuntimeErrors": false,
-	"showOnlyFailures": false,
+  "logLevel": 1,
+  "failFast": false,
+  "swallowRuntimeErrors": false,
+  "showOnlyFailures": false,
 }
 ```
 

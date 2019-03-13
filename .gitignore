@@ -5,6 +5,9 @@ dist/apps
 out/
 dist/
 
+#Rooibos generated
+rooibosFunctionMap.brs
+
 ### Eclipse project files
 
 .metadata
@@ -32,5 +35,3 @@ local.properties
 #node
 node_modules/
 frameworkTests/source/tests/rooibosDist.brs
-samples/nonEvalSample/source/tests/rooibosDist.brs
-samples/Overview/source/tests/rooibosDist.brs
