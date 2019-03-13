@@ -58,7 +58,6 @@ function squash() {
 
 function copyToSamples(cb) {
   fs.copyFile(fullDistPath, path.join('frameworkTests/source/tests', distFile), cb);
-  fs.copyFile(fullDistPath, path.join('samples/Overview/source/tests/framework', distFile), cb);
   fs.copyFile(fullDistPath, path.join('samples/example/source/tests/framework', distFile), cb);
 }
 
