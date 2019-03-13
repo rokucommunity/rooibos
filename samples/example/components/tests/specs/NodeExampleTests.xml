@@ -15,13 +15,13 @@
 
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/framework/rooibosFunctionMap.brs" />
+		uri="pkg:/source/tests/rooibos/rooibosFunctionMap.brs" />
 
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/framework/rooibosDist.brs" />
+		uri="pkg:/source/tests/rooibos/rooibosDist.brs" />
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/framework/TestUtils.brs" />
+		uri="pkg:/source/tests/rooibos/TestUtils.brs" />
 
 </component>
