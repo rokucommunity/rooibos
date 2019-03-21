@@ -6,14 +6,14 @@
 
 '@Test Fail
 function Simp_basic_Fail() as void
-    
-    assertResult = m.Fail("reason")
 
-    isFail = m.currentResult.isFail
-    m.currentResult.Reset()
-    
-    m.AssertFalse(assertResult)
-    m.AssertTrue(isFail)           
+  assertResult = m.Fail("reason")
+
+  isFail = m.currentResult.isFail
+  m.currentResult.Reset()
+
+  m.AssertFalse(assertResult)
+  m.AssertTrue(isFail)
 end function
 
 '@Test AssertTrue
@@ -24,13 +24,13 @@ end function
 '@Params[1, false]
 '@Params["test", false]
 function Simp_basic_AssertTrue(value, expectedAssertResult) as void
-    
-    assertResult = m.AssertTrue(value)
-    isFail = m.currentResult.isFail
-    m.currentResult.Reset()
-    
-    m.AssertEqual(assertResult, expectedAssertResult)    		
-    m.AssertEqual(isFail, not expectedAssertResult)    		
+
+  assertResult = m.AssertTrue(value)
+  isFail = m.currentResult.isFail
+  m.currentResult.Reset()
+
+  m.AssertEqual(assertResult, expectedAssertResult)
+  m.AssertEqual(isFail, not expectedAssertResult)
 end function
 
 '@Test AssertFalse
@@ -41,14 +41,14 @@ end function
 '@Params[1, false]
 '@Params["test", false]
 function Simp_basic_AssertFalse(value, expectedAssertResult) as void
-    
-    assertResult = m.AssertFalse(value)
 
-    isFail = m.currentResult.isFail
-    m.currentResult.Reset()
-    
-    m.AssertEqual(assertResult, expectedAssertResult)           
-    m.AssertEqual(isFail, not expectedAssertResult)           
+  assertResult = m.AssertFalse(value)
+
+  isFail = m.currentResult.isFail
+  m.currentResult.Reset()
+
+  m.AssertEqual(assertResult, expectedAssertResult)
+  m.AssertEqual(isFail, not expectedAssertResult)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -73,14 +73,14 @@ end function
 '@Params[[{"one":1}, {"two":2}], [{"one":"1"}, {"two":"a"}] ]
 '@Params[[{"one":1}, {"two":2}], [{"a":1}, {"a":1}, {"a":1}] ]
 function Simp_AssertArrayContainsAAs_Fail(expectedAAs, items) as void
-    
-    assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
 
-    isFail = m.currentResult.isFail
-    m.currentResult.Reset()
-    
-    m.AssertFalse(assertResult)
-    m.AssertTrue(isFail)           
+  assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
+
+  isFail = m.currentResult.isFail
+  m.currentResult.Reset()
+
+  m.AssertFalse(assertResult)
+  m.AssertTrue(isFail)
 end function
 
 
@@ -93,14 +93,14 @@ end function
 '@Params[[{"one":1, "two":2}, {"one":1}], [{"one":1}, { "two":2, "one":1}]]
 '@Params[[{"one":1, "two":2}, {"one":1}, {"three":3}], [{"one":1}, {"three":3}, { "two":2, "one":1}]]
 function Simp_AssertArrayContainsAAs_Pass(expectedAAs, items) as void
-    
-    assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
-    
-    isFail = m.currentResult.isFail
 
-    m.currentResult.Reset()
-    m.AssertTrue(assertResult)
-    m.AssertFalse(isFail)           
+  assertResult = m.AssertArrayContainsAAs(items, expectedAAs)
+
+  isFail = m.currentResult.isFail
+
+  m.currentResult.Reset()
+  m.AssertTrue(assertResult)
+  m.AssertFalse(isFail)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -141,16 +141,16 @@ end function
 '@Params[[{"test":1}, {"test":1}], "AssociativeArray"]
 function Simp_AssertArrayContainsOnlyValuesOfType_Pass(values, typeName) as void
 
-    assertResult = m.AssertArrayContainsOnlyValuesOfType(values, typeName)
-    isFail = m.currentResult.isFail
+  assertResult = m.AssertArrayContainsOnlyValuesOfType(values, typeName)
+  isFail = m.currentResult.isFail
 
-    m.currentResult.Reset()
-    m.AssertTrue(assertResult)
-    m.AssertFalse(isFail)           
-  
+  m.currentResult.Reset()
+  m.AssertTrue(assertResult)
+  m.AssertFalse(isFail)
+
 end function
 
-'@Test fail 
+'@Test fail
 '@Params[["one", 2, "three"], "String"]
 '@Params[[1, "two", 3], "Integer"]
 '@Params[[true, "true", false], "Boolean"]
@@ -164,23 +164,23 @@ end function
 '@Params[[{"test":1}, {"test":1}], "Array"]
 function Simp_AssertArrayContainsOnlyValuesOfType_Fail(values, typeName) as void
 
-    assertResult = m.AssertArrayContainsOnlyValuesOfType(values, typeName)
-    isFail = m.currentResult.isFail
+  assertResult = m.AssertArrayContainsOnlyValuesOfType(values, typeName)
+  isFail = m.currentResult.isFail
 
-    isFail = m.currentResult.isFail
-    m.currentResult.Reset()
-    
-    m.AssertFalse(assertResult)
-    m.AssertTrue(isFail)          
+  isFail = m.currentResult.isFail
+  m.currentResult.Reset()
 
-  
+  m.AssertFalse(assertResult)
+  m.AssertTrue(isFail)
+
+
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests white spaces work with annotations
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'some comments to 
+'some comments to
 'demonstrate
 '@Test comments between tests
 'that we can have comments
@@ -189,7 +189,7 @@ function Simp_whiteSpacing() as void
   m.AssertTrue(true)
 end function
 
-'some comments to 
+'some comments to
 'demonstrate
 '@Test comments between tests with params
 '@Params[1]
@@ -224,9 +224,9 @@ end function
 '@Params[[3, 2, 1], [1, 2, 3], false]
 function Simp_EqArray_Pass(values, values2, expected) as void
 
-    result = m.EqArray(values, values2)
-    m.AssertEqual(result, expected)
-  
+  result = m.EqArray(values, values2)
+  m.AssertEqual(result, expected)
+
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -243,13 +243,13 @@ end function
 '@Params[[invalid]]
 function Simp_AssertNotEmpty_Pass(values) as void
 
-    assertResult = m.AssertNotEmpty(values)
-    isFail = m.currentResult.isFail
+  assertResult = m.AssertNotEmpty(values)
+  isFail = m.currentResult.isFail
 
-    m.currentResult.Reset()
-    m.AssertTrue(assertResult)
-    m.AssertFalse(isFail)           
-  
+  m.currentResult.Reset()
+  m.AssertTrue(assertResult)
+  m.AssertFalse(isFail)
+
 end function
 
 '@Test fail
@@ -260,13 +260,13 @@ end function
 '@Params[""]
 function Simp_AssertNotEmpty_Fail(values) as void
 
-    assertResult = m.AssertNotEmpty(values)
-    isFail = m.currentResult.isFail
+  assertResult = m.AssertNotEmpty(values)
+  isFail = m.currentResult.isFail
 
-    m.currentResult.Reset()
-    m.AssertFalse(assertResult)
-    m.AssertTrue(isFail)           
-  
+  m.currentResult.Reset()
+  m.AssertFalse(assertResult)
+  m.AssertTrue(isFail)
+
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -279,12 +279,12 @@ end function
 '@Params[""]
 function Simp_AssertEmpty_Pass(values) as void
 
-    assertResult = m.AssertEmpty(values)
-    isFail = m.currentResult.isFail
+  assertResult = m.AssertEmpty(values)
+  isFail = m.currentResult.isFail
 
-    m.currentResult.Reset()
-    m.AssertTrue(assertResult)
-    m.AssertFalse(isFail)           
+  m.currentResult.Reset()
+  m.AssertTrue(assertResult)
+  m.AssertFalse(isFail)
 
 end function
 
@@ -300,24 +300,24 @@ end function
 '@Params[[invalid]]
 function Simp_AssertEmpty_Fail(values) as void
 
-    assertResult = m.AssertEmpty(values)
-    isFail = m.currentResult.isFail
+  assertResult = m.AssertEmpty(values)
+  isFail = m.currentResult.isFail
 
-    m.currentResult.Reset()
-    m.AssertFalse(assertResult)
-    m.AssertTrue(isFail)           
-  
+  m.currentResult.Reset()
+  m.AssertFalse(assertResult)
+  m.AssertTrue(isFail)
+
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests expectOnce
+'@It tests expect
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 '@Test multi return values
 function Simp_expect_multiValues()
   obj = {}
   m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
-  
+
   result = obj.mockMethod()
   m.AssertEqual(result, "one")
 
@@ -329,9 +329,146 @@ function Simp_expect_multiValues()
 
   result = obj.mockMethod()
   m.AssertEqual(result, "last")
-  
+
   result = obj.mockMethod()
   m.AssertEqual(result, "last")
+
+  m.assertMocks()
+  isFail = m.currentResult.isFail
+
+  m.currentResult.Reset()
+  m.AssertFalse(isFail)
+
+end function
+
+
+'@Test can set up multi expects on same method
+function Simp_expect_multiExpect_success()
+  obj = {}
+  arg1 = "arg1"
+  arg2 = "arg2"
+  arg3 = "arg3"
+  result1 = 1
+  result2 = 2
+  result3 = 3
+
+  m.expectOnce(obj, "mockMethod", [arg1], result1, true)
+  m.expectOnce(obj, "mockMethod", [arg2], result2, true)
+  m.expectOnce(obj, "mockMethod", [arg3], result3, true)
+
+  result = obj.mockMethod(arg1)
+  m.AssertEqual(result, result1)
+
+  result = obj.mockMethod(arg2)
+  m.AssertEqual(result, result2)
+
+  result = obj.mockMethod(arg3)
+  m.AssertEqual(result, result3)
+
+  m.assertMocks()
+  isFail = m.currentResult.isFail
+
+  m.currentResult.Reset()
+  m.AssertFalse(isFail)
+
+end function
+
+'@Test can set up multi expects on same method - one invocation with any args
+function Simp_expect_multiExpect_success_oneCallsArgsNotTracked()
+  obj = {}
+  arg1 = "arg1"
+  arg2 = "arg2"
+  arg3 = "arg3"
+  result1 = 1
+  result2 = 2
+  result3 = 3
+
+  m.expectOnce(obj, "mockMethod", [arg1], result1, true)
+  m.expectOnce(obj, "mockMethod", invalid, result2, true)
+  m.expectOnce(obj, "mockMethod", [arg3], result3, true)
+
+  result = obj.mockMethod(arg1)
+  m.AssertEqual(result, result1)
+ 
+  result = obj.mockMethod("do not care about args", "used in invocation", 2)
+  m.AssertEqual(result, result2)
+
+  result = obj.mockMethod(arg3)
+  m.AssertEqual(result, result3)
+
+  m.assertMocks()
+  isFail = m.currentResult.isFail
+
+  m.currentResult.Reset()
+  m.AssertFalse(isFail)
+
+end function
+
+'@Test can set up multi expects on same method - multi params
+function Simp_expect_multiExpect_multi_args_success()
+  obj = {}
+  arg1 = "arg1"
+  arg2 = "arg2"
+  arg3 = "arg3"
+  result1 = 1
+  result2 = 2
+  result3 = 3
+
+  m.expectOnce(obj, "mockMethod", [arg1, arg2, arg3], result1, true)
+  m.expectOnce(obj, "mockMethod", [arg2, arg3, arg1], result2, true)
+  m.expectOnce(obj, "mockMethod", [arg3, arg2, arg1], result3, true)
+
+  result = obj.mockMethod(arg1, arg2, arg3)
+  m.AssertEqual(result, result1)
+
+  result = obj.mockMethod(arg2, arg3, arg1)
+  m.AssertEqual(result, result2)
+
+  result = obj.mockMethod(arg3, arg2, arg1)
+  m.AssertEqual(result, result3)
+
+  m.assertMocks()
+  isFail = m.currentResult.isFail
+
+  m.currentResult.Reset()
+  m.AssertFalse(isFail)
+
+end function
+
+'@Test can set up multi expects on same method
+'@Params["arg1_", "arg2", "arg3"]
+'@Params["arg1", "arg2", "arg3_"]
+'@Params["arg1", "arg2_", "arg3"]
+'@Params["arg1", "arg2_", "arg3"]
+'@Params["arg1_", "arg2_", "arg3"]
+'@Params["arg1_", invalid, "arg3"]
+function Simp_expect_multiExpect_fail(call1, call2, call3)
+  obj = {}
+  arg1 = "arg1"
+  arg2 = "arg2"
+  arg3 = "arg3"
+  result1 = 1
+  result2 = 2
+  result3 = 3
+
+  m.expectOnce(obj, "mockMethod", [arg1], result1, true)
+  m.expectOnce(obj, "mockMethod", [arg2], result2, true)
+  m.expectOnce(obj, "mockMethod", [arg3], result3, true)
+
+  result = obj.mockMethod(call1)
+  m.AssertEqual(result, result1)
+
+  result = obj.mockMethod(call2)
+  m.AssertEqual(result, result2)
+
+  result = obj.mockMethod(call2)
+  m.AssertEqual(result, result3)
+
+  m.assertMocks()
+  isFail = m.currentResult.isFail
+
+  m.currentResult.Reset()
+  m.AssertTrue(isFail)
 
 end function
 
@@ -339,37 +476,37 @@ end function
 
 'This is coming soon!
 
-'    AssertEqual                 
-'    AssertLike                  
-'    AssertNotEqual              
-'    AssertInvalid               
-'    AssertNotInvalid            
-'    AssertAAHasKey              
-'    AssertAANotHasKey           
-'    AssertAAHasKeys             
-'    AssertAANotHasKeys          
-'    AssertArrayNotContains      
-'    AssertArrayContainsSubset   
+'    AssertEqual
+'    AssertLike
+'    AssertNotEqual
+'    AssertInvalid
+'    AssertNotInvalid
+'    AssertAAHasKey
+'    AssertAANotHasKey
+'    AssertAAHasKeys
+'    AssertAANotHasKeys
+'    AssertArrayNotContains
+'    AssertArrayContainsSubset
 '    AssertArrayNotContainsSubsetet
-'    AssertArrayCount            
-'    AssertArrayNotCount         
-'    AssertArrayContainsOnly     
-'    AssertType                  
-'    AssertSubType               
-'    
+'    AssertArrayCount
+'    AssertArrayNotCount
+'    AssertArrayContainsOnly
+'    AssertType
+'    AssertSubType
+'
 '    'Node extensions
-'    AssertNodeCount             
-'    AssertNodeNotCount          
-'    AssertNodeEmpty             
-'    AssertNodeNotEmpty          
-'    AssertNodeContains          
-'    AssertNodeNotContains       
-'    AssertNodeContainsFields    
-'    AssertNodeNotContainsFields 
+'    AssertNodeCount
+'    AssertNodeNotCount
+'    AssertNodeEmpty
+'    AssertNodeNotEmpty
+'    AssertNodeContains
+'    AssertNodeNotContains
+'    AssertNodeContainsFields
+'    AssertNodeNotContainsFields
 
-'    AssertArray   
-'    AssertAAContainsSubset   
+'    AssertArray
+'    AssertAAContainsSubset
 '
 '    'Mocking and stubbing
-'    AssertMocks     
-'    MockFail        
+'    AssertMocks
+'    MockFail
