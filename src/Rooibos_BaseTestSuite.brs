@@ -1389,7 +1389,6 @@ end function
 '  * @description Creates a stub to replace a real method with
 '  * @param {Dynamic} target - object on which the method to be stubbed is found
 '  * @param {Dynamic} methodName - name of method to stub
-'  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
 '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
 '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - stub that was wired into the real method
