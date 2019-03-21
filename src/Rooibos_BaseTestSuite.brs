@@ -1415,11 +1415,12 @@ function RBS_BTS_Stub(target, methodName, returnValue = invalid, allowNonExistin
   fake = m.CreateFake(id, target, methodName, 1, invalid, returnValue)
   m.stubs[id] = fake
   allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
-  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExisting)
+  isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" 
+  if (isMethodPresent or allowNonExisting)
     target[methodName] = m["StubCallback" + id]
     target.__stubs = m.stubs
 
-    if (allowNonExisting)
+    if (not isMethodPresent)
       ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
     end if
   else
@@ -1550,11 +1551,12 @@ function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs 
     fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
     m.mocks[id] = fake 'this will bind it to m
     allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
-    if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExisting)
+  isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" 
+  if (isMethodPresent or allowNonExisting)
       target[methodName] =  m["MockCallback" + id]
       target.__mocks = m.mocks
 
-      if (allowNonExisting)
+      if (not isMethodPresent)
         ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
       end if
     else
