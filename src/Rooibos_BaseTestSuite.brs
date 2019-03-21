@@ -1615,7 +1615,7 @@ function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, exp
     expectedArgs: expectedArgsValues,
     expectedInvocations: expectedInvocations,
     callback: function (arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-      ? "FAKE CALLBACK CALLED FOR " ; m.methodName
+      ' ? "FAKE CALLBACK CALLED FOR " ; m.methodName
       if (m.allInvokedArgs = invalid)
         m.allInvokedArgs = []
       end if
