@@ -5,9 +5,6 @@
 Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 </h3>
 <p align="center">
-  Version 2.0.0
-</p>
-<p align="center">
   <img src="images/exampleImage.png" alt="Mocha test framework" />
 </p>
 
@@ -18,10 +15,10 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - **[Youtube training videos](https://www.youtube.com/playlist?list=PLJRLV4QDx83vsYMD9bIs-cjoDXmNmO8Jv)**
  - **[Documentation](docs/index.md)**
  - **[API Documentaiton](https://georgejecook.github.io/rooibos)**
- - **[Release notes / History / Changes](CHANGELOG.md)**
+ - **[CHANGELOG](CHANGELOG.md)**
  - **[VSCode snippets](docs/vsCodeSnippets.md)**
  - [Roku dev forum topic](https://forums.roku.com/viewforum.php?f=34)
- - [Roku developer slack group](https://join.slack.com/t/rokudevelopers/shared_invite/enQtMzgyODg0ODY0NDM5LTc2ZDdhZWI2MDBmYjcwYTk5MmE1MTYwMTA2NGVjZmJiNWM4ZWY2MjY1MDY0MmViNmQ1ZWRmMWUzYTVhNzJiY2M)
+ - \#roku channel on the [roku developer's slack](https://join.slack.com/t/rokudevelopers/shared_invite/enQtMzgyODg0ODY0NDM5LTc2ZDdhZWI2MDBmYjcwYTk5MmE1MTYwMTA2NGVjZmJiNWM4ZWY2MjY1MDY0MmViNmQ1ZWRmMWUzYTVhNzJiY2M)
  - [Issue tracker](https://github.com/georgejecook/rooibos/issues)
  - [Roadmap](ROADMAP.md)
 
@@ -40,7 +37,8 @@ Also thanks to the guys who made and maintain [mochaJs](https://mochajs.org/), o
 ## FAQ
 ### Is Rooibos ready for production use?
 
-Rooibos has so far been used on a couple of production projects, running CI with over 1500 tests between them. It does however, use the same test running mechanism of the official roku unit testing framework, which has been in circulation for several years.
+Rooibos is the test framework used by several of my clients, running CI with over 3000 tests between them. It started life as rewrite of the official roku unit testing framework, which has been in circulation for several years.
+
 
 ### Is Rooibos actively maintained?
 

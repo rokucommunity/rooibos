@@ -68,6 +68,7 @@ function BaseTestSuite() as object
   this.Mock       = RBS_BTS_Mock
   this.AssertMocks    = RBS_BTS_AssertMocks
   this.CreateFake     = RBS_BTS_CreateFake
+  this.CombineFakes     = RBS_BTS_CombineFakes
   this.MockFail     = RBS_BTS_MockFail
   this.CleanMocks     = RBS_BTS_CleanMocks
   this.CleanStubs     = RBS_BTS_CleanStubs
@@ -1527,29 +1528,42 @@ function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs 
     m.__mockId = -1
     m.mocks = {}
   end if
-  m.__mockId++
-
-  if (m.__mockId > 5)
-    ? "ERROR ONLY 6 MOCKS PER TEST ARE SUPPORTED!! you're on # " ; m.__mockId
-    ? " Method was " ; methodName
-    return invalid
-  end if
-
-  id = stri(m.__mockId).trim()
-  fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
-  m.mocks[id] = fake 'this will bind it to m
-  allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
-  if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExisting)
-    target[methodName] =  m["MockCallback" + id]
-    target.__mocks = m.mocks
-
-    if (allowNonExisting)
-      ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
+  
+  fake = invalid
+  'ascertain if mock already exists
+  for i = 0 to m.__mockId
+    id = stri(i).trim()
+    if m.mocks[id] <> invalid and m.mocks[id].methodName = methodName
+      fake = m.mocks[id]
+      exit for
     end if
-  else
-    ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
-  end if
+  end for
+  if fake = invalid
+    m.__mockId++
+    id = stri(m.__mockId).trim()
 
+    if (m.__mockId > 6)
+      ? "ERROR ONLY 6 MOCKS PER TEST ARE SUPPORTED!! you're on # " ; m.__mockId
+      ? " Method was " ; methodName
+      return invalid
+    end if
+
+    fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
+    m.mocks[id] = fake 'this will bind it to m
+    allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+    if (type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" or allowNonExisting)
+      target[methodName] =  m["MockCallback" + id]
+      target.__mocks = m.mocks
+
+      if (allowNonExisting)
+        ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
+      end if
+    else
+      ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
+    end if
+  else 
+    m.CombineFakes(fake, m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue))
+  end if
   return fake
 end function
 
@@ -1568,11 +1582,12 @@ end function
 '  */
 function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, expectedArgs =invalid, returnValue=invalid ) as object
   expectedArgsValues = []
-  hasArgs = expectedArgs <> invalid
+  hasArgs = RBS_CMN_IsArray(expectedArgs)
   if (hasArgs)
     defaultValue = m.invalidValue
   else
     defaultValue = m.ignoreValue
+    expectedArgs = []
   end if
 
   for i = 0 to 9
@@ -1631,6 +1646,26 @@ function RBS_BTS_CreateFake(id, target, methodName, expectedInvocations = 1, exp
   return fake
 end function
 
+function RBS_BTS_CombineFakes(fake, otherFake)
+  'add on the expected invoked args
+  if type(fake.expectedArgs) <> "roAssociativeArray" or not fake.expectedArgs.doesExist("multiInvoke")
+    currentExpectedArgsArgs = fake.expectedArgs
+    fake.expectedArgs = {
+      "multiInvoke": [currentExpectedArgsArgs]
+    }
+  end if
+  fake.expectedArgs.multiInvoke.push(otherFake.expectedArgs)
+
+  'add on the expected return values
+  if type(fake.returnValue) <> "roAssociativeArray" or not fake.returnValue.doesExist("multiResult")
+    currentReturnValue = fake.returnValue
+    fake.returnValue = {
+      "multiResult": [currentReturnValue]
+    }
+  end if
+  fake.returnValue.multiResult.push(otherFake.returnValue)
+  fake.expectedInvocations++
+end function
 ' /**
 '  * @memberof module:BaseTestSuite
 '  * @name AssertMocks
@@ -1639,18 +1674,30 @@ end function
 '  * @description Will check all mocks that have been created to ensure they were invoked the expected amount of times, with the expected args.
 '  */
 function RBS_BTS_AssertMocks() as void
-  if (m.__mockId = invalid ) return
-    lastId = int(m.__mockId)
-    for each id in m.mocks
-      mock = m.mocks[id]
-      methodName = mock.methodName
-      if (mock.expectedInvocations <> mock.invocations)
-        m.MockFail(methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
-        return
-      else if (mock.expectedInvocations > 0 and RBS_CMN_IsArray(mock.expectedArgs))
-        for i = 0 to mock.expectedargs.count() -1
-          value = mock.invokedArgs[i]
-          expected = mock.expectedargs[i]
+  if (m.__mockId = invalid or not RBS_CMN_IsAssociativeArray(m.mocks))
+    return
+  end if
+  lastId = int(m.__mockId)
+  for each id in m.mocks
+    mock = m.mocks[id]
+    methodName = mock.methodName
+    if (mock.expectedInvocations <> mock.invocations)
+      m.MockFail(methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
+      m.CleanMocks()
+      return
+    else if mock.expectedInvocations > 0 and (RBS_CMN_IsArray(mock.expectedArgs) or (type(mock.expectedArgs) = "roAssociativeArray" and RBS_CMN_IsArray(mock.expectedArgs.multiInvoke)))
+      isMultiArgsSupported = type(mock.expectedArgs) = "roAssociativeArray" and RBS_CMN_IsArray(mock.expectedArgs.multiInvoke)
+
+      for invocationIndex = 0 to mock.invocations - 1
+        invokedArgs = mock.allInvokedArgs[invocationIndex]
+        if isMultiArgsSupported
+          expectedArgs = mock.expectedArgs.multiInvoke[invocationIndex]
+        else
+          expectedArgs = mock.expectedArgs
+        end if
+        for i = 0 to expectedArgs.count() -1
+          value = invokedArgs[i]
+          expected = expectedArgs[i]
           didNotExpectArg = RBS_CMN_IsString(expected) and expected = m.invalidValue
           if (didNotExpectArg)
             expected = invalid
@@ -1660,15 +1707,17 @@ function RBS_BTS_AssertMocks() as void
               expected = "[INVALID]"
             end if
 
-            m.MockFail(methodName, "Expected arg #" + stri(i).trim() + "  to be '" + RBS_CMN_AsString(expected) + "' got '" + RBS_CMN_AsString(value) + "')")
+            m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + RBS_CMN_AsString(expected) + "' got '" + RBS_CMN_AsString(value) + "')")
+            m.CleanMocks()
             return
           end if
         end for
-      end if
-    end for
+      end for
+    end if
+  end for
 
-    m.CleanMocks()
-  end function
+  m.CleanMocks()
+end function
 
   ' /**
   '  * @memberof module:BaseTestSuite

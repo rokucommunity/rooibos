@@ -559,7 +559,7 @@ function LoadDetails() as void
 end function
 ```
 
-We can use a mock, to facilitate testing against the network layer
+We can use a stub, to facilitate testing against the network layer
 
 ```
 detailsVM = CreateDetailsVM()
@@ -572,7 +572,7 @@ m.AssertFalse(detailsVM.isLoading)
 m.AssertTure(detailsVM.isShowingError)
 ```
 
-In this case, our detailsVM object, wil
+In this case, our detailsVM object, will not actually call ExecuteNetRequests's source code; but will instead call a _fake_ (i.e fake method body), which can return predtermined values, or be later checked for invocation arg conformance.
 
 #### Mocks
 Mocks are _expected_ fakes. Your code will invoke the method, as if it _is_ the real method; but the difference is that Rooibos will track the invoction of mocks, and if the method was not invoked in the manner you expected (i.e. with the expected parameters and the expected number of invocations) then a unit test failure will result.
@@ -580,7 +580,7 @@ Mocks are _expected_ fakes. Your code will invoke the method, as if it _is_ the 
 We create mocks by using the methods:
 
  - Expect - Creates a generic mock
- - ExpectOnce - Creates a mock, which we expect to be called once
+ - ExpectOnce - Creates a mock, which we expect to be called once _or can created individual overloaded calls to the same method_
  - ExpectNone - Creates a mock, which we _never_ expect to be invoked
 
 ### Asserting mocks
@@ -626,6 +626,20 @@ detailsVM.LoadDetails()
 You can save yourself a lot of time, and really think about and kick the tyres of your code, by defining the arguments you expect a function to be invoked with. This is done by passing in an array of the expected invocation arguments via the expectedArgs param. You may also really not care about the args, in which case you can set that value to `invalid` and the call to `m.AssertMocks()` will skip checking the invoked args.
 
 Up to 9 arguments are supported.
+
+#### Expecting several calls to the same method, with verified invocation params
+
+You may wish to call the same method various times, and return different values, or check different arguments were invoked
+
+In this case, we use overloaded `expectOnce` calls, as per the following example:
+
+```
+  m.expectOnce(obj, "mockMethod", [arg1], result1, true)
+  m.expectOnce(obj, "mockMethod", [arg2], result2, true)
+  m.expectOnce(obj, "mockMethod", [arg3], result3, true)
+```
+
+This will now set the framework to expect 3 calls to mockMethod, the first with value of _arg1_, returning _result1_; the second with value of _arg2_, returning _result2_; and the last with value of _arg3_, returning _result3_
 
 
 #### Specifying an expected value of invalid, with m.invalidValue

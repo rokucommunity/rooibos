@@ -1,6 +1,43 @@
 # Rooibos CHANGELOG
 
-## 0.2.0 Initial feedback relase
+## 2.1.0 
+
+### Added
+  - Multiple overloads for expectOnce, allowing for easy definition of multi params and return values from the same method invocation
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+  - Potential crash when passing wrong type of arg value into a fake
+
+## 2.0.0 
+
+### Added
+
+  - Leverage rooibosC preprocessor
+  - Better examples
+  - Faster parsing
+
+### Changed
+
+  - Now requires rooibosC to create the test metadata structures
+
+### Deprecated
+
+### Removed
+
+  - Legacy framework support
+
+### Fixed
+
+  - various runtime error scenarios
+
+## 0.2.0 Initial feedback release
  - Compatability with Roku unit test framework
  - Fix issues submitted by initial users
  - Add `'@OnlyParams` tag
