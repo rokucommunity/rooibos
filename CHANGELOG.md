@@ -1,5 +1,22 @@
 # Rooibos CHANGELOG
 
+## 2.1.1
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+  - removes debug logging for fake calls
+  - https://github.com/georgejecook/rooibos/issues/25
+  - https://github.com/georgejecook/rooibos/issues/30
+  - https://github.com/georgejecook/rooibos/issues/29
+
 ## 2.1.0 
 
 ### Added
