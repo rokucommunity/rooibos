@@ -389,7 +389,7 @@ function Simp_expect_multiExpect_success_oneCallsArgsNotTracked()
 
   result = obj.mockMethod(arg1)
   m.AssertEqual(result, result1)
- 
+
   result = obj.mockMethod("do not care about args", "used in invocation", 2)
   m.AssertEqual(result, result2)
 
@@ -432,6 +432,84 @@ function Simp_expect_multiExpect_multi_args_success()
 
   m.currentResult.Reset()
   m.AssertFalse(isFail)
+
+end function
+
+'@Test multi test, multi params with other expects
+function Simp_expect_multiExpect_multi_args_others_success()
+  obj = {}
+  arg1 = "arg1"
+  arg2 = "arg2"
+  arg3 = "arg3"
+  result1 = 1
+  result2 = 2
+  result3 = 3
+
+  m.expectOnce(obj, "anotherMockMethod", invalid, "another", true)
+  m.expectOnce(obj, "anotherMockMethod2", [1,2,3], "another2", true)
+  m.expectOnce(obj, "mockMethod", [arg1, arg2, arg3], result1, true)
+  m.expectOnce(obj, "mockMethod", [arg2, arg3, arg1], result2, true)
+  m.expectOnce(obj, "mockMethod", [arg3, arg2, arg1], result3, true)
+
+  result = obj.anotherMockMethod()
+  m.AssertEqual(result, "another")
+
+  result = obj.anotherMockMethod2(1, 2, 3)
+  m.AssertEqual(result, "another2")
+
+  result = obj.mockMethod(arg1, arg2, arg3)
+  m.AssertEqual(result, result)
+
+  result = obj.mockMethod(arg2, arg3, arg1)
+  m.AssertEqual(result, result2)
+
+  result = obj.mockMethod(arg3, arg2, arg1)
+  m.AssertEqual(result, result3)
+
+  m.assertMocks()
+  isFail = m.currentResult.isFail
+
+  m.currentResult.Reset()
+  m.AssertFalse(isFail)
+
+end function
+
+'@Test multi test, multi params with other expects - fail others
+function Simp_expect_multiExpect_multi_args_others_fail()
+  obj = {}
+  arg1 = "arg1"
+  arg2 = "arg2"
+  arg3 = "arg3"
+  result1 = 1
+  result2 = 2
+  result3 = 3
+
+  m.expectOnce(obj, "anotherMockMethod", ["not passed"], "another", true)
+  m.expectOnce(obj, "anotherMockMethod2", [1,2,3], "another2", true)
+  m.expectOnce(obj, "mockMethod", [arg1, arg2, arg3], result1, true)
+  m.expectOnce(obj, "mockMethod", [arg2, arg3, arg1], result2, true)
+  m.expectOnce(obj, "mockMethod", [arg3, arg2, arg1], result3, true)
+
+  result = obj.anotherMockMethod()
+  m.AssertEqual(result, "another")
+
+  result = obj.anotherMockMethod2(1, 2, 3)
+  m.AssertEqual(result, "another2")
+
+  result = obj.mockMethod(arg1, arg2, arg3)
+  m.AssertEqual(result, result)
+
+  result = obj.mockMethod(arg2, arg3, arg1)
+  m.AssertEqual(result, result2)
+
+  result = obj.mockMethod(arg3, arg2, arg1)
+  m.AssertEqual(result, result3)
+
+  m.assertMocks()
+  isFail = m.currentResult.isFail
+
+  m.currentResult.Reset()
+  m.AssertTrue(isFail)
 
 end function
 
