@@ -47,8 +47,11 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibosDis
 ### Installation
 <a name="easy-to-integrate"></a>
 
-1. Clone or download this repo
-2. Copy `dist/rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.
+1. Either:
+
+	- download the [latest relases's] (https://github.com/georgejecook/rooibos/releases/latest) `rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.  
+	- clone or download this repo and copy `dist/rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.  
+	
 3. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens
 
 	```sh
