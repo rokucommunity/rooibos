@@ -906,7 +906,7 @@ function RBS_BTS_Stub(target, methodName, returnValue = invalid, allowNonExistin
   fake = m.CreateFake(id, target, methodName, 1, invalid, returnValue)
   m.stubs[id] = fake
   allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
-  isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" 
+  isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
   if (isMethodPresent or allowNonExisting)
     target[methodName] = m["StubCallback" + id]
     target.__stubs = m.stubs
@@ -935,19 +935,36 @@ function RBS_BTS_Expect(target, methodName, expectedInvocations = 1, expectedArg
   return m.Mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods)
 end function
 function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-  if (type(target) <> "roAssociativeArray")
-    m.Fail("could not create Stub provided target was null")
+  if not RBS_CMN_IsAssociativeArray(target)
+    m.Fail("mock args: target was not an AA")
+  else if not RBS_CMN_IsString(methodName)
+    m.Fail("mock args: methodName was not a string")
+  else if not RBS_CMN_IsNumber(expectedInvocations)
+    m.Fail("mock args: expectedInvocations was not an int")
+  else if not RBS_CMN_IsArray(expectedArgs) and RBS_CMN_IsValid(expectedArgs)
+    m.Fail("mock args: expectedArgs was not invalid or an array of args")
+  else if RBS_CMN_IsUndefined(expectedArgs)
+    m.Fail("mock args: expectedArgs undefined")
+  end if
+  if m.currentResult.isFail
+    ? "ERROR: "; m.currentResult.messages[m.currentResult.currentAssertIndex - 1]
     return {}
   end if
   if (m.mocks = invalid)
     m.__mockId = -1
+    m.__mockTargetId = -1
     m.mocks = {}
   end if
   fake = invalid
+  if not target.doesExist("__rooibosTargetId")
+    m.__mockTargetId++
+    target["__rooibosTargetId"] = m.__mockTargetId
+  end if
   for i = 0 to m.__mockId
     id = stri(i).trim()
-    if m.mocks[id] <> invalid and m.mocks[id].methodName = methodName
-      fake = m.mocks[id]
+    mock =  m.mocks[id]
+    if mock <> invalid and mock.methodName = methodName and mock.target.__rooibosTargetId = target.__rooibosTargetId
+      fake = mock
       exit for
     end if
   end for
@@ -962,8 +979,8 @@ function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs 
     fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
     m.mocks[id] = fake 'this will bind it to m
     allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
-  isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction" 
-  if (isMethodPresent or allowNonExisting)
+    isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
+    if (isMethodPresent or allowNonExisting)
       target[methodName] =  m["MockCallback" + id]
       target.__mocks = m.mocks
       if (not isMethodPresent)
@@ -972,7 +989,7 @@ function RBS_BTS_Mock(target, methodName, expectedInvocations = 1, expectedArgs 
     else
       ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
     end if
-  else 
+  else
     m.CombineFakes(fake, m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue))
   end if
   return fake
@@ -1095,141 +1112,141 @@ function RBS_BTS_AssertMocks() as void
   end for
   m.CleanMocks()
 end function
-  function RBS_BTS_CleanMocks() as void
-    if m.mocks = invalid return
-      for each id in m.mocks
-        mock = m.mocks[id]
-        mock.target.__mocks = invalid
+function RBS_BTS_CleanMocks() as void
+  if m.mocks = invalid return
+    for each id in m.mocks
+      mock = m.mocks[id]
+      mock.target.__mocks = invalid
+    end for
+    m.mocks = invalid
+  end function
+  function RBS_BTS_CleanStubs() as void
+    if m.stubs = invalid return
+      for each id in m.stubs
+        stub = m.stubs[id]
+        stub.target.__stubs = invalid
       end for
-      m.mocks = invalid
+      m.stubs = invalid
     end function
-    function RBS_BTS_CleanStubs() as void
-      if m.stubs = invalid return
-        for each id in m.stubs
-          stub = m.stubs[id]
-          stub.target.__stubs = invalid
-        end for
-        m.stubs = invalid
-      end function
-      function RBS_BTS_MockFail(methodName, message) as dynamic
-        if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
-        m.currentResult.AddResult("mock failure on '" + methodName + "' : "  + message)
-        return m.GetLegacyCompatibleReturnValue(false)
-      end function
-      function RBS_BTS_StubCallback0(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__Stubs["0"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_StubCallback1(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__Stubs["1"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_StubCallback2(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__Stubs["2"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_StubCallback3(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__Stubs["3"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_StubCallback4(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__Stubs["4"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_StubCallback5(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__Stubs["5"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_MockCallback0(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__mocks["0"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_MockCallback1(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__mocks["1"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_MockCallback2(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__mocks["2"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_MockCallback3(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__mocks["3"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_MockCallback4(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__mocks["4"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_MockCallback5(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
-        fake = m.__mocks["5"]
-        return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-      end function
-      function RBS_BTS_rodash_pathsAsArray_(path)
-        pathRE = CreateObject("roRegex", "\[([0-9]+)\]", "i")
-        segments = []
-        if type(path) = "String" or type(path) = "roString"
-          dottedPath = pathRE.replaceAll(path, ".\1")
-          stringSegments = dottedPath.tokenize(".")
-          for each s in stringSegments
-            if (Asc(s) >= 48) and (Asc(s) <= 57)
-              segments.push(s.toInt())
-            else
-              segments.push(s)
-            end if
-          end for
-        else if type(path) = "roList" or type(path) = "roArray"
-          stringPath = ""
-          for each s in path
-            stringPath = stringPath + "." + Box(s).toStr()
-          end for
-          segments = m.pathAsArray_(stringPath)
-        else
-          segments = invalid
-        end if
-        return segments
-      end function
-      function RBS_BTS_rodash_get_(aa, path, default=invalid)
-        if type(aa) <> "roAssociativeArray" and type(aa) <> "roArray" and type(aa) <> "roSGNode" then return default
-        segments = m.pathAsArray_(path)
-        if (Type(path) = "roInt" or Type(path) = "roInteger" or Type(path) = "Integer")
-          path = stri(path).trim()
-        end if
-        if segments = invalid then return default
-        result = invalid
-        while segments.count() > 0
-          key = segments.shift()
-          if (type(key) = "roInteger") 'it's a valid index
-            if (aa <> invalid and GetInterface(aa, "ifArray") <> invalid)
-              value = aa[key]
-            else if (aa <> invalid and GetInterface(aa, "ifSGNodeChildren") <> invalid)
-              value = aa.getChild(key)
-            else if (aa <> invalid and GetInterface(aa, "ifAssociativeArray") <> invalid)
-              key = tostr(key)
-              if not aa.doesExist(key)
-                exit while
-              end if
-              value = aa.lookup(key)
-            else
-              value = invalid
-            end if
+    function RBS_BTS_MockFail(methodName, message) as dynamic
+      if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
+      m.currentResult.AddResult("mock failure on '" + methodName + "' : "  + message)
+      return m.GetLegacyCompatibleReturnValue(false)
+    end function
+    function RBS_BTS_StubCallback0(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__Stubs["0"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_StubCallback1(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__Stubs["1"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_StubCallback2(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__Stubs["2"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_StubCallback3(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__Stubs["3"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_StubCallback4(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__Stubs["4"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_StubCallback5(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__Stubs["5"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_MockCallback0(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__mocks["0"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_MockCallback1(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__mocks["1"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_MockCallback2(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__mocks["2"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_MockCallback3(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__mocks["3"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_MockCallback4(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__mocks["4"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_MockCallback5(arg1=invalid,  arg2=invalid,  arg3=invalid,  arg4=invalid,  arg5=invalid,  arg6=invalid,  arg7=invalid,  arg8=invalid,  arg9 =invalid)as dynamic
+      fake = m.__mocks["5"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+    end function
+    function RBS_BTS_rodash_pathsAsArray_(path)
+      pathRE = CreateObject("roRegex", "\[([0-9]+)\]", "i")
+      segments = []
+      if type(path) = "String" or type(path) = "roString"
+        dottedPath = pathRE.replaceAll(path, ".\1")
+        stringSegments = dottedPath.tokenize(".")
+        for each s in stringSegments
+          if (Asc(s) >= 48) and (Asc(s) <= 57)
+            segments.push(s.toInt())
           else
+            segments.push(s)
+          end if
+        end for
+      else if type(path) = "roList" or type(path) = "roArray"
+        stringPath = ""
+        for each s in path
+          stringPath = stringPath + "." + Box(s).toStr()
+        end for
+        segments = m.pathAsArray_(stringPath)
+      else
+        segments = invalid
+      end if
+      return segments
+    end function
+    function RBS_BTS_rodash_get_(aa, path, default=invalid)
+      if type(aa) <> "roAssociativeArray" and type(aa) <> "roArray" and type(aa) <> "roSGNode" then return default
+      segments = m.pathAsArray_(path)
+      if (Type(path) = "roInt" or Type(path) = "roInteger" or Type(path) = "Integer")
+        path = stri(path).trim()
+      end if
+      if segments = invalid then return default
+      result = invalid
+      while segments.count() > 0
+        key = segments.shift()
+        if (type(key) = "roInteger") 'it's a valid index
+          if (aa <> invalid and GetInterface(aa, "ifArray") <> invalid)
+            value = aa[key]
+          else if (aa <> invalid and GetInterface(aa, "ifSGNodeChildren") <> invalid)
+            value = aa.getChild(key)
+          else if (aa <> invalid and GetInterface(aa, "ifAssociativeArray") <> invalid)
+            key = tostr(key)
             if not aa.doesExist(key)
               exit while
             end if
             value = aa.lookup(key)
+          else
+            value = invalid
           end if
-          if segments.count() = 0
-            result = value
+        else
+          if not aa.doesExist(key)
             exit while
           end if
-          if type(value) <> "roAssociativeArray" and type(value) <> "roArray" and type(value) <> "roSGNode"
-            exit while
-          end if
-          aa = value
-        end while
-        if result = invalid then return default
-        return result
-      end function
+          value = aa.lookup(key)
+        end if
+        if segments.count() = 0
+          result = value
+          exit while
+        end if
+        if type(value) <> "roAssociativeArray" and type(value) <> "roArray" and type(value) <> "roSGNode"
+          exit while
+        end if
+        aa = value
+      end while
+      if result = invalid then return default
+      return result
+    end function
 function RBS_CMN_IsXmlElement(value ) as boolean
   return RBS_CMN_IsValid(value) and GetInterface(value, "ifXMLElement") <> invalid
 end function
