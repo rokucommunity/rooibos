@@ -85,5 +85,6 @@ export function doc(cb) {
 }
 
 exports.build = series(clean, createDirectories, squash, copyToSamples);
-exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, copyToSamples, zipFrameworkTests, deployFrameworkTests)
-exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests, copyToSamples)
+exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
+exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
+exports.dist = series(exports.build, doc);
