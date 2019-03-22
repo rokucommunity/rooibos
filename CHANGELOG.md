@@ -1,5 +1,20 @@
 # Rooibos CHANGELOG
 
+## 2.1.2
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+  - collision on overloaded expect calls that on same method name on different objects
+  - https://github.com/georgejecook/rooibos/issues/36
+
 ## 2.1.1
 
 ### Added
