@@ -66,7 +66,7 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibosDis
 
 	__See the example app to get a clearer understanding of the directory structures__ [Example app](../samples/example)
 	<br>
-6. Install [RooibosC](#rooibosC) preprocessor and run it.
+6. Integrate [rooibos-preprocessor](#rooibos-preprocessor) into your tool-chain.
 7. Run your tests
 
 **For an example of how to use rooibos with gulp, see the gulpfile.ts in this project, which is used to run the framework unit tests.**
