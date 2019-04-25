@@ -83,27 +83,14 @@ The following working gulpfile can be found in my [roku MVVM spike](https://gith
 
  - `npm install rooibos-preprocessor --save-dev`
  - Add the following to the top of gulpfile.ts `import { RooibosProcessor } from "rooibos-preprocessor";`
- - Create a task to process your files, with the desired regex replacements, such as:
+ - Create a task to process your test files, such as:
 
  ```
- export function addDevLogs(cb) {
-  let config: BurpConfig = {
-    "sourcePath": "build/.roku-deploy-staging",
-    // "sourcePath": "build/wtf",
-    "globPattern": "**/*.brs",
-    "replacements": [
-      {
-        "regex": "(^.*(logInfo|logError|logVerbose|logDebug)\\((\\s*\"))",
-        "replacement": "$1#FullPath# "
-      },
-      {
-        "regex": "(^.*(logMethod)\\((\\s*\"))",
-        "replacement": "$1#FullPath# "
-      }
-    ]
-  }
-  const processor = new BurpProcessor(config);
+export async function prepareTests(cb) {
+  await rokuDeploy.prepublishToStaging(args);
+  let processor = new RooibosProcessor('build/.roku-deploy-staging/source/tests', 'build/.roku-deploy-staging', 'build/.roku-deploy-staging/source/tests');
   processor.processFiles();
+
   cb();
 }
 ```
