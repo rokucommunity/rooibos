@@ -1,5 +1,20 @@
 # Rooibos CHANGELOG
 
+## 2.1.3
+
+### Added
+
+### Changed
+
+ - improves documentation, explaining how to use rooibos-preprocessor from gulp/js toolchains
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+
 ## 2.1.2
 
 ### Added
