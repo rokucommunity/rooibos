@@ -71,9 +71,47 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibosDis
 
 **For an example of how to use rooibos with gulp, see the gulpfile.ts in this project, which is used to run the framework unit tests.**
 
-### RooibosC
+### rooibos-preprocessor
 
-To get the best performance and test flexibility, rooibos leverages a typescript preprocessor, named [rooibosC](https://github.com/georgejecook/rooibosPreprocessor), which prepares some files which get sideloaded with your tests. Simply: `npm install -g rooibos-preprocessor`
+To get the best performance and test flexibility, rooibos leverages a typescript preprocessor, named [rooibos-preprocessor](https://github.com/georgejecook/rooibosPreprocessor), which prepares some files which get sideloaded with your tests. 
+
+### From javascript/typescript/node
+
+#### Gulp typescript example
+
+The following working gulpfile can be found in my [roku MVVM spike](https://github.com/georgejecook/rokuNavSpike/tree/feature/viewModels); but the process is as follows.
+
+ - `npm install rooibos-preprocessor --save-dev`
+ - Add the following to the top of gulpfile.ts `import { RooibosProcessor } from "rooibos-preprocessor";`
+ - Create a task to process your files, with the desired regex replacements, such as:
+
+ ```
+ export function addDevLogs(cb) {
+  let config: BurpConfig = {
+    "sourcePath": "build/.roku-deploy-staging",
+    // "sourcePath": "build/wtf",
+    "globPattern": "**/*.brs",
+    "replacements": [
+      {
+        "regex": "(^.*(logInfo|logError|logVerbose|logDebug)\\((\\s*\"))",
+        "replacement": "$1#FullPath# "
+      },
+      {
+        "regex": "(^.*(logMethod)\\((\\s*\"))",
+        "replacement": "$1#FullPath# "
+      }
+    ]
+  }
+  const processor = new BurpProcessor(config);
+  processor.processFiles();
+  cb();
+}
+```
+
+
+#### CLI usage
+
+You can also use rooibos-preprocessor from the command line, by installing it globally. i.e `npm install -g rooibos-preprocessor`. The CLI app is vcalled `rooibos`
 
 Then call `rooibosC -h` to check the install worked and see the help menu.
 
