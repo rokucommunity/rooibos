@@ -1,5 +1,19 @@
 # Rooibos CHANGELOG
 
+## 2.1.4
+
+### Added
+
+  - adds new Parameter arg directive #RBSNode, to allow creation of nodes in the parameterized args
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
 ## 2.1.3
 
 ### Added

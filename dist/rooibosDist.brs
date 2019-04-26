@@ -1,6 +1,6 @@
 '/**
 ' * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
-' * @version v2.0.0
+' * @version v2.1.4
 ' * @link https://github.com/georgejecook/rooibos#readme
 ' * @license MIT
 ' */
@@ -2121,7 +2121,19 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
     testStatObj.metaTestCase.testResult = testSuite.currentResult
     if (metaTestCase.isParamsValid)
       if (metaTestCase.isParamTest)
-        testCaseParams = metaTestCase.rawParams
+        testCaseParams = []
+        for paramIndex = 0 to metaTestCase.rawParams.count()
+          paramValue = metaTestCase.rawParams[paramIndex]
+          if type(paramValue) = "roString" and len(paramValue) >= 8 and left(paramValue, 8) = "#RBSNode"
+            nodeType = "ContentNode"
+            paramDirectiveArgs = paramValue.split("|")
+            if paramDirectiveArgs.count() > 1
+              nodeType = paramDirectiveArgs[1]
+            end if
+            paramValue = createObject("roSGNode", nodeType)
+          end if
+          testCaseParams.push(paramValue)
+        end for
         if (metaTestCase.expectedNumberOfParams = 1)
           testSuite.testCase(testCaseParams[0])
         else if (metaTestCase.expectedNumberOfParams = 2)

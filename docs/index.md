@@ -404,6 +404,22 @@ end function
 
 Paremeterized tests accept any valid json. However, the number of top level items in the params array must match the amount of arguments for your test method. If they don't the TestCase will fail.
 
+#### Advanced paramter directives
+
+##### #RBSNode
+
+You can instruct rooibos to create nodes as your parameter arguments. To do so, use the special value `"#RBSNode"`, which will create a ContentNode for that value. You can also specify the nod type you wish to create. See the following example for guidance:
+
+```
+'@Test
+'@Params["#RBSNode", "ContentNode"]
+'@Params["#RBSNode|Group", "Group"]
+'@Params["#RBSNode|Label", "Label"]
+function PT_RBSNodeDirective(node, expectedNodeType) as void
+  m.assertSubType(node, expectedNodeType)
+end function
+```
+
 #### Parameterized test output
 
 The output from paremeterized tests shows the test name, and all of param configurations that were executed, making it easy to ascertain which param config results in a failure

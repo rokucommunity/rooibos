@@ -260,7 +260,19 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
 
     if (metaTestCase.isParamsValid)
       if (metaTestCase.isParamTest)
-        testCaseParams = metaTestCase.rawParams
+        testCaseParams = []
+        for paramIndex = 0 to metaTestCase.rawParams.count()
+          paramValue = metaTestCase.rawParams[paramIndex]
+          if type(paramValue) = "roString" and len(paramValue) >= 8 and left(paramValue, 8) = "#RBSNode"
+            nodeType = "ContentNode"
+            paramDirectiveArgs = paramValue.split("|")
+            if paramDirectiveArgs.count() > 1
+              nodeType = paramDirectiveArgs[1]
+            end if
+            paramValue = createObject("roSGNode", nodeType)
+          end if
+          testCaseParams.push(paramValue)
+        end for
         'up to 6 param args supported for now
         if (metaTestCase.expectedNumberOfParams = 1)
           testSuite.testCase(testCaseParams[0])
