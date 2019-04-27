@@ -1,5 +1,19 @@
 # Rooibos CHANGELOG
 
+## 2.2.0
+
+### Added
+
+  - sets the node property on non-node test suites. This allows you to access the global namespace, in case you are testing mixin methods, or other non-scoped code (i.e. the equivalent of accessing `method` as opposed to `m.method` or `myObject.method`)
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
 ## 2.1.4
 
 ### Added

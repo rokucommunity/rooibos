@@ -8,7 +8,6 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 
 ## FEATURES
  - [Easy to integrate](#easy-to-integrate)
- - [Compatible with legacy unit testing framework](#compatible-with-legacy-framework)
  - [Simple, annotation-based, syntax for writing tests](#simple-syntax-for-writing-tests)
  - [No need for special file names, or method names](#no-need-for-special-file-or-method-names)
  - [Common TDD methods such as Setup/TearDown/BeforeEach/AfterEach](#common-tdd-methods)
@@ -563,7 +562,34 @@ end function
 
 Note: The test utils decorator and all of it's dependencies must be visible to the current exeucting test. That means if you have a node test you must include the script file containing the `testCase.testUtils` method, and all other methods it invokes. The sample app contains an example.
 
-Non-node tests should find all methods are automatically in scope
+### Accessing global scope
+
+Non-node tests should find all methods are automatically in scope; however, if you need to access the node scope to test anonymous, or mixin methods, this is also supported. You can make your global scope available by calling `Rooibos__Init` and passing in a reference to your scope, as such
+
+```
+sub Main(args as dynamic)
+    if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals, "AddTestUtils", invalid, m)
+end sub
+
+```
+
+You can then access a node scoped method (i.e. one that is not on m, or on any other object) in the following way:
+
+```
+
+'@Test 
+function BT_globalScope() as void
+  m.assertNotInvalid(m.node)
+  BT_doSomethingInNodeScope(true)
+  m.assertInvalid(m._isNodeScopeVarSet)
+  m.assertTrue(m.node. _isNodeScopeVarSet)
+end function
+
+function BT_doSomethingInNodeScope(value)
+  m._isNodeScopeVarSet = value
+end function
+```
+
 
 ## Using mocks and stubs
 <a name="mocks-and-stubs"></a>

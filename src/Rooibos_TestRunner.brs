@@ -14,6 +14,7 @@
 function RBS_TR_TestRunner(args = {}) as object
   this = {}
   this.testScene = args.testScene
+  this.nodeContext = args.nodeContext
   fs = CreateObject("roFileSystem")
   defaultConfig = {
     logLevel : 1,
@@ -142,7 +143,7 @@ sub RBS_TR_Run()
       if (metaTestSuite.hasIgnoredTests)
         totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name)
       end if
-      RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig)
+      RBS_RT_RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig, m.nodeContext)
     end if
     skipSuite:
   end for

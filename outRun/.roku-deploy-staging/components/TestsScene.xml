@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="TestsScene" extends="Scene">
+  <children>
+    <LayoutGroup>
+      <Label text="Rooibos tests are running" />
+    </LayoutGroup>
+  </children>
+</component>

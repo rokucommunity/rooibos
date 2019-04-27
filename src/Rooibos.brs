@@ -14,8 +14,9 @@
 '  *                   Use this to add things like, rodash, common test utils, etc
 '  * @param testsSceneName as string - name of scene to create. All unit tests run in the scene thread
 '  *                   and therefore require a screen and scene are created.
+'  * @param nodeContext as object - this is the global scope of your tests - so where anonymous methods will run from. This should be m
 '  */
-function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = "TestsScene") as void
+function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
   args = {}
   if createObject("roAPPInfo").IsDev() <> true then
     ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
@@ -23,11 +24,14 @@ function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = i
   end if
 
   args.testUtilsDecoratorMethodName = testUtilsDecoratorMethodName
+  args.nodeContext = nodeContext
 
   screen = CreateObject("roSGScreen")
   m.port = CreateObject("roMessagePort")
   screen.setMessagePort(m.port)
-
+  if testSceneName = invalid
+    testSceneName = "TestsScene"
+  end if
   ? "Starting test using test scene with name TestsScene" ; testSceneName
   scene = screen.CreateScene(testSceneName)
   scene.id = "ROOT"
