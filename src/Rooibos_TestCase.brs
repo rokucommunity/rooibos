@@ -15,6 +15,7 @@ function UnitTestCase(name as string, func as dynamic, funcName as string, isSol
   this.rawParams = params
   this.paramTestIndex = paramTestIndex
   this.isParamTest = false
+  this.time = 0
   if (params <> invalid)
     this.name += stri(this.paramTestIndex)
   end if

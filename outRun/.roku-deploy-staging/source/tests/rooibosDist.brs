@@ -1723,6 +1723,7 @@ function UnitTestCase(name as string, func as dynamic, funcName as string, isSol
   this.rawParams = params
   this.paramTestIndex = paramTestIndex
   this.isParamTest = false
+  this.time = 0
   if (params <> invalid)
     this.name += stri(this.paramTestIndex)
   end if
@@ -1811,7 +1812,7 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as object)
   insetText = ""
   if (metaTestcase.isParamTest <> true)
     messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
-    ? messageLine ; testCase.Result
+    ? messageLine ; testCase.Result ; " (" + stri(metaTestCase.time).trim() +"ms)"
   else if ( metaTestcase.paramTestIndex = 0)
     name = metaTestCase.Name
     if (len(name) > 1 and right(name, 1) = "0")
@@ -1822,7 +1823,7 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as object)
   if (metaTestcase.isParamTest = true)
     insetText = "  "
     messageLine = RBS_LOGGER_FillText(" " + testChar + insetText + " |--" + formatJson(metaTestCase.rawParams) + " : ", ".", 80)
-    ? messageLine ; testCase.Result
+    ? messageLine ; testCase.Result ; " (" + stri(metaTestCase.time).trim() +"ms)"
   end if
   if LCase(testCase.Result) <> "success"
     ? " | "; insettext ;"  |--Location: "; locationText
@@ -2118,6 +2119,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
       testSuite.beforeEach()
     end if
     testTimer = CreateObject("roTimespan")
+    testCaseTimer = CreateObject("roTimespan")
     testStatObj = RBS_STATS_CreateTestStatistic(testCase.Name)
     testSuite.testCase = testCase.Func
     testStatObj.filePath = metaTestSuite.filePath
@@ -2139,6 +2141,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
           end if
           testCaseParams.push(paramValue)
         end for
+        testCaseTimer.mark()
         if (metaTestCase.expectedNumberOfParams = 1)
           testSuite.testCase(testCaseParams[0])
         else if (metaTestCase.expectedNumberOfParams = 2)
@@ -2152,8 +2155,11 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
         else if (metaTestCase.expectedNumberOfParams = 6)
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
         end if
+        metaTestCase.time = testCaseTimer.totalMilliseconds()
       else
+        testCaseTimer.mark()
         testSuite.testCase()
+        metaTestCase.time = testCaseTimer.totalMilliseconds()
       end if
     else
       testSuite.Fail("Could not parse args for test ")

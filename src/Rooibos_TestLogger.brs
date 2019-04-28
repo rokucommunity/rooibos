@@ -104,7 +104,7 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as object)
   insetText = ""
   if (metaTestcase.isParamTest <> true)
     messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
-    ? messageLine ; testCase.Result
+    ? messageLine ; testCase.Result ; " (" + stri(metaTestCase.time).trim() +"ms)"
   else if ( metaTestcase.paramTestIndex = 0)
     name = metaTestCase.Name
     if (len(name) > 1 and right(name, 1) = "0")
@@ -116,7 +116,7 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as object)
   if (metaTestcase.isParamTest = true)
     insetText = "  "
     messageLine = RBS_LOGGER_FillText(" " + testChar + insetText + " |--" + formatJson(metaTestCase.rawParams) + " : ", ".", 80)
-    ? messageLine ; testCase.Result
+    ? messageLine ; testCase.Result ; " (" + stri(metaTestCase.time).trim() +"ms)"
   end if
 
   if LCase(testCase.Result) <> "success"

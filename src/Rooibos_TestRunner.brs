@@ -251,6 +251,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
     end if
 
     testTimer = CreateObject("roTimespan")
+    testCaseTimer = CreateObject("roTimespan")
     testStatObj = RBS_STATS_CreateTestStatistic(testCase.Name)
     testSuite.testCase = testCase.Func
     testStatObj.filePath = metaTestSuite.filePath
@@ -274,6 +275,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
           end if
           testCaseParams.push(paramValue)
         end for
+        testCaseTimer.mark()
         'up to 6 param args supported for now
         if (metaTestCase.expectedNumberOfParams = 1)
           testSuite.testCase(testCaseParams[0])
@@ -288,8 +290,11 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
         else if (metaTestCase.expectedNumberOfParams = 6)
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
         end if
+        metaTestCase.time = testCaseTimer.totalMilliseconds()
       else
+        testCaseTimer.mark()
         testSuite.testCase()
+        metaTestCase.time = testCaseTimer.totalMilliseconds()
       end if
     else
       testSuite.Fail("Could not parse args for test ")

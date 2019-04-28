@@ -1,5 +1,19 @@
 # Rooibos CHANGELOG
 
+## 2.3.0
+
+### Added
+
+  - prints ms duration of each test in the output
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
 ## 2.2.0
 
 ### Added
