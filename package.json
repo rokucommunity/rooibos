@@ -1,6 +1,6 @@
 {
   "name": "rooibos",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "main": "index.js",
   "directories": {

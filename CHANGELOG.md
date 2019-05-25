@@ -1,5 +1,21 @@
 # Rooibos CHANGELOG
 
+## 3.0.0
+
+### Added
+
+  - Code coverage support!
+
+### Changed
+
+  - there are breaking changes in rooibos-preprocessor which, are required for code coverage. I'm keeping the major versions of rooibos and rooibos-preprocessor in sync, due to documentation, and everyone's sanity
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
 ## 2.3.0
 
 ### Added

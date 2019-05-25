@@ -23,6 +23,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Hook into your global setup mechanisms](#hook-into-your-global-setup-mechanisms)
  - [Only show output for failed tests](#only-show-output-for-failed-tests)
  - [Easily integrate into any CI system](#easily-integrate-into-any-ci-system)
+ - [Generate code coverage](#generate-code-coverage)
 
 
 ## TABLE OF CONTENTS
@@ -81,13 +82,22 @@ To get the best performance and test flexibility, rooibos leverages a typescript
 The following working gulpfile can be found in my [roku MVVM spike](https://github.com/georgejecook/rokuNavSpike/tree/feature/viewModels); but the process is as follows.
 
  - `npm install rooibos-preprocessor --save-dev`
- - Add the following to the top of gulpfile.ts `import { RooibosProcessor } from "rooibos-preprocessor";`
+ - Add the following to the top of gulpfile.ts `import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from "rooibos-preprocessor";`
  - Create a task to process your test files, such as:
 
  ```
 export async function prepareTests(cb) {
   await rokuDeploy.prepublishToStaging(args);
-  let processor = new RooibosProcessor('build/.roku-deploy-staging/source/tests', 'build/.roku-deploy-staging', 'build/.roku-deploy-staging/source/tests');
+  let config = createProcessorConfig({
+	"projectPath": "build"
+	"testsFilePattern": [
+		"**/tests/**/*.brs",
+		"!**/rooibosDist.brs",
+		"!**/rooibosFunctionMap.brs",
+		"!**/TestsScene.brs"
+	]
+});
+  let processor = new RooibosProcessor(config);
   processor.processFiles();
 
   cb();
@@ -105,26 +115,33 @@ There are two ways to invoke RooibosC:
 
 1. Define a config file that returns a JSON object and tell RooibosC to use that via the `-c` flag:
 
-	```sh
+	```
 	rooibosC -c path/to/config.json
 	```
 
 	_To see an example config file take a look at the [Example app](../samples/example)_
 	<br>
 
-2. Use the `-t  -r -o` flags to set your paths like so:
+2. Alternately, use the following flags to configure test behaviour, like so:
 
 	```sh
-	rooibosC -t source/tests/specs -r ./ -o source/tests/rooibos
+	rooibosC -p ./ -t source/tests
 	```
+### Description of rooibosC flags
 
-	`-t` is the _"testPath"_ where your `.brs` test specs live
 
-	`-r` is the _"rootPath"_, i.e. the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output.
+| flag   	| argument  	| Fescription  	|
+|---	|---	|:-:	|--:	|---	|
+|  `-p` 	|   `--projectPath`	|  the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output. 	|   	|
+|  `-t` 	|   `--testsFilePattern`	|   array of globs, specifying which test files (i.e. your test _.brs_ files) to include. Relative to projectPath, relative to _"projectPath"_	|   	|
+|   `-o`	|  `--outputPath` 	|   you can also specity the _"outputPath"_. This is where rooibosC will write the map file, and other files it needs which informs rooibos about your tests. It is relative to 	|
+|  `-v` 	|  `--isRecordingCodeCoverage` 	|   indicates that we want to generate coverage
+|   `-s`	|   `--sourceFilePattern`	|   array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set.	|
 
-	`-o` is the _"outputPath"_. This is where rooibosC will write the map file which informs rooibos about your tests.
 
-### Configuring Rooibos
+
+### Configuring Rooibos's runtime behaviour
+
 Rooibos's configuration is controlled via a json config file. The default location for this file is `pkg:/source/tests/rooibos/testconfig.json`.
 See [Example app](../samples/example)
 If the no testconfig is found a default one will be used.
@@ -139,6 +156,8 @@ An example config file looks like this:
   "showOnlyFailures": false,
 }
 ```
+
+_Deprecation warning: This behaviour is going to change - in future, these json settings will be merged with the preprocessor config._
 
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
@@ -988,3 +1007,42 @@ end function
 Rooibos is no longer backward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), since version 2.0.0.
 
 It is recommended that you upgrade your legacy tests to the new syntax for maximum flexibility and comfort.
+
+## Generate code coverage
+
+Rooibos can measure and report the test coverage your unit tests are producing.
+
+### Code coverage recording is desctructive! 
+
+Recording coverage means modifying your sources! you should only run the coverage on a project path pointing to a build folder _not_ your source. 
+
+These files should be cleaned and recopied _every time you run coverage_ or you will get compile errors/other undetermined behaviour.
+
+### Recording coverage
+To record coverage, set the `sourceFilePattern` to a glob matching (including and excluding) the files that should be included in your coverage report, and set the `isRecordingCodeCoverage` flag to true. An example, using a json config file is :
+
+```
+{
+	"projectPath": "build",
+	"sourceFilePattern": [
+		"**/*.brs",
+		"**/*.xml",
+		"!**/tests",
+		"!**/rLog",
+		"!**/rLogComponents",
+		"!**/rooibosDist.brs",
+		"!**/rooibosFunctionMap.brs",
+		"!**/TestsScene.brs",
+		"!**/ThreadUtils.brs"
+	],
+	"testsFilePattern": [
+		"**/tests/**/*.brs",
+		"!**/rooibosDist.brs",
+		"!**/rooibosFunctionMap.brs",
+		"!**/TestsScene.brs"
+	],
+	"isRecordingCodeCoverage": true
+}```
+
+This can be done, from the command line also, with the flags:
+
