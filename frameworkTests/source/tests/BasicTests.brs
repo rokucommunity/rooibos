@@ -15,3 +15,16 @@ end function
 function BT_doSomethingInNodeScope(value)
   m._isNodeScopeVarSet = value
 end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests aa's with a mock will not crash the box!
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Only
+'@Test 
+function BT_EqualsFixForStubbedAAs() as void
+  aa = {"test":"value"}
+  m.expectOnce(aa, "getStubbedObject", [aa])
+
+  aa.getStubbedObject(aa)
+end function
