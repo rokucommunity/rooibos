@@ -82,7 +82,7 @@ To get the best performance and test flexibility, rooibos leverages a typescript
 The following working gulpfile can be found in my [roku MVVM spike](https://github.com/georgejecook/rokuNavSpike/tree/feature/viewModels); but the process is as follows.
 
  - `npm install rooibos-preprocessor --save-dev`
- - Add the following to the top of gulpfile.ts `import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from "rooibos-preprocessor";`
+ - Add the following to the top of gulpfile.ts `import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from 'rooibos-preprocessor';`
  - Create a task to process your test files, such as:
 
  ```

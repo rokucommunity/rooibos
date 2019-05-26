@@ -1,4 +1,6 @@
 import { series } from "gulp";
+import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from "rooibos-preprocessor";
+
 const concat = require('gulp-concat');
 const gulp = require('gulp');
 const path = require('path');
@@ -11,7 +13,6 @@ const distFile = `rooibosDist.brs`;
 const fullDistPath = path.join(distDir, distFile);
 const fs = require('fs');
 const rmLines = require('gulp-rm-lines');
-const gulpCopy = require('gulp-copy');
 const rokuDeploy = require('roku-deploy');
 const cp = require('child_process');
 
@@ -57,18 +58,68 @@ function squash() {
 }
 
 function copyToSamples(cb) {
-  fs.copyFile(fullDistPath, path.join('frameworkTests/source/tests', distFile), cb);
-  fs.copyFile(fullDistPath, path.join('samples/example/source/tests/rooibos', distFile), cb);
+  const frameworkFile = path.join('frameworkTests/source/tests', distFile);
+  const sampleFile = path.join('samples/example/source/tests/rooibos', distFile);
+  if (fs.existsSync(frameworkFile)) {
+    fs.unlinkSync(frameworkFile);
+  }
+  if (fs.existsSync(sampleFile)) {
+    fs.unlinkSync(sampleFile);
+  }
+  fs.copyFileSync(fullDistPath, frameworkFile);
+  fs.copyFileSync(fullDistPath, sampleFile);
+  cb();
 }
 
 /**
  * This target is used for CI
  */
-export function prepareFrameworkTests(cb) {
-  rokuDeploy.prepublishToStaging(args);
-  let task = cp.exec('rooibosC -t out/.roku-deploy-staging/source/tests -r out/.roku-deploy-staging');
-  task.stdout.pipe(process.stdout)
-  return task;
+export async function prepareFrameworkTests(cb) {
+  await rokuDeploy.prepublishToStaging(args);
+  
+  let config = createProcessorConfig({
+    "projectPath": "out/.roku-deploy-staging",
+    "testsFilePattern": [
+      "**/tests/**/*.brs",
+      "!**/rooibosDist.brs",
+      "!**/rooibosFunctionMap.brs",
+      "!**/TestsScene.brs"
+    ]
+  });
+  let processor = new RooibosProcessor(config);
+  processor.processFiles();
+  
+  cb();
+}
+
+export async function prepareCodeCoverageTests(cb) {
+  await rokuDeploy.prepublishToStaging(args);
+  
+  let config = createProcessorConfig({
+    "projectPath": "out/.roku-deploy-staging",
+    "testsFilePattern": [
+      "**/tests/**/*.brs",
+      "!**/rooibosDist.brs",
+      "!**/rooibosFunctionMap.brs",
+      "!**/TestsScene.brs"
+    ],
+    "sourceFilePattern": [
+      "**/*.brs",
+      "**/*.xml",
+      "!**/tests",
+      "!**/rLog",
+      "!**/rLogComponents",
+      "!**/rooibosDist.brs",
+      "!**/rooibosFunctionMap.brs",
+      "!**/TestsScene.brs",
+      "!**/ThreadUtils.brs"
+    ],
+    "isRecordingCodeCoverage": true
+  });
+  let processor = new RooibosProcessor(config);
+  processor.processFiles();
+
+  cb();
 }
 
 export async function zipFrameworkTests(cb) {
@@ -87,4 +138,5 @@ export function doc(cb) {
 exports.build = series(clean, createDirectories, squash, copyToSamples);
 exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
 exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
+exports.prePublishFrameworkCodeCoverage = series(exports.build, prepareCodeCoverageTests)
 exports.dist = series(exports.build, doc);
