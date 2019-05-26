@@ -1,5 +1,23 @@
 # Rooibos CHANGELOG
 
+## 3.0.0-beta
+
+### Added
+
+  - Code coverage support!
+
+### Changed
+
+  - there are breaking changes in rooibos-preprocessor which, are required for code coverage. I'm keeping the major versions of rooibos and rooibos-preprocessor in sync, due to documentation, and everyone's sanity
+
+### Deprecated
+
+### Removed
+
+### Fixed
+  - #45 - crash when checking an expect param, and one of the params is a mock/stub
+  - #40 - can now use / in the params - much better parsing, too
+
 ## 2.3.0
 
 ### Added

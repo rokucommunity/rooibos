@@ -147,8 +147,11 @@ sub RBS_TR_Run()
     end if
     skipSuite:
   end for
-
   m.logger.PrintStatistic(totalStatObj)
+  
+  if RBS_CMN_IsFunction(RBS_ReportCodeCoverage)
+    RBS_ReportCodeCoverage()
+  end if
   RBS_TR_SendHomeKeypress()
 end sub
 
