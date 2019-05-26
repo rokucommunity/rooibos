@@ -82,13 +82,7 @@ sub RBS_LOGGER_PrintSuiteStatistic(statSuiteObj as object, hasFailures)
 
   ? " |"
 end sub
-//#region
-'----------------------------------------------------------------
-' Print test statistic.
-'
-' @param statTestObj (object) A target test object to print.
-'----------------------------------------------------------------
-//#endregion
+
 sub RBS_LOGGER_PrintTestStatistic(testCase as object)
   metaTestCase = testCase.metaTestCase
 
