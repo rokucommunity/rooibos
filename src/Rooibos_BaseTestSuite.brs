@@ -1012,13 +1012,15 @@ function RBS_BTS_EqAssocArray(Value1 , Value2 ) as dynamic
     return false
   else
     for each k in Value1
-      if not Value2.DoesExist(k)
-        return false
-      else
-        v1 = Value1[k]
-        v2 = Value2[k]
-        if not RBS_BTS_EqValues(v1, v2)
+      if k <> "__mocks" and k <> "__stubs" 'fix infinite loop/box crash when doing equals on an aa with a mock
+        if not Value2.DoesExist(k)
           return false
+        else
+          v1 = Value1[k]
+          v2 = Value2[k]
+          if not RBS_BTS_EqValues(v1, v2)
+            return false
+          end if
         end if
       end if
     end for
