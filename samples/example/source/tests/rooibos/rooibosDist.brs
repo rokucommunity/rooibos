@@ -1,6 +1,6 @@
 '/**
 ' * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
-' * @version v2.3.0
+' * @version v3.0.0-beta
 ' * @link https://github.com/georgejecook/rooibos#readme
 ' * @license MIT
 ' */
@@ -674,13 +674,15 @@ function RBS_BTS_EqAssocArray(Value1 , Value2 ) as dynamic
     return false
   else
     for each k in Value1
-      if not Value2.DoesExist(k)
-        return false
-      else
-        v1 = Value1[k]
-        v2 = Value2[k]
-        if not RBS_BTS_EqValues(v1, v2)
+      if k <> "__mocks" and k <> "__stubs" 'fix infinite loop/box crash when doing equals on an aa with a mock
+        if not Value2.DoesExist(k)
           return false
+        else
+          v1 = Value1[k]
+          v2 = Value2[k]
+          if not RBS_BTS_EqValues(v1, v2)
+            return false
+          end if
         end if
       end if
     end for
@@ -2032,6 +2034,9 @@ sub RBS_TR_Run()
     skipSuite:
   end for
   m.logger.PrintStatistic(totalStatObj)
+  if RBS_CMN_IsFunction(RBS_ReportCodeCoverage)
+    RBS_ReportCodeCoverage()
+  end if
   RBS_TR_SendHomeKeypress()
 end sub
 sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)

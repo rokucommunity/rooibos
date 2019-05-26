@@ -1,6 +1,6 @@
 # Rooibos CHANGELOG
 
-## 3.0.0
+## 3.0.0-beta
 
 ### Added
 
@@ -15,6 +15,8 @@
 ### Removed
 
 ### Fixed
+  - #45 - crash when checking an expect param, and one of the params is a mock/stub
+  - #40 - can now use / in the params - much better parsing, too
 
 ## 2.3.0
 
