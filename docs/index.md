@@ -1041,6 +1041,10 @@ Recording coverage means modifying your sources! you should only run the coverag
 
 These files should be cleaned and recopied _every time you run coverage_ or you will get compile errors/other undetermined behaviour.
 
+#### WARNING - Running code coverage is slower and may crash your device
+
+Running a code coverage report is a lot slower than a standard test, due to conitnual probing of your source. Only run coverage when needed. Also - be aware it will crash very tight loops, like inside of a while waiting on a port, which will in fact crash and hard reset your device.
+
 ### Recording coverage
 To record coverage, set the `sourceFilePattern` to a glob matching (including and excluding) the files that should be included in your coverage report, and set the `isRecordingCodeCoverage` flag to true. Be careful to not include your test specs!!
 

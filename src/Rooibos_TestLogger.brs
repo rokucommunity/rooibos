@@ -94,7 +94,7 @@ sub RBS_LOGGER_PrintTestStatistic(testCase as object)
     testChar = "|"
     locationLine = StrI(metaTestCase.lineNumber).trim()
   end if
-  locationText = testCase.filePath.trim() + "(" + locationLine + ")"
+  locationText = "pkg:/" + testCase.filePath.trim() + "(" + locationLine + ")"
 
   insetText = ""
   if (metaTestcase.isParamTest <> true)
@@ -169,7 +169,7 @@ end sub
 '----------------------------------------------------------------
 
 sub RBS_LOGGER_PrintMetaSuiteStart(metaTestSuite)
-  ? metaTestSuite.name; " (" ; metaTestSuite.filePath + "(1))"
+  ? metaTestSuite.name; " " ; "pkg:/" ; metaTestSuite.filePath + "(1)"
 end sub
 
 '----------------------------------------------------------------
