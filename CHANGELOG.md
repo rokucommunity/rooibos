@@ -1,5 +1,19 @@
 # Rooibos CHANGELOG
 
+## 3.0.2-beta
+
+### Added
+
+  - adds path to code coverage
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
 ## 3.0.1-beta
 
 ### Added
