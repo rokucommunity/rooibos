@@ -38,7 +38,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html)
  - [Integrating with your CI](#integrating-with-your-ci)
  - [Advanced Setup](#advanced-setup)
-
+ - [Code coverage](#generate-code-coverage)
 
 ## Getting started
 Rooibos is intentionally simple to work with. You simply copy in the `rooibosDist.brs` file, setup your config, install an npm package, and start writing tests
@@ -79,14 +79,14 @@ To get the best performance and test flexibility, rooibos leverages a typescript
 
 #### Gulp typescript example
 
-The following working gulpfile can be found in my [roku MVVM spike](https://github.com/georgejecook/rokuNavSpike/tree/feature/viewModels); but the process is as follows.
+See `gulpfile.ts`, in this project, for a robust typescript-based gulp example demonstrating how to seamlessly integrate rooibos with gulp. However, the process is as follows:
 
  - `npm install rooibos-preprocessor --save-dev`
- - Add the following to the top of gulpfile.ts `import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from 'rooibos-preprocessor';`
+ - Add the following to the top of gulpfile.ts/js `import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from 'rooibos-preprocessor';`
  - Create a task to process your test files, such as:
 
  ```
-export async function prepareTests(cb) {
+export async function prepareTests() {
   await rokuDeploy.prepublishToStaging(args);
   let config = createProcessorConfig({
 	"projectPath": "build"
@@ -98,12 +98,33 @@ export async function prepareTests(cb) {
 	]
 });
   let processor = new RooibosProcessor(config);
-  processor.processFiles();
-
-  cb();
+  await processor.processFiles();
 }
 ```
 
+#### Gulp javascript example
+
+For those who are not using typescript, the usage is as follows:
+
+```
+var rooibos = require('rooibos-preprocessor');
+
+
+gulp.task('prepareTests', ['collect'], async function() {
+  let config = rooibos.createProcessorConfig({
+  "projectPath": "build/test",
+  "testsFilePattern": [
+      "**/tests/**/*.brs",
+      "!**/rooibosDist.brs",
+      "!**/rooibosFunctionMap.brs",
+      "!**/TestsScene.brs"
+  ]
+  });
+  let processor = new rooibos.RooibosProcessor(config);
+  await processor.processFiles();
+});
+
+```
 
 #### CLI usage
 
@@ -1014,12 +1035,16 @@ Rooibos can measure and report the test coverage your unit tests are producing.
 
 ### Code coverage recording is desctructive! 
 
+#### WARNING - DO NOT run code coverage against your source folder!
+
 Recording coverage means modifying your sources! you should only run the coverage on a project path pointing to a build folder _not_ your source. 
 
 These files should be cleaned and recopied _every time you run coverage_ or you will get compile errors/other undetermined behaviour.
 
 ### Recording coverage
-To record coverage, set the `sourceFilePattern` to a glob matching (including and excluding) the files that should be included in your coverage report, and set the `isRecordingCodeCoverage` flag to true. An example, using a json config file is :
+To record coverage, set the `sourceFilePattern` to a glob matching (including and excluding) the files that should be included in your coverage report, and set the `isRecordingCodeCoverage` flag to true. Be careful to not include your test specs!!
+
+An example, using a json config file is :
 
 ```
 {
@@ -1027,9 +1052,12 @@ To record coverage, set the `sourceFilePattern` to a glob matching (including an
 	"sourceFilePattern": [
 		"**/*.brs",
 		"**/*.xml",
+		"!**/tests/**/*.*",
 		"!**/tests",
 		"!**/rLog",
+		"!**/rLog/**/*.*",
 		"!**/rLogComponents",
+		"!**/rLogComponents/**/*.*",
 		"!**/rooibosDist.brs",
 		"!**/rooibosFunctionMap.brs",
 		"!**/TestsScene.brs",
@@ -1042,7 +1070,87 @@ To record coverage, set the `sourceFilePattern` to a glob matching (including an
 		"!**/TestsScene.brs"
 	],
 	"isRecordingCodeCoverage": true
-}```
+}
+```
 
-This can be done, from the command line also, with the flags:
+This can be done, from the command line also, with the following command:
 
+```rooibosC -p stubProject -t source/tests/**/*.brs -v -s '**/*.brs,**/*.xml,!**/tests/**/*.*,!**/tests,!**/rLog,!**/rLog/**/*.*,!**/rLogComponents,!**/rLogComponents/**/*.*,!**/rooibosDist.brs,!**/rooibosFunctionMap.brs,!**/TestsScene.brs,!**/ThreadaUtils.brs'```
+
+### How coverage works
+
+rooibos-preprocessor, via `rooibosC` command line tool, or the npm package will run against a root project folder, and using the `sourceFilePattern` globs your provide, will ascertain which files require coverage.
+
+It then buils an Abstract Syntax Tree, using Sean Barag's wonderful [brs interpreter](https://github.com/sjbarag/brs), to ascertain which lines of the identified files can have their coverage tracked.
+
+The preprocessor then injects function calls for all trackable lines, which update tracking variables at runtime.
+
+Rooibos framework will then collate the stats and display them at the end of the run.
+
+#### Statement support
+
+The following statements types are supported:
+
+  - variable assignments
+  - method calls
+  - nested function definitions (i.e. functions inside of arrays, variable assignments, method call args, or associative arrays)
+  - if statement conditions
+  - blocks of code in if, else if, and else statements
+  - for and while loops
+  - print statements
+
+The following statements are _not_ supported
+
+  - goto
+  - named lines (e.g. `myGotoLine:`)
+  - else if conditions (these are coming real soon though)
+
+### Coverage report
+
+When your coverage test run finishes rooibos will print out:
+
+```
++++++++++++++++++++++++++++++++++++++++++++
+Code Coverage Report
++++++++++++++++++++++++++++++++++++++++++++
+
+Total Coverage: 5.066445% (610/12040)
+Files:  17/ 100
+
+HIT FILES
+---------
+pkg:/components/ContentRetriever/ContentRetriever.brs: 2.461539% (8/325)
+pkg:/components/Analytics/AnalyticsManager.brs: 3.125% (6/192)
+pkg:/components/Service/AuthenticationService.brs: 3.532609% (13/368)
+pkg:/components/Container/UserContainer/UserContainer.brs: 3.703704% (1/27)
+pkg:/components/MaintenanceCheckTask/AppConfigurationTask.brs: 7.407407% (2/27)
+pkg:/components/Storage/PersistentStorage.brs: 15.27778% (11/72)
+pkg:/source/Analytics/AnalyticsVideoMixin.brs: 16.92308% (22/130)
+pkg:/components/DeveloperService/DeveloperService.brs: 33.33334% (2/6)
+pkg:/components/Log/Log.brs: 45% (9/20)
+pkg:/source/Modules/BaseModule.brs: 55.55556% (5/9)
+pkg:/source/Log.brs: 65% (13/20)
+pkg:/source/Modules/DeepLinkingModule.brs: 76.92308% (50/65)
+pkg:/components/GlobalInitializer/GlobalInitializer.brs: 79.64601% (90/113)
+pkg:/source/Modules/RecommendationModule.brs: 84.9315% (186/219)
+pkg:/source/Mixins/ParsingMixin.brs: 86.47343% (179/207)
+pkg:/source/Mixins/SMCErrors.brs: 92.30769% (12/13)
+pkg:/source/Analytics/AnalyticsConstants.brs: 100% (1/1)
+
+MISSED FILES
+------------
+pkg:/components/CustomRowListItem/CustomItemGenres/CustomItemGenres.brs: MISS!
+pkg:/components/StringUtils.brs: MISS!
+pkg:/components/Core/Components/TabComponent/TabComponent.brs: MISS!
+pkg:/components/Core/Components/NoKeyPressRowList.brs: MISS!
+pkg:/components/Model/TabComponentContent.brs: MISS!
+```
+
+  - Total coverage - % (num of hit lines/ num of trackable lines)
+  - Files: num of hit files / total num of trackable files
+
+Following is a list of all the hit files, and their coverage % and (hit lines/total lines)
+
+Lastly the files that were not hit at all, during test execution.
+
+The current implementation is capable of tracking lcov style statistics, and this will be implemented in the future.

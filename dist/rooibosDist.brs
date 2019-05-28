@@ -1,6 +1,6 @@
 '/**
-' * rooibos - simple, flexible, fun brightscript test framework for roku scenegraph apps
-' * @version v3.0.0-beta
+' * rooibos - simple, flexible, fun brihhtscript test framework for roku scenegraph apps
+' * @version v3.0.1-beta
 ' * @link https://github.com/georgejecook/rooibos#readme
 ' * @license MIT
 ' */
@@ -2117,6 +2117,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
   testSuite.global = runtimeConfig.global
   for each testCase in testSuite.testCases
     metaTestCase = itGroup.testCaseLookup[testCase.Name]
+    metaTestCase.time = 0
     if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
       goto skipTestCase
     end if

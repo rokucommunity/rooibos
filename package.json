@@ -1,7 +1,7 @@
 {
   "name": "rooibos",
-  "version": "3.0.0-beta",
-  "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
+  "version": "3.0.1-beta",
+  "description": "simple, flexible, fun brihhtscript test framework for roku scenegraph apps",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -22,7 +22,7 @@
     "jsdoc": "3.5.5",
     "minami": "^1.2.3",
     "roku-deploy": "^2.0.0",
-    "rooibos-preprocessor": "^3.0.3-beta",
+    "rooibos-preprocessor": "^3.0.4-beta",
     "typescript": "^3.3.1",
     "vinyl-paths": "^2.1.0"
   },

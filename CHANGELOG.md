@@ -1,5 +1,20 @@
 # Rooibos CHANGELOG
 
+## 3.0.1-beta
+
+### Added
+
+  - More documentation for code coverage
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+  - crash on metaTestcase.time
+
 ## 3.0.0-beta
 
 ### Added

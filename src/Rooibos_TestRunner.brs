@@ -245,6 +245,7 @@ sub RBS_RT_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
 
   for each testCase in testSuite.testCases
     metaTestCase = itGroup.testCaseLookup[testCase.Name]
+    metaTestCase.time = 0
     if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
       goto skipTestCase
     end if
