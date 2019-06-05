@@ -306,7 +306,9 @@ function RBS_CMN_AsString(input ) as string
       isFirst = false
     end if
     for each key in input
-      text += key + ":" + RBS_CMN_AsString(input[key])
+      if key <> "__mocks" and key <> "__stubs"
+        text += key + ":" + RBS_CMN_AsString(input[key])
+      end if
     end for
     text += "}"
     return text
