@@ -15,36 +15,13 @@ function RBS_TR_TestRunner(args = {}) as object
   this = {}
   this.testScene = args.testScene
   this.nodeContext = args.nodeContext
-  fs = CreateObject("roFileSystem")
-  defaultConfig = {
-    logLevel : 1,
-    testsDirectory: "pkg:/source/Tests",
-    testFilePrefix: "Test__",
-    failFast: false,
-    showOnlyFailures: false,
-    maxLinesWithoutSuiteDirective: 100
-  }
-
-  rawConfig = invalid
-  config = invalid
-
-  if (args.testConfigPath <> invalid and fs.Exists(args.testConfigPath))
-    ? "Loading test config from " ; args.testConfigPath
-    rawConfig = ReadAsciiFile(args.testConfigPath)
-  else if (fs.Exists("pkg:/source/tests/testconfig.json"))
-    ? "Loading test config from default location : pkg:/source/tests/testconfig.json"
-    rawConfig = ReadAsciiFile("pkg:/source/tests/testconfig.json")
-  else
-    ? "None of the testConfig.json locations existed"
-  end if
-
-  if (rawConfig <> invalid)
-    config = ParseJson(rawConfig)
-  end if
-
-  if (config = invalid or not RBS_CMN_IsAssociativeArray(config) or RBS_CMN_IsNotEmptyString(config.rawtestsDirectory))
+  config = RBSFM_getRuntimeConfig()
+  if (config = invalid or not RBS_CMN_IsAssociativeArray(config))
     ? "WARNING : specified config is invalid - using default"
-    config = defaultConfig
+    config = {
+      showOnlyFailures: false
+      failFast: false
+    }
   end if
 
   'mix in parsed in args
@@ -148,7 +125,7 @@ sub RBS_TR_Run()
     skipSuite:
   end for
   m.logger.PrintStatistic(totalStatObj)
-  
+
   if RBS_CMN_IsFunction(RBS_ReportCodeCoverage)
     RBS_ReportCodeCoverage()
   end if
