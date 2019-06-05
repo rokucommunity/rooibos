@@ -29,6 +29,18 @@ function BT_EqualsFixForStubbedAAs() as void
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests aa's that get printed as failures don't crash box
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test 
+function BT_PrintResultsFixForStubbedAAs() as void
+  aa = {"test":"value"}
+  bb = {"other": value}
+  m.expectOnce(bb, "getStubbedObject", [aa])
+  assertEqual(aa, bb)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It url in params
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

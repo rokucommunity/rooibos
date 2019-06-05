@@ -158,25 +158,14 @@ There are two ways to invoke RooibosC:
 |   `-o`	|  `--outputPath` 	|   you can also specity the _"outputPath"_. This is where rooibosC will write the map file, and other files it needs which informs rooibos about your tests. It is relative to 	|
 |  `-v` 	|  `--isRecordingCodeCoverage` 	|   indicates that we want to generate coverage
 |   `-s`	|   `--sourceFilePattern`	|   array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set.	|
-
+|   `-f`	|   `--showFailuresOnly`	|   Show results for failed tests, if any. If none fail, then all results are shown	|
+|   `-F`	|   `--failFast`	|   Test execution will stop at the first failure	|
 
 
 ### Configuring Rooibos's runtime behaviour
 
-Rooibos's configuration is controlled via a json config file. The default location for this file is `pkg:/source/tests/rooibos/testconfig.json`.
-See [Example app](../samples/example)
-If the no testconfig is found a default one will be used.
+Rooibos's configuration is controlled via the configuration passed into the `rooibos-preprocessor` via flags on the `rooibosC` command, or values in the json used to initialize `rooibosC` via the command line, or via javacript code.
 
-An example config file looks like this:
-
-```json
-{
-  "logLevel": 1,
-  "failFast": false,
-  "swallowRuntimeErrors": false,
-  "showOnlyFailures": false,
-}
-```
 
 _Deprecation warning: This behaviour is going to change - in future, these json settings will be merged with the preprocessor config._
 

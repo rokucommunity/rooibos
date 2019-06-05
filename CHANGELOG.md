@@ -1,5 +1,25 @@
 # Rooibos CHANGELOG
 
+## 3.0.3 - out of beta - yay!
+
+### Added
+
+  - loads runtime config from a rooibosC generated function which
+    - enables fail fast mode
+    - enables show only failures mode.
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+  - testConfig.json file - we now use rooibosC flags for everything
+
+### Fixed
+
+  - crash when any function calls asString on an aa that has mocked functions
+
 ## 3.0.2-beta
 
 ### Added
