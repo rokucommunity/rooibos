@@ -151,15 +151,15 @@ There are two ways to invoke RooibosC:
 ### Description of rooibosC flags
 
 
-| flag   	| argument  	| Fescription  	|
-|---	|---	|:-:	|--:	|---	|
-|  `-p` 	|   `--projectPath`	|  the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output. 	|   	|
-|  `-t` 	|   `--testsFilePattern`	|   array of globs, specifying which test files (i.e. your test _.brs_ files) to include. Relative to projectPath, relative to _"projectPath"_	|   	|
-|   `-o`	|  `--outputPath` 	|   you can also specity the _"outputPath"_. This is where rooibosC will write the map file, and other files it needs which informs rooibos about your tests. It is relative to 	|
-|  `-v` 	|  `--isRecordingCodeCoverage` 	|   indicates that we want to generate coverage
-|   `-s`	|   `--sourceFilePattern`	|   array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set.	|
-|   `-f`	|   `--showFailuresOnly`	|   Show results for failed tests, if any. If none fail, then all results are shown	|
-|   `-F`	|   `--failFast`	|   Test execution will stop at the first failure	|
+| flag | argument | Fescription |
+|--- |--- |:-: |
+| `-p` | `--projectPath` | the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output. |
+| `-t` | `--testsFilePattern` | array of globs, specifying which test files (i.e. your test _.brs_ files) to include. Relative to projectPath, relative to _"projectPath"_ |
+| `-o` | `--outputPath` | you can also specity the _"outputPath"_. This is where rooibosC will write the map file, and other files it needs which informs rooibos about your tests. It is relative to |
+| `-v` | `--isRecordingCodeCoverage` | indicates that we want to generate coverage |
+| `-s` | `--sourceFilePattern` | array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set. |
+| `-f` | `--showFailuresOnly` | Show results for failed tests, if any. If none fail, then all results are shown |
+| `-F` | `--failFast` | Test execution will stop at the first failure |
 
 
 ### Configuring Rooibos's runtime behaviour
