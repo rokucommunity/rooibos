@@ -160,7 +160,7 @@ There are two ways to invoke RooibosC:
 | `-s` | `--sourceFilePattern` | array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set. |
 | `-f` | `--showFailuresOnly` | Show results for failed tests, if any. If none fail, then all results are shown |
 | `-F` | `--failFast` | Test execution will stop at the first failure |
-
+| `-l` | `--legacySupport` | Flag indicating that rooibos should try to inlcude legacy roku unit tests |
 
 ### Configuring Rooibos's runtime behaviour
 
@@ -1010,13 +1010,18 @@ function ${prefix}__${testName}_${testCase}() as void
 end function
 ```
 
-## Backward compatability
+## Backward compatibility
 
 <a name="compatible-with-legacy-framework"></a>
 
-Rooibos is no longer backward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), since version 2.0.0.
+Rooibos is nbackward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), Use the `-l --legacySupport` flag with rooibosC to use this feature.
 
-It is recommended that you upgrade your legacy tests to the new syntax for maximum flexibility and comfort.
+`'@Only`, `'@Ingore`, `'@Setup`, `'@TearDown` are all supported. Only and Ignore can be applied to a whole test suite, or individual test cases.
+
+Your files required to follow the convention as laid out [here](https://github.com/rokudev/unit-testing-framework/blob/master/samples/SimpleTestApp/source/tests/Test__Main.brs) 
+
+
+It is recommended that you upgrade your legacy tests to the new syntax for maximum flexibility, functionality and comfort.
 
 ## Generate code coverage
 

@@ -1,6 +1,6 @@
 {
   "name": "rooibos",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "simple, flexible, fun brihhtscript test framework for roku scenegraph apps",
   "main": "index.js",
   "directories": {
