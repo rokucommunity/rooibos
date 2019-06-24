@@ -1,5 +1,21 @@
 # Rooibos CHANGELOG
 
+## 3.0.4 - legacy support!
+
+### Added
+
+  - legacy support with rooibosC 3.0.9 or later
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+  - ignored tests are now reported
+
 ## 3.0.3 - out of beta - yay!
 
 ### Added

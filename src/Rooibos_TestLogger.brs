@@ -44,11 +44,17 @@ sub RBS_LOGGER_PrintStatistic(statObj as object)
 
   ? ""
   m.PrintEnd()
-
-  ? "Total  = "; RBS_CMN_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Ignored   = "; statObj.Ignored
+  ignoredInfo = RBSFM_getIgnoredTestInfo()
+  ? "Total  = "; RBS_CMN_AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Ignored   = "; ignoredInfo.count
   ? " Time spent: "; statObj.Time; "ms"
   ? ""
   ? ""
+  if (ignoredInfo.count > 0)
+    ? "IGNORED TESTS:"
+    for each ignoredItemName in ignoredInfo.items
+      print ignoredItemName
+    end for
+  end if
 
   if (statObj.ignored > 0)
     ? "IGNORED TESTS:"
