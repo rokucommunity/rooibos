@@ -1,8 +1,8 @@
 # Rooibos snippets for VsCode
 
-If you are using Willow Tree's [excellent visual studio code plugin](https://marketplace.visualstudio.com/items?itemName=willowtree.vscode-ide-brightscript), then place the following snippets in your `brightscript.json` to get autocompletion hints for brightscript. 
+If you are using Bronley Plumb's [excellent visual studio code plugin](https://marketplace.visualstudio.com/items?itemName=celsoaf.brightscript), then place the following snippets in your `brightscript.json` to get autocompletion hints for brightscript. 
 
-Ther eare snippets for common tasks, such as setting up your test suites, groups and cases, annotations, and asserts.
+These are snippets for common tasks, such as setting up your test suites, groups and cases, annotations, and asserts.
 
 ## Supported snippets
 
