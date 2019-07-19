@@ -35,3 +35,4 @@ local.properties
 node_modules/
 frameworkTests/source/tests/rooibosDist.brs
 outRun
+out

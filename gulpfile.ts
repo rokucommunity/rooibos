@@ -58,16 +58,20 @@ function squash() {
 }
 
 function copyToSamples(cb) {
-  const frameworkFile = path.join('frameworkTests/source/tests', distFile);
-  const sampleFile = path.join('samples/example/source/tests/rooibos', distFile);
+  const frameworkFile = path.join('samples/example/source/tests/rooibos', distFile);
   if (fs.existsSync(frameworkFile)) {
     fs.unlinkSync(frameworkFile);
   }
-  if (fs.existsSync(sampleFile)) {
-    fs.unlinkSync(sampleFile);
+  fs.copyFileSync(fullDistPath, frameworkFile);
+  cb();
+}
+
+function copyToTests(cb) {
+  const frameworkFile = path.join('frameworkTests/source/tests', distFile);
+  if (fs.existsSync(frameworkFile)) {
+    fs.unlinkSync(frameworkFile);
   }
   fs.copyFileSync(fullDistPath, frameworkFile);
-  fs.copyFileSync(fullDistPath, sampleFile);
   cb();
 }
 
@@ -135,7 +139,7 @@ export function doc(cb) {
   return task;
 }
 
-exports.build = series(clean, createDirectories, squash, copyToSamples);
+exports.build = series(clean, createDirectories, squash, copyToSamples, copyToTests);
 exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
 exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
 exports.prePublishFrameworkCodeCoverage = series(exports.build, prepareCodeCoverageTests)
