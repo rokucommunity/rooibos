@@ -16,16 +16,16 @@
 '  *                   and therefore require a screen and scene are created.
 '  * @param nodeContext as object - this is the global scope of your tests - so where anonymous methods will run from. This should be m
 '  */
-function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
+function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
   args = {}
   if createObject("roAPPInfo").IsDev() <> true then
     ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
     return
   end if
-
+  
   args.testUtilsDecoratorMethodName = testUtilsDecoratorMethodName
   args.nodeContext = nodeContext
-
+  
   screen = CreateObject("roSGScreen")
   m.port = CreateObject("roMessagePort")
   screen.setMessagePort(m.port)
@@ -36,40 +36,57 @@ function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = i
   scene = screen.CreateScene(testSceneName)
   scene.id = "ROOT"
   screen.show()
-
+  
   m.global = screen.getGlobalNode()
-  m.global.addFields({"testsScene": scene})
+  m.global.addFields({ "testsScene": scene })
   
   if (preTestSetup <> invalid)
     preTestSetup(screen)
   end if
-
-
+  
+  
   testId = args.TestId
   if (testId = invalid)
     testId = "UNDEFINED_TEST_ID"
   end if
-
+  
   ? "#########################################################################"
   ? "#TEST START : ###" ; testId ; "###"
-
+  
   args.testScene = scene
   args.global = m.global
+  rooibosVersion = "3.1"
+  minRooibosPreprocessorVersion = "3.1.0"
   
-  runner = RBS_TR_TestRunner(args)
-  runner.Run()
-
-  while(true)
-    msg = wait(0, m.port)
-    msgType = type(msg)
-    if msgType = "roSGScreenEvent"
-      if msg.isScreenClosed()
-        return
+  ' if not RBS_CMN_isFunction(RBSFM_getPreprocessorVersion)
+  '   versionError = "You are using a rooibos-preprocessor (i.e. rooibosC) version older than 3.1 - please update to " + minRooibosPreprocessorVersion
+  ' else 
+  '   if RBSFM_isPreprocessorCompatible(minRooibosPreprocessorVersion, RBSFM_getPreprocessorVersion())
+  '     versionError = ""
+  '   else
+  '     versionError = "Your rooibos-preprocessor (i.e. rooibosC) version '" + RBSFM_getPreprocessorVersion() + "' is not compatible with rooibos version " + rooibosVersion +  ". Please upgrade your rooibos-preprocessor to version " + minRooibosPreprocessorVersion
+  '   end if 
+  ' end if
+  
+  
+  if true or versionError = ""
+    runner = RBS_TR_TestRunner(args)
+    runner.Run()
+    
+    while(true)
+      msg = wait(0, m.port)
+      msgType = type(msg)
+      if msgType = "roSGScreenEvent"
+        if msg.isScreenClosed()
+          return
+        end if
       end if
-    end if
-  end while
+    end while
+  else
+    ? ""
+    ? "#########################################################"
+    ? "ERROR - VERSION MISMATCH"
+    ? versionError
+    ? "#########################################################"
+  end if
 end function
-
-
-
-

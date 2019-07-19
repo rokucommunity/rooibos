@@ -1,10 +1,10 @@
 '/**
 ' * rooibos - simple, flexible, fun brihhtscript test framework for roku scenegraph apps
-' * @version v3.0.4
+' * @version v3.1.0
 ' * @link https://github.com/georgejecook/rooibos#readme
 ' * @license MIT
 ' */
-function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
+function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
   args = {}
   if createObject("roAPPInfo").IsDev() <> true then
     ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
@@ -23,7 +23,7 @@ function Rooibos__Init(preTestSetup = invalid,  testUtilsDecoratorMethodName = i
   scene.id = "ROOT"
   screen.show()
   m.global = screen.getGlobalNode()
-  m.global.addFields({"testsScene": scene})
+  m.global.addFields({ "testsScene": scene })
   if (preTestSetup <> invalid)
     preTestSetup(screen)
   end if
