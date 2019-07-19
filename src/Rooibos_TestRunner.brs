@@ -15,6 +15,7 @@ function RBS_TR_TestRunner(args = {}) as object
   this = {}
   this.testScene = args.testScene
   this.nodeContext = args.nodeContext
+
   config = RBSFM_getRuntimeConfig()
   if (config = invalid or not RBS_CMN_IsAssociativeArray(config))
     ? "WARNING : specified config is invalid - using default"
