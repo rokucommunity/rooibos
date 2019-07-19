@@ -35,9 +35,12 @@ end function
 '@Test 
 function BT_PrintResultsFixForStubbedAAs() as void
   aa = {"test":"value"}
-  bb = {"other": value}
+  bb = {"other": "value"}
   m.expectOnce(bb, "getStubbedObject", [aa])
-  assertEqual(aa, bb)
+  m.assertEqual(aa, bb)
+  'not crashing on printing the wrong output is a pass
+  m.assertMocks()
+  m.currentResult.Reset()
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
