@@ -56,20 +56,26 @@ function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = in
   args.testScene = scene
   args.global = m.global
   rooibosVersion = "3.1"
-  minRooibosPreprocessorVersion = "3.1.0"
+  requiredRooibosPreprocessorVersion = "3.1.0"
   
-  ' if not RBS_CMN_isFunction(RBSFM_getPreprocessorVersion)
-  '   versionError = "You are using a rooibos-preprocessor (i.e. rooibosC) version older than 3.1 - please update to " + minRooibosPreprocessorVersion
-  ' else 
-  '   if RBSFM_isPreprocessorCompatible(minRooibosPreprocessorVersion, RBSFM_getPreprocessorVersion())
-  '     versionError = ""
-  '   else
-  '     versionError = "Your rooibos-preprocessor (i.e. rooibosC) version '" + RBSFM_getPreprocessorVersion() + "' is not compatible with rooibos version " + rooibosVersion +  ". Please upgrade your rooibos-preprocessor to version " + minRooibosPreprocessorVersion
-  '   end if 
-  ' end if
+  if not RBS_CMN_isFunction(RBSFM_getPreprocessorVersion)
+    versionError = "You are using a rooibos-preprocessor (i.e. rooibosC) version older than 3.1 - please update to " + requiredRooibosPreprocessorVersion
+  else 
+    if RBSFM_getPreprocessorVersion() = requiredRooibosPreprocessorVersion
+      versionError = ""
+    else
+      versionError = "Your rooibos-preprocessor (i.e. rooibosC) version '" + RBSFM_getPreprocessorVersion() + "' is not compatible with rooibos version " + rooibosVersion + ". Please upgrade your rooibos-preprocessor to version " + requiredRooibosPreprocessorVersion
+    end if 
+  end if
   
-  
-  if true or versionError = ""
+  if versionError = ""
+    ? "######################################################"
+    ? ""
+    ? "# rooibos framework version: " ; rooibosVersion
+    ? "# tests parsed with rooibosC version: " ; rooibosVersion
+    ? "######################################################"
+    ? ""
+    
     runner = RBS_TR_TestRunner(args)
     runner.Run()
     
