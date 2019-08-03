@@ -41,14 +41,22 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Code coverage](#generate-code-coverage)
 
 ## Getting started
-Rooibos is intentionally simple to work with. You simply copy in the `rooibosDist.brs` file, setup your config, install an npm package, and start writing tests
+Rooibos is intentionally simple to work with. Simply install the `rooibos-cli` npm package and use that to install the framework files, and run your tests.
+
+You can even use `rooibos-cli` from your npm-compatible build tools, such as gulp.
 
 
 ### Installation
 <a name="easy-to-integrate"></a>
 
 1. Either:
+   - use the `rooibos-cli` tool (preferred way)
 
+   ```
+   npm install rooibos-cli -g
+   rooibos cli i myProject/source/tests
+   ```
+   
 	- download the [latest relases's] (https://github.com/georgejecook/rooibos/releases/latest) `rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.  
 	- clone or download this repo and copy `dist/rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.  
 	
@@ -66,14 +74,14 @@ Rooibos is intentionally simple to work with. You simply copy in the `rooibosDis
 
 	__See the example app to get a clearer understanding of the directory structures__ [Example app](../samples/example)
 	<br>
-6. Integrate [rooibos-preprocessor](#rooibos-preprocessor) into your tool-chain.
+6. Integrate [rooibos-cli](#rooibos-cli) into your tool-chain.
 7. Run your tests
 
 **For an example of how to use rooibos with gulp, see the gulpfile.ts in this project, which is used to run the framework unit tests.**
 
-### rooibos-preprocessor
+### rooibos-cli
 
-To get the best performance and test flexibility, rooibos leverages a typescript preprocessor, named [rooibos-preprocessor](https://github.com/georgejecook/rooibosPreprocessor), which prepares some files which get sideloaded with your tests. 
+To get the best performance and test flexibility, rooibos leverages a typescript preprocessor, named [rooibos-cli](https://github.com/georgejecook/rooibosPreprocessor), which prepares some files which get sideloaded with your tests. 
 
 ### From javascript/typescript/node
 
@@ -81,8 +89,8 @@ To get the best performance and test flexibility, rooibos leverages a typescript
 
 See `gulpfile.ts`, in this project, for a robust typescript-based gulp example demonstrating how to seamlessly integrate rooibos with gulp. However, the process is as follows:
 
- - `npm install rooibos-preprocessor --save-dev`
- - Add the following to the top of gulpfile.ts/js `import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from 'rooibos-preprocessor';`
+ - `npm install rooibos-cli --save-dev`
+ - Add the following to the top of gulpfile.ts/js `import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from 'rooibos-cli';`
  - Create a task to process your test files, such as:
 
  ```
@@ -107,7 +115,7 @@ export async function prepareTests() {
 For those who are not using typescript, the usage is as follows:
 
 ```
-var rooibos = require('rooibos-preprocessor');
+var rooibos = require('rooibos-cli');
 
 
 gulp.task('prepareTests', ['collect'], async function() {
@@ -126,18 +134,33 @@ gulp.task('prepareTests', ['collect'], async function() {
 
 ```
 
-#### CLI usage
+#### Installing or updating the testing framework with rooibos-cli
 
-You can also use rooibos-preprocessor from the command line, by installing it globally. i.e `npm install -g rooibos-preprocessor`. The CLI app is vcalled `rooibos`
-
-Then call `rooibosC -h` to check the install worked and see the help menu.
-
-There are two ways to invoke RooibosC:
-
-1. Define a config file that returns a JSON object and tell RooibosC to use that via the `-c` flag:
+To install latest
 
 	```
-	rooibosC -c path/to/config.json
+	rooibos-cli i myProject/source/tests
+	```
+
+To install a specific release
+
+	```
+	rooibos-cli i myProject/source/tests -r 3.0.2
+	```
+
+
+#### Running tests with rooibos-cli
+
+You can also use rooibos-cli from the command line, by installing it globally. i.e `npm install -g rooibos-cli`. The CLI app is vcalled `rooibos-cli`
+
+Then call `rooibos-cli -h` to check the install worked and see the help menu.
+
+There are two ways to invoke rooibos-cli:
+
+1. Define a config file that returns a JSON object and tell rooibos-cli to use that via the `-c` flag:
+
+	```
+	rooibos-cli r path/to/config.json
 	```
 
 	_To see an example config file take a look at the [Example app](../samples/example)_
@@ -145,17 +168,19 @@ There are two ways to invoke RooibosC:
 
 2. Alternately, use the following flags to configure test behaviour, like so:
 
-	```sh
-	rooibosC -p ./ -t source/tests
 	```
-### Description of rooibosC flags
+	rooibos-cli r -p ./ -t source/tests
+	```
+### Description of rooibos-cli commands
 
+
+```
 
 | flag | argument | Fescription |
 |--- |--- |:-: |
 | `-p` | `--projectPath` | the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output. |
 | `-t` | `--testsFilePattern` | array of globs, specifying which test files (i.e. your test _.brs_ files) to include. Relative to projectPath, relative to _"projectPath"_ |
-| `-o` | `--outputPath` | you can also specity the _"outputPath"_. This is where rooibosC will write the map file, and other files it needs which informs rooibos about your tests. It is relative to |
+| `-o` | `--outputPath` | you can also specity the _"outputPath"_. This is where rooibos-cli will write the map file, and other files it needs which informs rooibos about your tests. It is relative to |
 | `-v` | `--isRecordingCodeCoverage` | indicates that we want to generate coverage |
 | `-s` | `--sourceFilePattern` | array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set. |
 | `-f` | `--showFailuresOnly` | Show results for failed tests, if any. If none fail, then all results are shown |
@@ -164,7 +189,7 @@ There are two ways to invoke RooibosC:
 
 ### Configuring Rooibos's runtime behaviour
 
-Rooibos's configuration is controlled via the configuration passed into the `rooibos-preprocessor` via flags on the `rooibosC` command, or values in the json used to initialize `rooibosC` via the command line, or via javacript code.
+Rooibos's configuration is controlled via the configuration passed into the `rooibos-cli` via flags on the `rooibos-cli` command, or values in the json used to initialize `rooibos-cli` via the command line, or via javacript code.
 
 
 _Deprecation warning: This behaviour is going to change - in future, these json settings will be merged with the preprocessor config._
@@ -903,7 +928,7 @@ For now, here are the complete steps:
 	- This file should be located somewhere in your `components` folder, placing it under `components/tests` is a good idea, as you can easily exclude it from production builds.
 	- The file must extend the node you wish to test, e.g. `extends="NetworkLayer.xml"`
 	- You must also include an interface function definition for a function named `Rooibos_RunNodeTests`. You _must not_ implement it, it is mixed in for you automatically.
-	- You must import your unit test suite (e.g. `NetworkLayerTests.brs`) as well as the rooibos framework (i.e. `rooibosDist.brs`) and the rooibos map file generated by `rooibosC` (i.e. `rooibosFunctionMap.brs`)
+	- You must import your unit test suite (e.g. `NetworkLayerTests.brs`) as well as the rooibos framework (i.e. `rooibosDist.brs`) and the rooibos map file generated by `rooibos-cli` (i.e. `rooibosFunctionMap.brs`)
 2. In your unit test suite, before the ``@TestSuite` delcaration you _must_ place a `'@SGNode` Annotation, with the name of the node that will be used to test this suite. e.g. `'@SGNode NodeExampleTests.brs `
 
 #### Example test suite: NetworkLayerTests.brs
@@ -1014,7 +1039,7 @@ end function
 
 <a name="compatible-with-legacy-framework"></a>
 
-Rooibos is nbackward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), Use the `-l --legacySupport` flag with rooibosC to use this feature.
+Rooibos is nbackward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), Use the `-l --legacySupport` flag with rooibos-cli to use this feature.
 
 `'@Only`, `'@Ingore`, `'@Setup`, `'@TearDown` are all supported. Only and Ignore can be applied to a whole test suite, or individual test cases.
 
@@ -1073,11 +1098,11 @@ An example, using a json config file is :
 
 This can be done, from the command line also, with the following command:
 
-```rooibosC -p stubProject -t source/tests/**/*.brs -v -s '**/*.brs,**/*.xml,!**/tests/**/*.*,!**/tests,!**/rLog,!**/rLog/**/*.*,!**/rLogComponents,!**/rLogComponents/**/*.*,!**/rooibosDist.brs,!**/rooibosFunctionMap.brs,!**/TestsScene.brs,!**/ThreadaUtils.brs'```
+```rooibos-cli -p stubProject -t source/tests/**/*.brs -v -s '**/*.brs,**/*.xml,!**/tests/**/*.*,!**/tests,!**/rLog,!**/rLog/**/*.*,!**/rLogComponents,!**/rLogComponents/**/*.*,!**/rooibosDist.brs,!**/rooibosFunctionMap.brs,!**/TestsScene.brs,!**/ThreadaUtils.brs'```
 
 ### How coverage works
 
-rooibos-preprocessor, via `rooibosC` command line tool, or the npm package will run against a root project folder, and using the `sourceFilePattern` globs your provide, will ascertain which files require coverage.
+rooibos-cli, via `rooibos-cli` command line tool, or the npm package will run against a root project folder, and using the `sourceFilePattern` globs your provide, will ascertain which files require coverage.
 
 It then buils an Abstract Syntax Tree, using Sean Barag's wonderful [brs interpreter](https://github.com/sjbarag/brs), to ascertain which lines of the identified files can have their coverage tracked.
 
