@@ -139,8 +139,13 @@ export function doc(cb) {
   return task;
 }
 
+export function updateVersion(cb) {
+  fs.writeFileSync("docs/version.txt", pkg.version); 
+  cb();
+}
+
 exports.build = series(clean, createDirectories, squash, copyToSamples, copyToTests);
 exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
 exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
 exports.prePublishFrameworkCodeCoverage = series(exports.build, prepareCodeCoverageTests)
-exports.dist = series(exports.build, doc);
+exports.dist = series(exports.build, doc, updateVersion);

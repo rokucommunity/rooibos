@@ -171,10 +171,10 @@ There are two ways to invoke rooibos-cli:
 	```
 	rooibos-cli r -p ./ -t source/tests
 	```
+	
 ### Description of rooibos-cli commands
 
 
-```
 
 | flag | argument | Fescription |
 |--- |--- |:-: |
@@ -1039,7 +1039,7 @@ end function
 
 <a name="compatible-with-legacy-framework"></a>
 
-Rooibos is nbackward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), Use the `-l --legacySupport` flag with rooibos-cli to use this feature.
+Rooibos is backward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), Use the `-l --legacySupport` flag with rooibos-cli to use this feature.
 
 `'@Only`, `'@Ingore`, `'@Setup`, `'@TearDown` are all supported. Only and Ignore can be applied to a whole test suite, or individual test cases.
 
