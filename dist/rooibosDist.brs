@@ -1,6 +1,6 @@
 '/**
 ' * rooibos - simple, flexible, fun brihhtscript test framework for roku scenegraph apps
-' * @version v3.1.0
+' * @version v3.1.1
 ' * @link https://github.com/georgejecook/rooibos#readme
 ' * @license MIT
 ' */
@@ -35,7 +35,7 @@ function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = in
   ? "#TEST START : ###" ; testId ; "###"
   args.testScene = scene
   args.global = m.global
-  rooibosVersion = "3.1.0"
+  rooibosVersion = "3.1.1"
   requiredRooibosPreprocessorVersion = "1.0.0"
   if not RBS_CMN_isFunction(RBSFM_getPreprocessorVersion)
     versionError = "You are using a rooibos-preprocessor (i.e. rooibos-cli) version older than 1.0.0 - please update to " + requiredRooibosPreprocessorVersion

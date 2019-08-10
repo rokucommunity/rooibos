@@ -55,7 +55,7 @@ function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = in
   
   args.testScene = scene
   args.global = m.global
-  rooibosVersion = "3.1.0"
+  rooibosVersion = "3.1.1"
   requiredRooibosPreprocessorVersion = "1.0.0"
   
   if not RBS_CMN_isFunction(RBSFM_getPreprocessorVersion)
