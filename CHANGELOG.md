@@ -1,3 +1,18 @@
+#### 3.2.0 (2019-09-22)
+
+##### Chores
+
+*  adds documentation for matchers ([ef791711](https://github.com/georgejecook/rooibos/commit/ef791711abe87a02ee5c935aa5ac34f178cdf6e3))
+
+##### New Features
+
+*  adds matchers for mocks, you can now use built in anyXXXMatchers, or roll your own as function pointers, or inline functions ([f87609e5](https://github.com/georgejecook/rooibos/commit/f87609e5c1e0dc0b532333be4d6971755d3af229))
+*  migrate to using brighterscript, via maestro project's compiler ([391b902c](https://github.com/georgejecook/rooibos/commit/391b902c82b63a261a73f452879fbde72eb57ae0))
+
+##### Bug Fixes
+
+*  fixes versoin number mismatch errors - the framework now correctly ascertains if it has a version greater than the minimum required version, instead of requiring a direct match ([c6baa2dc](https://github.com/georgejecook/rooibos/commit/c6baa2dc33ef689b49ffc68310bb6f95f0919549))
+
 # Rooibos CHANGELOG
 
 ## 3.0.4 - legacy support!

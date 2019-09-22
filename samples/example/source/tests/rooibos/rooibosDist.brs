@@ -1,6 +1,6 @@
 '/**
 ' * rooibos - simple, flexible, fun brihhtscript test framework for roku scenegraph apps
-' * @version v3.1.1
+' * @version v3.2.0
 ' * @link https://github.com/georgejecook/rooibos#readme
 ' * @license MIT
 ' */
