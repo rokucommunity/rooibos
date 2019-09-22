@@ -895,7 +895,16 @@ end function
     if (hasArgs and expectedArgs.count() > i)
       value = expectedArgs[i]
       if not  RBS_CMN_IsUndefined(value)
-        expectedArgsValues.push(expectedArgs[i])
+        if  RBS_CMN_IsAssociativeArray(value) and  RBS_CMN_isValid(value.matcher)
+          if not  RBS_CMN_isFunction(value.matcher)
+            ? "[ERROR] you have specified a matching function; but it is not in scope!"
+            expectedArgsValues.push("#ERR-OUT_OF_SCOPE_MATCHER!")
+          else
+            expectedArgsValues.push(expectedArgs[i])
+          end if
+        else
+          expectedArgsValues.push(expectedArgs[i])
+        end if
       else
         expectedArgsValues.push("#ERR-UNDEFINED!")
       end if
@@ -986,13 +995,21 @@ end function
           if (didNotExpectArg)
             expected = invalid
           end if
-          if (not (RBS_CMN_IsString(expected) and expected = m.ignoreValue) and not m.eqValues(value, expected))
-            if (expected = invalid)
-              expected = "[INVALID]"
+          isUsingMatcher =  RBS_CMN_IsAssociativeArray(expected) and  RBS_CMN_isFunction(expected.matcher)
+          if isUsingMatcher
+            if not expected.matcher(value)
+              m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to match matching function '" +  RBS_CMN_AsString(expected.matcher) + "' got '" +  RBS_CMN_AsString(value) + "')")
+              m.CleanMocks()
             end if
-            m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" +  RBS_CMN_AsString(expected) + "' got '" +  RBS_CMN_AsString(value) + "')")
-            m.CleanMocks()
-            return
+          else
+            if (not (RBS_CMN_IsString(expected) and expected = m.ignoreValue) and not m.eqValues(value, expected))
+              if (expected = invalid)
+                expected = "[INVALID]"
+              end if
+              m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" +  RBS_CMN_AsString(expected) + "' got '" +  RBS_CMN_AsString(value) + "')")
+              m.CleanMocks()
+              return
+            end if
           end if
         end for
       end for
@@ -1210,6 +1227,12 @@ end function
         Name: "BaseTestSuite"
         invalidValue: "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
         ignoreValue: "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
+        anyStringMatcher: { "matcher":  RBS_MATCH_anyStringMatcher } 
+        anyBoolMatcher: { "matcher":  RBS_MATCH_anyBoolMatcher } 
+        anyNumberMatcher: { "matcher":  RBS_MATCH_anyNumberMatcher } 
+        anyAAMatcher: { "matcher":  RBS_MATCH_anyAAMatcher } 
+        anyArrayMatcher: { "matcher":  RBS_MATCH_anyArrayMatcher } 
+        anyNodeMatcher: { "matcher":  RBS_MATCH_anyNodeMatcher } 
         allowNonExistingMethodsOnMocks: true
         isAutoAssertingMocks: true
         TestCases: []
@@ -1576,6 +1599,24 @@ end function
         instance.__ItemGenerator()
         return instance
       end function
+function RBS_MATCH_anyStringMatcher(value)
+  return  RBS_CMN_isString(value)
+end function
+function RBS_MATCH_anyBoolMatcher(value)
+  return  RBS_CMN_isBoolean(value)
+end function
+function RBS_MATCH_anyNumberMatcher(value)
+  return  RBS_CMN_isNumber(value)
+end function
+function RBS_MATCH_anyAAMatcher(value)
+  return  RBS_CMN_isAssociativeArray(value)
+end function
+function RBS_MATCH_anyArrayMatcher(value)
+  return  RBS_CMN_isArray(value)
+end function
+function RBS_MATCH_anyNodeMatcher(value)
+  return  RBS_CMN_isSGNode(value)
+end function
 function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
   args = {}
   if createObject("roAPPInfo").IsDev() <> true then
