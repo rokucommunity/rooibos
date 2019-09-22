@@ -1612,7 +1612,7 @@ function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = in
   if not  RBS_CMN_isFunction(RBSFM_getPreprocessorVersion)
     versionError = "You are using a rooibos-preprocessor (i.e. rooibos-cli) version older than 1.0.0 - please update to " + requiredRooibosPreprocessorVersion
   else 
-    if  Rooibos__versionCompare(RBSFM_getPreprocessorVersion(),requiredRooibosPreprocessorVersion) >= 0
+    if  Rooibos__versionCompare(RBSFM_getPreprocessorVersion(), requiredRooibosPreprocessorVersion) >= 0
       versionError = ""
     else
       versionError = "Your rooibos-preprocessor (i.e. rooibos-cli) version '" + RBSFM_getPreprocessorVersion() + "' is not compatible with rooibos version " + rooibosVersion + ". Please upgrade your rooibos-cli to version " + requiredRooibosPreprocessorVersion
@@ -1653,15 +1653,16 @@ function Rooibos__versionCompare(v1, v2)
   while v2parts.count() < v1parts.count()
     v2parts.push("0")
   end while
-  for i = 0 to v1parts.count()
+  for i = 0 to v1parts.count() - 1
     if (v2parts.count() = i)
       return 1
     end if
-    if (v1parts[i] = v2parts[i])
-    else if (v1parts[i] > v2parts[i])
-      return 1
-    else 
-      return -1
+    if (v1parts[i] <> v2parts[i])
+      if (v1parts[i] > v2parts[i])
+        return 1
+      else 
+        return -1
+      end if
     end if
   end for
   if (v1parts.count() <> v2parts.count()) 
