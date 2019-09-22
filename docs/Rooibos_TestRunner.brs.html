@@ -183,7 +183,7 @@ sub RBS_RT_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
   end if
 
   for each itGroup in metaTestSuite.itGroups
-    testSuite = RBS_ItG_GetRunnableTestSuite(itGroup)
+    testSuite = RBS_ItG.GetRunnableTestSuite(itGroup)
     if (nodeContext &lt;> invalid)
       testSuite.node = nodeContext
       testSuite.global = nodeContext.global

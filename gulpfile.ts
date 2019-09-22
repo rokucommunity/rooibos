@@ -1,5 +1,6 @@
 import { series } from "gulp";
-import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from "rooibos-preprocessor";
+import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from "rooibos-cli";
+import { MaestroProjectProcessor, createMaestroConfig } from 'maestro-cli-roku';
 
 const concat = require('gulp-concat');
 const gulp = require('gulp');
@@ -9,6 +10,7 @@ const header = require('gulp-header');
 const pkg = require('./package.json');
 const distDir = 'dist';
 const outDir = 'out';
+const buildDir = 'build';
 const distFile = `rooibosDist.brs`;
 const fullDistPath = path.join(distDir, distFile);
 const fs = require('fs');
@@ -26,7 +28,6 @@ const args = {
   retainStagingFolder: true
 };
 
-
 export function clean() {
   const distPath = path.join(distDir, '**');
   console.log('Doing a clean at ' + distPath);
@@ -39,6 +40,20 @@ function createDirectories() {
     .pipe(gulp.dest(outDir));
 }
 
+export async function compile(cb) {
+  let config = createMaestroConfig({
+    filePattern: ['**/*.bs', '**/*.brs', '**/*.xml'],
+    sourcePath: `src`,
+    outputPath: buildDir,
+    logLevel: 4,
+    nonCheckedImports: [
+    ]
+  });
+  let processor = new MaestroProjectProcessor(config);
+  await processor.processFiles();
+}
+
+
 function squash() {
   var banner = [`'/**`,
     `' * ${pkg.name} - ${pkg.description}`,
@@ -48,7 +63,7 @@ function squash() {
     `' */`,
     ``].join(`\n`);
 
-  return gulp.src('./src/*.brs')
+  return gulp.src('./build/*.brs')
     .pipe(concat(distFile))
     .pipe(rmLines({
       'filters': [/^\s*'/i, /((\r\n|\n|\r)$)|(^(\r\n|\n|\r))|^\s*$/i]
@@ -78,7 +93,8 @@ function copyToTests(cb) {
 /**
  * This target is used for CI
  */
-export async function prepareFrameworkTests(cb) {
+
+ export async function prepareFrameworkTests(cb) {
   await rokuDeploy.prepublishToStaging(args);
   
   let config = createProcessorConfig({
@@ -144,7 +160,7 @@ export function updateVersion(cb) {
   cb();
 }
 
-exports.build = series(clean, createDirectories, squash, copyToSamples, copyToTests);
+exports.build = series(clean, createDirectories, compile, squash, copyToSamples, copyToTests);
 exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
 exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
 exports.prePublishFrameworkCodeCoverage = series(exports.build, prepareCodeCoverageTests)

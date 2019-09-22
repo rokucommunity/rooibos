@@ -20,13 +20,17 @@
     "gulpclass": "^0.2.0",
     "ink-docstrap": "1.3.0",
     "jsdoc": "3.5.5",
+    "maestro-cli-roku": "file:../../maestro-cli",
     "minami": "^1.2.3",
     "roku-deploy": "^2.0.0",
-    "rooibos-preprocessor": "^3.1.1",
+    "rooibos-cli": "^1.0.1",
     "typescript": "^3.3.1",
     "vinyl-paths": "^2.1.0"
   },
-  "scripts": {},
+  "scripts": {
+    "use-live-cli": "npm install maestro-cli-roku --save-dev",
+    "use-local-cli": "npm install ../../maestro-cli --save-dev"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/georgejecook/rooibos.git"

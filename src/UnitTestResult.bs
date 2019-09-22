@@ -1,21 +1,17 @@
-function UnitTestResult() as object
-  this = {}
-  this.messages = CreateObject("roArray", 0, true)
-  this.isFail = false
-  this.currentAssertIndex = 0
-  this.failedAssertIndex = 0
-  this.Reset = RBS_TRes_Reset
-  this.AddResult = RBS_TRes_AddResult
-  this.GetResult = RBS_TRes_GetResult
-  return this
-end function
+namespace RBS_UTR
+class UnitTestResult
 
-function RBS_TRes_Reset() as void
+public messages = CreateObject("roArray", 0, true)
+public isFail = false
+public currentAssertIndex = 0
+public failedAssertIndex = 0
+
+public function Reset() as void
   m.isFail = false
   m.messages = CreateObject("roArray", 0, true)
 end function
 
-function RBS_TRes_AddResult(message as string) as string
+public function AddResult(message as string) as string
   if (message <> "")
     m.messages.push(message)
     if (not m.isFail)
@@ -27,7 +23,7 @@ function RBS_TRes_AddResult(message as string) as string
   return message
 end function
 
-function RBS_TRes_GetResult() as string
+public function GetResult() as string
   if (m.isFail)
     msg = m.messages.peek()
     if (msg <> invalid)
@@ -39,3 +35,6 @@ function RBS_TRes_GetResult() as string
     return ""
   end if
 end function
+
+end class
+end namespace
