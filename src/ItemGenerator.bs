@@ -1,3 +1,4 @@
+namespace RBS_IG
 ' /**
 '  * @module ItemGenerator
 '  */
@@ -18,24 +19,10 @@
 '  * @description Creates an ItemGenerator instance
 '  * @returns {Object} An object according to specified scheme or invalid, if scheme is not valid.
 '  */
-function ItemGenerator(scheme as object) as object
+class ItemGenerator
 
-  this = {}
-
-  this.getItem    = RBS_IG_GetItem
-  this.getAssocArray  = RBS_IG_GetAssocArray
-  this.getArray     = RBS_IG_GetArray
-  this.getSimpleType  = RBS_IG_GetSimpleType
-  this.getInteger   = RBS_IG_GetInteger
-  this.getFloat     = RBS_IG_GetFloat
-  this.getString    = RBS_IG_GetString
-  this.getBoolean   = RBS_IG_GetBoolean
-
-  if not RBS_CMN_IsValid(scheme)
-    return invalid
-  end if
-
-  return this.getItem(scheme)
+public function new()
+  m.isValid = RBS_CMN.IsValid(scheme)
 end function
 
 ' /**
@@ -54,15 +41,15 @@ end function
 '  * @description Gets an item according to the schem
 '  * @returns {Object}  An object according to specified scheme or invalid if scheme is not one of simple type, array or associative array.
 '  */
-function RBS_IG_GetItem(scheme as object) as object
+public function GetItem(scheme as object) as object
 
   item = invalid
 
-  if RBS_CMN_IsAssociativeArray(scheme)
+  if RBS_CMN.IsAssociativeArray(scheme)
     item = m.getAssocArray(scheme)
-  else if RBS_CMN_IsArray(scheme)
+  else if RBS_CMN.IsArray(scheme)
     item = m.getArray(scheme)
-  else if RBS_CMN_IsString(scheme)
+  else if RBS_CMN.IsString(scheme)
     item = m.getSimpleType(lCase(scheme))
   end if
 
@@ -85,7 +72,7 @@ end function
 '  * @description Generates associative array according to specified scheme.
 '  * @returns {Object} An associative array according to specified scheme.
 '  */
-function RBS_IG_GetAssocArray(scheme as object) as object
+public function GetAssocArray(scheme as object) as object
 
   item = {}
 
@@ -113,7 +100,7 @@ end function
 '  * @description Generates array according to specified scheme.
 '  * @returns {Object} An array according to specified scheme.
 '  */
-function RBS_IG_GetArray(scheme as object) as object
+public function GetArray(scheme as object) as object
 
   item = []
 
@@ -133,7 +120,7 @@ end function
 '  * @param {Dynamic} typeStr - name of desired object type.
 '  * @returns {Object} A simple type object or invalid if type is not supported.
 '  */
-function RBS_IG_GetSimpleType(typeStr as string) as object
+public function GetSimpleType(typeStr as string) as object
 
   item = invalid
 
@@ -158,8 +145,8 @@ end function
 '  * @description Generates random boolean value.
 '  * @returns {Boolean} A random boolean value.
 '  */
-function RBS_IG_GetBoolean() as boolean
-  return RBS_CMN_AsBoolean(Rnd(2) \ Rnd(2))
+public function GetBoolean() as boolean
+  return RBS_CMN.AsBoolean(Rnd(2) \ Rnd(2))
 end function
 
 ' /**
@@ -171,7 +158,7 @@ end function
 '  * @param {Dynamic} seed - seed value for Rnd function.
 '  * @returns {integer} A random integer value.
 '  */
-function RBS_IG_GetInteger(seed = 100 as integer) as integer
+public function GetInteger(seed = 100 as integer) as integer
   return Rnd(seed)
 end function
 
@@ -183,7 +170,7 @@ end function
 '  * @description Generates random float value.
 '  * @returns {float} A random float value.
 '  */
-function RBS_IG_GetFloat() as float
+public function GetFloat() as float
   return Rnd(0)
 end function
 
@@ -196,7 +183,7 @@ end function
 '  * @param {Dynamic} seed - A string length
 '  * @returns {string} A random string value or empty string if seed is 0.
 '  */
-function RBS_IG_GetString(seed as integer) as string
+public function GetString(seed as integer) as string
 
   item = ""
   if seed > 0
@@ -220,3 +207,5 @@ function RBS_IG_GetString(seed as integer) as string
   return item
 end function
 
+end class
+end namespace

@@ -1,7 +1,7 @@
 ' /**
 '  * @module rooibosh
 '  */
-
+namespace Rooibos_
 ' /**
 '  * @memberof module:rooibosh
 '  * @name Rooibos__Init
@@ -16,7 +16,7 @@
 '  *                   and therefore require a screen and scene are created.
 '  * @param nodeContext as object - this is the global scope of your tests - so where anonymous methods will run from. This should be m
 '  */
-function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
+function Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
   args = {}
   if createObject("roAPPInfo").IsDev() <> true then
     ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
@@ -58,10 +58,10 @@ function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = in
   rooibosVersion = "3.1.1"
   requiredRooibosPreprocessorVersion = "1.0.0"
   
-  if not RBS_CMN_isFunction(RBSFM_getPreprocessorVersion)
+  if not RBS_CMN.isFunction(RBSFM_getPreprocessorVersion)
     versionError = "You are using a rooibos-preprocessor (i.e. rooibos-cli) version older than 1.0.0 - please update to " + requiredRooibosPreprocessorVersion
   else 
-    if RBSFM_getPreprocessorVersion() = requiredRooibosPreprocessorVersion
+    if Rooibos_.versionCompare(RBSFM_getPreprocessorVersion(),requiredRooibosPreprocessorVersion) >= 0
       versionError = ""
     else
       versionError = "Your rooibos-preprocessor (i.e. rooibos-cli) version '" + RBSFM_getPreprocessorVersion() + "' is not compatible with rooibos version " + rooibosVersion + ". Please upgrade your rooibos-cli to version " + requiredRooibosPreprocessorVersion
@@ -76,7 +76,7 @@ function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = in
     ? "######################################################"
     ? ""
     
-    runner = RBS_TR_TestRunner(args)
+    runner = TestRunner(args)
     runner.Run()
     
     while(true)
@@ -96,3 +96,39 @@ function Rooibos__Init(preTestSetup = invalid, testUtilsDecoratorMethodName = in
     ? "#########################################################"
   end if
 end function
+
+function versionCompare(v1, v2) 
+  v1parts = v1.split(".")
+  v2parts = v2.split(".")
+  
+  while v1parts.count() < v2parts.count()
+    v1parts.push("0")
+  end while
+  
+  while v2parts.count() < v1parts.count()
+    v2parts.push("0")
+  end while
+  
+  for i = 0 to v1parts.count()
+    if (v2parts.count() = i)
+      return 1
+    end if
+    
+    if (v1parts[i] = v2parts[i])
+      'continue
+    else if (v1parts[i] > v2parts[i])
+      return 1
+    else 
+      return -1
+    end if
+  end for
+  
+  if (v1parts.count() <> v2parts.count()) 
+    return -1
+  end if
+  
+  return 0
+  
+end function
+
+end namespace
