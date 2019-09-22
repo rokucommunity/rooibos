@@ -10,6 +10,14 @@ class BaseTestSuite
 public Name = "BaseTestSuite"
 public invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
 public ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
+
+'built in any matchers
+public anyStringMatcher = { "matcher": RBS_MATCH.anyStringMatcher } 
+public anyBoolMatcher = { "matcher": RBS_MATCH.anyBoolMatcher } 
+public anyNumberMatcher = { "matcher": RBS_MATCH.anyNumberMatcher } 
+public anyAAMatcher = { "matcher": RBS_MATCH.anyAAMatcher } 
+public anyArrayMatcher = { "matcher": RBS_MATCH.anyArrayMatcher } 
+public anyNodeMatcher = { "matcher": RBS_MATCH.anyNodeMatcher } 
 public allowNonExistingMethodsOnMocks = true
 public isAutoAssertingMocks = true
 
@@ -1520,10 +1528,19 @@ public function CreateFake(id, target, methodName, expectedInvocations = 1, expe
   
   for i = 0 to 9
     if (hasArgs and expectedArgs.count() > i)
-      'guard against bad values
+      'guard against bad values 
       value = expectedArgs[i]
       if not RBS_CMN.IsUndefined(value)
-        expectedArgsValues.push(expectedArgs[i])
+        if RBS_CMN.IsAssociativeArray(value) and RBS_CMN.isValid(value.matcher)
+          if not RBS_CMN.isFunction(value.matcher)
+            ? "[ERROR] you have specified a matching function; but it is not in scope!"
+            expectedArgsValues.push("#ERR-OUT_OF_SCOPE_MATCHER!")
+          else
+            expectedArgsValues.push(expectedArgs[i])
+          end if
+        else
+          expectedArgsValues.push(expectedArgs[i])
+        end if
       else
         expectedArgsValues.push("#ERR-UNDEFINED!")
       end if
@@ -1631,14 +1648,24 @@ public function AssertMocks() as void
           if (didNotExpectArg)
             expected = invalid
           end if
-          if (not (RBS_CMN.IsString(expected) and expected = m.ignoreValue) and not m.eqValues(value, expected))
-            if (expected = invalid)
-              expected = "[INVALID]"
+          
+          isUsingMatcher = RBS_CMN.IsAssociativeArray(expected) and RBS_CMN.isFunction(expected.matcher)
+          
+          if isUsingMatcher
+            if not expected.matcher(value)
+              m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to match matching function '" + RBS_CMN.AsString(expected.matcher) + "' got '" + RBS_CMN.AsString(value) + "')")
+              m.CleanMocks()
             end if
-            
-            m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + RBS_CMN.AsString(expected) + "' got '" + RBS_CMN.AsString(value) + "')")
-            m.CleanMocks()
-            return
+          else
+            if (not (RBS_CMN.IsString(expected) and expected = m.ignoreValue) and not m.eqValues(value, expected))
+              if (expected = invalid)
+                expected = "[INVALID]"
+              end if
+              
+              m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + RBS_CMN.AsString(expected) + "' got '" + RBS_CMN.AsString(value) + "')")
+              m.CleanMocks()
+              return
+            end if
           end if
         end for
       end for

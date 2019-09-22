@@ -1,0 +1,28 @@
+namespace RBS_MATCH
+
+function anyStringMatcher(value)
+  return RBS_CMN.isString(value)
+end function
+
+function anyBoolMatcher(value)
+  return RBS_CMN.isBoolean(value)
+end function
+
+function anyNumberMatcher(value)
+  return RBS_CMN.isNumber(value)
+end function
+
+function anyAAMatcher(value)
+  return RBS_CMN.isAssociativeArray(value)
+end function
+
+function anyArrayMatcher(value)
+  return RBS_CMN.isArray(value)
+end function
+
+function anyNodeMatcher(value)
+  return RBS_CMN.isSGNode(value)
+end function
+
+
+end namespace
