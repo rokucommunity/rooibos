@@ -780,7 +780,6 @@ In that case, the following mock definition would satisfy the assertion:
 
 ```m.expectOnce(myObj, "myMethod", ["a", "b", "c"], true)```
 
-
 #### Skipping value assertion with m.ignoreValue
 
 If you only care about some arguments, then you can use `m.ignoreValue` to instruct rooibos to not assert equality for the arguments you've ignored.
@@ -792,6 +791,51 @@ In the above example, the assertion will be satisfied with a mock confiugred thu
 This will pass when `myMethod` is invoked with args: `["a", "b", "c"]`, as would the following mock definition:
 
 ```m.expectOnce(myObj, "myMethod", [m.ignoreValue, "b", "c"], true)```
+
+
+#### Using matchers to assert mock invocation args
+
+In addition to the other basic matchers described above, rooibos provides a set of pre-defined _any_ matchers, and a mechansim for you to provide custom matchers for any mock argument.
+
+##### Built in matchers
+
+Rooibos has matchers that will pass, if the values are of the specified _anyXXXMatcher_ type. For convenience, the matchers are stored on `m.anyXXXMatcher` on your test suite. The following are available.
+
+ - anyBoolMatcher
+ - anyNumberMatcher
+ - anyStringMatcher
+ - anyArrayMatcher
+ - anyAAMatcher
+ - anyNodeMatcher
+
+Simply specify the matcher in your mock definition, as follows:
+
+```m.expectOnce(myObj, "myMethod", [m.anyStringMatcher, m.anyBoolMatcher], true)```
+
+In this case, the mock be satisfied if it was called with 2 params, the first one a string, the second a bool, both of any value.
+
+##### Custom matchers.
+
+It is simple to use a custom matcher to assert your mock arguments. Simply:
+
+ - implement a function that takes one argument, and returns true or false
+ - ensure it's in scope
+ - return your function (either by pointer, or inline), in an aa as follow: `{"matcher": yourMatcherFunction}
+
+For example, using a function pointer:
+
+```
+  m.expectOnce(m.myClass, "doWork", [{"matcher": RBS_MATCH_anyArrayMatcher}], returnValue)
+```
+
+And inline:
+
+```
+  m.expectOnce(m.myClass, "doWork", [{ "matcher": function(value)
+        return value = true
+    end function }], returnValue)
+```
+
 
 #### returning values from your mocks
 Simply set your return value to a non-invalid value, to specify a return value.
