@@ -1,11 +1,11 @@
-namespace RBS_TR
+namespace Rooibos
 ' /**
 '  * @module TestRunner
 '  */
 
 ' /**
 '  * @memberof module:TestRunner
-'  * @name RBS_TR_TestRunner
+'  * @name Rooibos_TestRunner
 '  * @function
 '  * @description Creates an instance of the test runner
 '  * @param {Dynamic} args - contains the application launch args, and other settings required for test execution
@@ -116,16 +116,16 @@ public sub Run()
       if (metaTestSuite.hasIgnoredTests)
         totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name)
       end if
-      RBS_TR.RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig, m.nodeContext)
+      Rooibos.RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig, m.nodeContext)
     end if
     skipSuite:
   end for
   m.logger.PrintStatistic(totalStatObj)
 
-  if RBS_CMN.IsFunction(RBS_TR_ReportCodeCoverage)
-    RBS_TR.ReportCodeCoverage()
+  if RBS_CMN.IsFunction(Rooibos_ReportCodeCoverage)
+    Rooibos.ReportCodeCoverage()
   end if
-  RBS_TR.SendHomeKeypress()
+  Rooibos.SendHomeKeypress()
 end sub
 
 public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)
@@ -199,7 +199,7 @@ public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       testSuite.SetUp()
     end if
 
-    RBS_TR.RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+    Rooibos.RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
 
     if RBS_CMN.IsFunction(testSuite.TearDown)
       testSuite.TearDown()
@@ -328,17 +328,17 @@ end sub
 '  * @param {Dynamic} args - associated array, containing all the information required to execute the tests.
 '  * @returns {Object} test stats object, for merging into main test stats
 '  */
-function Rooibos_RunNodeTests(args) as object
+function RunNodeTests(args) as object
   ? " RUNNING NODE TESTS"
   totalStatObj = RBS_STATS.CreateTotalStatistic()
 
-  RBS_TR.RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
+  Rooibos.RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
   return totalStatObj
 end function
 
 ' /**
 '  * @memberof module:TestRunner
-'  * @name Rooibos_CreateTestNode
+'  * @name CreateTestNode
 '  * @function
 '  * @instance
 '  * @description interface hook for correctly creating nodes that get tested. This ensures they are in the correct scope.
@@ -346,7 +346,7 @@ end function
 '  * @param {String} nodeType - name of node to create. The framework will pass this in as required
 '  * @returns {Object} the required node, or invalid if it could not be invoked.
 '  */
-function Rooibos_CreateTestNode(nodeType) as object
+function CreateTestNode(nodeType) as object
   node = createObject("roSGNode", nodeType)
 
   if (type(node) = "roSGNode" and node.subType() = nodeType)
@@ -357,3 +357,5 @@ function Rooibos_CreateTestNode(nodeType) as object
     return invalid
   end if
 end function
+
+end namespace
