@@ -1,3 +1,13 @@
+#### 3.2.1 (2019-09-23)
+
+##### Chores
+
+*  add bash task to run gulp, coz vscode ide keeps opening a gulp tab ([c7a45ad2](https://github.com/georgejecook/rooibos/commit/c7a45ad2160fd3c7c31a7ccf692440ad7ec7391b))
+
+##### Bug Fixes
+
+*  fixes regression in node tests ([7b63c69e](https://github.com/georgejecook/rooibos/commit/7b63c69ecacdd26d6d9b067b46eb56908ae869e7))
+
 #### 3.2.0 (2019-09-22)
 
 ##### Chores
