@@ -55,7 +55,7 @@ function Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, te
   
   args.testScene = scene
   args.global = m.global
-  rooibosVersion = "3.1.1"
+  rooibosVersion = "#ROOIBOS_VERSION#"
   requiredRooibosPreprocessorVersion = "1.0.0"
   
   if not RBS_CMN.isFunction(RBSFM_getPreprocessorVersion)
@@ -72,7 +72,7 @@ function Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, te
     ? "######################################################"
     ? ""
     ? "# rooibos framework version: " ; rooibosVersion
-    ? "# tests parsed with rooibosC version: " ; rooibosVersion
+    ? "# tests parsed with rooibosC version: " ; RBSFM_getPreprocessorVersion()
     ? "######################################################"
     ? ""
     

@@ -160,7 +160,15 @@ export function updateVersion(cb) {
   cb();
 }
 
-exports.build = series(clean, createDirectories, compile, squash, copyToSamples, copyToTests);
+function insertVersionNumber(cb) {
+  const filePath = path.join(buildDir, 'Rooibos.brs');
+  let text = fs.readFileSync(filePath, 'utf8');
+  text = text.replace('#ROOIBOS_VERSION#', pkg.version);
+  fs.writeFileSync(filePath, text, 'utf8');
+  cb();
+}
+
+exports.build = series(clean, createDirectories, compile, insertVersionNumber, squash, copyToSamples, copyToTests);
 exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
 exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
 exports.prePublishFrameworkCodeCoverage = series(exports.build, prepareCodeCoverageTests)
