@@ -1,5 +1,5 @@
 import { series } from "gulp";
-import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from "rooibos-cli";
+import { RooibosProcessor, createProcessorConfig } from "rooibos-cli";
 import { MaestroProjectProcessor, createMaestroConfig } from 'maestro-cli-roku';
 
 const concat = require('gulp-concat');
