@@ -1,6 +1,9 @@
 import { series } from "gulp";
 import { RooibosProcessor, createProcessorConfig } from "rooibos-cli";
 import { MaestroProjectProcessor, createMaestroConfig } from 'maestro-cli-roku';
+import { config } from 'dotenv';
+
+config(__dirname, '.env');
 
 const concat = require('gulp-concat');
 const gulp = require('gulp');
