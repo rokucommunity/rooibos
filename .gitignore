@@ -1,5 +1,7 @@
 .DS_Store
 build
+.env
+
 ###BrightScript specific
 dist/apps
 out/
@@ -37,3 +39,7 @@ frameworkTests/source/tests/rooibosDist.brs
 outRun
 out
 rooibosDist.brs
+
+# Yarn
+yarn.lock
+yarn-error.log

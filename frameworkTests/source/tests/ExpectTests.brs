@@ -19,10 +19,33 @@ function ET_expectOnce_valuesBug_reported(expectedValue, expectMockFail) as void
     obj.foo(42)
     m.isAutoAssertingMocks = false
     m.AssertMocks()
-    
+
     isFail = m.currentResult.isFail
     m.currentResult.Reset()
     m.CleanMocks()
-    m.AssertEqual(isFail, expectMockFail)     
+    m.AssertEqual(isFail, expectMockFail) 
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests mock count limit
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Test mock count limit at least 25
+function ET_expect_mockCountLimitToBeAtLeast25() as void
+
+    interface = {}
+
+    mockCountLimit = 25 
+    for i = 1 to mockCountLimit step + 1
+        keyName = StrI(i).trim()
+        interface[keyName] = function(arg0) : return arg0 : end function
+
+        expectedArg = "a"
+        expectedReturnValue = "b" 
+        m.ExpectOnce(interface, keyName, [expectedArg], [expectedReturnValue])
+
+        interface[keyName](expectedArg)
+    end for
+
 end function
 
