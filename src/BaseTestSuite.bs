@@ -1477,8 +1477,8 @@ public function Mock(target, methodName, expectedInvocations = 1, expectedArgs =
   if fake = invalid
     m.__mockId++
     id = stri(m.__mockId).trim()
-    if (m.__mockId > 6)
-      ? "ERROR ONLY 6 MOCKS PER TEST ARE SUPPORTED!! you're on # " ; m.__mockId
+    if (m.__mockId > 25)
+      ? "ERROR ONLY 25 MOCKS PER TEST ARE SUPPORTED!! you're on # " ; m.__mockId
       ? " Method was " ; methodName
       return invalid
     end if
@@ -1771,24 +1771,115 @@ public function MockCallback2(arg1 = invalid, arg2 = invalid, arg3 = invalid, ar
   return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 end function
 
-
 public function MockCallback3(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
   fake = m.__mocks["3"]
   return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 end function
-
 
 public function MockCallback4(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
   fake = m.__mocks["4"]
   return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 end function
 
-
 public function MockCallback5(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
   fake = m.__mocks["5"]
   return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 end function
 
+public function MockCallback6(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["6"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback7(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["7"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback8(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["8"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback9(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["9"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback10(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["10"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback11(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["11"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback12(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["12"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback13(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["13"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback14(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["14"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback15(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["15"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback16(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["16"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback17(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["17"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback18(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["18"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback19(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["19"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback20(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["20"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback21(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["21"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback22(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["22"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback23(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["23"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
+
+public function MockCallback24(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+  fake = m.__mocks["24"]
+  return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+end function
 
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
