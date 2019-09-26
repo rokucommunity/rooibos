@@ -1,3 +1,17 @@
+#### 3.2.2 (2019-09-26)
+
+##### Chores
+
+* adds changelog generator to dependencies ([22a25308](https://github.com/georgejecook/rooibos/commit/22a25308cd4d448c4cdd01087dc43cda74ca82d5))
+
+##### New Features
+
+*  Increase mocks limit to 25 - it is now possible to create up to 25 mocks for a given test suite. ([#73](https://github.com/georgejecook/rooibos/pull/73)) ([92369c3c](https://github.com/georgejecook/rooibos/commit/92369c3cc12e38065d6b4faaedf5a5c46995774b))
+
+##### Bug Fixes
+
+*  fixes incorrect reporting of version numbers during test run ([e8208318](https://github.com/georgejecook/rooibos/commit/e820831823993e33a6581926701d8263f7826fc4))
+
 #### 3.2.2 (2019-09-23)
 
 #### 3.2.1 (2019-09-23)
