@@ -30,8 +30,8 @@ end function
 '@It tests mock count limit
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Test mock count limit is 25
-function ET_expect_mockCountLimitToBe25() as void
+'@Test mock count limit at least 25
+function ET_expect_mockCountLimitToBeAtLeast25() as void
 
     interface = {}
 
