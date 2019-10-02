@@ -1,6 +1,6 @@
 language : node_js
 node_js :
- - stable
+ - 9.9.0
 install:
  - npm install
 script:
