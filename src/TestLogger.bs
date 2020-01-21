@@ -92,10 +92,16 @@ public sub PrintTestStatistic(testCase as object)
   end if
   locationText = "pkg:/" + testCase.filePath.trim() + "(" + locationLine + ")"
 
+  if m.config.printTestTimes = true
+    timeText = " (" + stri(metaTestCase.time).trim() +"ms)"
+  else
+    timeText = ""
+  end if
+  
   insetText = ""
   if (metaTestcase.isParamTest <> true)
     messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
-    ? messageLine ; testCase.Result ; " (" + stri(metaTestCase.time).trim() +"ms)"
+    ? messageLine ; testCase.Result ; timeText
   else if ( metaTestcase.paramTestIndex = 0)
     name = metaTestCase.Name
     if (len(name) > 1 and right(name, 1) = "0")
@@ -107,7 +113,7 @@ public sub PrintTestStatistic(testCase as object)
   if (metaTestcase.isParamTest = true)
     insetText = "  "
     messageLine = m.fillText(" " + testChar + insetText + " |--" + formatJson(metaTestCase.rawParams) + " : ", ".", 80)
-    ? messageLine ; testCase.Result ; " (" + stri(metaTestCase.time).trim() +"ms)"
+    ? messageLine ; testCase.Result ; timeText
   end if
 
   if LCase(testCase.Result) <> "success"
