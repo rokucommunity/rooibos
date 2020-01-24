@@ -15,7 +15,7 @@ class TestRunner
 public function new(args = {})
   m.testScene = args.testScene
   m.nodeContext = args.nodeContext
-
+  
   config = RBSFM_getRuntimeConfig()
   if (config = invalid or not RBS_CMN.IsAssociativeArray(config))
     ? "WARNING : specified config is invalid - using default"
@@ -24,22 +24,22 @@ public function new(args = {})
       failFast: false
     }
   end if
-
+  
   'mix in parsed in args
   if (args.showOnlyFailures <> invalid)
     config.showOnlyFailures = args.showOnlyFailures = "true"
   end if
-
+  
   if (args.failFast <> invalid)
     config.failFast = args.failFast = "true"
   end if
-
+  
   m.testUtilsDecoratorMethodName = args.testUtilsDecoratorMethodName
   m.config = config
-
+  
   ' Internal properties
   m.config.testsDirectory = config.testsDirectory
-
+  
   m.logger = Logger(m.config)
   m.global = args.global
 end function
@@ -51,17 +51,17 @@ end function
 '  * @instance
 '  * @description Executes all tests for a project, as per the config
 '  */
-public sub Run()
+public sub run()
   if type(RBSFM_getTestSuitesForProject) <> "Function"
     ? " ERROR! RBSFM_getTestSuitesForProject is not found! That looks like you didn't run the preprocessor as part of your test process. Please refer to the docs."
     return
   end if
-
+  
   totalStatObj = RBS_STATS.CreateTotalStatistic()
   m.runtimeConfig = UnitTestRuntimeConfig()
   m.runtimeConfig.global = m.global
   totalStatObj.testRunHasFailures = false
-
+  
   for each metaTestSuite in m.runtimeConfig.suites
     if (m.runtimeConfig.hasSoloTests = true)
       if (metaTestSuite.hasSoloTests <> true)
@@ -78,24 +78,24 @@ public sub Run()
         goto skipSuite
       end if
     end if
-
+    
     if (metaTestSuite.isIgnored = true)
       if (m.config.logLevel = 2)
         ? "Ignoring TestSuite " ; metaTestSuite.name ; " Due to Ignore flag"
       end if
       totalstatobj.ignored ++
       totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name + " [WHOLE SUITE]")
-
+      
       goto skipSuite
     end if
-
+    
     if (metaTestSuite.isNodeTest = true and metaTestSuite.nodeTestFileName <> "")
       ? " +++++RUNNING NODE TEST"
       nodeType = metaTestSuite.nodeTestFileName
       ? " node type is " ; nodeType
-
+      
       node = m.testScene.CallFunc("Rooibos_CreateTestNode", nodeType)
-
+      
       if (type(node) = "roSGNode" and node.subType() = nodeType)
         args = {
           "metaTestSuite": metaTestSuite
@@ -105,9 +105,9 @@ public sub Run()
         }
         nodeStatResults = node.callFunc("Rooibos_RunNodeTests", args)
         RBS_STATS.MergeTotalStatistic(totalStatObj, nodeStatResults)
-
+        
         m.testScene.RemoveChild(node)
-
+        
       else
         ? " ERROR!! - could not create node required to execute tests for " ; metaTestSuite.name
         ? " Node of type " ; nodeType ; " was not found/could not be instantiated"
@@ -121,7 +121,7 @@ public sub Run()
     skipSuite:
   end for
   m.logger.PrintStatistic(totalStatObj)
-
+  
   if RBS_CMN.IsFunction(Rooibos_ReportCodeCoverage)
     Rooibos.ReportCodeCoverage()
   end if
@@ -135,7 +135,7 @@ public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       ? "[ERROR] Test utils decorator method `" ; testUtilsDecoratorMethodName ;"` was not in scope! for testSuite: " + metaTestSuite.name
     end if
   end if
-
+  
   for each itGroup in metaTestSuite.itGroups
     testSuite = RBS_ItG.GetRunnableTestSuite(itGroup)
     if (nodeContext <> invalid)
@@ -143,13 +143,13 @@ public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       testSuite.global = nodeContext.global
       testSuite.top = nodeContext.top
     end if
-
+    
     if (RBS_CMN.IsFunction(testUtilsDecorator))
       testUtilsDecorator(testSuite)
     end if
-
+    
     totalStatObj.Ignored += itGroup.ignoredTestCases.count()
-
+    
     if (itGroup.isIgnored = true)
       if (config.logLevel = 2)
         ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
@@ -174,7 +174,7 @@ public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
         end for
       end if
     end if
-
+    
     if (runtimeConfig.hasSoloTests)
       if (itGroup.hasSoloTests <> true)
         if (config.logLevel = 2)
@@ -187,24 +187,24 @@ public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
         goto skipItGroup
       end if
     end if
-
+    
     if (testSuite.testCases.Count() = 0)
       if (config.logLevel = 2)
         ? "Ignoring TestSuite " ; itGroup.name ; " - NO TEST CASES"
       end if
       goto skipItGroup
     end if
-
+    
     if RBS_CMN.IsFunction(testSuite.SetUp)
       testSuite.SetUp()
     end if
-
+    
     Rooibos.RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
-
+    
     if RBS_CMN.IsFunction(testSuite.TearDown)
       testSuite.TearDown()
     end if
-
+    
     if (totalStatObj.testRunHasFailures = true and config.failFast = true)
       exit for
     end if
@@ -215,18 +215,20 @@ end sub
 public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
   suiteStatObj = RBS_STATS.CreateSuiteStatistic(itGroup.Name)
   testSuite.global = runtimeConfig.global
-
+  
   for each testCase in testSuite.testCases
     metaTestCase = itGroup.testCaseLookup[testCase.Name]
     metaTestCase.time = 0
     if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
       goto skipTestCase
     end if
-
+    ? ""
+    ? RBS_LOGGER.FillText("> START: " + testSuite.name + "." + itGroup.name + "." + testCase.Name + " ", ">", 80)
+    
     if RBS_CMN.IsFunction(testSuite.beforeEach)
       testSuite.beforeEach()
     end if
-
+    
     testTimer = CreateObject("roTimespan")
     testCaseTimer = CreateObject("roTimespan")
     testStatObj = RBS_STATS.CreateTestStatistic(testCase.Name)
@@ -234,9 +236,9 @@ public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
     testStatObj.filePath = metaTestSuite.filePath
     testStatObj.metaTestCase = metaTestCase
     testSuite.currentResult = UnitTestResult()
-
+    
     testStatObj.metaTestCase.testResult = testSuite.currentResult
-
+    
     if (metaTestCase.isParamsValid)
       if (metaTestCase.isParamTest)
         testCaseParams = []
@@ -282,33 +284,33 @@ public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
       testSuite.CleanStubs()
     end if
     runResult = testSuite.currentResult.GetResult()
-
-
+    
+    
     if runResult <> ""
-      testStatObj.Result      = "Fail"
-      testStatObj.Error.Code    = 1
-      testStatObj.Error.Message   = runResult
+      testStatObj.Result = "Fail"
+      testStatObj.Error.Code = 1
+      testStatObj.Error.Message = runResult
     else
-      testStatObj.Result      = "Success"
+      testStatObj.Result = "Success"
     end if
-
+    
     testStatObj.Time = testTimer.TotalMilliseconds()
     RBS_STATS.AppendTestStatistic(suiteStatObj, testStatObj)
-
+    
     if RBS_CMN.IsFunction(testSuite.afterEach)
       testSuite.afterEach()
     end if
-
+    
     if testStatObj.Result <> "Success"
       totalStatObj.testRunHasFailures = true
     end if
-
+    
     if testStatObj.Result = "Fail" and config.failFast = true
       exit for
     end if
     skipTestCase:
   end for
-
+  
   suiteStatObj.metaTestSuite = metaTestSuite
   RBS_STATS.AppendSuiteStatistic(totalStatObj, suiteStatObj)
 end sub
@@ -331,7 +333,7 @@ end sub
 function RunNodeTests(args) as object
   ? " RUNNING NODE TESTS"
   totalStatObj = RBS_STATS.CreateTotalStatistic()
-
+  
   Rooibos.RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
   return totalStatObj
 end function
@@ -348,7 +350,7 @@ end function
 '  */
 function CreateTestNode(nodeType) as object
   node = createObject("roSGNode", nodeType)
-
+  
   if (type(node) = "roSGNode" and node.subType() = nodeType)
     m.top.AppendChild(node)
     return node
