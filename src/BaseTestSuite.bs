@@ -1631,6 +1631,7 @@ public function AssertMocks() as void
       m.MockFail(methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
       m.CleanMocks()
       return
+
     else if mock.expectedInvocations > 0 and (RBS_CMN.IsArray(mock.expectedArgs) or (type(mock.expectedArgs) = "roAssociativeArray" and RBS_CMN.IsArray(mock.expectedArgs.multiInvoke)))
       isMultiArgsSupported = type(mock.expectedArgs) = "roAssociativeArray" and RBS_CMN.IsArray(mock.expectedArgs.multiInvoke)
       
@@ -1655,6 +1656,8 @@ public function AssertMocks() as void
             if not expected.matcher(value)
               m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to match matching function '" + RBS_CMN.AsString(expected.matcher) + "' got '" + RBS_CMN.AsString(value) + "')")
               m.CleanMocks()
+              return
+
             end if
           else
             if (not (RBS_CMN.IsString(expected) and expected = m.ignoreValue) and not m.eqValues(value, expected))
@@ -1665,8 +1668,10 @@ public function AssertMocks() as void
               m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + RBS_CMN.AsString(expected) + "' got '" + RBS_CMN.AsString(value) + "')")
               m.CleanMocks()
               return
+
             end if
           end if
+          m.MockPass()
         end for
       end for
     end if
@@ -1712,6 +1717,11 @@ public function MockFail(methodName, message) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   m.currentResult.AddResult("mock failure on '" + methodName + "' : " + message)
   return m.GetLegacyCompatibleReturnValue(false)
+end function
+
+public function MockPass()
+  m.currentResult.AddResult("")
+  return m.GetLegacyCompatibleReturnValue(true)
 end function
 
 

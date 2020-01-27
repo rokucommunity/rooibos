@@ -1,5 +1,5 @@
 'ADD '@Only ON NEXT LINE TO TEST
-'@TestSuite [RBSA] Rooibos before after tests
+'@TestSuite [RBAT] Rooibos before after tests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests one

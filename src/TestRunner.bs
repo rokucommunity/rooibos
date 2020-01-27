@@ -255,7 +255,7 @@ public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
           testCaseParams.push(paramValue)
         end for
         testCaseTimer.mark()
-        'up to 6 param args supported for now
+        'up to 10 param args supported for now
         if (metaTestCase.expectedNumberOfParams = 1)
           testSuite.testCase(testCaseParams[0])
         else if (metaTestCase.expectedNumberOfParams = 2)
@@ -268,6 +268,20 @@ public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
         else if (metaTestCase.expectedNumberOfParams = 6)
           testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
+        else if (metaTestCase.expectedNumberOfParams = 7)
+          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6])
+        else if (metaTestCase.expectedNumberOfParams = 8)
+          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7])
+        else if (metaTestCase.expectedNumberOfParams = 9)
+          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8])
+        else if (metaTestCase.expectedNumberOfParams = 10)
+          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9])
+        else if (metaTestCase.expectedNumberOfParams = 11)
+          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9], testCaseParams[10])
+        else if (metaTestCase.expectedNumberOfParams = 12)
+          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9], testCaseParams[10], testCaseParams[11])
+        else if (metaTestCase.expectedNumberOfParams > 12)
+          testSuite.fail("Test case had more than 12 params. Max of 12 params is supported")
         end if
         metaTestCase.time = testCaseTimer.totalMilliseconds()
       else

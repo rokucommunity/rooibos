@@ -1,3 +1,4 @@
+'@Ignore - these are handled at compiler level now
 '@TestSuite [DGNT] Duplicate Group Name Tests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

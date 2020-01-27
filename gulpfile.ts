@@ -56,6 +56,22 @@ export async function compile(cb) {
   await processor.processFiles();
 }
 
+export async function compileFrameworkTests(cb) {
+  let config = createMaestroConfig({
+    filePattern: ['**/*.bs', '**/*.brs', '**/*.xml'],
+    sourcePath: `frameworkTests`,
+    outputPath: buildDir,
+    logLevel: 4,
+    nonCheckedImports: [
+      'source/rLog/rLogMixin.brs',
+      'source/tests/rooibosDist.brs',
+      'source/rooibosFunctionMap.brs'
+    ]
+  });
+  let processor = new MaestroProjectProcessor(config);
+  await processor.processFiles();
+}
+
 
 function squash() {
   var banner = [`'/**`,
@@ -97,11 +113,11 @@ function copyToTests(cb) {
  * This target is used for CI
  */
 
- export async function prepareFrameworkTests(cb) {
+export async function prepareFrameworkTests(cb) {
   await rokuDeploy.prepublishToStaging(args);
-  
+
   let config = createProcessorConfig({
-    "projectPath": "out/.roku-deploy-staging",
+    "projectPath": "./build",
     "testsFilePattern": [
       "**/tests/**/*.brs",
       "!**/rooibosDist.brs",
@@ -111,13 +127,13 @@ function copyToTests(cb) {
   });
   let processor = new RooibosProcessor(config);
   processor.processFiles();
-  
+
   cb();
 }
 
 export async function prepareCodeCoverageTests(cb) {
   await rokuDeploy.prepublishToStaging(args);
-  
+
   let config = createProcessorConfig({
     "projectPath": "out/.roku-deploy-staging",
     "testsFilePattern": [
@@ -159,7 +175,7 @@ export function doc(cb) {
 }
 
 export function updateVersion(cb) {
-  fs.writeFileSync("docs/version.txt", pkg.version); 
+  fs.writeFileSync("docs/version.txt", pkg.version);
   cb();
 }
 
@@ -172,7 +188,13 @@ function insertVersionNumber(cb) {
 }
 
 exports.build = series(clean, createDirectories, compile, insertVersionNumber, squash, copyToSamples, copyToTests);
-exports.runFrameworkTests = series(exports.build, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
-exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests)
-exports.prePublishFrameworkCodeCoverage = series(exports.build, prepareCodeCoverageTests)
-exports.dist = series(exports.build, doc, updateVersion);
+
+exports.buildFrameworkTests = series(exports.build, exports.compileFrameworkTests, prepareFrameworkTests);
+
+exports.runFrameworkTests = series(exports.buildFrameworkTests, zipFrameworkTests, deployFrameworkTests);
+
+exports.prePublishFrameworkTests = series(exports.build, prepareFrameworkTests);
+
+exports.prePublishFrameworkCodeCoverage = series(exports.build, prepareCodeCoverageTests);
+
+exports.dist = series(exports.build, doc, updateVersion);;

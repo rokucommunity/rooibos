@@ -5,6 +5,7 @@ public messages = CreateObject("roArray", 0, true)
 public isFail = false
 public currentAssertIndex = 0
 public failedAssertIndex = 0
+public failedLine = -1
 
 public function Reset() as void
   m.isFail = false

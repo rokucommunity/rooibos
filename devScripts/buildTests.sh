@@ -4,4 +4,7 @@
 parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"/..
 
-gulp prePublishFrameworkTests
+export TS_NODE_COMPILER_OPTIONS='{"incremental":true, "allowJs":false}'
+export TS_NODE_TRANSPILE_ONLY=true 
+
+gulp buildFrameworkTests
