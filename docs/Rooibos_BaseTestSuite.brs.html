@@ -1247,7 +1247,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-function RBS_BTS_AssertNodeContainsOnly(node , msg = "" ) as dynamic
+function RBS_BTS_AssertNodeContainsOnly(node, value, msg = "" ) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if  type(node) = "roSGNode"
     if not RBS_CMN_NodeContains(node, value)
