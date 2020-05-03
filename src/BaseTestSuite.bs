@@ -1085,10 +1085,10 @@ end function
 
 ' /**
 '  * @memberof module:BaseTestSuite
-'  * @name AssertNodeEmpty
+'  * @name AssertNodeContains
 '  * @function
 '  * @instance
-'  * @description Asserts the node has contains the child _value_
+'  * @description Asserts the node contains the child _value_
 '  * @param {Dynamic} node - a node to check
 '  * @param {Dynamic} value - value to check - value to look for
 '  * @param {Dynamic} [msg=""] - alternate error message
