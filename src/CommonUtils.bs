@@ -290,7 +290,7 @@ end function
 '  */
 function AsString(input) as string
   if RBS_CMN.IsValid(input) = false
-    return ""
+    return "Invalid"
   else if RBS_CMN.IsString(input)
     return input
   else if RBS_CMN.IsInteger(input) or RBS_CMN.IsLongInteger(input) or RBS_CMN.IsBoolean(input)
@@ -313,6 +313,8 @@ function AsString(input) as string
     end for
     text += "}"
     return text
+  else if RBS_CMN_isFunction(input)
+    return input.toStr()
   else
     return ""
   end if
