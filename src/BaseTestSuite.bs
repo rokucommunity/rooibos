@@ -848,8 +848,8 @@ end function
 '  * @function
 '  * @instance
 '  * @description Compare two arbtrary values to eachother.
-'  * @param {Dynamic} Vallue1 - first item to compare
-'  * @param {Dynamic} Vallue2 - second item to compare
+'  * @param {Dynamic} Value1 - first item to compare
+'  * @param {Dynamic} Value2 - second item to compare
 '  * @returns {boolean} - True if values are equal or False in other case.
 '  */
 public function EqValues(Value1 , Value2) as dynamic
@@ -1122,7 +1122,7 @@ end function
 '  * @param {Dynamic} [msg=""] - alternate error message
 '  * @returns {boolean} - true if the assert was satisfied, false otherwise
 '  */
-public function AssertNodeContainsOnly(node , msg = "") as dynamic
+public function AssertNodeContainsOnly(node , value , msg = "") as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
   if type(node) = "roSGNode"
     if not RBS_CMN.NodeContains(node, value)
