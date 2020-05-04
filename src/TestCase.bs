@@ -48,3 +48,6 @@ public function GetAssertLine(testCase, index)
     return testCase.lineNumber
   end if
 end function
+
+end class
+end namespace

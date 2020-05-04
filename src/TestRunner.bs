@@ -88,6 +88,8 @@ public sub run()
       
       goto skipSuite
     end if
+    ? ""
+    ? RBS_LOGGER.FillText("> SUITE: " + metaTestSuite.name, ">", 80)
     
     if (metaTestSuite.isNodeTest = true and metaTestSuite.nodeTestFileName <> "")
       ? " +++++RUNNING NODE TEST"
@@ -122,8 +124,12 @@ public sub run()
   end for
   m.logger.PrintStatistic(totalStatObj)
   
-  if RBS_CMN.IsFunction(Rooibos_ReportCodeCoverage)
-    Rooibos.ReportCodeCoverage()
+  if RBS_CMN.IsFunction(RBS.ReportCodeCoverage)
+    RBS.ReportCodeCoverage()
+    
+    if m.config.printLcov = true
+      RBS.Coverage.printLCovInfo()
+    end if
   end if
   Rooibos.SendHomeKeypress()
 end sub
@@ -194,6 +200,8 @@ public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       end if
       goto skipItGroup
     end if
+    ? ""
+    ? RBS_LOGGER.FillText("> GROUP: " + itGroup.name, ">", 80)
     
     if RBS_CMN.IsFunction(testSuite.SetUp)
       testSuite.SetUp()
@@ -223,7 +231,7 @@ public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
       goto skipTestCase
     end if
     ? ""
-    ? RBS_LOGGER.FillText("> START: " + testSuite.name + "." + itGroup.name + "." + testCase.Name + " ", ">", 80)
+    ? RBS_LOGGER.FillText("> TEST: " + testCase.Name + " ", ">", 80)
     
     if RBS_CMN.IsFunction(testSuite.beforeEach)
       testSuite.beforeEach()

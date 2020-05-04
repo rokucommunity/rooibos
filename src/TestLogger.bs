@@ -3,14 +3,14 @@ class Logger
 
 public function new(config)
   m.config = config
-
+  
   m.verbosityLevel = {
-    basic   : 0
-    normal  : 1
+    basic : 0
+    normal : 1
     verbose : 2
   }
-
-  m.verbosity        = m.config.logLevel
+  
+  m.verbosity = m.config.logLevel
 end function
 
 '----------------------------------------------------------------
@@ -21,7 +21,7 @@ end function
 public sub PrintStatistic(statObj as object)
   m.PrintStart()
   previousfile = invalid
-
+  
   for each testSuite in statObj.Suites
     if (not statObj.testRunHasFailures or ((not m.config.showOnlyFailures) or testSuite.fail > 0 or testSuite.crash > 0))
       if (testSuite.metaTestSuite.filePath <> previousfile)
@@ -31,7 +31,7 @@ public sub PrintStatistic(statObj as object)
       m.PrintSuiteStatistic(testSuite, statObj.testRunHasFailures)
     end if
   end for
-
+  
   ? ""
   m.PrintEnd()
   ignoredInfo = RBSFM_getIgnoredTestInfo()
@@ -45,21 +45,21 @@ public sub PrintStatistic(statObj as object)
       print ignoredItemName
     end for
   end if
-
+  
   if (statObj.ignored > 0)
     ? "IGNORED TESTS:"
     for each ignoredItemName in statObj.IgnoredTestNames
       print ignoredItemName
     end for
   end if
-
+  
   if (statObj.Total = statObj.Correct)
     overrallResult = "Success"
   else
     overrallResult = "Fail"
   end if
   ? "RESULT: "; overrallResult
-
+  
 end sub
 
 '----------------------------------------------------------------
@@ -69,31 +69,31 @@ end sub
 '----------------------------------------------------------------
 public sub PrintSuiteStatistic(statSuiteObj as object, hasFailures)
   m.PrintSuiteStart(statSuiteObj.Name)
-
+  
   for each testCase in statSuiteObj.Tests
     if (not hasFailures or ((not m.config.showOnlyFailures) or testCase.Result <> "Success"))
       m.PrintTestStatistic(testCase)
     end if
   end for
-
+  
   ? " |"
 end sub
 
 public sub PrintTestStatistic(testCase as object)
   metaTestCase = testCase.metaTestCase
-
+  
   if (LCase(testCase.Result) <> "success")
     testChar = "-"
     assertIndex = metaTestCase.testResult.failedAssertIndex
-    locationLine = StrI(RBS_TC_GetAssertLine(metaTestCase,assertIndex)).trim()
+    locationLine = StrI(RBS_TC_GetAssertLine(metaTestCase, assertIndex)).trim()
   else
     testChar = "|"
     locationLine = StrI(metaTestCase.lineNumber).trim()
   end if
   locationText = "pkg:/" + testCase.filePath.trim() + "(" + locationLine + ")"
-
+  
   if m.config.printTestTimes = true
-    timeText = " (" + stri(metaTestCase.time).trim() +"ms)"
+    timeText = " (" + stri(metaTestCase.time).trim() + "ms)"
   else
     timeText = ""
   end if
@@ -102,17 +102,28 @@ public sub PrintTestStatistic(testCase as object)
   if (metaTestcase.isParamTest <> true)
     messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
     ? messageLine ; testCase.Result ; timeText
-  else if ( metaTestcase.paramTestIndex = 0)
+  else if (metaTestcase.paramTestIndex = 0)
     name = metaTestCase.Name
     if (len(name) > 1 and right(name, 1) = "0")
       name = left(name, len(name) - 1)
     end if
-    ? " " + testChar + " |--" + name+ " : "
+    ? " " + testChar + " |--" + name + " : "
   end if
-
+  
   if (metaTestcase.isParamTest = true)
     insetText = "  "
-    messageLine = m.fillText(" " + testChar + insetText + " |--" + formatJson(metaTestCase.rawParams) + " : ", ".", 80)
+  
+    if type(metaTestCase.rawParams) = "roAssociativeArray"
+      rawParams = {}
+      for each key in metaTestCase.rawParams
+        if type(metaTestCase.rawParams[key]) <> "Function" and type(metaTestCase.rawParams[key]) <> "roFunction"
+          rawParams[key] = metaTestCase.rawParams[key]
+        end if
+      end for
+    else
+      rawParams = metaTestCase.rawParams
+    end if
+    messageLine = m.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
     ? messageLine ; testCase.Result ; timeText
   end if
 
@@ -129,7 +140,7 @@ public function FillText(text as string, fillChar = " ", numChars = 40) as strin
   if (len(text) >= numChars)
     text = left(text, numChars - 5) + "..." + fillChar + fillChar
   else
-    numToFill= numChars - len(text) -1
+    numToFill = numChars - len(text) - 1
     for i = 0 to numToFill
       text += fillChar
     end for
