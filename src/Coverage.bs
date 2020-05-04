@@ -1,0 +1,51 @@
+namespace RBS.Coverage
+
+function createLCovOutput()
+  ? "Generating lcov.info file..."
+  
+  cc = m.global._rbs_ccn
+  expectedMap = cc.expectedMap
+  filePathMap = cc.filePathMap
+  resolvedMap = cc.resolvedMap
+  
+  buffer = ""
+  
+  for each module in filePathMap.items()
+    moduleNumber = module.key
+    filePath = module.value
+    packageName = "."
+    
+    relativePath = filePath.replace("pkg:", packageName)
+    sanitizedPath = relativePath.replace("\\", "/")
+    
+    buffer += "TN:" + chr(10)
+    buffer += "SF:" + sanitizedPath + chr(10)
+    
+    for each expected in expectedMap[moduleNumber]
+      lineNumber = expected[0]
+      SHIFT = 1
+      
+      if (resolvedMap[moduleNumber] <> invalid) and resolvedMap[moduleNumber].doesExist(str(lineNumber)) then
+        buffer += "DA:" + str(lineNumber + SHIFT) + ",1" + chr(10)
+      else
+        buffer += "DA:" + str(lineNumber + SHIFT) + ",0" + chr(10)
+      end if
+    end for
+    
+    buffer += "end_of_record" + chr(10)
+  end for
+  return buffer
+end function
+
+function printLCovInfo()
+  ?
+  ? "+++++++++++++++++++++++++++++++++++++++++++"
+  ? "LCOV.INFO FILE"
+  ? "+++++++++++++++++++++++++++++++++++++++++++"
+  ?
+  ? "+-=-coverage:start"
+  ? RBS.Coverage.createLCovOutput()
+  ? "+-=-coverage:end"
+end sub
+
+end namespace
