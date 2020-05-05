@@ -1,3 +1,15 @@
+#### 3.4.0 (2020-05-05)
+
+##### Chores
+
+*  update version txt ([6066fd0b](https://github.com/georgejecook/rooibos/commit/6066fd0b344c4efc9aa559a8597007d794350d79))
+
+##### New Features
+
+* **core:**  Adds lcov report, and moves test files to brighterscript ([99b8d50a](https://github.com/georgejecook/rooibos/commit/99b8d50a7c0668c0bca29eedfdc190ebe10ff7e7))
+*  lcov support ([0cfb9181](https://github.com/georgejecook/rooibos/commit/0cfb91813587fb26a7be1e3f64ad798be2e86b83))
+* **runner:**  allows for up to 12 params on parameterized tests ([e9e9dfd7](https://github.com/georgejecook/rooibos/commit/e9e9dfd773abd64116d175e38a11eb731dab3e0a))
+
 #### 3.3.0 (2019-09-26)
 
 ##### Chores
