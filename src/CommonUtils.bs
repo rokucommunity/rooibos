@@ -489,7 +489,7 @@ function FindElementIndexInArray(array , value , compareAttribute = invalid , ca
         compareValue = compareValue.LookupCI(compareAttribute)
       end if
       
-      if RBS_BTS_EqValues(compareValue, value)
+      if RBS_BTS.BaseTestSuite.EqValues(compareValue, value)
         return i
       end if
       
