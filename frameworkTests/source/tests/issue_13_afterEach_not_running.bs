@@ -1,3 +1,4 @@
+'@Ignore - only unignore to test compiler works
 '@TestSuite [DGNT] Duplicate Group Name Tests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

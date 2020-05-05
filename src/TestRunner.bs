@@ -89,7 +89,7 @@ public sub run()
       goto skipSuite
     end if
     ? ""
-    ? RBS_LOGGER.FillText("> SUITE: " + metaTestSuite.name, ">", 80)
+    ? RBS_LOGGER.Logger.FillText("> SUITE: " + metaTestSuite.name, ">", 80)
     
     if (metaTestSuite.isNodeTest = true and metaTestSuite.nodeTestFileName <> "")
       ? " +++++RUNNING NODE TEST"
@@ -118,20 +118,20 @@ public sub run()
       if (metaTestSuite.hasIgnoredTests)
         totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name)
       end if
-      Rooibos.RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig, m.nodeContext)
+      m.RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig, m.nodeContext)
     end if
     skipSuite:
   end for
   m.logger.PrintStatistic(totalStatObj)
   
-  if RBS_CMN.IsFunction(RBS.ReportCodeCoverage)
-    RBS.ReportCodeCoverage()
+  if RBS_CMN.IsFunction(RBS_ReportCodeCoverage)
+    RBS_ReportCodeCoverage()
     
     if m.config.printLcov = true
-      RBS.Coverage.printLCovInfo()
+      RBS_Coverage_printLCovInfo()
     end if
   end if
-  Rooibos.SendHomeKeypress()
+  m.SendHomeKeypress()
 end sub
 
 public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)
@@ -201,13 +201,13 @@ public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName
       goto skipItGroup
     end if
     ? ""
-    ? RBS_LOGGER.FillText("> GROUP: " + itGroup.name, ">", 80)
+    ? RBS_LOGGER.Logger.FillText("> GROUP: " + itGroup.name, ">", 80)
     
     if RBS_CMN.IsFunction(testSuite.SetUp)
       testSuite.SetUp()
     end if
     
-    Rooibos.RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+    Rooibos.TestRunner.RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
     
     if RBS_CMN.IsFunction(testSuite.TearDown)
       testSuite.TearDown()
@@ -231,7 +231,7 @@ public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config,
       goto skipTestCase
     end if
     ? ""
-    ? RBS_LOGGER.FillText("> TEST: " + testCase.Name + " ", ">", 80)
+    ? RBS_LOGGER.Logger.FillText("> TEST: " + testCase.Name + " ", ">", 80)
     
     if RBS_CMN.IsFunction(testSuite.beforeEach)
       testSuite.beforeEach()
@@ -356,7 +356,7 @@ function RunNodeTests(args) as object
   ? " RUNNING NODE TESTS"
   totalStatObj = RBS_STATS.CreateTotalStatistic()
   
-  Rooibos.RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
+  m.RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
   return totalStatObj
 end function
 

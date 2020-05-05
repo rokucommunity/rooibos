@@ -890,11 +890,11 @@ public function EqValues(Value1 , Value2) as dynamic
     valtype = val1Type
     
     if valtype = "roList"
-      return RBS_BTS_EqArray(Value1, Value2)
+      return RBS_BTS.BaseTestSuite.EqArray(Value1, Value2)
     else if valtype = "roAssociativeArray"
-      return RBS_BTS_EqAssocArray(Value1, Value2)
+      return RBS_BTS.BaseTestSuite.EqAssocArray(Value1, Value2)
     else if valtype = "roArray"
-      return RBS_BTS_EqArray(Value1, Value2)
+      return RBS_BTS.BaseTestSuite.EqArray(Value1, Value2)
     else if (valtype = "roSGNode")
       if (val2Type <> "roSGNode")
         return false
@@ -934,7 +934,7 @@ public function EqAssocArray(Value1 , Value2) as dynamic
         else
           v1 = Value1[k]
           v2 = Value2[k]
-          if not RBS_BTS_EqValues(v1, v2)
+          if not RBS_BTS.BaseTestSuite.EqValues(v1, v2)
             return false
           end if
         end if
@@ -966,7 +966,7 @@ public function EqArray(Value1 , Value2) as dynamic
     for i = 0 to l1 - 1
       v1 = Value1[i]
       v2 = Value2[i]
-      if not RBS_BTS_EqValues(v1, v2) then
+      if not RBS_BTS.BaseTestSuite.EqValues(v1, v2) then
         return false
       end if
     end for

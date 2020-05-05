@@ -76,7 +76,7 @@ function Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, te
     ? "######################################################"
     ? ""
     
-    runner = TestRunner(args)
+    runner = new TestRunner(args)
     runner.Run()
     
     while(true)

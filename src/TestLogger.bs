@@ -100,7 +100,7 @@ public sub PrintTestStatistic(testCase as object)
   
   insetText = ""
   if (metaTestcase.isParamTest <> true)
-    messageLine = RBS_LOGGER_FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
+    messageLine = m.FillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
     ? messageLine ; testCase.Result ; timeText
   else if (metaTestcase.paramTestIndex = 0)
     name = metaTestCase.Name

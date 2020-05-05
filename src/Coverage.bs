@@ -46,6 +46,6 @@ function printLCovInfo()
   ? "+-=-coverage:start"
   ? RBS.Coverage.createLCovOutput()
   ? "+-=-coverage:end"
-end sub
+end function
 
 end namespace
