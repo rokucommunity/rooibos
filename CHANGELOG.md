@@ -1,3 +1,9 @@
+#### 3.4.1 (2020-05-06)
+
+##### Bug Fixes
+
+* **core:**  minor logger fix ([61ee8113](https://github.com/georgejecook/rooibos/commit/61ee81136a609586c96e553ea49ab7828c7424fa))
+
 #### 3.4.0 (2020-05-05)
 
 ##### Chores
