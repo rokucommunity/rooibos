@@ -85,7 +85,7 @@ public sub PrintTestStatistic(testCase as object)
   if (LCase(testCase.Result) <> "success")
     testChar = "-"
     assertIndex = metaTestCase.testResult.failedAssertIndex
-    locationLine = StrI(RBS_TC_GetAssertLine(metaTestCase, assertIndex)).trim()
+    locationLine = StrI(RBS_TC_UnitTestCase_GetAssertLine(metaTestCase, assertIndex)).trim()
   else
     testChar = "|"
     locationLine = StrI(metaTestCase.lineNumber).trim()
