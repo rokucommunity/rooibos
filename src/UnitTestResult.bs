@@ -1,14 +1,16 @@
 namespace RBS_UTR
 class UnitTestResult
 
-public messages = CreateObject("roArray", 0, true)
+public messages = []
 public isFail = false
 public currentAssertIndex = 0
 public failedAssertIndex = 0
+public failedMockLineNumber = -1
 
 public function Reset() as void
   m.isFail = false
-  m.messages = CreateObject("roArray", 0, true)
+  m.failedMockLineNumber = -1
+  m.messages = []
 end function
 
 public function AddResult(message as string) as string
@@ -23,9 +25,21 @@ public function AddResult(message as string) as string
   return message
 end function
 
+public function AddMockResult(lineNumber, message as string) as string
+  if (message <> "")
+    m.messages.push(message)
+    if (not m.isFail)
+      m.failedMockLineNumber = lineNumber
+    end if
+    m.isFail = true
+  end if
+  return message
+end function
+
 public function GetResult() as string
   if (m.isFail)
     msg = m.messages.peek()
+    
     if (msg <> invalid)
       return msg
     else
