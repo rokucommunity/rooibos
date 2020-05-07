@@ -35,16 +35,14 @@ public function new(name as string, func as dynamic, funcName as string, isSolo 
   return this
 end function
 
-public function AddAssertLine(lineNumber as integer)
-  m.assertLineNumberMap[stri(m.assertIndex).trim()] = lineNumber
-  m.assertIndex++
-end function
-
 'Static, becuase the result might be created across node boundaries, therefore stripping methods
 public function GetAssertLine(testCase, index)
   if (testCase.assertLineNumberMap.doesExist(stri(index).trim()))
     return testCase.assertLineNumberMap[stri(index).trim()]
-  else
+  else if (testCase.assertLineNumberMap.doesExist(stri(index + 1000).trim()))
+    'this is where we store line numbers for our
+    return testCase.assertLineNumberMap[stri(index + 1000).trim()]
+  
     return testCase.lineNumber
   end if
 end function

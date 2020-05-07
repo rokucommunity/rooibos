@@ -1365,6 +1365,10 @@ public function ExpectOnce(target, methodName, expectedArgs = invalid, returnVal
   return m.Mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
 end function
 
+public function ExpectOnceWLN(lineNumber, target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+  return m.Mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods, lineNumber)
+end function
+
 ' /**
 '  * @memberof module:BaseTestSuite
 '  * @name ExpectOnceOrNone
@@ -1387,6 +1391,14 @@ public function ExpectOnceOrNone(target, methodName, isExpected, expectedArgs = 
   end if
 end function
 
+public function ExpectOnceOrNoneWLN(lineNumber, target, methodName, isExpected, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+  if isExpected
+    return m.ExpectOnceWLN(lineNumber, target, methodName, expectedArgs, returnValue, allowNonExistingMethods)
+  else
+    return m.ExpectNoneWLN(lineNumber, target, methodName, allowNonExistingMethods, lineNumber)
+  end if
+end function
+
 
 ' /**
 '  * @memberof module:BaseTestSuite
@@ -1401,6 +1413,10 @@ end function
 '  */
 public function ExpectNone(target, methodName, allowNonExistingMethods = false) as object
   return m.Mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods)
+end function
+
+public function ExpectNoneWLN(lineNumber, target, methodName, allowNonExistingMethods = false) as object
+  return m.Mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods, lineNumber)
 end function
 
 ' /**
@@ -1421,6 +1437,10 @@ public function Expect(target, methodName, expectedInvocations = 1, expectedArgs
   return m.Mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods)
 end function
 
+public function ExpectWLN(lineNumber, target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+  return m.Mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods, lineNumber)
+end function
+
 ' /**
 '  * @memberof module:BaseTestSuite
 '  * @name Mock
@@ -1435,7 +1455,7 @@ end function
 '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
 '  * @returns {Object} - mock that was wired into the real method
 '  */
-public function Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+public function Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false, lineNumber = -1) as object
   'check params
   if not RBS_CMN.IsAssociativeArray(target)
     m.Fail("mock args: target was not an AA")
@@ -1447,6 +1467,8 @@ public function Mock(target, methodName, expectedInvocations = 1, expectedArgs =
     m.Fail("mock args: expectedArgs was not invalid or an array of args")
   else if RBS_CMN.IsUndefined(expectedArgs)
     m.Fail("mock args: expectedArgs undefined")
+  else if RBS_CMN.IsUndefined(returnValue)
+    m.Fail("mock args: returnValue undefined")
   end if
   
   if m.currentResult.isFail
@@ -1483,7 +1505,7 @@ public function Mock(target, methodName, expectedInvocations = 1, expectedArgs =
       return invalid
     end if
     
-    fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
+    fake = m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue, lineNumber)
     m.mocks[id] = fake 'this will bind it to m
     allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
     isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
@@ -1498,7 +1520,7 @@ public function Mock(target, methodName, expectedInvocations = 1, expectedArgs =
       ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
     end if
   else
-    m.CombineFakes(fake, m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue))
+    m.CombineFakes(fake, m.CreateFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue, lineNumber))
   end if
   return fake
 end function
@@ -1516,7 +1538,7 @@ end function
 '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
 '  * @returns {Object} - stub that was wired into the real method
 '  */
-public function CreateFake(id, target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
+public function CreateFake(id, target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, lineNumber = -1) as object
   expectedArgsValues = []
   hasArgs = RBS_CMN.IsArray(expectedArgs)
   if (hasArgs)
@@ -1525,6 +1547,7 @@ public function CreateFake(id, target, methodName, expectedInvocations = 1, expe
     defaultValue = m.ignoreValue
     expectedArgs = []
   end if
+  lineNumbers = [lineNumber]
   
   for i = 0 to 9
     if (hasArgs and expectedArgs.count() > i)
@@ -1553,6 +1576,7 @@ public function CreateFake(id, target, methodName, expectedInvocations = 1, expe
     target: target,
     methodName: methodName,
     returnValue: returnValue,
+    lineNumbers: lineNumbers,
     isCalled: false,
     invocations: 0,
     invokedArgs: [invalid, invalid, invalid, invalid, invalid, invalid, invalid, invalid, invalid],
@@ -1609,6 +1633,7 @@ public function CombineFakes(fake, otherFake)
     }
   end if
   fake.returnValue.multiResult.push(otherFake.returnValue)
+  fake.lineNumbers.push(lineNumber)
   fake.expectedInvocations++
 end function
 ' /**
@@ -1628,7 +1653,7 @@ public function AssertMocks() as void
     mock = m.mocks[id]
     methodName = mock.methodName
     if (mock.expectedInvocations <> mock.invocations)
-      m.MockFail(methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
+      m.MockFail(mock.lineNumbers[0], methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
       m.CleanMocks()
       return
     else if mock.expectedInvocations > 0 and (RBS_CMN.IsArray(mock.expectedArgs) or (type(mock.expectedArgs) = "roAssociativeArray" and RBS_CMN.IsArray(mock.expectedArgs.multiInvoke)))
@@ -1653,7 +1678,7 @@ public function AssertMocks() as void
           
           if isUsingMatcher
             if not expected.matcher(value)
-              m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to match matching function '" + RBS_CMN.AsString(expected.matcher) + "' got '" + RBS_CMN.AsString(value) + "')")
+              m.MockFail(mock.lineNumbers[invocationIndex], methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to match matching function '" + RBS_CMN.AsString(expected.matcher) + "' got '" + RBS_CMN.AsString(value) + "')")
               m.CleanMocks()
             end if
           else
@@ -1662,7 +1687,7 @@ public function AssertMocks() as void
                 expected = "[INVALID]"
               end if
               
-              m.MockFail(methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + RBS_CMN.AsString(expected) + "' got '" + RBS_CMN.AsString(value) + "')")
+              m.MockFail(mock.lineNumbers[invocationIndex], methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + RBS_CMN.AsString(expected) + "' got '" + RBS_CMN.AsString(value) + "')")
               m.CleanMocks()
               return
             end if
@@ -1708,9 +1733,9 @@ public function CleanStubs() as void
 end function
 
 
-public function MockFail(methodName, message) as dynamic
+public function MockFail(lineNumber, methodName, message) as dynamic
   if (m.currentResult.isFail) then return m.GetLegacyCompatibleReturnValue(false) ' skip test we already failed
-  m.currentResult.AddResult("mock failure on '" + methodName + "' : " + message)
+  m.currentResult.AddMockResult(lineNumber, "mock failure on '" + methodName + "' : " + message)
   return m.GetLegacyCompatibleReturnValue(false)
 end function
 

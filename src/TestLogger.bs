@@ -84,8 +84,13 @@ public sub PrintTestStatistic(testCase as object)
   
   if (LCase(testCase.Result) <> "success")
     testChar = "-"
-    assertIndex = metaTestCase.testResult.failedAssertIndex
-    locationLine = StrI(RBS_TC_UnitTestCase_GetAssertLine(metaTestCase, assertIndex)).trim()
+    if metaTestCase.testResult.failedMockLineNumber > -1
+      lineNumber = metaTestCase.testResult.failedMockLineNumber
+    else
+      assertIndex = metaTestCase.testResult.failedAssertIndex
+      lineNumber = RBS_TC_UnitTestCase_GetAssertLine(metaTestCase, assertIndex)
+    end if
+    locationLine = StrI(lineNumber).trim()
   else
     testChar = "|"
     locationLine = StrI(metaTestCase.lineNumber).trim()
@@ -112,7 +117,7 @@ public sub PrintTestStatistic(testCase as object)
   
   if (metaTestcase.isParamTest = true)
     insetText = "  "
-  
+    
     if type(metaTestCase.rawParams) = "roAssociativeArray"
       rawParams = {}
       for each key in metaTestCase.rawParams
@@ -126,7 +131,7 @@ public sub PrintTestStatistic(testCase as object)
     messageLine = m.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
     ? messageLine ; testCase.Result ; timeText
   end if
-
+  
   if LCase(testCase.Result) <> "success"
     ? " | "; insettext ;"  |--Location: "; locationText
     if (metaTestcase.isParamTest = true)
