@@ -1,3 +1,9 @@
+#### 3.4.2 (2020-05-07)
+
+##### New Features
+
+* **mocks:** adds shadow methods to facilitate mock failure line number reporting ([d1e652cc](https://github.com/georgejecook/rooibos/commit/d1e652cc9a622b7c3ee7bd86937d5b826ea08dc3))
+
 #### 3.4.1 (2020-05-06)
 
 ##### Bug Fixes
