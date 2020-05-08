@@ -1395,7 +1395,7 @@ public function ExpectOnceOrNoneWLN(lineNumber, target, methodName, isExpected, 
   if isExpected
     return m.ExpectOnceWLN(lineNumber, target, methodName, expectedArgs, returnValue, allowNonExistingMethods)
   else
-    return m.ExpectNoneWLN(lineNumber, target, methodName, allowNonExistingMethods, lineNumber)
+    return m.ExpectNoneWLN(lineNumber, target, methodName, allowNonExistingMethods)
   end if
 end function
 
