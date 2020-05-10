@@ -1493,6 +1493,7 @@ public function Mock(target, methodName, expectedInvocations = 1, expectedArgs =
     mock = m.mocks[id]
     if mock <> invalid and mock.methodName = methodName and mock.target.__rooibosTargetId = target.__rooibosTargetId
       fake = mock
+      fake.lineNumbers.push(lineNumber)
       exit for
     end if
   end for
