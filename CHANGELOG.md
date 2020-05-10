@@ -1,3 +1,9 @@
+#### 3.4.3 (2020-05-10)
+
+##### Bug Fixes
+
+* **mocks:**  Fixes crash on multi expect ([e02f96ca](https://github.com/georgejecook/rooibos/commit/e02f96cab091fc6a0d622f85b7302d7c48480aca))
+
 #### 3.4.2 (2020-05-07)
 
 ##### New Features
