@@ -1458,21 +1458,23 @@ end function
 public function Mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false, lineNumber = -1) as object
   'check params
   if not RBS_CMN.IsAssociativeArray(target)
-    m.Fail("mock args: target was not an AA")
+    methodName = ""
+    m.MockFail(lineNumber, "", "mock args: target was not an AA")
   else if not RBS_CMN.IsString(methodName)
-    m.Fail("mock args: methodName was not a string")
+    methodName = ""
+    m.MockFail(lineNumber, "", "mock args: methodName was not a string")
   else if not RBS_CMN.IsNumber(expectedInvocations)
-    m.Fail("mock args: expectedInvocations was not an int")
+    m.MockFail(lineNumber, methodName, "mock args: expectedInvocations was not an int")
   else if not RBS_CMN.IsArray(expectedArgs) and RBS_CMN.IsValid(expectedArgs)
-    m.Fail("mock args: expectedArgs was not invalid or an array of args")
+    m.MockFail(lineNumber, methodName, "mock args: expectedArgs was not invalid or an array of args")
   else if RBS_CMN.IsUndefined(expectedArgs)
-    m.Fail("mock args: expectedArgs undefined")
+    m.MockFail(lineNumber, methodName, "mock args: expectedArgs undefined")
   else if RBS_CMN.IsUndefined(returnValue)
-    m.Fail("mock args: returnValue undefined")
+    m.MockFail(lineNumber, methodName, "mock args: returnValue undefined")
   end if
   
   if m.currentResult.isFail
-    ? "ERROR: "; m.currentResult.messages[m.currentResult.currentAssertIndex - 1]
+    ? "ERROR! Cannot create MOCK. method " ; methodName ;" " str(lineNumber) ; " "; m.currentResult.messages.peek()
     return {}
   end if
   
