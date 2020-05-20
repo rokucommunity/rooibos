@@ -1,3 +1,13 @@
+#### 3.5.0 (2020-05-20)
+
+##### New Features
+
+* **runner:**  adds ability to wait on scene.isReadyToStartTests, if present before starting the tests ([c1b71a9a](https://github.com/georgejecook/rooibos/commit/c1b71a9a6f7b8e4e974ecf33d4928d3b249b2532))
+
+##### Bug Fixes
+
+* **mocks:**  Better handling for mock creation failures ([df74e3b5](https://github.com/georgejecook/rooibos/commit/df74e3b52caf42ae9f8439a92694c7c36a7a827c))
+
 #### 3.4.3 (2020-05-10)
 
 ##### Bug Fixes
