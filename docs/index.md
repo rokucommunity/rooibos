@@ -54,7 +54,7 @@ You can even use `rooibos-cli` from your npm-compatible build tools, such as gul
 
    ```
    npm install rooibos-cli -g
-   rooibos cli i myProject/source/tests
+   rooibos-cli i myProject/source/tests
    ```
    
 	- download the [latest relases's] (https://github.com/georgejecook/rooibos/releases/latest) `rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.  
@@ -77,6 +77,14 @@ You can even use `rooibos-cli` from your npm-compatible build tools, such as gul
 6. Integrate [rooibos-cli](#rooibos-cli) into your tool-chain.
 7. Run your tests
 
+
+#### Delaying start so you can set things up
+
+If you need to do some setup, like load some data from a service, before starting your tests:
+
+ - add a field `isReadyToStartTests` to your tests scene
+ - set the value to true, when the tests are ready to start.
+ 
 **For an example of how to use rooibos with gulp, see the gulpfile.ts in this project, which is used to run the framework unit tests.**
 
 ### rooibos-cli

@@ -76,8 +76,15 @@ function Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, te
     ? "######################################################"
     ? ""
     
-    runner = new TestRunner(args)
-    runner.Run()
+    if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false
+      ? "The scene is not ready yet - waiting for it to set isReadyToStartTests to true"
+      scene.observeField("isReadyToStartTests", m.port)
+      
+    else
+      ? "scene is ready; running tests now"
+      runner = new TestRunner(args)
+      runner.Run()
+    end if
     
     while(true)
       msg = wait(0, m.port)
@@ -85,6 +92,13 @@ function Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, te
       if msgType = "roSGScreenEvent"
         if msg.isScreenClosed()
           return
+        end if
+      else if msgType = "roSGNodeEvent"
+        
+        if msg.getField() = "isReadyToStartTests" and msg.getData() = true
+          ? "scene is ready; running tests now"
+          runner = new TestRunner(args)
+          runner.Run()
         end if
       end if
     end while
