@@ -1,3 +1,9 @@
+#### 3.5.1 (2020-05-20)
+
+##### Bug Fixes
+
+* **TestRunner:**  Addresses issue that prevented node tests from correctly running ([c6aec599](https://github.com/georgejecook/rooibos/commit/c6aec599edd1e61cf90634a5bf718af1f02560d1))
+
 #### 3.5.0 (2020-05-20)
 
 ##### New Features
