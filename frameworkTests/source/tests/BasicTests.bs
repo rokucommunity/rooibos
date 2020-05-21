@@ -22,9 +22,9 @@ end function
 
 '@Test 
 function BT_EqualsFixForStubbedAAs() as void
-  aa = {"test":"value"}
+  aa = { "test": "value" }
   m.expectOnce(aa, "getStubbedObject", [aa])
-
+  
   aa.getStubbedObject(aa)
 end function
 
@@ -34,8 +34,8 @@ end function
 
 '@Test 
 function BT_PrintResultsFixForStubbedAAs() as void
-  aa = {"test":"value"}
-  bb = {"other": "value"}
+  aa = { "test": "value" }
+  bb = { "other": "value" }
   m.expectOnce(bb, "getStubbedObject", [aa])
   m.assertEqual(aa, bb)
   'not crashing on printing the wrong output is a pass
@@ -60,4 +60,20 @@ end function
 function BT_urlParams_objects(aa) as void
   m.assertEqual(aa.url, "http://101.rooibos.com")
   m.assertEqual(aa.othervalue, 2)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'@It tests async tests
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'@Only
+'@Test times out
+function async_timeout()
+  item = { "id" : "item" }
+  
+  m.AssertAsyncField(item, "id")
+  isFail = m.currentResult.isFail
+  m.currentResult.Reset()
+  m.assertTrue(isFail) 
+  
 end function
