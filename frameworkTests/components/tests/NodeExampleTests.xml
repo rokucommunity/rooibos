@@ -11,17 +11,14 @@
 
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/specs/NodeExampleTests.brs" />
+		uri="pkg:/source/tests/NodeExampleTests.brs" />
 
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/rooibos/rooibosFunctionMap.brs" />
+		uri="pkg:/source/rooibosFunctionMap.brs" />
 
 	<script
 		type="text/brightscript"
-		uri="pkg:/source/tests/rooibos/rooibosDist.brs" />
-	<script
-		type="text/brightscript"
-		uri="pkg:/source/tests/rooibos/TestUtils.brs" />
+		uri="pkg:/source/tests/rooibosDist.brs" />
 
 </component>
