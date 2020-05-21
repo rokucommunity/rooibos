@@ -1,3 +1,13 @@
+#### 3.6.0 (2020-05-21)
+
+##### Chores
+
+* **docs:**  add async assert docs ([6261e551](https://github.com/georgejecook/rooibos/commit/6261e551f1e6a3ad92eef07d2236c203141fa0ec))
+
+##### New Features
+
+* **assertions:**  adds support for async fields ([28f32754](https://github.com/georgejecook/rooibos/commit/28f32754daee7d4adef7a4e18baa0d6af07653f9))
+
 #### 3.5.1 (2020-05-20)
 
 ##### Bug Fixes
