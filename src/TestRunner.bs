@@ -106,8 +106,11 @@ public sub run()
           "runtimeConfig": m.runtimeConfig
         }
         nodeStatResults = node.callFunc("Rooibos_RunNodeTests", args)
-        RBS_STATS.MergeTotalStatistic(totalStatObj, nodeStatResults)
-        
+        if nodeStatResults <> invalid
+          RBS_STATS.MergeTotalStatistic(totalStatObj, nodeStatResults)
+        else
+          ? " ERROR! The node "; nodeType; " did not return stats from the Rooibos_RunNodeTests method. This usually means you are not importing rooibosDist.brs, or rooibosFunctionMap.brs"
+        end if
         m.testScene.RemoveChild(node)
         
       else
