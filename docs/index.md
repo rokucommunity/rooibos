@@ -311,6 +311,29 @@ In this case, the test will fail
 
 Observe how the test output indicates in which file the test suite resides, and the line of the failed assert, plus the reason for the failure. If your IDE has integrated brightscript support, such as eclipse, you will find that the locations are clickable. In this example, clicking on the Location link will navigate the IDE to the exact line of code of the assertion.
 
+### Async tests
+
+Rooibos runs in sync mode. Due to scenegraph limitations, we can't use observefield. We can workaround this though, using `AssertAsyncField`
+
+This assert allows you to wait on a field set on a task, or some other async manipulated object. Use as such:
+
+```
+  netTask = createObject("roSGNode", "NetworkTask")
+  m.AssertAsyncField(netTask, "output")
+```
+
+the framework will then check if the output field has changed, every 500 ms for 10 tries
+
+You can control the timeout behaviour by passing delay and maxAttempts, as follows:
+
+```
+  '2 second time out, 3 tries
+  netTask = createObject("roSGNode", "NetworkTask", 2000, 3)
+  m.AssertAsyncField(netTask, "output")
+```
+
+If the field does not change during the retry period, the assertion will fail.
+
 ### Laying out tests
 I suggest the following layout when writing your tests
 
