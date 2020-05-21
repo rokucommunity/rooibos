@@ -109,7 +109,7 @@ public sub run()
         if nodeStatResults <> invalid
           RBS_STATS.MergeTotalStatistic(totalStatObj, nodeStatResults)
         else
-          ? " ERROR! The node "; nodeType; " did not return stats from the Rooibos_RunNodeTests method. This usually means you are not importing rooibosDist.brs, or rooibosFunctionMap.brs"
+          ? " ERROR! The node "; nodeType; " did not return stats from the Rooibos_RunNodeTests method. This usually means you are not importing rooibosDist.brs, or rooibosFunctionMap.brs. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
         end if
         m.testScene.RemoveChild(node)
         
