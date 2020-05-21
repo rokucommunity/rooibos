@@ -1,3 +1,15 @@
+#### 3.6.1 (2020-05-21)
+
+##### Chores
+
+* **tests:**  Adds node test to framework suite, and also improves the file structure to include placeholder files, so as to better conform with brighterscript compiler ([f23b81d8](https://github.com/georgejecook/rooibos/commit/f23b81d8e34a6e0e86af84dc2441d0755bb5eba2))
+
+##### Bug Fixes
+
+* **TestRunner:**
+  *  Do not crash if node tests do not return stat object, and instead provide useful links to documentation to help devs out ([a643df7a](https://github.com/georgejecook/rooibos/commit/a643df7ac3ec2245c972ad05f2adc65441fade22))
+  *  Adds more logoutput when a node test does not complete ([c4277d66](https://github.com/georgejecook/rooibos/commit/c4277d66779b7b6c9f77cbc71c74d60e7668dfb1))
+
 #### 3.6.0 (2020-05-21)
 
 ##### Chores
