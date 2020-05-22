@@ -4,7 +4,7 @@
     extends="Scene">
   <script
       type="text/brightscript"
-      uri="pkg:/source/rooibosFunctionMap.brs" />
+      uri="pkg:/source/tests/rooibosFunctionMap.brs" />
   <script
       type="text/brightscript"
       uri="pkg:/source/tests/rooibosDist.brs" />

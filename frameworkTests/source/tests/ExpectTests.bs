@@ -39,7 +39,7 @@ function expect_mockCountLimitToBeAtLeast25() as void
   interface = {}
   
   mockCountLimit = 25 
-  for i = 1 to mockCountLimit step + 1
+  for i = 1 to mockCountLimit + 1
     keyName = StrI(i).trim()
     interface[keyName] = function(arg0) : return arg0 : end function
     

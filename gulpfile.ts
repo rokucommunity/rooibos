@@ -1,6 +1,8 @@
 import { series } from "gulp";
 import { RooibosProcessor, createProcessorConfig } from "rooibos-cli";
 import { MaestroProjectProcessor, createMaestroConfig } from 'maestro-cli-roku';
+import { ProgramBuilder } from 'brighterscript';
+import { BsConfig } from 'brighterscript/dist/BsConfig';
 
 const concat = require('gulp-concat');
 const gulp = require('gulp');
@@ -30,7 +32,6 @@ const args = {
 
 export function clean() {
   const distPath = path.join(distDir, '**');
-  console.log('Doing a clean at ' + distPath);
   return del([distPath, outDir], { force: true });
 }
 
@@ -40,56 +41,33 @@ function createDirectories() {
     .pipe(gulp.dest(outDir));
 }
 
+export function prepareBuildDir() {
+  del.sync([buildDir], { force: true });
+  const response = gulp.src('*.*', { read: false })
+    .pipe(gulp.dest(buildDir));
+  return response;
+}
+
 export async function compile(cb) {
-  let config = createMaestroConfig({
-    filePattern: ['**/*.bs', '**/*.brs', '**/*.xml'],
-    sourcePaths: [`frameworkTests`],
-    outputPath: buildDir,
-    logLevel: 4,
-    processingExcludedPaths: [
-      'components/rLogComponents/**/*.*',
-      'source/rLog/**/*.*',
-      'source/tests/rooibosDist.brs',
-      'source/tests/rooibosFunctionMap.brs',
-      'source/AdobeAccessEnabler/adobeAuthorizationTemplate.xml'
-    ],
-    nonCheckedImports: [
-      'source/zapp.brs',
-      'source/MRuntime.brs',
-      'source/rLog/rLogMixin.brs',
-      'source/tests/rooibosDist.brs',
-      'source/rooibosFunctionMap.brs'
-    ],
-    createRuntimeFiles: false
+  let builder = new ProgramBuilder();
+  console.log('333');
+  await builder.run({
+    rootDir: "frameworkTests",
+    stagingFolderPath: buildDir,
+    createPackage: false
   });
-  let processor = new MaestroProjectProcessor(config);
-  await processor.processFiles();
+  console.log('444');
 }
 
 export async function compileFramework(cb) {
-  let config = createMaestroConfig({
-    filePattern: ['**/*.bs', '**/*.brs', '**/*.xml'],
-    sourcePaths: [`src`],
-    outputPath: buildDir,
-    logLevel: 4,
-    processingExcludedPaths: [
-      'components/rLogComponents/**/*.*',
-      'source/rLog/**/*.*',
-      'source/tests/rooibosDist.brs',
-      'source/tests/rooibosFunctionMap.brs',
-      'source/AdobeAccessEnabler/adobeAuthorizationTemplate.xml'
-    ],
-    nonCheckedImports: [
-      'source/zapp.brs',
-      'source/MRuntime.brs',
-      'source/rLog/rLogMixin.brs',
-      'source/tests/rooibosDist.brs',
-      'source/rooibosFunctionMap.brs'
-    ],
-    createRuntimeFiles: false
+  let builder = new ProgramBuilder();
+  await builder.run({
+    rootDir: "src",
+    files: ["**/*.*"],
+    stagingFolderPath: buildDir,
+    createPackage: false
   });
-  let processor = new MaestroProjectProcessor(config);
-  await processor.processFiles();
+
 }
 
 
@@ -209,7 +187,7 @@ function insertVersionNumber(cb) {
 }
 
 exports.build = series(clean, createDirectories, compileFramework, insertVersionNumber, squash, copyToSamples, copyToTests);
-exports.buildFrameworkTests = series(exports.build, clean, createDirectories, compile);
+exports.buildFrameworkTests = series(exports.build, prepareBuildDir, compile);
 exports.runFrameworkTests = series(exports.buildFrameworkTests, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
 exports.prePublishFrameworkTests = series(exports.buildFrameworkTests, prepareFrameworkTests)
 exports.prePublishFrameworkCodeCoverage = series(exports.buildFrameworkTests, prepareCodeCoverageTests)

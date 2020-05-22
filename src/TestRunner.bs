@@ -1,349 +1,350 @@
 namespace Rooibos
-' /**
-'  * @module TestRunner
-'  */
+  ' /**
+  '  * @module TestRunner
+  '  */
 
-' /**
-'  * @memberof module:TestRunner
-'  * @name Rooibos_TestRunner
-'  * @function
-'  * @description Creates an instance of the test runner
-'  * @param {Dynamic} args - contains the application launch args, and other settings required for test execution
-'  */
-class TestRunner
+  ' /**
+  '  * @memberof module:TestRunner
+  '  * @name Rooibos_TestRunner
+  '  * @function
+  '  * @description Creates an instance of the test runner
+  '  * @param {Dynamic} args - contains the application launch args, and other settings required for test execution
+  '  */
+  class TestRunner
 
-public function new(args = {})
-  m.testScene = args.testScene
-  m.nodeContext = args.nodeContext
-  
-  config = RBSFM_getRuntimeConfig()
-  if (config = invalid or not RBS_CMN.IsAssociativeArray(config))
-    ? "WARNING : specified config is invalid - using default"
-    config = {
-      showOnlyFailures: false
-      failFast: false
-    }
-  end if
-  
-  'mix in parsed in args
-  if (args.showOnlyFailures <> invalid)
-    config.showOnlyFailures = args.showOnlyFailures = "true"
-  end if
-  
-  if (args.failFast <> invalid)
-    config.failFast = args.failFast = "true"
-  end if
-  
-  m.testUtilsDecoratorMethodName = args.testUtilsDecoratorMethodName
-  m.config = config
-  
-  ' Internal properties
-  m.config.testsDirectory = config.testsDirectory
-  
-  m.logger = Logger(m.config)
-  m.global = args.global
-end function
+    public function new(args = {})
+      m.testScene = args.testScene
+      m.nodeContext = args.nodeContext
 
-' /**
-'  * @memberof module:TestRunner
-'  * @name Run
-'  * @function
-'  * @instance
-'  * @description Executes all tests for a project, as per the config
-'  */
-public sub run()
-  if type(RBSFM_getTestSuitesForProject) <> "Function"
-    ? " ERROR! RBSFM_getTestSuitesForProject is not found! That looks like you didn't run the preprocessor as part of your test process. Please refer to the docs."
-    return
-  end if
-  
-  totalStatObj = RBS_STATS.CreateTotalStatistic()
-  m.runtimeConfig = UnitTestRuntimeConfig()
-  m.runtimeConfig.global = m.global
-  totalStatObj.testRunHasFailures = false
-  
-  for each metaTestSuite in m.runtimeConfig.suites
-    if (m.runtimeConfig.hasSoloTests = true)
-      if (metaTestSuite.hasSoloTests <> true)
-        if (m.config.logLevel = 2)
-          ? "TestSuite " ; metaTestSuite.name ; " Is filtered because it has no solo tests"
-        end if
-        goto skipSuite
-      end if
-    else if (m.runtimeConfig.hasSoloSuites)
-      if (metaTestSuite.isSolo <> true)
-        if (m.config.logLevel = 2)
-          ? "TestSuite " ; metaTestSuite.name ; " Is filtered due to solo flag"
-        end if
-        goto skipSuite
-      end if
-    end if
-    
-    if (metaTestSuite.isIgnored = true)
-      if (m.config.logLevel = 2)
-        ? "Ignoring TestSuite " ; metaTestSuite.name ; " Due to Ignore flag"
-      end if
-      totalstatobj.ignored ++
-      totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name + " [WHOLE SUITE]")
-      
-      goto skipSuite
-    end if
-    ? ""
-    ? RBS_LOGGER.Logger.FillText("> SUITE: " + metaTestSuite.name, ">", 80)
-    
-    if (metaTestSuite.isNodeTest = true and metaTestSuite.nodeTestFileName <> "")
-      ? " +++++RUNNING NODE TEST"
-      nodeType = metaTestSuite.nodeTestFileName
-      ? " node type is " ; nodeType
-      
-      node = m.testScene.CallFunc("Rooibos_CreateTestNode", nodeType)
-      
-      if (type(node) = "roSGNode" and node.subType() = nodeType)
-        args = {
-          "metaTestSuite": metaTestSuite
-          "testUtilsDecoratorMethodName": m.testUtilsDecoratorMethodName
-          "config": m.config
-          "runtimeConfig": m.runtimeConfig
+      config = RBSFM_getRuntimeConfig()
+      if (config = invalid or not RBS_CMN.IsAssociativeArray(config))
+        ? "WARNING : specified config is invalid - using default"
+        config = {
+          showOnlyFailures: false
+          failFast: false
         }
-        nodeStatResults = node.callFunc("Rooibos_RunNodeTests", args)
-        if nodeStatResults <> invalid
-          RBS_STATS.MergeTotalStatistic(totalStatObj, nodeStatResults)
+      end if
+
+      'mix in parsed in args
+      if (args.showOnlyFailures <> invalid)
+        config.showOnlyFailures = args.showOnlyFailures = "true"
+      end if
+
+      if (args.failFast <> invalid)
+        config.failFast = args.failFast = "true"
+      end if
+
+      m.testUtilsDecoratorMethodName = args.testUtilsDecoratorMethodName
+      m.config = config
+
+      ' Internal properties
+      m.config.testsDirectory = config.testsDirectory
+
+      m.logger = Logger(m.config)
+      m.global = args.global
+    end function
+
+    ' /**
+    '  * @memberof module:TestRunner
+    '  * @name Run
+    '  * @function
+    '  * @instance
+    '  * @description Executes all tests for a project, as per the config
+    '  */
+    public sub run()
+      if type(RBSFM_getTestSuitesForProject) <> "Function"
+        ? " ERROR! RBSFM_getTestSuitesForProject is not found! That looks like you didn't run the preprocessor as part of your test process. Please refer to the docs."
+        return
+      end if
+
+      totalStatObj = RBS_STATS.CreateTotalStatistic()
+      m.runtimeConfig = UnitTestRuntimeConfig()
+      m.runtimeConfig.global = m.global
+      totalStatObj.testRunHasFailures = false
+
+      for each metaTestSuite in m.runtimeConfig.suites
+        if (m.runtimeConfig.hasSoloTests = true)
+          if (metaTestSuite.hasSoloTests <> true)
+            if (m.config.logLevel = 2)
+              ? "TestSuite " ; metaTestSuite.name ; " Is filtered because it has no solo tests"
+            end if
+            goto skipSuite
+          end if
+        else if (m.runtimeConfig.hasSoloSuites)
+          if (metaTestSuite.isSolo <> true)
+            if (m.config.logLevel = 2)
+              ? "TestSuite " ; metaTestSuite.name ; " Is filtered due to solo flag"
+            end if
+            goto skipSuite
+          end if
+        end if
+
+        if (metaTestSuite.isIgnored = true)
+          if (m.config.logLevel = 2)
+            ? "Ignoring TestSuite " ; metaTestSuite.name ; " Due to Ignore flag"
+          end if
+          totalstatobj.ignored++
+          totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name + " [WHOLE SUITE]")
+
+          goto skipSuite
+        end if
+        ? ""
+        ? RBS_LOGGER.Logger.FillText("> SUITE: " + metaTestSuite.name, ">", 80)
+
+        if (metaTestSuite.isNodeTest = true and metaTestSuite.nodeTestFileName <> "")
+          ? " +++++RUNNING NODE TEST"
+          nodeType = metaTestSuite.nodeTestFileName
+          ? " node type is " ; nodeType
+
+          node = m.testScene.CallFunc("Rooibos_CreateTestNode", nodeType)
+
+          if (type(node) = "roSGNode" and node.subType() = nodeType)
+            args = {
+              "metaTestSuite": metaTestSuite
+              "testUtilsDecoratorMethodName": m.testUtilsDecoratorMethodName
+              "config": m.config
+              "runtimeConfig": m.runtimeConfig
+            }
+            nodeStatResults = node.callFunc("Rooibos_RunNodeTests", args)
+            if nodeStatResults <> invalid
+              RBS_STATS.MergeTotalStatistic(totalStatObj, nodeStatResults)
+            else
+              ? " ERROR! The node "; nodeType; " did not return stats from the Rooibos_RunNodeTests method. This usually means you are not importing rooibosDist.brs, or rooibosFunctionMap.brs. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+            end if
+            m.testScene.RemoveChild(node)
+
+          else
+            ? " ERROR!! - could not create node required to execute tests for " ; metaTestSuite.name
+            ? " Node of type " ; nodeType ; " was not found/could not be instantiated"
+          end if
         else
-          ? " ERROR! The node "; nodeType; " did not return stats from the Rooibos_RunNodeTests method. This usually means you are not importing rooibosDist.brs, or rooibosFunctionMap.brs. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
-        end if
-        m.testScene.RemoveChild(node)
-        
-      else
-        ? " ERROR!! - could not create node required to execute tests for " ; metaTestSuite.name
-        ? " Node of type " ; nodeType ; " was not found/could not be instantiated"
-      end if
-    else
-      if (metaTestSuite.hasIgnoredTests)
-        totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name)
-      end if
-      m.RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig, m.nodeContext)
-    end if
-    skipSuite:
-  end for
-  m.logger.PrintStatistic(totalStatObj)
-  
-  if RBS_CMN.IsFunction(RBS_ReportCodeCoverage)
-    RBS_ReportCodeCoverage()
-    
-    if m.config.printLcov = true
-      RBS_Coverage_printLCovInfo()
-    end if
-  end if
-  m.SendHomeKeypress()
-end sub
-
-public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)
-  if (testUtilsDecoratorMethodName <> invalid)
-    testUtilsDecorator = RBS_CMN.GetFunctionBruteForce(testUtilsDecoratorMethodName)
-    if (not RBS_CMN.IsFunction(testUtilsDecorator))
-      ? "[ERROR] Test utils decorator method `" ; testUtilsDecoratorMethodName ;"` was not in scope! for testSuite: " + metaTestSuite.name
-    end if
-  end if
-  
-  for each itGroup in metaTestSuite.itGroups
-    testSuite = RBS_ItG.GetRunnableTestSuite(itGroup)
-    if (nodeContext <> invalid)
-      testSuite.node = nodeContext
-      testSuite.global = nodeContext.global
-      testSuite.top = nodeContext.top
-    end if
-    
-    if (RBS_CMN.IsFunction(testUtilsDecorator))
-      testUtilsDecorator(testSuite)
-    end if
-    
-    totalStatObj.Ignored += itGroup.ignoredTestCases.count()
-    
-    if (itGroup.isIgnored = true)
-      if (config.logLevel = 2)
-        ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
-      end if
-      totalStatObj.ignored += itGroup.testCases.count()
-      totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name + " [WHOLE GROUP]")
-      goto skipItGroup
-    else
-      if (itGroup.ignoredTestCases.count() > 0)
-        totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name)
-        totalStatObj.ignored += itGroup.ignoredTestCases.count()
-        for each testCase in itGroup.ignoredTestCases
-          if (testcase.isParamTest <> true)
-            totalStatObj.IgnoredTestNames.push("  | |--" + testCase.name)
-          else if (testcase.paramTestIndex = 0)
-            testCaseName = testCase.Name
-            if (len(testCaseName) > 1 and right(testCaseName, 1) = "0")
-              testCaseName = left(testCaseName, len(testCaseName) - 1)
-            end if
-            totalStatObj.IgnoredTestNames.push("  | |--" + testCaseName)
+          if (metaTestSuite.hasIgnoredTests)
+            totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name)
           end if
-        end for
-      end if
-    end if
-    
-    if (runtimeConfig.hasSoloTests)
-      if (itGroup.hasSoloTests <> true)
-        if (config.logLevel = 2)
-          ? "Ignoring itGroup " ; itGroup.name ; " Because it has no solo tests"
+          m.RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig, m.nodeContext)
         end if
-        goto skipItGroup
-      end if
-    else if (runtimeConfig.hasSoloGroups)
-      if (itGroup.isSolo <> true)
-        goto skipItGroup
-      end if
-    end if
-    
-    if (testSuite.testCases.Count() = 0)
-      if (config.logLevel = 2)
-        ? "Ignoring TestSuite " ; itGroup.name ; " - NO TEST CASES"
-      end if
-      goto skipItGroup
-    end if
-    ? ""
-    ? RBS_LOGGER.Logger.FillText("> GROUP: " + itGroup.name, ">", 80)
-    
-    if RBS_CMN.IsFunction(testSuite.SetUp)
-      testSuite.SetUp()
-    end if
-    
-    Rooibos.TestRunner.RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
-    
-    if RBS_CMN.IsFunction(testSuite.TearDown)
-      testSuite.TearDown()
-    end if
-    
-    if (totalStatObj.testRunHasFailures = true and config.failFast = true)
-      exit for
-    end if
-    skipItGroup:
-  end for
-end sub
+        skipSuite:
+      end for
+      m.logger.PrintStatistic(totalStatObj)
 
-public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
-  suiteStatObj = RBS_STATS.CreateSuiteStatistic(itGroup.Name)
-  testSuite.global = runtimeConfig.global
-  
-  for each testCase in testSuite.testCases
-    metaTestCase = itGroup.testCaseLookup[testCase.Name]
-    metaTestCase.time = 0
-    if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
-      goto skipTestCase
-    end if
-    ? ""
-    ? RBS_LOGGER.Logger.FillText("> TEST: " + testCase.Name + " ", ">", 80)
-    
-    if RBS_CMN.IsFunction(testSuite.beforeEach)
-      testSuite.beforeEach()
-    end if
-    
-    testTimer = CreateObject("roTimespan")
-    testCaseTimer = CreateObject("roTimespan")
-    testStatObj = RBS_STATS.CreateTestStatistic(testCase.Name)
-    testSuite.testCase = testCase.Func
-    testStatObj.filePath = metaTestSuite.filePath
-    testStatObj.metaTestCase = metaTestCase
-    testSuite.currentResult = UnitTestResult()
-    
-    testStatObj.metaTestCase.testResult = testSuite.currentResult
-    
-    if (metaTestCase.isParamsValid)
-      if (metaTestCase.isParamTest)
-        testCaseParams = []
-        for paramIndex = 0 to metaTestCase.rawParams.count()
-          paramValue = metaTestCase.rawParams[paramIndex]
-          if type(paramValue) = "roString" and len(paramValue) >= 8 and left(paramValue, 8) = "#RBSNode"
-            nodeType = "ContentNode"
-            paramDirectiveArgs = paramValue.split("|")
-            if paramDirectiveArgs.count() > 1
-              nodeType = paramDirectiveArgs[1]
-            end if
-            paramValue = createObject("roSGNode", nodeType)
+      if RBS_CMN.IsFunction(RBS_ReportCodeCoverage)
+        RBS_ReportCodeCoverage()
+
+        if m.config.printLcov = true
+          RBS_Coverage_printLCovInfo()
+        end if
+      end if
+      m.SendHomeKeypress()
+    end sub
+
+    public sub RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)
+      if (testUtilsDecoratorMethodName <> invalid)
+        testUtilsDecorator = RBS_CMN.GetFunctionBruteForce(testUtilsDecoratorMethodName)
+        if (not RBS_CMN.IsFunction(testUtilsDecorator))
+          ? "[ERROR] Test utils decorator method `" ; testUtilsDecoratorMethodName ;"` was not in scope! for testSuite: " + metaTestSuite.name
+        end if
+      end if
+
+      for each itGroup in metaTestSuite.itGroups
+        testSuite = RBS_ItG.GetRunnableTestSuite(itGroup)
+        if (nodeContext <> invalid)
+          testSuite.node = nodeContext
+          testSuite.global = nodeContext.global
+          testSuite.top = nodeContext.top
+        end if
+
+        if (RBS_CMN.IsFunction(testUtilsDecorator))
+          testUtilsDecorator(testSuite)
+        end if
+
+        totalStatObj.Ignored = totalStatObj.Ignored + itGroup.ignoredTestCases.count()
+
+        if (itGroup.isIgnored = true)
+          if (config.logLevel = 2)
+            ? "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
           end if
-          testCaseParams.push(paramValue)
-        end for
-        testCaseTimer.mark()
-        'up to 10 param args supported for now
-        if (metaTestCase.expectedNumberOfParams = 1)
-          testSuite.testCase(testCaseParams[0])
-        else if (metaTestCase.expectedNumberOfParams = 2)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1])
-        else if (metaTestCase.expectedNumberOfParams = 3)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
-        else if (metaTestCase.expectedNumberOfParams = 4)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
-        else if (metaTestCase.expectedNumberOfParams = 5)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
-        else if (metaTestCase.expectedNumberOfParams = 6)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
-        else if (metaTestCase.expectedNumberOfParams = 7)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6])
-        else if (metaTestCase.expectedNumberOfParams = 8)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7])
-        else if (metaTestCase.expectedNumberOfParams = 9)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8])
-        else if (metaTestCase.expectedNumberOfParams = 10)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9])
-        else if (metaTestCase.expectedNumberOfParams = 11)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9], testCaseParams[10])
-        else if (metaTestCase.expectedNumberOfParams = 12)
-          testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9], testCaseParams[10], testCaseParams[11])
-        else if (metaTestCase.expectedNumberOfParams > 12)
-          testSuite.fail("Test case had more than 12 params. Max of 12 params is supported")
+          totalStatObj.ignored = totalStatObj.ignored + itGroup.testCases.count()
+          totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name + " [WHOLE GROUP]")
+          goto skipItGroup
+        else
+          if (itGroup.ignoredTestCases.count() > 0)
+            totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name)
+            totalStatObj.ignored = totalStatObj.ignored + itGroup.ignoredTestCases.count()
+            for each testCase in itGroup.ignoredTestCases
+              if (testcase.isParamTest <> true)
+                totalStatObj.IgnoredTestNames.push("  | |--" + testCase.name)
+              else if (testcase.paramTestIndex = 0)
+                testCaseName = testCase.Name
+                if (len(testCaseName) > 1 and right(testCaseName, 1) = "0")
+                  testCaseName = left(testCaseName, len(testCaseName) - 1)
+                end if
+                totalStatObj.IgnoredTestNames.push("  | |--" + testCaseName)
+              end if
+            end for
+          end if
         end if
-        metaTestCase.time = testCaseTimer.totalMilliseconds()
-      else
-        testCaseTimer.mark()
-        testSuite.testCase()
-        metaTestCase.time = testCaseTimer.totalMilliseconds()
-      end if
-    else
-      testSuite.Fail("Could not parse args for test ")
-    end if
-    if testSuite.isAutoAssertingMocks = true
-      testSuite.AssertMocks()
-      testSuite.CleanMocks()
-      testSuite.CleanStubs()
-    end if
-    runResult = testSuite.currentResult.GetResult()
-    
-    
-    if runResult <> ""
-      testStatObj.Result = "Fail"
-      testStatObj.Error.Code = 1
-      testStatObj.Error.Message = runResult
-    else
-      testStatObj.Result = "Success"
-    end if
-    
-    testStatObj.Time = testTimer.TotalMilliseconds()
-    RBS_STATS.AppendTestStatistic(suiteStatObj, testStatObj)
-    
-    if RBS_CMN.IsFunction(testSuite.afterEach)
-      testSuite.afterEach()
-    end if
-    
-    if testStatObj.Result <> "Success"
-      totalStatObj.testRunHasFailures = true
-    end if
-    
-    if testStatObj.Result = "Fail" and config.failFast = true
-      exit for
-    end if
-    skipTestCase:
-  end for
-  
-  suiteStatObj.metaTestSuite = metaTestSuite
-  RBS_STATS.AppendSuiteStatistic(totalStatObj, suiteStatObj)
-end sub
 
-public sub SendHomeKeypress()
-  ut = CreateObject("roUrlTransfer")
-  ut.SetUrl("http://localhost:8060/keypress/Home")
-  ut.PostFromString("")
-end sub
+        if (runtimeConfig.hasSoloTests)
+          if (itGroup.hasSoloTests <> true)
+            if (config.logLevel = 2)
+              ? "Ignoring itGroup " ; itGroup.name ; " Because it has no solo tests"
+            end if
+            goto skipItGroup
+          end if
+        else if (runtimeConfig.hasSoloGroups)
+          if (itGroup.isSolo <> true)
+            goto skipItGroup
+          end if
+        end if
 
+        if (testSuite.testCases.Count() = 0)
+          if (config.logLevel = 2)
+            ? "Ignoring TestSuite " ; itGroup.name ; " - NO TEST CASES"
+          end if
+          goto skipItGroup
+        end if
+        ? ""
+        ? RBS_LOGGER.Logger.FillText("> GROUP: " + itGroup.name, ">", 80)
+
+        if RBS_CMN.IsFunction(testSuite.SetUp)
+          testSuite.SetUp()
+        end if
+
+        Rooibos.TestRunner.RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+
+        if RBS_CMN.IsFunction(testSuite.TearDown)
+          testSuite.TearDown()
+        end if
+
+        if (totalStatObj.testRunHasFailures = true and config.failFast = true)
+          exit for
+        end if
+        skipItGroup:
+      end for
+    end sub
+
+    public sub RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+      suiteStatObj = RBS_STATS.CreateSuiteStatistic(itGroup.Name)
+      testSuite.global = runtimeConfig.global
+
+      for each testCase in testSuite.testCases
+        metaTestCase = itGroup.testCaseLookup[testCase.Name]
+        metaTestCase.time = 0
+        if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo)
+          goto skipTestCase
+        end if
+        ? ""
+        ? RBS_LOGGER.Logger.FillText("> TEST: " + testCase.Name + " ", ">", 80)
+
+        if RBS_CMN.IsFunction(testSuite.beforeEach)
+          testSuite.beforeEach()
+        end if
+
+        testTimer = CreateObject("roTimespan")
+        testCaseTimer = CreateObject("roTimespan")
+        testStatObj = RBS_STATS.CreateTestStatistic(testCase.Name)
+        testSuite.testCase = testCase.Func
+        testStatObj.filePath = metaTestSuite.filePath
+        testStatObj.metaTestCase = metaTestCase
+        testSuite.currentResult = UnitTestResult()
+
+        testStatObj.metaTestCase.testResult = testSuite.currentResult
+
+        if (metaTestCase.isParamsValid)
+          if (metaTestCase.isParamTest)
+            testCaseParams = []
+            for paramIndex = 0 to metaTestCase.rawParams.count()
+              paramValue = metaTestCase.rawParams[paramIndex]
+              if type(paramValue) = "roString" and len(paramValue) >= 8 and left(paramValue, 8) = "#RBSNode"
+                nodeType = "ContentNode"
+                paramDirectiveArgs = paramValue.split("|")
+                if paramDirectiveArgs.count() > 1
+                  nodeType = paramDirectiveArgs[1]
+                end if
+                paramValue = createObject("roSGNode", nodeType)
+              end if
+              testCaseParams.push(paramValue)
+            end for
+            testCaseTimer.mark()
+            'up to 10 param args supported for now
+            if (metaTestCase.expectedNumberOfParams = 1)
+              testSuite.testCase(testCaseParams[0])
+            else if (metaTestCase.expectedNumberOfParams = 2)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1])
+            else if (metaTestCase.expectedNumberOfParams = 3)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
+            else if (metaTestCase.expectedNumberOfParams = 4)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
+            else if (metaTestCase.expectedNumberOfParams = 5)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
+            else if (metaTestCase.expectedNumberOfParams = 6)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
+            else if (metaTestCase.expectedNumberOfParams = 7)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6])
+            else if (metaTestCase.expectedNumberOfParams = 8)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7])
+            else if (metaTestCase.expectedNumberOfParams = 9)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8])
+            else if (metaTestCase.expectedNumberOfParams = 10)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9])
+            else if (metaTestCase.expectedNumberOfParams = 11)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9], testCaseParams[10])
+            else if (metaTestCase.expectedNumberOfParams = 12)
+              testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9], testCaseParams[10], testCaseParams[11])
+            else if (metaTestCase.expectedNumberOfParams > 12)
+              testSuite.fail("Test case had more than 12 params. Max of 12 params is supported")
+            end if
+            metaTestCase.time = testCaseTimer.totalMilliseconds()
+          else
+            testCaseTimer.mark()
+            testSuite.testCase()
+            metaTestCase.time = testCaseTimer.totalMilliseconds()
+          end if
+        else
+          testSuite.Fail("Could not parse args for test ")
+        end if
+        if testSuite.isAutoAssertingMocks = true
+          testSuite.AssertMocks()
+          testSuite.CleanMocks()
+          testSuite.CleanStubs()
+        end if
+        runResult = testSuite.currentResult.GetResult()
+
+
+        if runResult <> ""
+          testStatObj.Result = "Fail"
+          testStatObj.Error.Code = 1
+          testStatObj.Error.Message = runResult
+        else
+          testStatObj.Result = "Success"
+        end if
+
+        testStatObj.Time = testTimer.TotalMilliseconds()
+        RBS_STATS.AppendTestStatistic(suiteStatObj, testStatObj)
+
+        if RBS_CMN.IsFunction(testSuite.afterEach)
+          testSuite.afterEach()
+        end if
+
+        if testStatObj.Result <> "Success"
+          totalStatObj.testRunHasFailures = true
+        end if
+
+        if testStatObj.Result = "Fail" and config.failFast = true
+          exit for
+        end if
+        skipTestCase:
+      end for
+
+      suiteStatObj.metaTestSuite = metaTestSuite
+      RBS_STATS.AppendSuiteStatistic(totalStatObj, suiteStatObj)
+    end sub
+
+    public sub SendHomeKeypress()
+      ut = CreateObject("roUrlTransfer")
+      ut.SetUrl("http://localhost:8060/keypress/Home")
+      ut.PostFromString("")
+    end sub
+
+  end class
 end namespace

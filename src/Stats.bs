@@ -31,12 +31,12 @@ function MergeTotalStatistic(stat1, stat2) as void
     stat1.Suites.push(suite)
   end for
 
-  stat1.Time += stat2.Time
-  stat1.Total += stat2.Total
-  stat1.Correct += stat2.Correct
-  stat1.Fail += stat2.Fail
-  stat1.Crash += stat2.Crash
-  stat1.Ignored += stat2.Ignored
+  stat1.Time = stat1.Time + stat2.Time
+  stat1.Total = stat1.Total + stat2.Total
+  stat1.Correct = stat1.Correct + stat2.Correct
+  stat1.Fail = stat1.Fail + stat2.Fail
+  stat1.Crash = stat1.Crash + stat2.Crash
+  stat1.Ignored = stat1.Ignored + stat2.Ignored
   stat1.IgnoredTestNames.append(stat2.IgnoredTestNames)
 end function
 
@@ -88,7 +88,7 @@ end function
 '
 ' @return A statistic object for test.
 '----------------------------------------------------------------
-function CreateTestStatistic(name as string, result = "Success" as string, time = 0 as integer, errorCode = 0 as integer, errorMessage = "" as string) as object
+function CreateTestStatistic(name, result = "Success", time = 0, errorCode = 0, errorMessage = "") as object
   statTestItem = {
     Name  : name
     Result  : result

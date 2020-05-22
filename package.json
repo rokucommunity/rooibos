@@ -11,6 +11,7 @@
     "ts-node": "^8.0.2"
   },
   "devDependencies": {
+    "brighterscript": "^0.10.0",
     "del": "^3.0.0",
     "docdash": "^0.4.0",
     "dotenv": "^8.1.0",
