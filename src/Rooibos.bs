@@ -82,7 +82,7 @@ namespace Rooibos_
 
       else
         ? "scene is ready; running tests now"
-        runner = new TestRunner(args)
+        runner = new Rooibos.TestRunner(args)
         runner.Run()
       end if
 
@@ -97,7 +97,7 @@ namespace Rooibos_
 
           if msg.getField() = "isReadyToStartTests" and msg.getData() = true
             ? "scene is ready; running tests now"
-            runner = new TestRunner(args)
+            runner = new Rooibos.TestRunner(args)
             runner.Run()
           end if
         end if

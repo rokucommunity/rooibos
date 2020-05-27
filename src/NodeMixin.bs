@@ -12,7 +12,7 @@ namespace Rooibos
     ? " RUNNING NODE TESTS"
     totalStatObj = RBS_STATS.CreateTotalStatistic()
 
-    Rooibos.TestRunner.RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
+    Rooibos.TestRunnerMixin.RunItGroups(args.metaTestSuite, totalStatObj, args.testUtilsDecoratorMethodName, args.config, args.runtimeConfig, m)
     return totalStatObj
   end function
 

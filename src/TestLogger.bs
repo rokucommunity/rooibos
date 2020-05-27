@@ -1,6 +1,7 @@
 namespace RBS_LOGGER
   class Logger
 
+    private fillText = RBS_LOGGER_Logger_FillText
     public function new(config)
       m.config = config
 
@@ -141,18 +142,6 @@ namespace RBS_LOGGER
       end if
     end sub
 
-    public function FillText(text as string, fillChar = " ", numChars = 40) as string
-      if (len(text) >= numChars)
-        text = left(text, numChars - 5) + "..." + fillChar + fillChar
-      else
-        numToFill = numChars - len(text) - 1
-        for i = 0 to numToFill
-          text = text + fillChar
-        end for
-      end if
-      return text
-    end function
-
     '----------------------------------------------------------------
     ' Print testting start message.
     '----------------------------------------------------------------
@@ -234,3 +223,15 @@ namespace RBS_LOGGER
     end sub
   end class
 end namespace
+
+function RBS_LOGGER_Logger_FillText(text as string, fillChar = " ", numChars = 40) as string
+  if (len(text) >= numChars)
+    text = left(text, numChars - 5) + "..." + fillChar + fillChar
+  else
+    numToFill = numChars - len(text) - 1
+    for i = 0 to numToFill
+      text = text + fillChar
+    end for
+  end if
+  return text
+end function

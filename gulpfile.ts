@@ -8,6 +8,7 @@ const concat = require('gulp-concat');
 const gulp = require('gulp');
 const path = require('path');
 const del = require('del');
+const rimraf = require('rimraf');
 const header = require('gulp-header');
 const pkg = require('./package.json');
 const distDir = 'dist';
@@ -59,15 +60,23 @@ export async function compile(cb) {
   console.log('444');
 }
 
-export async function compileFramework(cb) {
+export async function compileFramework() {
   let builder = new ProgramBuilder();
   await builder.run({
     rootDir: "src",
-    files: ["**/*.*"],
+    files: [{
+      src: "**/*.*",
+      dest: 'source'
+    }],
     stagingFolderPath: buildDir,
     createPackage: false
+  })
+  await new Promise((resolve) => {
+    return gulp.src(buildDir + '/source/**/*.brs')
+      .pipe(gulp.dest(buildDir))
+      .on('end', resolve);
   });
-
+  rimraf.sync(path.join(buildDir, 'source'));
 }
 
 
