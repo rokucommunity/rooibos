@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>TestRunner - Documentation</title>
+    <title>rooibos - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">TestRunner</h1>
+    <h1 class="page-title">rooibos</h1>
     
 
     
@@ -75,14 +75,14 @@
 
     
 
-    <h4 class="name" id=".Rooibos_TestRunner"><span class="type-signature">(static) </span>Rooibos_TestRunner<span class="signature">(args)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".Rooibos_init"><span class="type-signature">(static) </span>Rooibos_init<span class="signature">(preTestSetup, testUtilsDecorator, testsSceneName, nodeContext)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Creates an instance of the test runner</p>
+    <p>Entry point for rooibos unit testing framework. Will identify, run, and report all tests in the app, before terminating the application.</p>
 </div>
 
 
@@ -118,7 +118,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="TestRunner.brs.html">TestRunner.brs</a>, <a href="TestRunner.brs.html#line5">line 5</a>
+        <a href="Rooibos.brs.html">Rooibos.brs</a>, <a href="Rooibos.brs.html#line5">line 5</a>
     </li></ul></dd>
     
 
@@ -162,7 +162,7 @@
 
         <tr>
             
-                <td class="name"><code>args</code></td>
+                <td class="name"><code>preTestSetup</code></td>
             
 
             <td class="type">
@@ -179,286 +179,17 @@
             
 
             <td class="description last">
-                <p>contains the application launch args, and other settings required for test execution</p>
+                <p>called to do any initialization once the screen is created
+                  Use this to configure anything such as globals, etc that you need</p>
                 
             </td>
         </tr>
 
     
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="CreateTestNode"><span class="type-signature"></span>CreateTestNode<span class="signature">(nodeType)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>interface hook for correctly creating nodes that get tested. This ensures they are in the correct scope.
-This method must be defined in your tests scene xml.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="NodeMixin.brs.html">NodeMixin.brs</a>, <a href="NodeMixin.brs.html#line11">line 11</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
 
         <tr>
             
-                <td class="name"><code>nodeType</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>String</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>name of node to create. The framework will pass this in as required</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-returns">
-<h5>Returns:</h5>
-
-        
-
-<dl class="param-type">
-    <dt>
-        Type:
-    </dt>
-    <dd>
-        
-<span class="param-type"><code>Object</code></span>
-
-
-    </dd>
-</dl>
-
-
-<div class="param-desc">
-    <p>the required node, or invalid if it could not be invoked.</p>
-</div>
-
-    
-</div>
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="Rooibos_RunNodeTests"><span class="type-signature"></span>Rooibos_RunNodeTests<span class="signature">(args)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>interface hook for exeucting tests on nodes. This method is for internal use only. Only the Rooibos framework should invoke this method</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="NodeMixin.brs.html">NodeMixin.brs</a>, <a href="NodeMixin.brs.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>args</code></td>
+                <td class="name"><code>testUtilsDecorator</code></td>
             
 
             <td class="type">
@@ -475,7 +206,52 @@ This method must be defined in your tests scene xml.</p>
             
 
             <td class="description last">
-                <p>associated array, containing all the information required to execute the tests.</p>
+                <p>will be invoked, with the test case as a param - the function
+                    can then compose/decorate any additional functionality, as required
+                  Use this to add things like, rodash, common test utils, etc</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>testsSceneName</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>as string - name of scene to create. All unit tests run in the scene thread
+                  and therefore require a screen and scene are created.</p>
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>nodeContext</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                <p>as object - this is the global scope of your tests - so where anonymous methods will run from. This should be m</p>
                 
             </td>
         </tr>
@@ -483,114 +259,6 @@ This method must be defined in your tests scene xml.</p>
     
     </tbody>
 </table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-returns">
-<h5>Returns:</h5>
-
-        
-
-<dl class="param-type">
-    <dt>
-        Type:
-    </dt>
-    <dd>
-        
-<span class="param-type"><code>Object</code></span>
-
-
-    </dd>
-</dl>
-
-
-<div class="param-desc">
-    <p>test stats object, for merging into main test stats</p>
-</div>
-
-    
-</div>
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="Run"><span class="type-signature"></span>Run<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Executes all tests for a project, as per the config</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="TestRunner.brs.html">TestRunner.brs</a>, <a href="TestRunner.brs.html#line13">line 13</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
 
 
 

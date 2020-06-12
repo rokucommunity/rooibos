@@ -1,3 +1,30 @@
+#### 4.0.0 (2020-06-12)
+
+This is a BREAKING RELEASE.
+
+You will have to change how you initialize rooibos. In your main.brs, you will now put:
+
+```
+  if (type(Rooibos_init) = "Function") then
+  'bs:disable-next-line
+  if (type(Rooibos_init) = "Function") then Rooibos_init()
+  end if
+```
+
+refer to the [documentation](file:///home/george/hope/open-source/rooibos/docs/module-rooibos.html#.Rooibos_init) for more info.
+
+#### Chores
+
+* **core:** 
+  * Upgrades to use the official brighterscript compiler
+  * Better partitions code into namespaces and classes
+  * Adds bs:disable-next-line directives to dynamically resovled function calls 
+
+##### Bug Fixes
+
+* **Core:**
+  * Fixes several small bugs, including wrong params sent for nodeContains and crashes on lcov reporting and test reporting
+  
 #### 3.6.1 (2020-05-21)
 
 ##### Chores

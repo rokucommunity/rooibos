@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>TestRunner - Documentation</title>
+    <title>TestRunner.brs - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,594 +29,337 @@
 
 <div id="main">
     
-    <h1 class="page-title">TestRunner</h1>
-    
-
-    
-
-
-
-
-<section>
-
-<header>
-    
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id=".Rooibos_TestRunner"><span class="type-signature">(static) </span>Rooibos_TestRunner<span class="signature">(args)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Creates an instance of the test runner</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="TestRunner.brs.html">TestRunner.brs</a>, <a href="TestRunner.brs.html#line5">line 5</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>args</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>Dynamic</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>contains the application launch args, and other settings required for test execution</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="CreateTestNode"><span class="type-signature"></span>CreateTestNode<span class="signature">(nodeType)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>interface hook for correctly creating nodes that get tested. This ensures they are in the correct scope.
-This method must be defined in your tests scene xml.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="NodeMixin.brs.html">NodeMixin.brs</a>, <a href="NodeMixin.brs.html#line11">line 11</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>nodeType</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>String</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>name of node to create. The framework will pass this in as required</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-returns">
-<h5>Returns:</h5>
-
-        
-
-<dl class="param-type">
-    <dt>
-        Type:
-    </dt>
-    <dd>
-        
-<span class="param-type"><code>Object</code></span>
-
-
-    </dd>
-</dl>
-
-
-<div class="param-desc">
-    <p>the required node, or invalid if it could not be invoked.</p>
-</div>
-
-    
-</div>
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="Rooibos_RunNodeTests"><span class="type-signature"></span>Rooibos_RunNodeTests<span class="signature">(args)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>interface hook for exeucting tests on nodes. This method is for internal use only. Only the Rooibos framework should invoke this method</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="NodeMixin.brs.html">NodeMixin.brs</a>, <a href="NodeMixin.brs.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>args</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>Dynamic</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>associated array, containing all the information required to execute the tests.</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-returns">
-<h5>Returns:</h5>
-
-        
-
-<dl class="param-type">
-    <dt>
-        Type:
-    </dt>
-    <dd>
-        
-<span class="param-type"><code>Object</code></span>
-
-
-    </dd>
-</dl>
-
-
-<div class="param-desc">
-    <p>test stats object, for merging into main test stats</p>
-</div>
-
-    
-</div>
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="Run"><span class="type-signature"></span>Run<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Executes all tests for a project, as per the config</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="TestRunner.brs.html">TestRunner.brs</a>, <a href="TestRunner.brs.html#line13">line 13</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-        
-    
-
-    
-
-    
-</article>
-
-</section>
+    <h1 class="page-title">TestRunner.brs</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>' /**
+'  * @module TestRunner
+'  */
+' /**
+'  * @memberof module:TestRunner
+'  * @name Rooibos_TestRunner
+'  * @function
+'  * @description Creates an instance of the test runner
+'  * @param {Dynamic} args - contains the application launch args, and other settings required for test execution
+'  */
+function __Rooibos_TestRunner_builder()
+    instance = {}
+    instance.new = function(args = {})
+        m.RunItGroups = Rooibos_TestRunnerMixin_RunItGroups
+        m.RunTestCases = Rooibos_TestRunnerMixin_RunTestCases
+        m.testScene = args.testScene
+        m.nodeContext = args.nodeContext
+        'bs:disable-next-line
+        config = RBSFM_getRuntimeConfig()
+        if (config = invalid or not Rooibos_Common_isAssociativeArray(config)) then
+            print "WARNING : specified config is invalid - using default"
+            config = {
+                showOnlyFailures: false,
+                failFast: false
+            }
+        end if
+        'mix in parsed in args
+        if (args.showOnlyFailures &lt;> invalid) then
+            config.showOnlyFailures = args.showOnlyFailures = "true"
+        end if
+        if (args.failFast &lt;> invalid) then
+            config.failFast = args.failFast = "true"
+        end if
+        m.testUtilsDecoratorMethodName = args.testUtilsDecoratorMethodName
+        m.config = config
+        ' Internal properties
+        m.config.testsDirectory = config.testsDirectory
+        m.logger = Rooibos_Logger(m.config)
+        m.global = args.global
+    end function
+    ' /**
+    '  * @memberof module:TestRunner
+    '  * @name Run
+    '  * @function
+    '  * @instance
+    '  * @description Executes all tests for a project, as per the config
+    '  */
+    instance.run = sub()
+        if type(RBSFM_getTestSuitesForProject) &lt;> "Function" then
+            print " ERROR! RBSFM_getTestSuitesForProject is not found! That looks like you didn't run the preprocessor as part of your test process. Please refer to the docs."
+            return
+        end if
+        totalStatObj = Rooibos_Stats_createTotalStatistic()
+        m.runtimeConfig = Rooibos_UnitTestRuntimeConfig()
+        m.runtimeConfig.global = m.global
+        totalStatObj.testRunHasFailures = false
+        for each metaTestSuite in m.runtimeConfig.suites
+            if (m.runtimeConfig.hasSoloTests = true) then
+                if (metaTestSuite.hasSoloTests &lt;> true) then
+                    if (m.config.logLevel = 2) then
+                        print "TestSuite " ; metaTestSuite.name ; " Is filtered because it has no solo tests"
+                    end if
+                    goto skipSuite
+                end if
+            else if (m.runtimeConfig.hasSoloSuites) then
+                if (metaTestSuite.isSolo &lt;> true) then
+                    if (m.config.logLevel = 2) then
+                        print "TestSuite " ; metaTestSuite.name ; " Is filtered due to solo flag"
+                    end if
+                    goto skipSuite
+                end if
+            end if
+            if (metaTestSuite.isIgnored = true) then
+                if (m.config.logLevel = 2) then
+                    print "Ignoring TestSuite " ; metaTestSuite.name ; " Due to Ignore flag"
+                end if
+                totalstatobj.ignored++
+                totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name + " [WHOLE SUITE]")
+                goto skipSuite
+            end if
+            print ""
+            print Rooibos_Common_fillText("> SUITE: " + metaTestSuite.name, ">", 80)
+            if (metaTestSuite.isNodeTest = true and metaTestSuite.nodeTestFileName &lt;> "") then
+                print " +++++RUNNING NODE TEST"
+                nodeType = metaTestSuite.nodeTestFileName
+                print " node type is " ; nodeType
+                node = m.testScene.CallFunc("Rooibos_CreateTestNode", nodeType)
+                if (type(node) = "roSGNode" and node.subType() = nodeType) then
+                    args = {
+                        "metaTestSuite": metaTestSuite,
+                        "testUtilsDecoratorMethodName": m.testUtilsDecoratorMethodName,
+                        "config": m.config,
+                        "runtimeConfig": m.runtimeConfig
+                    }
+                    nodeStatResults = node.callFunc("Rooibos_RunNodeTests", args)
+                    if nodeStatResults &lt;> invalid then
+                        Rooibos_Stats_mergeTotalStatistic(totalStatObj, nodeStatResults)
+                    else
+                        print " ERROR! The node " ; nodeType ; " did not return stats from the Rooibos_RunNodeTests method. This usually means you are not importing rooibosDist.brs, or rooibosFunctionMap.brs. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+                    end if
+                    m.testScene.RemoveChild(node)
+                else
+                    print " ERROR!! - could not create node required to execute tests for " ; metaTestSuite.name
+                    print " Node of type " ; nodeType ; " was not found/could not be instantiated"
+                end if
+            else
+                if (metaTestSuite.hasIgnoredTests) then
+                    totalStatObj.IgnoredTestNames.push("|-" + metaTestSuite.name)
+                end if
+                m.RunItGroups(metaTestSuite, totalStatObj, m.testUtilsDecoratorMethodName, m.config, m.runtimeConfig, m.nodeContext)
+            end if
+            skipSuite:
+        end for
+        m.logger.PrintStatistic(totalStatObj)
+        if Rooibos_Common_isFunction(RBS_ReportCodeCoverage) then
+            'bs:disable-next-line
+            RBS_ReportCodeCoverage()
+            if m.config.printLcov = true then
+                Rooibos_Coverage_printLCovInfo()
+            end if
+        end if
+        m.sendHomeKeypress()
+    end sub
+    instance.sendHomeKeypress = sub()
+        ut = CreateObject("roUrlTransfer")
+        ut.SetUrl("http://localhost:8060/keypress/Home")
+        ut.PostFromString("")
+    end sub
+    return instance
+end function
+function Rooibos_TestRunner(args = {})
+    instance = __Rooibos_TestRunner_builder()
+    instance.new(args)
+    return instance
+end function
+
+'TODO convert to namespace when Bron fixes bug that does not allow ns resoluiton on assignment
+' namespace Rooibos.TestRunnerMixin
+sub Rooibos_TestRunnerMixin_RunItGroups(metaTestSuite, totalStatObj, testUtilsDecoratorMethodName, config, runtimeConfig, nodeContext = invalid)
+    if (testUtilsDecoratorMethodName &lt;> invalid) then
+        testUtilsDecorator = Rooibos_Common_getFunctionBruteForce(testUtilsDecoratorMethodName)
+        if (not Rooibos_Common_isFunction(testUtilsDecorator)) then
+            print "[ERROR] Test utils decorator method `" ; testUtilsDecoratorMethodName ; "` was not in scope! for testSuite: " + metaTestSuite.name
+        end if
+    end if
+    for each itGroup in metaTestSuite.itGroups
+        testSuite = Rooibos_ItGroup_GetRunnableTestSuite(itGroup)
+        if (nodeContext &lt;> invalid) then
+            testSuite.node = nodeContext
+            testSuite.global = nodeContext.global
+            testSuite.top = nodeContext.top
+        end if
+        if (Rooibos_Common_isFunction(testUtilsDecorator)) then
+            testUtilsDecorator(testSuite)
+        end if
+        totalStatObj.Ignored = totalStatObj.Ignored + itGroup.ignoredTestCases.count()
+        if (itGroup.isIgnored = true) then
+            if (config.logLevel = 2) then
+                print "Ignoring itGroup " ; itGroup.name ; " Due to Ignore flag"
+            end if
+            totalStatObj.ignored = totalStatObj.ignored + itGroup.testCases.count()
+            totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name + " [WHOLE GROUP]")
+            goto skipItGroup
+        else
+            if (itGroup.ignoredTestCases.count() > 0) then
+                totalStatObj.IgnoredTestNames.push("  |-" + itGroup.name)
+                totalStatObj.ignored = totalStatObj.ignored + itGroup.ignoredTestCases.count()
+                for each testCase in itGroup.ignoredTestCases
+                    if (testcase.isParamTest &lt;> true) then
+                        totalStatObj.IgnoredTestNames.push("  | |--" + testCase.name)
+                    else if (testcase.paramTestIndex = 0) then
+                        testCaseName = testCase.Name
+                        if (len(testCaseName) > 1 and right(testCaseName, 1) = "0") then
+                            testCaseName = left(testCaseName, len(testCaseName) - 1)
+                        end if
+                        totalStatObj.IgnoredTestNames.push("  | |--" + testCaseName)
+                    end if
+                end for
+            end if
+        end if
+        if (runtimeConfig.hasSoloTests) then
+            if (itGroup.hasSoloTests &lt;> true) then
+                if (config.logLevel = 2) then
+                    print "Ignoring itGroup " ; itGroup.name ; " Because it has no solo tests"
+                end if
+                goto skipItGroup
+            end if
+        else if (runtimeConfig.hasSoloGroups) then
+            if (itGroup.isSolo &lt;> true) then
+                goto skipItGroup
+            end if
+        end if
+        if (testSuite.testCases.Count() = 0) then
+            if (config.logLevel = 2) then
+                print "Ignoring TestSuite " ; itGroup.name ; " - NO TEST CASES"
+            end if
+            goto skipItGroup
+        end if
+        print ""
+        print Rooibos_Common_fillText("> GROUP: " + itGroup.name, ">", 80)
+        if Rooibos_Common_isFunction(testSuite.SetUp) then
+            testSuite.SetUp()
+        end if
+        Rooibos_TestRunnerMixin_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+        if Rooibos_Common_isFunction(testSuite.TearDown) then
+            testSuite.TearDown()
+        end if
+        if (totalStatObj.testRunHasFailures = true and config.failFast = true) then
+            exit for
+        end if
+        skipItGroup:
+    end for
+end sub
+
+sub Rooibos_TestRunnerMixin_RunTestCases(metaTestSuite, itGroup, testSuite, totalStatObj, config, runtimeConfig)
+    suiteStatObj = Rooibos_Stats_createSuiteStatistic(itGroup.Name)
+    testSuite.global = runtimeConfig.global
+    for each testCase in testSuite.testCases
+        metaTestCase = itGroup.testCaseLookup[testCase.Name]
+        metaTestCase.time = 0
+        if (runtimeConfig.hasSoloTests and not metaTestCase.isSolo) then
+            goto skipTestCase
+        end if
+        print ""
+        print Rooibos_Common_fillText("> TEST: " + testCase.Name + " ", ">", 80)
+        if Rooibos_Common_isFunction(testSuite.beforeEach) then
+            testSuite.beforeEach()
+        end if
+        testTimer = CreateObject("roTimespan")
+        testCaseTimer = CreateObject("roTimespan")
+        testStatObj = Rooibos_Stats_createTestStatistic(testCase.Name)
+        testSuite.testCase = testCase.Func
+        testStatObj.filePath = metaTestSuite.filePath
+        testStatObj.metaTestCase = metaTestCase
+        testSuite.currentResult = Rooibos_UnitTestResult()
+        testStatObj.metaTestCase.testResult = testSuite.currentResult
+        if (metaTestCase.isParamsValid) then
+            if (metaTestCase.isParamTest) then
+                testCaseParams = []
+                for paramIndex = 0 to metaTestCase.rawParams.count()
+                    paramValue = metaTestCase.rawParams[paramIndex]
+                    if type(paramValue) = "roString" and len(paramValue) >= 8 and left(paramValue, 8) = "#RBSNode" then
+                        nodeType = "ContentNode"
+                        paramDirectiveArgs = paramValue.split("|")
+                        if paramDirectiveArgs.count() > 1 then
+                            nodeType = paramDirectiveArgs[1]
+                        end if
+                        paramValue = createObject("roSGNode", nodeType)
+                    end if
+                    testCaseParams.push(paramValue)
+                end for
+                testCaseTimer.mark()
+                'up to 10 param args supported for now
+                if (metaTestCase.expectedNumberOfParams = 1) then
+                    testSuite.testCase(testCaseParams[0])
+                else if (metaTestCase.expectedNumberOfParams = 2) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1])
+                else if (metaTestCase.expectedNumberOfParams = 3) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2])
+                else if (metaTestCase.expectedNumberOfParams = 4) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3])
+                else if (metaTestCase.expectedNumberOfParams = 5) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4])
+                else if (metaTestCase.expectedNumberOfParams = 6) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5])
+                else if (metaTestCase.expectedNumberOfParams = 7) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6])
+                else if (metaTestCase.expectedNumberOfParams = 8) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7])
+                else if (metaTestCase.expectedNumberOfParams = 9) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8])
+                else if (metaTestCase.expectedNumberOfParams = 10) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9])
+                else if (metaTestCase.expectedNumberOfParams = 11) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9], testCaseParams[10])
+                else if (metaTestCase.expectedNumberOfParams = 12) then
+                    testSuite.testCase(testCaseParams[0], testCaseParams[1], testCaseParams[2], testCaseParams[3], testCaseParams[4], testCaseParams[5], testCaseParams[6], testCaseParams[7], testCaseParams[8], testCaseParams[9], testCaseParams[10], testCaseParams[11])
+                else if (metaTestCase.expectedNumberOfParams > 12) then
+                    testSuite.fail("Test case had more than 12 params. Max of 12 params is supported")
+                end if
+                metaTestCase.time = testCaseTimer.totalMilliseconds()
+            else
+                testCaseTimer.mark()
+                testSuite.testCase()
+                metaTestCase.time = testCaseTimer.totalMilliseconds()
+            end if
+        else
+            testSuite.Fail("Could not parse args for test ")
+        end if
+        if testSuite.isAutoAssertingMocks = true then
+            testSuite.AssertMocks()
+            testSuite.CleanMocks()
+            testSuite.CleanStubs()
+        end if
+        runResult = testSuite.currentResult.getResult()
+        if runResult &lt;> "" then
+            testStatObj.result = "Fail"
+            testStatObj.error.Code = 1
+            testStatObj.error.Message = runResult
+        else
+            testStatObj.result = "Success"
+        end if
+        testStatObj.time = testTimer.totalMilliseconds()
+        Rooibos_Stats_appendTestStatistic(suiteStatObj, testStatObj)
+        if Rooibos_Common_isFunction(testSuite.afterEach) then
+            testSuite.afterEach()
+        end if
+        if testStatObj.result &lt;> "Success" then
+            totalStatObj.testRunHasFailures = true
+        end if
+        if testStatObj.result = "Fail" and config.failFast = true then
+            exit for
+        end if
+        skipTestCase:
+    end for
+    suiteStatObj.metaTestSuite = metaTestSuite
+    Rooibos_Stats_appendSuiteStatistic(totalStatObj, suiteStatObj)
+end sub
+' end namespace</code></pre>
+        </article>
+    </section>
 
 
 

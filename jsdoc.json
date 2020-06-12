@@ -1,11 +1,11 @@
 {
   "plugins": ["brightscriptCommentsOnlyJSDocPlugin.js", "plugins/markdown"],
   "source": {
-    "include": [ "src" ],
+    "include": [ "build" ],
     "includePattern": ".+\\.brs?$"
   },
   "templates": {
-    "systemName": "Rooibosh",
+    "systemName": "Rooibos",
     "search": false
   }
 }

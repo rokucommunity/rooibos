@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>TestRunner - Documentation</title>
+    <title>ItemGenerator.brs - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,594 +29,206 @@
 
 <div id="main">
     
-    <h1 class="page-title">TestRunner</h1>
-    
-
-    
-
-
-
-
-<section>
-
-<header>
-    
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id=".Rooibos_TestRunner"><span class="type-signature">(static) </span>Rooibos_TestRunner<span class="signature">(args)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Creates an instance of the test runner</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="TestRunner.brs.html">TestRunner.brs</a>, <a href="TestRunner.brs.html#line5">line 5</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>args</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>Dynamic</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>contains the application launch args, and other settings required for test execution</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="CreateTestNode"><span class="type-signature"></span>CreateTestNode<span class="signature">(nodeType)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>interface hook for correctly creating nodes that get tested. This ensures they are in the correct scope.
-This method must be defined in your tests scene xml.</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="NodeMixin.brs.html">NodeMixin.brs</a>, <a href="NodeMixin.brs.html#line11">line 11</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>nodeType</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>String</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>name of node to create. The framework will pass this in as required</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-returns">
-<h5>Returns:</h5>
-
-        
-
-<dl class="param-type">
-    <dt>
-        Type:
-    </dt>
-    <dd>
-        
-<span class="param-type"><code>Object</code></span>
-
-
-    </dd>
-</dl>
-
-
-<div class="param-desc">
-    <p>the required node, or invalid if it could not be invoked.</p>
-</div>
-
-    
-</div>
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="Rooibos_RunNodeTests"><span class="type-signature"></span>Rooibos_RunNodeTests<span class="signature">(args)</span><span class="type-signature"> &rarr; {Object}</span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>interface hook for exeucting tests on nodes. This method is for internal use only. Only the Rooibos framework should invoke this method</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="NodeMixin.brs.html">NodeMixin.brs</a>, <a href="NodeMixin.brs.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>args</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><code>Dynamic</code></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">
-                <p>associated array, containing all the information required to execute the tests.</p>
-                
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="section-returns">
-<h5>Returns:</h5>
-
-        
-
-<dl class="param-type">
-    <dt>
-        Type:
-    </dt>
-    <dd>
-        
-<span class="param-type"><code>Object</code></span>
-
-
-    </dd>
-</dl>
-
-
-<div class="param-desc">
-    <p>test stats object, for merging into main test stats</p>
-</div>
-
-    
-</div>
-
-
-
-</div>
-        
-            
-<div class="section-method">
-
-    
-
-    <h4 class="name" id="Run"><span class="type-signature"></span>Run<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    <p>Executes all tests for a project, as per the config</p>
-</div>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="TestRunner.brs.html">TestRunner.brs</a>, <a href="TestRunner.brs.html#line13">line 13</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-        
-    
-
-    
-
-    
-</article>
-
-</section>
+    <h1 class="page-title">ItemGenerator.brs</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>' /**
+'  * @module ItemGenerator
+'  */
+' /**
+'  * @memberof module:ItemGenerator
+'  * @name ItemGenerator
+'  * @function
+'  * @instance
+'  * @param {Dynamic} scheme  - A scheme with desired object structure. Can be
+'  * any simple type, array of types or associative array in form
+'  *
+'  * ``` { propertyName1 : "propertyType1"
+'  *   propertyName2 : "propertyType2"
+'  *   ...
+'  *   propertyNameN : "propertyTypeN" }
+'  * ```
+'  * @description Creates an ItemGenerator instance
+'  * @returns {Object} An object according to specified scheme or invalid, if scheme is not valid.
+'  */
+function __Rooibos_ItemGenerator_builder()
+    instance = {}
+    instance.new = function()
+        m.isValid = Rooibos_Common_isValid(scheme)
+    end function
+    ' /**
+    '  * @memberof module:ItemGenerator
+    '  * @name GetItem
+    '  * @function
+    '  * @instance
+    '  * @param {Dynamic} scheme  - A scheme with desired object structure. Can be
+    '  * any simple type, array of types or associative array in form
+    '  *
+    '  * ``` { propertyName1 : "propertyType1"
+    '  *   propertyName2 : "propertyType2"
+    '  *   ...
+    '  *   propertyNameN : "propertyTypeN" }
+    '  * ```
+    '  * @description Gets an item according to the schem
+    '  * @returns {Object}  An object according to specified scheme or invalid if scheme is not one of simple type, array or associative array.
+    '  */
+    instance.GetItem = function(scheme as object) as object
+        item = invalid
+        if Rooibos_Common_isAssociativeArray(scheme) then
+            item = m.getAssocArray(scheme)
+        else if Rooibos_Common_isArray(scheme) then
+            item = m.getArray(scheme)
+        else if Rooibos_Common_isString(scheme) then
+            item = m.getSimpleType(lCase(scheme))
+        end if
+        return item
+    end function
+    ' /**
+    '  * @memberof module:ItemGenerator
+    '  * @name GetAssocArray
+    '  * @function
+    '  * @instance
+    '  * @param {Dynamic} scheme  - A scheme with desired object structure. Can be
+    '  * any simple type, array of types or associative array in form
+    '  *
+    '  * ``` { propertyName1 : "propertyType1"
+    '  *   propertyName2 : "propertyType2"
+    '  *   ...
+    '  *   propertyNameN : "propertyTypeN" }
+    '  * ```
+    '  * @description Generates associative array according to specified scheme.
+    '  * @returns {Object} An associative array according to specified scheme.
+    '  */
+    instance.GetAssocArray = function(scheme as object) as object
+        item = {}
+        for each key in scheme
+            if not item.DoesExist(key) then
+                item[key] = m.getItem(scheme[key])
+            end if
+        end for
+        return item
+    end function
+    ' /**
+    '  * @memberof module:ItemGenerator
+    '  * @name GetArray
+    '  * @function
+    '  * @instance
+    '  * @param {Dynamic} An array with desired object types.
+    '  *
+    '  * ``` { propertyName1 : "propertyType1"
+    '  *   propertyName2 : "propertyType2"
+    '  *   ...
+    '  *   propertyNameN : "propertyTypeN" }
+    '  * ```
+    '  * @description Generates array according to specified scheme.
+    '  * @returns {Object} An array according to specified scheme.
+    '  */
+    instance.GetArray = function(scheme as object) as object
+        item = []
+        for each key in scheme
+            item.Push(m.getItem(key))
+        end for
+        return item
+    end function
+    ' /**
+    '  * @memberof module:ItemGenerator
+    '  * @name GetSimpleType
+    '  * @function
+    '  * @instance
+    '  * @description Generates random value of specified type
+    '  * @param {Dynamic} typeStr - name of desired object type.
+    '  * @returns {Object} A simple type object or invalid if type is not supported.
+    '  */
+    instance.GetSimpleType = function(typeStr as string) as object
+        item = invalid
+        if typeStr = "integer" or typeStr = "int" or typeStr = "roint" then
+            item = m.getInteger()
+        else if typeStr = "float" or typeStr = "rofloat" then
+            item = m.getFloat()
+        else if typeStr = "string" or typeStr = "rostring" then
+            item = m.getString(10)
+        else if typeStr = "boolean" or typeStr = "roboolean" then
+            item = m.getBoolean()
+        end if
+        return item
+    end function
+    ' /**
+    '  * @memberof module:ItemGenerator
+    '  * @name GetBoolean
+    '  * @function
+    '  * @instance
+    '  * @description Generates random boolean value.
+    '  * @returns {Boolean} A random boolean value.
+    '  */
+    instance.GetBoolean = function() as boolean
+        return Rooibos_Common_asBoolean(Rnd(2) \ Rnd(2))
+    end function
+    ' /**
+    '  * @memberof module:ItemGenerator
+    '  * @name GetInteger
+    '  * @function
+    '  * @instance
+    '  * @description Generates random integer value from 1 to specified seed value.
+    '  * @param {Dynamic} seed - seed value for Rnd function.
+    '  * @returns {integer} A random integer value.
+    '  */
+    instance.GetInteger = function(seed = 100) as integer
+        return Rnd(seed)
+    end function
+    ' /**
+    '  * @memberof module:ItemGenerator
+    '  * @name GetFloat
+    '  * @function
+    '  * @instance
+    '  * @description Generates random float value.
+    '  * @returns {float} A random float value.
+    '  */
+    instance.GetFloat = function() as float
+        return Rnd(0)
+    end function
+    ' /**
+    '  * @memberof module:ItemGenerator
+    '  * @name GetString
+    '  * @function
+    '  * @instance
+    '  * @description Generates random string with specified length.
+    '  * @param {Dynamic} seed - A string length
+    '  * @returns {string} A random string value or empty string if seed is 0.
+    '  */
+    instance.GetString = function(seed as integer) as string
+        item = ""
+        if seed > 0 then
+            stringLength = Rnd(seed)
+            for i = 0 to stringLength
+                chType = Rnd(3)
+                if chType = 1 then 'Chr(48-57) - numbers
+                    chNumber = 47 + Rnd(10)
+                else if chType = 2 then 'Chr(65-90) - Uppercase Letters
+                    chNumber = 64 + Rnd(26)
+                else 'Chr(97-122) - Lowercase Letters
+                    chNumber = 96 + Rnd(26)
+                end if
+                item = item + Chr(chNumber)
+            end for
+        end if
+        return item
+    end function
+    return instance
+end function
+function Rooibos_ItemGenerator()
+    instance = __Rooibos_ItemGenerator_builder()
+    instance.new()
+    return instance
+end function</code></pre>
+        </article>
+    </section>
 
 
 

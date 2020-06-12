@@ -91,7 +91,12 @@ namespace Rooibos
           assertIndex = metaTestCase.testResult.failedAssertIndex
           lineNumber = Rooibos.Common.getAssertLine(metaTestCase, assertIndex)
         end if
-        locationLine = StrI(lineNumber).trim()
+        if lineNumber <> invalid
+          locationLine = StrI(lineNumber).trim()
+        else
+          locationLine = StrI(metaTestCase.lineNumber).trim()
+        end if
+
       else
         testChar = "|"
         locationLine = StrI(metaTestCase.lineNumber).trim()

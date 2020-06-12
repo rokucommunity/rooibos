@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../images/logo.png" alt="Rooibos test framework" width="200" height="200"/>
+  <img src="images/logo.png" alt="Rooibos test framework" width="200" height="200"/>
 </p>
 <h3 align="center">
 Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
