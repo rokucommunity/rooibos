@@ -1,51 +1,38 @@
-namespace RBS_TC
-class UnitTestCase
+namespace Rooibos
+  class UnitTestCase
 
-public isSolo
-public func
-public funcName
-public isIgnored
-public name
-public lineNumber
-public paramLineNumber
-public assertIndex = 0
-'Map with which the testsuite processor can take the index of a an assert line, and map it to the line Number
-public assertLineNumberMap = {}
-public getTestLineIndex = 0
-public rawParams
-public paramTestIndex
-public isParamTest = false
-public time = 0
+    public isSolo
+    public func
+    public funcName
+    public isIgnored
+    public name
+    public lineNumber
+    public paramLineNumber
+    public assertIndex = 0
+    'Map with which the testsuite processor can take the index of a an assert line, and map it to the line Number
+    public assertLineNumberMap = {}
+    public getTestLineIndex = 0
+    public rawParams
+    public paramTestIndex
+    public isParamTest = false
+    public time = 0
 
-public function new(name as string, func as dynamic, funcName as string, isSolo as boolean, isIgnored as boolean, lineNumber as integer, params = invalid, paramTestIndex = 0, paramLineNumber = 0)
-  m.isSolo = isSolo
-  m.func = func
-  m.funcName = funcName
-  m.isIgnored = isIgnored
-  m.name = name
-  m.lineNumber = lineNumber
-  m.paramLineNumber = paramLineNumber
-  m.rawParams = params
-  m.paramTestIndex = paramTestIndex
-  
-  if (params <> invalid)
-    m.name += stri(m.paramTestIndex)
-  end if
-  
-  return this
-end function
+    public function new(name as string, func as dynamic, funcName as string, isSolo as boolean, isIgnored as boolean, lineNumber as integer, params = invalid, paramTestIndex = 0, paramLineNumber = 0)
+      m.isSolo = isSolo
+      m.func = func
+      m.funcName = funcName
+      m.isIgnored = isIgnored
+      m.name = name
+      m.lineNumber = lineNumber
+      m.paramLineNumber = paramLineNumber
+      m.rawParams = params
+      m.paramTestIndex = paramTestIndex
 
-'Static, becuase the result might be created across node boundaries, therefore stripping methods
-public function GetAssertLine(testCase, index)
-  if (testCase.assertLineNumberMap.doesExist(stri(index).trim()))
-    return testCase.assertLineNumberMap[stri(index).trim()]
-  else if (testCase.assertLineNumberMap.doesExist(stri(index + 1000).trim()))
-    'this is where we store line numbers for our
-    return testCase.assertLineNumberMap[stri(index + 1000).trim()]
-  
-    return testCase.lineNumber
-  end if
-end function
+      if (params <> invalid)
+        m.name = m.name + stri(m.paramTestIndex)
+      end if
 
-end class
+      return this
+    end function
+  end class
 end namespace

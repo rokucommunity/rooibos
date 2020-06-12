@@ -1,54 +1,54 @@
-namespace RBS_UTR
-class UnitTestResult
+namespace Rooibos
+  class UnitTestResult
 
-public messages = []
-public isFail = false
-public currentAssertIndex = 0
-public failedAssertIndex = 0
-public failedMockLineNumber = -1
+    public messages = []
+    public isFail = false
+    public currentAssertIndex = 0
+    public failedAssertIndex = 0
+    public failedMockLineNumber = -1
 
-public function Reset() as void
-  m.isFail = false
-  m.failedMockLineNumber = -1
-  m.messages = []
-end function
+    public function reset() as void
+      m.isFail = false
+      m.failedMockLineNumber = -1
+      m.messages = []
+    end function
 
-public function AddResult(message as string) as string
-  if (message <> "")
-    m.messages.push(message)
-    if (not m.isFail)
-      m.failedAssertIndex = m.currentAssertIndex
-    end if
-    m.isFail = true
-  end if
-  m.currentAssertIndex++
-  return message
-end function
+    public function addResult(message as string) as string
+      if (message <> "")
+        m.messages.push(message)
+        if (not m.isFail)
+          m.failedAssertIndex = m.currentAssertIndex
+        end if
+        m.isFail = true
+      end if
+      m.currentAssertIndex++
+      return message
+    end function
 
-public function AddMockResult(lineNumber, message as string) as string
-  if (message <> "")
-    m.messages.push(message)
-    if (not m.isFail)
-      m.failedMockLineNumber = lineNumber
-    end if
-    m.isFail = true
-  end if
-  return message
-end function
+    public function addMockResult(lineNumber, message as string) as string
+      if (message <> "")
+        m.messages.push(message)
+        if (not m.isFail)
+          m.failedMockLineNumber = lineNumber
+        end if
+        m.isFail = true
+      end if
+      return message
+    end function
 
-public function GetResult() as string
-  if (m.isFail)
-    msg = m.messages.peek()
-    
-    if (msg <> invalid)
-      return msg
-    else
-      return "unknown test failure"
-    end if
-  else
-    return ""
-  end if
-end function
+    public function getResult() as string
+      if (m.isFail)
+        msg = m.messages.peek()
 
-end class
+        if (msg <> invalid)
+          return msg
+        else
+          return "unknown test failure"
+        end if
+      else
+        return ""
+      end if
+    end function
+
+  end class
 end namespace

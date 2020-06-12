@@ -1,6 +1,6 @@
 '@TestSuite ET ExpectTests
 
-namespace ET
+namespace Rooibos.Tests.ExpectTests
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests bug with expectOnce not matching values
@@ -20,12 +20,12 @@ function expectOnce_valuesBug_reported(expectedValue, expectMockFail) as void
   m.ExpectOnce(obj, "foo", expectedValue)
   obj.foo(42)
   m.isAutoAssertingMocks = false
-  m.AssertMocks()
+  m.assertMocks()
   
   isFail = m.currentResult.isFail
   m.currentResult.Reset()
   m.CleanMocks()
-  m.AssertEqual(isFail, expectMockFail) 
+  m.assertEqual(isFail, expectMockFail) 
 end function
 
 
@@ -39,7 +39,7 @@ function expect_mockCountLimitToBeAtLeast25() as void
   interface = {}
   
   mockCountLimit = 25 
-  for i = 1 to mockCountLimit step + 1
+  for i = 1 to mockCountLimit
     keyName = StrI(i).trim()
     interface[keyName] = function(arg0) : return arg0 : end function
     

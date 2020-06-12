@@ -1,10 +1,11 @@
-sub Main(args as dynamic)
-    if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals, "AddTestUtils", invalid, m)
+sub main(args as dynamic)
+    'bs:disable-next-line
+    if (type(Rooibos_init) = "Function") then Rooibos_init(setupGlobals, "AddTestUtils", invalid, m)
 
     InitScreen()
 end sub
 
-function InitScreen() as void
+function initScreen() as void
     'this will be where you setup your typical roku app
     'it will not be launched when running unit tests
     screen = CreateObject("roSGScreen")
@@ -35,7 +36,7 @@ end function
 '** SetupGlobals
 '** @param screen as roScreen - screen to set globals on
 '*************************************************************
-function SetupGlobals(screen) as void
+function setupGlobals(screen) as void
     ? "SETTTING UP GLOBALS - do your standard setup stuff here"
 
     m.global = screen.getGlobalNode()

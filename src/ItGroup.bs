@@ -1,39 +1,39 @@
-namespace RBS_ItG
+namespace Rooibos.ItGroup
 
-function GetTestCases(group) as object
-  if (group.hasSoloTests = true)
-    return group.soloTestCases
-  else
-    return group.testCases
-  end if
-end function
-
-function GetRunnableTestSuite(group) as object
-  testCases = RBS_ItG.GetTestCases(group)
-
-  runnableSuite = BaseTestSuite()
-  runnableSuite.name = group.name
-  runnableSuite.isLegacy = group.isLegacy = true
-  if group.testCaseLookup = invalid
-    group.testCaseLookup = {}
-  end if
-
-  for each testCase in testCases
-    name = testCase.name
-    if (testCase.isSolo = true)
-      name += " [SOLO] "
+  function getTestCases(group) as object
+    if (group.hasSoloTests = true)
+      return group.soloTestCases
+    else
+      return group.testCases
     end if
-    testFunction = RBS_CMN.GetFunction(group.filename, testCase.funcName)
-    runnableSuite.addTest(name, testFunction, testCase.funcName)
-    group.testCaseLookup[name] = testCase
-  end for
+  end function
 
-  runnableSuite.SetUp = RBS_CMN.GetFunction(group.filename, group.setupFunctionName)
-  runnableSuite.TearDown =  RBS_CMN.GetFunction(group.filename, group.teardownFunctionName)
-  runnableSuite.BeforeEach =  RBS_CMN.GetFunction(group.filename, group.beforeEachFunctionName)
-  runnableSuite.AfterEach =  RBS_CMN.GetFunction(group.filename, group.afterEachFunctionName)
+  function getRunnableTestSuite(group) as object
+    testCases = Rooibos.ItGroup.getTestCases(group)
 
-  return runnableSuite
-end function
+    runnableSuite = new Rooibos.BaseTestSuite()
+    runnableSuite.name = group.name
+    runnableSuite.isLegacy = group.isLegacy = true
+    if group.testCaseLookup = invalid
+      group.testCaseLookup = {}
+    end if
+
+    for each testCase in testCases
+      name = testCase.name
+      if (testCase.isSolo = true)
+        name = name + " [SOLO] "
+      end if
+      testFunction = Rooibos.Common.getFunction(group.filename, testCase.funcName)
+      runnableSuite.addTest(name, testFunction, testCase.funcName)
+      group.testCaseLookup[name] = testCase
+    end for
+
+    runnableSuite.SetUp = Rooibos.Common.getFunction(group.filename, group.setupFunctionName)
+    runnableSuite.TearDown = Rooibos.Common.getFunction(group.filename, group.teardownFunctionName)
+    runnableSuite.BeforeEach = Rooibos.Common.getFunction(group.filename, group.beforeEachFunctionName)
+    runnableSuite.AfterEach = Rooibos.Common.getFunction(group.filename, group.afterEachFunctionName)
+
+    return runnableSuite
+  end function
 
 end namespace
