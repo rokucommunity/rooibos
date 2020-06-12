@@ -152,7 +152,8 @@ export async function prepareFrameworkTests(cb) {
 
     "outputPath": path.join("source", "tests"),
     showFailuresOnly: true,
-    isRecordingCodeCoverage: options.isCoverageBuild === 'true'
+    isRecordingCodeCoverage: options.isCoverageBuild === 'true',
+    printLcov: true
   });
   let processor = new RooibosProcessor(config);
   await processor.processFiles();

@@ -44,7 +44,7 @@ namespace Rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
     ?
     ? "+-=-coverage:start"
-    ? RBS.Coverage.createLCovOutput()
+    ? Rooibos.Coverage.createLCovOutput()
     ? "+-=-coverage:end"
   end function
 

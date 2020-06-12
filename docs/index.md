@@ -1260,6 +1260,11 @@ pkg:/components/Core/Components/NoKeyPressRowList.brs: MISS!
 pkg:/components/Model/TabComponentContent.brs: MISS!
 ```
 
+e.g.
+
+![coverage output](images/coverage.png)
+
+
   - Total coverage - % (num of hit lines/ num of trackable lines)
   - Files: num of hit files / total num of trackable files
 
@@ -1267,4 +1272,13 @@ Following is a list of all the hit files, and their coverage % and (hit lines/to
 
 Lastly the files that were not hit at all, during test execution.
 
-The current implementation is capable of tracking lcov style statistics, and this will be implemented in the future.
+The current implementation is capable of tracking lcov style statistics; to do this, run rooibos-cli with the arg `--printLcov` or add `"printLcov": true` to your gulp build.
+
+In this case the lcov report is printed to the end of the console output. Thanks very much to @Ronen on the slack channel for this contribution!
+
+The report is contained after the LCOV.INFO file. Given that that the console output could be saved, it should be trivial to watch the log output file, and update your lcov file after running your tests.
+
+e.g.
+
+![coverage output](images/lcov.png)
+

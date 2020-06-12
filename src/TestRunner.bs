@@ -135,8 +135,7 @@ namespace Rooibos
         RBS_ReportCodeCoverage()
 
         if m.config.printLcov = true
-          'bs:disable-next-line
-          RBS_Coverage_printLCovInfo()
+          Rooibos.Coverage.printLCovInfo()
         end if
       end if
       m.sendHomeKeypress()
