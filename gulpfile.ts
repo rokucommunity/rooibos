@@ -1,8 +1,7 @@
 import { series } from "gulp";
 import { RooibosProcessor, createProcessorConfig } from "rooibos-cli";
-import { MaestroProjectProcessor, createMaestroConfig } from 'maestro-cli-roku';
+import { BurpConfig, BurpProcessor } from 'burp-brightscript';
 import { ProgramBuilder } from 'brighterscript';
-import { BsConfig } from 'brighterscript/dist/BsConfig';
 
 const concat = require('gulp-concat');
 const gulp = require('gulp');
@@ -17,9 +16,16 @@ const buildDir = 'build';
 const distFile = `rooibosDist.brs`;
 const fullDistPath = path.join(distDir, distFile);
 const fs = require('fs');
+const minimist = require('minimist');
 const rmLines = require('gulp-rm-lines');
 const rokuDeploy = require('roku-deploy');
 const cp = require('child_process');
+
+const knownOptions = {
+  string: ['isCoverageBuild'],
+}
+
+const options = minimist(process.argv.slice(2), knownOptions);
 
 const args = {
   host: process.env.ROKU_HOST || '192.168.16.3',
@@ -92,7 +98,7 @@ function squash() {
   return gulp.src('./build/*.brs')
     .pipe(concat(distFile))
     .pipe(rmLines({
-      'filters': [/^\s*'/i, /((\r\n|\n|\r)$)|(^(\r\n|\n|\r))|^\s*$/i]
+      'filters': [/^\s*'(?!bs:disable)/i, /((\r\n|\n|\r)$)|(^(\r\n|\n|\r))|^\s*$/i]
     }))
     .pipe(header(banner, { pkg: pkg }))
     .pipe(gulp.dest(distDir));
@@ -122,7 +128,7 @@ function copyToTests(cb) {
 
 export async function prepareFrameworkTests(cb) {
   await rokuDeploy.prepublishToStaging(args);
-  console.log('running rooibos processor')
+  console.log(`running rooibos processor coverage: ${options.isCoverageBuild === 'true'}`);
   let config = createProcessorConfig({
     "projectPath": "build",
     "testsFilePattern": [
@@ -131,7 +137,22 @@ export async function prepareFrameworkTests(cb) {
       "!**/rooibosFunctionMap.brs",
       "!**/TestsScene.brs"
     ],
+    sourceFilePattern: [
+      '**/*.brs',
+      '**/*.xml',
+      '!**/rLog',
+      '!**/rLog/**/*.*',
+      '!**/rLogComponents',
+      '!**/rLogComponents/**/*.*',
+      '!**/rooibosDist.brs',
+      '!**/rooibosFunctionMap.brs',
+      '!**/TestsScene.brs',
+      '!**/ThreadUtils.brs'
+    ],
+
+    "outputPath": path.join("source", "tests"),
     showFailuresOnly: true,
+    isRecordingCodeCoverage: options.isCoverageBuild === 'true'
   });
   let processor = new RooibosProcessor(config);
   await processor.processFiles();
@@ -187,6 +208,28 @@ export function updateVersion(cb) {
   cb();
 }
 
+export function applyBurpPreprocessing(cb) {
+  const currentPath = process.cwd();
+  let replacements = null;
+
+  replacements = [{
+    regex: `($.*)'##'bs:disable-next-line`,
+    replacement: `$1\n'bs:disable-next-line`
+  }];
+  let config: BurpConfig = {
+    sourcePath: 'build',
+    globPattern: '**/*.brs',
+    replacements: replacements
+  };
+
+  const processor = new BurpProcessor(config);
+  processor.processFiles();
+  console.log(`Resetting path to ${currentPath}`);
+  process.chdir(currentPath);
+  cb();
+}
+
+
 function insertVersionNumber(cb) {
   const filePath = path.join(buildDir, 'Rooibos.brs');
   let text = fs.readFileSync(filePath, 'utf8');
@@ -195,7 +238,7 @@ function insertVersionNumber(cb) {
   cb();
 }
 
-exports.build = series(clean, createDirectories, compileFramework, insertVersionNumber, squash, copyToSamples, copyToTests);
+exports.build = series(clean, createDirectories, compileFramework, insertVersionNumber, squash, applyBurpPreprocessing, copyToSamples, copyToTests);
 exports.buildFrameworkTests = series(exports.build, prepareBuildDir, compile);
 exports.runFrameworkTests = series(exports.buildFrameworkTests, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
 exports.prePublishFrameworkTests = series(exports.buildFrameworkTests, prepareFrameworkTests)

@@ -2,7 +2,6 @@
 <component
   name="TestsScene"
   extends="Scene"
-  xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
 >
   <interface>
     <function name="Rooibos_CreateTestNode" />

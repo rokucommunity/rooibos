@@ -1,4 +1,4 @@
-namespace RBS_IG
+namespace Rooibos
   ' /**
   '  * @module ItemGenerator
   '  */
@@ -22,7 +22,7 @@ namespace RBS_IG
   class ItemGenerator
 
     public function new()
-      m.isValid = RBS_CMN.IsValid(scheme)
+      m.isValid = Rooibos.Common.isValid(scheme)
     end function
 
     ' /**
@@ -45,11 +45,11 @@ namespace RBS_IG
 
       item = invalid
 
-      if RBS_CMN.IsAssociativeArray(scheme)
+      if Rooibos.Common.isAssociativeArray(scheme)
         item = m.getAssocArray(scheme)
-      else if RBS_CMN.IsArray(scheme)
+      else if Rooibos.Common.isArray(scheme)
         item = m.getArray(scheme)
-      else if RBS_CMN.IsString(scheme)
+      else if Rooibos.Common.isString(scheme)
         item = m.getSimpleType(lCase(scheme))
       end if
 
@@ -146,7 +146,7 @@ namespace RBS_IG
     '  * @returns {Boolean} A random boolean value.
     '  */
     public function GetBoolean() as boolean
-      return RBS_CMN.AsBoolean(Rnd(2) \ Rnd(2))
+      return Rooibos.Common.asBoolean(Rnd(2) \ Rnd(2))
     end function
 
     ' /**

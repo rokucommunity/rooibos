@@ -1,4 +1,15 @@
+//framework tests
 {
     "rootDir": "frameworkTests",
-    "autoImportComponentScript": true
+    "autoImportComponentScript": false
 }
+// framework
+// {
+//   "rootDir": "src",
+//   "files": [
+//     {
+//       "src": "**/*.*",
+//       "dest": "source"
+//     }
+//   ]
+// }

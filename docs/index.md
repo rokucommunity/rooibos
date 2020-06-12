@@ -62,9 +62,18 @@ You can even use `rooibos-cli` from your npm-compatible build tools, such as gul
 	
 3. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens
 
-	```sh
-	if (type(Rooibos__Init) = "Function") then Rooibos__Init()
-	```
+**(.brs)**
+	
+```
+  'bs:disable-next-line
+  if (type(Rooibos_init) = "Function") then Rooibos_init()
+```
+
+**(.bs)**
+```
+  'bs:disable-next-line
+  if (type(Rooibos.init) = "Function") then Rooibos.init()
+```
 	
 	Note - rooibos will run if it is present. *You should be filtering out your tests folder, containing rooibosDist.brs, and your tests as part of your non-test build/release process*, which is the preferred mechanism to disable/enable rooibos.
 	
@@ -184,16 +193,17 @@ There are two ways to invoke rooibos-cli:
 
 
 
-| flag | argument | Fescription |
-|--- |--- |:-: |
-| `-p` | `--projectPath` | the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output. |
-| `-t` | `--testsFilePattern` | array of globs, specifying which test files (i.e. your test _.brs_ files) to include. Relative to projectPath, relative to _"projectPath"_ |
-| `-o` | `--outputPath` | you can also specity the _"outputPath"_. This is where rooibos-cli will write the map file, and other files it needs which informs rooibos about your tests. It is relative to |
-| `-v` | `--isRecordingCodeCoverage` | indicates that we want to generate coverage |
-| `-s` | `--sourceFilePattern` | array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set. |
-| `-f` | `--showFailuresOnly` | Show results for failed tests, if any. If none fail, then all results are shown |
-| `-F` | `--failFast` | Test execution will stop at the first failure |
-| `-l` | `--legacySupport` | Flag indicating that rooibos should try to inlcude legacy roku unit tests |
+| flag | argument                    | Fescription                                                                                                                                                                    |
+|------|-----------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-p` | `--projectPath`             | the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output.                                                                            |
+| `-t` | `--testsFilePattern`        | array of globs, specifying which test files (i.e. your test _.brs_ files) to include. Relative to projectPath, relative to _"projectPath"_                                     |
+| `-o` | `--outputPath`              | you can also specity the _"outputPath"_. This is where rooibos-cli will write the map file, and other files it needs which informs rooibos about your tests. It is relative to |
+| `-v` | `--isRecordingCodeCoverage` | indicates that we want to generate coverage                                                                                                                                    |
+| `-s` | `--sourceFilePattern`       | array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set.                                                  |
+| `-f` | `--showFailuresOnly`        | Show results for failed tests, if any. If none fail, then all results are shown                                                                                                |
+| `-F` | `--failFast`                | Test execution will stop at the first failure                                                                                                                                  |
+| `-l` | `--legacySupport`           | Flag indicating that rooibos should try to inlcude legacy roku unit tests                                                                                                      |
+| `-l` | `--printLCov`           | Flag indicating that rooibos should wil print lcov results to the log, so you can populate your lcov file with them|
 
 ### Configuring Rooibos's runtime behaviour
 
@@ -267,20 +277,20 @@ Some annotations act as modifiers. In these cases, they will affect some other a
 
 The following annotations are supported.
 
-|Annotation   	|Description   	|Data   |
-|---	|---	|---	|
-|@TestSuite   	|Indicates a file is a test suite   	|Name of the test suite. Used in test output   	|
-|@Setup   	|Run once when the suite is executed <a name="common-tdd-methods"></a>	|   	|
-|@TearDown   	|Run once when the suite is finished	|   	|
-|@BeforeEach   	|Run before each test. Can be specified for the `@TestSuite`, or for each `@It` group	|   	|
-|@AfterEach   	|Run after each test. Can be specified for the `@TestSuite`, or for each `@It` group	|   	|
-|@It   	|Indicates a group of tests. Groupings improve readability. A group might denote various tests for a given method, or even an aspect of functionality	|Name of the it group, which is used in the test output   	|
-|@Test   	|Indicates a `TestCase`. Must directly precede a function definition	|The name of the test acse, which will be reported in the test output   	|
-|@Only   	|Precedes a TestSuite, It group, or TestCase, to indicate that _only that item_ should be executed. This can be used to rapidly filter out tests. Only other `@Only` items will be run.	|   	|
-|@Ignore   	|Preceds a TestSuite, It group or TestCase, to indicate that that item should be ignored. If an `@Ignore` tag is found before an item, then it will not be executed as part of the test run	|   	|
-|@Params[p1,p2,...,p6]   	|Indicates a Paremeterized test. Must come _after_ a `@Test` annotation. Can accept up to 6 arguments, which are comma separated. When using paremeterized tests, the test function signature _must_ accept the same number of arguments, and each of Params statemens, must also have the same number of params	|Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function  	|
-|@IgnoreParams[p1,p2,...,p6]   	|A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run. 	|As per `@Params`   	|
-|@OnlyParams[p1,p2,...,p6]   	|A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case	|As per `@Params`   	|
+| Annotation                  | Description                                                                                                                                                                                                                                                                                                     | Data                                                                                              |
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| @TestSuite                  | Indicates a file is a test suite                                                                                                                                                                                                                                                                                | Name of the test suite. Used in test output                                                       |
+| @Setup                      | Run once when the suite, or it group is executed <a name="common-tdd-methods"></a>                                                                                                                                                                                                                                           |                                                                                                   |
+| @TearDown                   | Run once when the suite or it group is finished                                                                                                                                                                                                                                                                             |                                                                                                   |
+| @BeforeEach                 | Run before each test. Can be specified for the `@TestSuite`, or for each `@It` group                                                                                                                                                                                                                            |                                                                                                   |
+| @AfterEach                  | Run after each test. Can be specified for the `@TestSuite`, or for each `@It` group                                                                                                                                                                                                                             |                                                                                                   |
+| @It                         | Indicates a group of tests. Groupings improve readability. A group might denote various tests for a given method, or even an aspect of functionality                                                                                                                                                            | Name of the it group, which is used in the test output                                            |
+| @Test                       | Indicates a `TestCase`. Must directly precede a function definition                                                                                                                                                                                                                                             | The name of the test acse, which will be reported in the test output                              |
+| @Only                       | Precedes a TestSuite, It group, or TestCase, to indicate that _only that item_ should be executed. This can be used to rapidly filter out tests. Only other `@Only` items will be run.                                                                                                                          |                                                                                                   |
+| @Ignore                     | Preceds a TestSuite, It group or TestCase, to indicate that that item should be ignored. If an `@Ignore` tag is found before an item, then it will not be executed as part of the test run                                                                                                                      |                                                                                                   |
+| @Params[p1,p2,...,p6]       | Indicates a Paremeterized test. Must come _after_ a `@Test` annotation. Can accept up to 6 arguments, which are comma separated. When using paremeterized tests, the test function signature _must_ accept the same number of arguments, and each of Params statemens, must also have the same number of params | Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function |
+| @IgnoreParams[p1,p2,...,p6] | A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run.                                                                                                                                                                                                         | As per `@Params`                                                                                  |
+| @OnlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                               | As per `@Params`                                                                                  |
 
 
 ## Writing tests
@@ -478,7 +488,7 @@ This makes it easy for us to pass in values to our tests, and expected output va
 '@Params["05","16","05",1, 17]
 '@Params["05","18","00",1, 19]
 function SUT__Update_realData_success(dayOfMonth, hour, minute, expectedDayIndex, expectedShowIndex) as void
-	nowDate = SUT.CreateTestDatae(dayOfMonth, hour, minute)
+	nowDate = SUT.CreateTestDate(dayOfMonth, hour, minute)
 
 	m.scheduleContent.callFunc("UpdateTime", nowDate.asSeconds())
 	m.AssertEqual(m.scheduleContent.nowDayIndex, expectedDayIndex)
@@ -853,10 +863,16 @@ It is simple to use a custom matcher to assert your mock arguments. Simply:
  - ensure it's in scope
  - return your function (either by pointer, or inline), in an aa as follow: `{"matcher": yourMatcherFunction}
 
-For example, using a function pointer:
+For example, using a function pointer (.brs):
 
 ```
-  m.expectOnce(m.myClass, "doWork", [{"matcher": RBS_MATCH_anyArrayMatcher}], returnValue)
+  m.expectOnce(m.myClass, "doWork", [{"matcher": Rooibos_Matcher_anyArray}], returnValue)
+```
+
+For example, using a function pointer (bs):
+
+```
+  m.expectOnce(m.myClass, "doWork", [{"matcher": Rooibos.Matcher.anyArray}], returnValue)
 ```
 
 And inline:

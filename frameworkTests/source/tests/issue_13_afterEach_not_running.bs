@@ -1,49 +1,51 @@
 '@Ignore - only unignore to test compiler works
 '@TestSuite [DGNT] Duplicate Group Name Tests
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It group1
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+namespace Rooibos.Tests.AfterEachNotRunning
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '@It group1
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Test simple
-function DGNT_group1_test()
-  m.AssertTrue(true)
-end function
+  '@Test simple
+  function group1_test()
+    m.assertTrue(true)
+  end function
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It group2
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '@It group2
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Test simple
-function DGNT_group2_test()
-  m.AssertTrue(true)
-end function
-
-
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It group2
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-'@Test simple
-function DGNT_group2_dupe_test()
-  m.AssertTrue(true)
-end function
+  '@Test simple
+  function group2_test()
+    m.assertTrue(true)
+  end function
 
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It group3
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '@It group2
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Test simple
-function DGNT_group3_test()
-  m.AssertTrue(true)
-end function
+  '@Test simple
+  function group2_dupe_test()
+    m.assertTrue(true)
+  end function
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It group1
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Test simple
-function DGNT_group1_dupe_test()
-  m.AssertTrue(true)
-end function
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '@It group3
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  '@Test simple
+  function group3_test()
+    m.assertTrue(true)
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '@It group1
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  '@Test simple
+  function group1_dupe_test()
+    m.assertTrue(true)
+  end function
+end namespace

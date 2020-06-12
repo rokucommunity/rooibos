@@ -1,4 +1,4 @@
-namespace RBS_CMN
+namespace Rooibos.Common
   ' /**
   '  * @module CommonUtils
   '  */
@@ -14,8 +14,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains XMLElement interface, else return false
   '  */
-  function IsXmlElement(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifXMLElement") <> invalid
+  function isXmlElement(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifXMLElement") <> invalid
   end function
 
   ' /**
@@ -26,13 +26,13 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains Function interface, else return false
   '  */
-  function IsFunction(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifFunction") <> invalid
+  function isFunction(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifFunction") <> invalid
   end function
 
 
   ' /**
-  '  * @name RBS_CMN.GetFunction
+  '  * @name Rooibos.Common.getFunction
   '  * @function
   '  * @description looks up the function by name, for the function map
   '  * @memberof module:CommonUtils
@@ -40,9 +40,10 @@ namespace RBS_CMN
   '  * @param {String} functionName - name of the function to locate
   '  * @returns {Function} - function pointer or invalid
   '  */
-  function GetFunction(filename, functionName) as object
-    if (not RBS_CMN.IsNotEmptyString(functionName)) then return invalid
-    if (not RBS_CMN.IsNotEmptyString(filename)) then return invalid
+  function getFunction(filename, functionName) as object
+    if (not Rooibos.Common.isNotEmptyString(functionName)) then return invalid
+    if (not Rooibos.Common.isNotEmptyString(filename)) then return invalid
+    'bs:disable-next-line
     mapFunction = RBSFM_getFunctionsForFile(filename)
     if mapFunction <> invalid
       map = mapFunction()
@@ -58,25 +59,22 @@ namespace RBS_CMN
   end function
 
   ' /**
-  '  * @name RBS_CMN.GetFunctionBruteforce
+  '  * @name Rooibos.Common.getFunctionBruteforce
   '  * @function
   '  * @description looks up the function by name, from any function map
-  '  *            in future, functions retrieved in this way are stored in the special RBS_INTERNAL file map
+  '  *            in future
   '  * @memberof module:CommonUtils
   '  * @param {filename} string - name of the file where the function was found
   '  * @param {String} functionName - name of the function to locate
   '  * @returns {Function} - function pointer or invalid
   '  */
-  function GetFunctionBruteForce(functionName) as object
-    if (not RBS_CMN.IsNotEmptyString(functionName)) then return invalid
-    ' func = RBS_CMN.GetFunction("RBS_INTERNAL", functionName)
-    ' if func <> invalid
-    '   return func
-    ' end if
-
+  function getFunctionBruteForce(functionName) as object
+    if (not Rooibos.Common.isNotEmptyString(functionName)) then return invalid
+    'bs:disable-next-line
     filenames = RBSFM_getFilenames()
     for i = 0 to filenames.count() - 1
       filename = filenames[i]
+      'bs:disable-next-line
       mapFunction = RBSFM_getFunctionsForFile(filename)
       if mapFunction <> invalid
         map = mapFunction()
@@ -100,8 +98,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains Boolean interface, else return false
   '  */
-  function IsBoolean(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifBoolean") <> invalid
+  function isBoolean(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifBoolean") <> invalid
   end function
 
   ' /**
@@ -112,8 +110,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value type equals Integer, else return false
   '  */
-  function IsInteger(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifInt") <> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
+  function isInteger(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifInt") <> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
   end function
 
   ' /**
@@ -124,8 +122,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains Float interface, else return false
   '  */
-  function IsFloat(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifFloat") <> invalid
+  function isFloat(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifFloat") <> invalid
   end function
 
   ' /**
@@ -136,8 +134,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains Double interface, else return false
   '  */
-  function IsDouble(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifDouble") <> invalid
+  function isDouble(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifDouble") <> invalid
   end function
 
   ' /**
@@ -148,8 +146,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains LongInteger interface, else return false
   '  */
-  function IsLongInteger(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifLongInt") <> invalid
+  function isLongInteger(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifLongInt") <> invalid
   end function
 
   ' /**
@@ -160,8 +158,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value is number, else return false
   '  */
-  function IsNumber(value) as boolean
-    return RBS_CMN.IsLongInteger(value) or RBS_CMN.IsDouble(value) or RBS_CMN.IsInteger(value) or RBS_CMN.IsFloat(value)
+  function isNumber(value) as boolean
+    return Rooibos.Common.isLongInteger(value) or Rooibos.Common.isDouble(value) or Rooibos.Common.isInteger(value) or Rooibos.Common.isFloat(value)
   end function
 
   ' /**
@@ -172,8 +170,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains List interface, else return false
   '  */
-  function IsList(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifList") <> invalid
+  function isList(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifList") <> invalid
   end function
 
   ' /**
@@ -184,8 +182,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains Array interface, else return false
   '  */
-  function IsArray(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifArray") <> invalid
+  function isArray(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifArray") <> invalid
   end function
 
   ' /**
@@ -196,8 +194,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains AssociativeArray interface, else return false
   '  */
-  function IsAssociativeArray(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifAssociativeArray") <> invalid
+  function isAssociativeArray(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifAssociativeArray") <> invalid
   end function
 
   ' /**
@@ -208,8 +206,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains SGNodeChildren interface, else return false
   '  */
-  function IsSGNode(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifSGNodeChildren") <> invalid
+  function isSGNode(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifSGNodeChildren") <> invalid
   end function
 
   ' /**
@@ -220,8 +218,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains String interface, else return false
   '  */
-  function IsString(value) as boolean
-    return RBS_CMN.IsValid(value) and GetInterface(value, "ifString") <> invalid
+  function isString(value) as boolean
+    return Rooibos.Common.isValid(value) and GetInterface(value, "ifString") <> invalid
   end function
 
   ' /**
@@ -232,8 +230,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains String interface and length more 0, else return false
   '  */
-  function IsNotEmptyString(value) as boolean
-    return RBS_CMN.IsString(value) and len(value) > 0
+  function isNotEmptyString(value) as boolean
+    return Rooibos.Common.isString(value) and len(value) > 0
   end function
 
   ' /**
@@ -244,8 +242,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value contains DateTime interface, else return false
   '  */
-  function IsDateTime(value) as boolean
-    return RBS_CMN.IsValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
+  function isDateTime(value) as boolean
+    return Rooibos.Common.isValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
   end function
 
   ' /**
@@ -256,11 +254,11 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value initialized and not equal invalid, else return false
   '  */
-  function IsValid(value) as boolean
-    return not RBS_CMN.IsUndefined(value) and value <> invalid
+  function isValid(value) as boolean
+    return not Rooibos.Common.isUndefined(value) and value <> invalid
   end function
 
-  function IsUndefined(value) as boolean
+  function isUndefined(value) as boolean
     return type(value) = "" or Type(value) = "<uninitialized>"
   end function
 
@@ -272,7 +270,7 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {String} - value if his contains String interface else return empty string
   '  */
-  function ValidStr(obj) as string
+  function validStr(obj) as string
     if obj <> invalid and GetInterface(obj, "ifString") <> invalid
       return obj
     else
@@ -288,14 +286,14 @@ namespace RBS_CMN
   '  * @param {Dynamic} input - value to check
   '  * @returns {String} - converted string
   '  */
-  function AsString(input) as string
-    if RBS_CMN.IsValid(input) = false
+  function asString(input) as string
+    if Rooibos.Common.isValid(input) = false
       return "Invalid"
-    else if RBS_CMN.IsString(input)
+    else if Rooibos.Common.isString(input)
       return input
-    else if RBS_CMN.IsInteger(input) or RBS_CMN.IsLongInteger(input) or RBS_CMN.IsBoolean(input)
+    else if Rooibos.Common.isInteger(input) or Rooibos.Common.isLongInteger(input) or Rooibos.Common.isBoolean(input)
       return input.ToStr()
-    else if RBS_CMN.IsFloat(input) or RBS_CMN.IsDouble(input)
+    else if Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input)
       return Str(input).Trim()
     else if type(input) = "roSGNode"
       return "Node(" + input.subType() + ")"
@@ -308,12 +306,12 @@ namespace RBS_CMN
       end if
       for each key in input
         if key <> "__mocks" and key <> "__stubs"
-          text = text + key + ":" + RBS_CMN.AsString(input[key])
+          text = text + key + ":" + Rooibos.Common.asString(input[key])
         end if
       end for
       text = text + "}"
       return text
-    else if RBS_CMN_isFunction(input)
+    else if Rooibos.Common.isFunction(input)
       return input.toStr()
     else
       return ""
@@ -328,14 +326,14 @@ namespace RBS_CMN
   '  * @param {Dynamic} input - value to check
   '  * @returns {Integer} - converted Integer
   '  */
-  function AsInteger(input) as integer
-    if RBS_CMN.IsValid(input) = false
+  function asInteger(input) as integer
+    if Rooibos.Common.isValid(input) = false
       return 0
-    else if RBS_CMN.IsString(input)
+    else if Rooibos.Common.isString(input)
       return input.ToInt()
-    else if RBS_CMN.IsInteger(input)
+    else if Rooibos.Common.isInteger(input)
       return input
-    else if RBS_CMN.IsFloat(input) or RBS_CMN.IsDouble(input) or RBS_CMN.IsLongInteger(input)
+    else if Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input) or Rooibos.Common.isLongInteger(input)
       return Int(input)
     else
       return 0
@@ -350,12 +348,12 @@ namespace RBS_CMN
   '  * @param {Dynamic} input - value to check
   '  * @returns {Integer} - converted LongInteger
   '  */
-  function AsLongInteger(input) as longinteger
-    if RBS_CMN.IsValid(input) = false
+  function asLongInteger(input) as longinteger
+    if Rooibos.Common.isValid(input) = false
       return 0
-    else if RBS_CMN.IsString(input)
-      return RBS_CMN.AsInteger(input)
-    else if RBS_CMN.IsLongInteger(input) or RBS_CMN.IsFloat(input) or RBS_CMN.IsDouble(input) or RBS_CMN.IsInteger(input)
+    else if Rooibos.Common.isString(input)
+      return Rooibos.Common.asInteger(input)
+    else if Rooibos.Common.isLongInteger(input) or Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input) or Rooibos.Common.isInteger(input)
       return input
     else
       return 0
@@ -370,14 +368,14 @@ namespace RBS_CMN
   '  * @param {Dynamic} input - value to check
   '  * @returns {Float} - converted Float
   '  */
-  function AsFloat(input) as float
-    if RBS_CMN.IsValid(input) = false
+  function asFloat(input) as float
+    if Rooibos.Common.isValid(input) = false
       return 0.0
-    else if RBS_CMN.IsString(input)
+    else if Rooibos.Common.isString(input)
       return input.ToFloat()
-    else if RBS_CMN.IsInteger(input)
+    else if Rooibos.Common.isInteger(input)
       return (input / 1)
-    else if RBS_CMN.IsFloat(input) or RBS_CMN.IsDouble(input) or RBS_CMN.IsLongInteger(input)
+    else if Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input) or Rooibos.Common.isLongInteger(input)
       return input
     else
       return 0.0
@@ -392,12 +390,12 @@ namespace RBS_CMN
   '  * @param {Dynamic} input - value to check
   '  * @returns {Float} - converted Double
   '  */
-  function AsDouble(input) as double
-    if RBS_CMN.IsValid(input) = false
+  function asDouble(input) as double
+    if Rooibos.Common.isValid(input) = false
       return 0.0
-    else if RBS_CMN.IsString(input)
-      return RBS_CMN.AsFloat(input)
-    else if RBS_CMN.IsInteger(input) or RBS_CMN.IsLongInteger(input) or RBS_CMN.IsFloat(input) or RBS_CMN.IsDouble(input)
+    else if Rooibos.Common.isString(input)
+      return Rooibos.Common.asFloat(input)
+    else if Rooibos.Common.isInteger(input) or Rooibos.Common.isLongInteger(input) or Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input)
       return input
     else
       return 0.0
@@ -412,14 +410,14 @@ namespace RBS_CMN
   '  * @param {Dynamic} input - value to check
   '  * @returns {Boolean} - converted boolean
   '  */
-  function AsBoolean(input) as boolean
-    if RBS_CMN.IsValid(input) = false
+  function asBoolean(input) as boolean
+    if Rooibos.Common.isValid(input) = false
       return false
-    else if RBS_CMN.IsString(input)
+    else if Rooibos.Common.isString(input)
       return LCase(input) = "true"
-    else if RBS_CMN.IsInteger(input) or RBS_CMN.IsFloat(input)
+    else if Rooibos.Common.isInteger(input) or Rooibos.Common.isFloat(input)
       return input <> 0
-    else if RBS_CMN.IsBoolean(input)
+    else if Rooibos.Common.isBoolean(input)
       return input
     else
       return false
@@ -434,9 +432,9 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Array} - converted array
   '  */
-  function AsArray(value) as object
-    if RBS_CMN.IsValid(value)
-      if not RBS_CMN.IsArray(value)
+  function asArray(value) as object
+    if Rooibos.Common.isValid(value)
+      if not Rooibos.Common.isArray(value)
         return [value]
       else
         return value
@@ -457,11 +455,11 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - value to check
   '  * @returns {Boolean} - true if value is null or empty string, else return false
   '  */
-  function IsNullOrEmpty(value) as boolean
-    if RBS_CMN.IsString(value)
+  function isNullOrEmpty(value) as boolean
+    if Rooibos.Common.isString(value)
       return Len(value) = 0
     else
-      return not RBS_CMN.IsValid(value)
+      return not Rooibos.Common.isValid(value)
     end if
   end function
 
@@ -480,16 +478,16 @@ namespace RBS_CMN
   '  * @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
   '  * @returns {Integer} - element index if array contains a value, else return -1
   '  */
-  function FindElementIndexInArray(array, value, compareAttribute = invalid, caseSensitive = false) as integer
-    if RBS_CMN.IsArray(array)
-      for i = 0 to RBS_CMN.AsArray(array).Count() - 1
+  function findElementIndexInArray(array, value, compareAttribute = invalid, caseSensitive = false) as integer
+    if Rooibos.Common.isArray(array)
+      for i = 0 to Rooibos.Common.asArray(array).Count() - 1
         compareValue = array[i]
 
-        if compareAttribute <> invalid and RBS_CMN.IsAssociativeArray(compareValue)
-          compareValue = compareValue.LookupCI(compareAttribute)
+        if compareAttribute <> invalid and Rooibos.Common.isAssociativeArray(compareValue)
+          compareValue = compareValue.lookupCI(compareAttribute)
         end if
 
-        if RBS_BTS.BaseTestSuite.EqValues(compareValue, value)
+        if Rooibos.Common.eqValues(compareValue, value)
           return i
         end if
 
@@ -509,8 +507,8 @@ namespace RBS_CMN
   '  * @param {Dynamic} compareAttribute - attribute to compare on
   '  * @returns {Boolean} - true if array contains a value, else return false
   '  */
-  function ArrayContains(array, value, compareAttribute = invalid) as boolean
-    return (RBS_CMN.FindElementIndexInArray(array, value, compareAttribute) > -1)
+  function arrayContains(array, value, compareAttribute = invalid) as boolean
+    return (Rooibos.Common.findElementIndexInArray(array, value, compareAttribute) > -1)
   end function
 
 
@@ -527,7 +525,7 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - child to search for
   '  * @returns {Integer} - element index if node contains a value, else return -1
   '  */
-  function FindElementIndexInNode(node, value) as integer
+  function findElementIndexInNode(node, value) as integer
     if type(node) = "roSGNode"
       for i = 0 to node.getChildCount() - 1
         compareValue = node.getChild(i)
@@ -547,8 +545,175 @@ namespace RBS_CMN
   '  * @param {Dynamic} value - child to look for
   '  * @returns {Boolean} - true if node contains a value, else return false
   '  */
-  function NodeContains(node, value) as boolean
-    return (RBS_CMN.FindElementIndexInNode(node, value) > -1)
+  function nodeContains(node, value) as boolean
+    return (Rooibos.Common.findElementIndexInNode(node, value) > -1)
   end function
 
+
+  ' /**
+  '  * @memberof module:CommonUtils
+  '  * @name EqValues
+  '  * @function
+  '  * @instance
+  '  * @description Compare two arbtrary values to eachother.
+  '  * @param {Dynamic} Vallue1 - first item to compare
+  '  * @param {Dynamic} Vallue2 - second item to compare
+  '  * @returns {boolean} - True if values are equal or False in other case.
+  '  */
+  function eqValues(Value1, Value2) as dynamic
+    ' Workaraund for bug with string boxing, and box everything else
+    val1Type = type(Value1)
+    val2Type = type(Value2)
+    if val1Type = "<uninitialized>" or val2Type = "<uninitialized>" or val1Type = "" or val2Type = ""
+      ? "ERROR!!!! - undefined value passed"
+      return false
+    end if
+
+    if val1Type = "roString" or val1Type = "String"
+      Value1 = Rooibos.Common.asString(Value1)
+    else
+      Value1 = box(Value1)
+    end if
+
+    if val2Type = "roString" or val2Type = "String"
+      Value2 = Rooibos.Common.asString(Value2)
+    else
+      Value2 = box(Value2)
+    end if
+    'update types after boxing
+    val1Type = type(Value1)
+    val2Type = type(Value2)
+
+
+    'Upcast int to float, if other is float
+    if val1Type = "roFloat" and val2Type = "roInt"
+      Value2 = box(Cdbl(Value2))
+    else if val2Type = "roFloat" and val1Type = "roInt"
+      Value1 = box(Cdbl(Value1))
+    end if
+
+    if val1Type <> val2Type
+      return false
+    else
+      valtype = val1Type
+
+      if valtype = "roList"
+        return Rooibos.Common.eqArray(Value1, Value2)
+      else if valtype = "roAssociativeArray"
+        return Rooibos.Common.eqAssocArray(Value1, Value2)
+      else if valtype = "roArray"
+        return Rooibos.Common.eqArray(Value1, Value2)
+      else if (valtype = "roSGNode")
+        if (val2Type <> "roSGNode")
+          return false
+        else
+          return Value1.isSameNode(Value2)
+        end if
+      else
+        'If you crashed on this line, then you're trying to compare
+        '2 things which can't be compared - check what value1 and value2
+        'are in your debug log
+        return Value1 = Value2
+      end if
+    end if
+  end function
+
+  ' /**
+  '  * @memberof module:CommonUtils
+  '  * @name EqAssocArray
+  '  * @function
+  '  * @instance
+  '  * @description Compare to roAssociativeArray objects for equality.
+  '  * @param {Dynamic} Vallue1 - first associative array
+  '  * @param {Dynamic} Vallue2 - second associative array
+  '  * @returns {boolean} - True if arrays are equal or False in other case.
+  '  */
+  function eqAssocArray(Value1, Value2) as dynamic
+    l1 = Value1.Count()
+    l2 = Value2.Count()
+
+    if not l1 = l2
+      return false
+    else
+      for each k in Value1
+        if k <> "__mocks" and k <> "__stubs" 'fix infinite loop/box crash when doing equals on an aa with a mock
+          if not Value2.DoesExist(k)
+            return false
+          else
+            v1 = Value1[k]
+            v2 = Value2[k]
+            if not Rooibos.Common.eqValues(v1, v2)
+              return false
+            end if
+          end if
+        end if
+      end for
+      return true
+    end if
+  end function
+
+  ' /**
+  '  * @memberof module:CommonUtils
+  '  * @name EqArray
+  '  * @function
+  '  * @instance
+  '  * @description Compare to roArray objects for equality.
+  '  * @param {Dynamic} Vallue1 - first array
+  '  * @param {Dynamic} Vallue2 - second array
+  '  * @returns {boolean} - True if arrays are equal or False in other case.
+  '  */
+  function eqArray(Value1, Value2) as dynamic
+    if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value2) then return false
+
+    l1 = Value1.Count()
+    l2 = Value2.Count()
+
+    if not l1 = l2
+      return false
+    else
+      for i = 0 to l1 - 1
+        v1 = Value1[i]
+        v2 = Value2[i]
+        if not Rooibos.Common.eqValues(v1, v2) then
+          return false
+        end if
+      end for
+      return true
+    end if
+  end function
+
+  ' /**
+  '  * @member fillText
+  '  * @memberof module:CommonUtils
+  '  * @instance
+  '  * @description Fills text with count of fillChars
+  '  * @param {string} text - text to fill
+  '  * @param {string} fillChar - char to fill with
+  '  * @param {integer} numChars - target length
+  '  * @returns {string} filled string
+  '  */
+  function fillText(text as string, fillChar = " ", numChars = 40) as string
+    if (len(text) >= numChars)
+      text = left(text, numChars - 5) + "..." + fillChar + fillChar
+    else
+      numToFill = numChars - len(text) - 1
+      for i = 0 to numToFill
+        text = text + fillChar
+      end for
+    end if
+    return text
+  end function
+
+
+  'Static, becuase the result might be created across node boundaries, therefore stripping methods
+  function getAssertLine(testCase, index)
+    if (testCase.assertLineNumberMap.doesExist(stri(index).trim()))
+      return testCase.assertLineNumberMap[stri(index).trim()]
+    else if (testCase.assertLineNumberMap.doesExist(stri(index + 1000).trim()))
+      'this is where we store line numbers for our
+      return testCase.assertLineNumberMap[stri(index + 1000).trim()]
+
+      return testCase.lineNumber
+    end if
+  end function
 end namespace

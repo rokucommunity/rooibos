@@ -1,4 +1,4 @@
-namespace RBS_TC
+namespace Rooibos
   class UnitTestCase
 
     public isSolo
@@ -34,18 +34,5 @@ namespace RBS_TC
 
       return this
     end function
-
-    'Static, becuase the result might be created across node boundaries, therefore stripping methods
-    public function GetAssertLine(testCase, index)
-      if (testCase.assertLineNumberMap.doesExist(stri(index).trim()))
-        return testCase.assertLineNumberMap[stri(index).trim()]
-      else if (testCase.assertLineNumberMap.doesExist(stri(index + 1000).trim()))
-        'this is where we store line numbers for our
-        return testCase.assertLineNumberMap[stri(index + 1000).trim()]
-
-        return testCase.lineNumber
-      end if
-    end function
-
   end class
 end namespace

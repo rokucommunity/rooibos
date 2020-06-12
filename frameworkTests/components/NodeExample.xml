@@ -14,7 +14,6 @@
 		type="text/brightscript"
 		uri="NodeExample.brs" />
 
-
 	<children>
 		<Label
 			id="nameText"

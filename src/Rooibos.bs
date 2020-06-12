@@ -1,10 +1,10 @@
 ' /**
 '  * @module rooibos
 '  */
-namespace Rooibos_
+namespace Rooibos
   ' /**
   '  * @memberof module:rooibos
-  '  * @name Rooibos__Init
+  '  * @name Rooibos_init
   '  * @function
   '  * @description Entry point for rooibos unit testing framework. Will identify, run, and report all tests in the app, before terminating the application.
   '  * @param {Dynamic} preTestSetup - called to do any initialization once the screen is created
@@ -16,7 +16,7 @@ namespace Rooibos_
   '  *                   and therefore require a screen and scene are created.
   '  * @param nodeContext as object - this is the global scope of your tests - so where anonymous methods will run from. This should be m
   '  */
-  function Init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
+  function init(preTestSetup = invalid, testUtilsDecoratorMethodName = invalid, testSceneName = invalid, nodeContext = invalid) as void
     args = {}
     if createObject("roAPPInfo").IsDev() <> true then
       ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
@@ -58,12 +58,14 @@ namespace Rooibos_
     rooibosVersion = "#ROOIBOS_VERSION#"
     requiredRooibosPreprocessorVersion = "1.0.0"
 
-    if not RBS_CMN.isFunction(RBSFM_getPreprocessorVersion)
+    if not Rooibos.Common.isFunction(RBSFM_getPreprocessorVersion)
       versionError = "You are using a rooibos-preprocessor (i.e. rooibos-cli) version older than 1.0.0 - please update to " + requiredRooibosPreprocessorVersion
     else 
-      if Rooibos_.versionCompare(RBSFM_getPreprocessorVersion(), requiredRooibosPreprocessorVersion) >= 0
+      'bs:disable-next-line
+      if Rooibos.versionCompare(RBSFM_getPreprocessorVersion(), requiredRooibosPreprocessorVersion) >= 0
         versionError = ""
       else
+        'bs:disable-next-line
         versionError = "Your rooibos-preprocessor (i.e. rooibos-cli) version '" + RBSFM_getPreprocessorVersion() + "' is not compatible with rooibos version " + rooibosVersion + ". Please upgrade your rooibos-cli to version " + requiredRooibosPreprocessorVersion
       end if 
     end if
@@ -72,6 +74,7 @@ namespace Rooibos_
       ? "######################################################"
       ? ""
       ? "# rooibos framework version: " ; rooibosVersion
+      'bs:disable-next-line
       ? "# tests parsed with rooibosC version: " ; RBSFM_getPreprocessorVersion()
       ? "######################################################"
       ? ""

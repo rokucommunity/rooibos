@@ -1,4 +1,4 @@
-namespace RBS_UTRC
+namespace Rooibos
   class UnitTestRuntimeConfig
 
     public hasSoloSuites = false
@@ -9,7 +9,8 @@ namespace RBS_UTRC
       m.suites = m.CreateSuites()
     end function
 
-    public function CreateSuites()
+    public function createSuites()
+      'bs:disable-next-line
       suites = RBSFM_getTestSuitesForProject()
       includedSuites = []
       for i = 0 to suites.count() - 1
@@ -25,7 +26,7 @@ namespace RBS_UTRC
             m.hasSoloGroups = true
           end if
           '          ? "valid - suite"
-          includedSuites.Push(suite)
+          includedSuites.push(suite)
         else
           ? "ERROR! suite was not valid - ignoring"
         end if
