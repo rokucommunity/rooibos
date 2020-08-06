@@ -40,6 +40,11 @@ namespace Rooibos
       m.testUtilsDecoratorMethodName = args.testUtilsDecoratorMethodName
       m.config = config
 
+      if m.config.port <> invalid
+        m.socket = Rooibos.Socket()
+        m.socket.CreateSocketAndWaitConnection(m.config.port)
+      end if
+
       ' Internal properties
       m.config.testsDirectory = config.testsDirectory
 
@@ -129,6 +134,10 @@ namespace Rooibos
         skipSuite:
       end for
       m.logger.PrintStatistic(totalStatObj)
+
+      if m.socket <> invalid
+        m.socket.sendResults(totalStatObj)
+      end if
 
       if Rooibos.Common.isFunction(RBS_ReportCodeCoverage)
         'bs:disable-next-line

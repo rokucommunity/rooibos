@@ -1,0 +1,79 @@
+namespace Rooibos
+    class Socket
+        public socket = invalid
+        public connection = invalid
+
+        public function CreateSocketAndWaitConnection(port) as void
+
+            messagePort = CreateObject("roMessagePort")
+            m.socket = CreateObject("roStreamSocket")
+            m.socket.setMessagePort(messagePort)
+            addr = CreateObject("roSocketAddress")
+            addr.setPort(port)
+            m.socket.setAddress(addr)
+            m.socket.notifyReadable(true)
+            x = m.socket.listen(1)
+            if not m.socket.eOK()
+                print "[ERROR]: Could not create socket."
+            end if
+
+            print "[INFO]: Waiting for CI socket connection on port:" port
+
+            while true
+                msg = wait(0, messagePort)
+                if type(msg) = "roSocketEvent"
+                    changedID = msg.getSocketID()
+                    if m.socket.isReadable()
+                        newConnection = m.socket.accept()
+                        if newConnection = invalid
+                            print "[ERROR]: Socket connection failed"
+                        else
+                            print "[INFO]: CI connected! Running tests.."
+                            m.connection = newConnection
+                            return
+                        end if
+                    else
+                        if closed or not newConnection.eOK()
+                            print "[WARN]: Closing connection on port:" port
+                            newConnection.close()
+                        end if
+                    end if
+                end if
+            end while
+
+        end function
+
+
+        public function sendResults(totalStatObj as object) as void
+
+            socketResultMsg = {
+                success: false,
+                testCount: 0
+                failedTests: 0
+                failedTestsNames: []
+                failedFiles: []
+                failureMessages: []
+            }
+
+            if totalStatObj.testRunHasFailures = false
+                socketResultMsg.success = true
+            end if
+
+            socketresultmsg.testCount = totalStatObj.total
+            socketresultmsg.failedTests = totalStatObj.fail
+
+            for each suite in totalStatObj.suites
+                for each test in suite.tests
+                    if test.result = "Fail"
+                        errorStr = "Fail! Line " + test.metatestcase.lineNumber.toStr() + " of " + test.filePath + ", " + test.metatestcase.testResult.messages[0]
+                        socketresultmsg.failureMessages.push(errorStr)
+                        socketresultmsg.failedTestsNames.push(test.name)
+                        socketresultmsg.failedFiles.push(test.filePath)
+                    end if
+                end for
+            end for
+
+            m.connection.sendStr(formatJson(socketresultmsg))
+        end function
+    end class
+end namespace
