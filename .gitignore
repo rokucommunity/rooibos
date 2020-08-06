@@ -38,7 +38,7 @@ node_modules/
 frameworkTests/source/tests/rooibosDist.brs
 outRun
 out
-rooibosDist.brs
+samples**/*/rooibosDist.brs
 
 # Yarn
 yarn.lock
