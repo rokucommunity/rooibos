@@ -1,0 +1,18 @@
+{
+  "rootDir": "src",
+  "autoImportComponentScript": true,
+  "files": [
+    "manifest",
+    "source/**/*.*",
+    "components/**/*.*",
+    "images/**/*.*",
+    "font/**/*.*"
+  ],
+  "diagnosticFilters": [
+    "source/tests/rooibosFunctionMap.brs",
+    "source/tests/rooibosDist.brs",
+    "**/RALETrackerTask.*",
+    "**/TestGlobalInitializer.*"
+  ],
+  "logLevel": "warn"
+}

@@ -1,13 +1,11 @@
 import { series } from "gulp";
-import { RooibosProcessor, createProcessorConfig } from "rooibos-cli";
-import { BurpConfig, BurpProcessor } from 'burp-brightscript';
-import { ProgramBuilder } from 'brighterscript';
+import { ProgramBuilder, BsConfig } from 'brighterscript';
+import { inspect } from 'util';
 
 const concat = require('gulp-concat');
 const gulp = require('gulp');
 const path = require('path');
 const del = require('del');
-const rimraf = require('rimraf');
 const header = require('gulp-header');
 const pkg = require('./package.json');
 const distDir = 'dist';
@@ -16,29 +14,12 @@ const buildDir = 'build';
 const distFile = `rooibosDist.brs`;
 const fullDistPath = path.join(distDir, distFile);
 const fs = require('fs');
-const minimist = require('minimist');
 const rmLines = require('gulp-rm-lines');
-const rokuDeploy = require('roku-deploy');
 const cp = require('child_process');
-
-const knownOptions = {
-  string: ['isCoverageBuild'],
-}
-
-const options = minimist(process.argv.slice(2), knownOptions);
-
-const args = {
-  host: process.env.ROKU_HOST || '192.168.16.3',
-  username: process.env.ROKU_USER || 'rokudev',
-  password: process.env.ROKU_PASSWORD || 'aaaa',
-  rootDir: './',
-  files: ['frameworkTests/**/*'],
-  outDir: './out',
-  retainStagingFolder: true
-};
 
 export function clean() {
   const distPath = path.join(distDir, '**');
+  console.log('Doing a clean at ' + distPath);
   return del([distPath, outDir], { force: true });
 }
 
@@ -47,44 +28,6 @@ function createDirectories() {
     .pipe(gulp.dest(distDir))
     .pipe(gulp.dest(outDir));
 }
-
-export function prepareBuildDir() {
-  del.sync([buildDir], { force: true });
-  const response = gulp.src('*.*', { read: false })
-    .pipe(gulp.dest(buildDir));
-  return response;
-}
-
-export async function compile(cb) {
-  let builder = new ProgramBuilder();
-  console.log('333');
-  await builder.run({
-    rootDir: "frameworkTests",
-    stagingFolderPath: buildDir,
-    createPackage: false
-  });
-  console.log('444');
-}
-
-export async function compileFramework() {
-  let builder = new ProgramBuilder();
-  await builder.run({
-    rootDir: "src",
-    files: [{
-      src: "**/*.*",
-      dest: 'source'
-    }],
-    stagingFolderPath: buildDir,
-    createPackage: false
-  })
-  await new Promise((resolve) => {
-    return gulp.src(buildDir + '/source/**/*.brs')
-      .pipe(gulp.dest(buildDir))
-      .on('end', resolve);
-  });
-  rimraf.sync(path.join(buildDir, 'source'));
-}
-
 
 function squash() {
   var banner = [`'/**`,
@@ -95,108 +38,22 @@ function squash() {
     `' */`,
     ``].join(`\n`);
 
-  return gulp.src('./build/*.brs')
+  return gulp.src('./build/source/*.brs')
     .pipe(concat(distFile))
     .pipe(rmLines({
-      'filters': [/^\s*'(?!bs:disable)/i, /((\r\n|\n|\r)$)|(^(\r\n|\n|\r))|^\s*$/i]
+      'filters': [/^\s*'/i, /((\r\n|\n|\r)$)|(^(\r\n|\n|\r))|^\s*$/i]
     }))
     .pipe(header(banner, { pkg: pkg }))
     .pipe(gulp.dest(distDir));
 }
 
-function copyToSamples(cb) {
-  const frameworkFile = path.join('samples/example/source/tests/rooibos', distFile);
-  if (fs.existsSync(frameworkFile)) {
-    fs.unlinkSync(frameworkFile);
-  }
-  fs.copyFileSync(fullDistPath, frameworkFile);
-  cb();
-}
-
 function copyToTests(cb) {
-  const frameworkFile = path.join('frameworkTests/source/tests', distFile);
+  const frameworkFile = path.join('frameworkTests/src/source/tests', distFile);
   if (fs.existsSync(frameworkFile)) {
     fs.unlinkSync(frameworkFile);
   }
   fs.copyFileSync(fullDistPath, frameworkFile);
   cb();
-}
-
-/**
- * This target is used for CI
- */
-
-export async function prepareFrameworkTests(cb) {
-  await rokuDeploy.prepublishToStaging(args);
-  console.log(`running rooibos processor coverage: ${options.isCoverageBuild === 'true'}`);
-  let config = createProcessorConfig({
-    "projectPath": "build",
-    "testsFilePattern": [
-      "**/tests/**/*.brs",
-      "!**/rooibosDist.brs",
-      "!**/rooibosFunctionMap.brs",
-      "!**/TestsScene.brs"
-    ],
-    sourceFilePattern: [
-      '**/*.brs',
-      '**/*.xml',
-      '!**/rLog',
-      '!**/rLog/**/*.*',
-      '!**/rLogComponents',
-      '!**/rLogComponents/**/*.*',
-      '!**/rooibosDist.brs',
-      '!**/rooibosFunctionMap.brs',
-      '!**/TestsScene.brs',
-      '!**/ThreadUtils.brs'
-    ],
-
-    "outputPath": path.join("source", "tests"),
-    showFailuresOnly: true,
-    isRecordingCodeCoverage: options.isCoverageBuild === 'true',
-    printLcov: true
-  });
-  let processor = new RooibosProcessor(config);
-  await processor.processFiles();
-
-  cb();
-}
-
-export async function prepareCodeCoverageTests(cb) {
-  await rokuDeploy.prepublishToStaging(args);
-
-  let config = createProcessorConfig({
-    "projectPath": "out/.roku-deploy-staging",
-    "testsFilePattern": [
-      "**/tests/**/*.brs",
-      "!**/rooibosDist.brs",
-      "!**/rooibosFunctionMap.brs",
-      "!**/TestsScene.brs"
-    ],
-    "sourceFilePattern": [
-      "**/*.brs",
-      "**/*.xml",
-      "!**/tests",
-      "!**/rLog",
-      "!**/rLogComponents",
-      "!**/rooibosDist.brs",
-      "!**/rooibosFunctionMap.brs",
-      "!**/TestsScene.brs",
-      "!**/ThreadUtils.brs"
-    ],
-    "isRecordingCodeCoverage": true
-  });
-  let processor = new RooibosProcessor(config);
-  processor.processFiles();
-
-  cb();
-}
-
-export async function zipFrameworkTests(cb) {
-  await rokuDeploy.zipPackage(args);
-}
-
-export async function deployFrameworkTests(cb) {
-  await rokuDeploy.publish(args);
 }
 
 export function doc(cb) {
@@ -209,39 +66,47 @@ export function updateVersion(cb) {
   cb();
 }
 
-export function applyBurpPreprocessing(cb) {
-  const currentPath = process.cwd();
-  let replacements = null;
-
-  replacements = [{
-    regex: `($.*)'##'bs:disable-next-line`,
-    replacement: `$1\n'bs:disable-next-line`
-  }];
-  let config: BurpConfig = {
-    sourcePath: 'build',
-    globPattern: '**/*.brs',
-    replacements: replacements
-  };
-
-  const processor = new BurpProcessor(config);
-  processor.processFiles();
-  console.log(`Resetting path to ${currentPath}`);
-  process.chdir(currentPath);
-  cb();
-}
-
-
 function insertVersionNumber(cb) {
-  const filePath = path.join(buildDir, 'Rooibos.brs');
+  const filePath = path.join(buildDir, 'source', 'Rooibos.brs');
   let text = fs.readFileSync(filePath, 'utf8');
   text = text.replace('#ROOIBOS_VERSION#', pkg.version);
   fs.writeFileSync(filePath, text, 'utf8');
   cb();
 }
 
-exports.build = series(clean, createDirectories, compileFramework, insertVersionNumber, squash, applyBurpPreprocessing, copyToSamples, copyToTests);
-exports.buildFrameworkTests = series(exports.build, prepareBuildDir, compile);
-exports.runFrameworkTests = series(exports.buildFrameworkTests, prepareFrameworkTests, zipFrameworkTests, deployFrameworkTests)
-exports.prePublishFrameworkTests = series(exports.buildFrameworkTests, prepareFrameworkTests)
-exports.prePublishFrameworkCodeCoverage = series(exports.buildFrameworkTests, prepareCodeCoverageTests)
+
+export async function compile(cb) {
+  let builder = new ProgramBuilder();
+
+  let configFiles: any[] = [
+    "manifest",
+    "source/**/*.*",
+    "components/**/*.*",
+    "images/**/*.*",
+    "font/**/*.*"
+  ];
+
+  let sourceDir = 'src';
+  let config: BsConfig = {
+    stagingFolderPath: 'build',
+    createPackage: false,
+    "rootDir": sourceDir,
+    "autoImportComponentScript": true,
+    "files": configFiles,
+    "diagnosticFilters": [
+      "source/rooibosFunctionMap.brs",
+      "**/RALETrackerTask.*",
+      1107,
+      1001
+    ],
+    "showDiagnosticsInConsole": true
+  }
+
+  console.log(`using config ${inspect(config)}`);
+  await builder.run(config);
+  cb();
+}
+
+
+exports.build = series(clean, createDirectories, compile, insertVersionNumber, squash, copyToTests);
 exports.dist = series(exports.build, doc, updateVersion);

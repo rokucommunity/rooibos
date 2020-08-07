@@ -1,6 +1,6 @@
 sub main(args as dynamic)
     'bs:disable-next-line
-    if (type(Rooibos_init) = "Function") then Rooibos_init(setupGlobals, "AddTestUtils", invalid, m)
+    if (type(Rooibos_Init) = "Function") then Rooibos_Init(setupGlobals, "AddTestUtils", invalid, m)
 
     InitScreen()
 end sub
@@ -30,7 +30,6 @@ function initScreen() as void
         end if
     end while
 end function
-
 
 '*************************************************************
 '** SetupGlobals

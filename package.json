@@ -11,7 +11,7 @@
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
-    "brighterscript": "^0.10.10",
+    "brighterscript": "^0.10.11",
     "burp-brightscript": "^0.3.2",
     "del": "^3.0.0",
     "docdash": "^0.4.0",

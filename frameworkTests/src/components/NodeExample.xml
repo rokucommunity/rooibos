@@ -2,8 +2,6 @@
 <component
 	name="NodeExample"
 	extends="Group"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
 >
 	<interface>
 		<!-- public fields/functions -->
@@ -11,11 +9,6 @@
 			type="string"
 			id="state" />
 	</interface>
-
-	<script
-		type="text/brightscript"
-		uri="NodeExample.brs" />
-
 
 	<children>
 		<Label
