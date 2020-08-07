@@ -27,7 +27,7 @@
     "jsdoc": "3.5.5",
     "maestro-cli-roku": "^0.15.4",
     "minami": "^1.2.3",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.3",
     "roku-deploy": "^2.7.0",
     "rooibos-cli": "^1.3.0",
     "ts-node": "^8.10.2",
