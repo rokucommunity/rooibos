@@ -6,7 +6,6 @@ function NET_setup() as void
     m.setupThing = "something created during setup"
 end function
 
-'@Only
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '@It tests methods present on the node
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -18,6 +17,7 @@ end function
 
 '@Test HelloFromNode
 function NET__HelloFromNode_simple() as void
+    'bs:disable-next-line
     text = HelloFromNode("georgejecook", 12)
     m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
 end function
@@ -30,6 +30,7 @@ end function
 '@Params["george", 40]
 '@Params["paul", 50]
 function NET__HelloFromNode_params(name, age) as void
+    'bs:disable-next-line
     text = HelloFromNode(name, age)
     m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
 end function
