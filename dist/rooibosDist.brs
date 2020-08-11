@@ -2504,7 +2504,7 @@ function __Rooibos_TestRunner_builder()
     end sub
     instance.sendHomeKeypress = sub()
         ut = CreateObject("roUrlTransfer")
-        ' ut.SetUrl("http://localhost:8060/keypress/Home")
+        ut.SetUrl("http://localhost:8060/keypress/Home")
         ut.PostFromString("")
     end sub
     return instance
