@@ -1,5 +1,5 @@
 namespace Rooibos
-  class Logger
+  class RLogger
 
     public function new(config)
       m.config = config

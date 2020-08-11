@@ -48,7 +48,7 @@ namespace Rooibos
       ' Internal properties
       m.config.testsDirectory = config.testsDirectory
 
-      m.logger = new Rooibos.Logger(m.config)
+      m.logger = new Rooibos.RLogger(m.config)
       m.global = args.global
     end function
 

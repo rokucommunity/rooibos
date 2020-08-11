@@ -2222,7 +2222,7 @@ function Rooibos_UnitTestCase(name as string, func as dynamic, funcName as strin
     instance.new(name, func, funcName, isSolo, isIgnored, lineNumber, params, paramTestIndex, paramLineNumber)
     return instance
 end function
-function __Rooibos_Logger_builder()
+function __Rooibos_RLogger_builder()
     instance = {}
     instance.new = function(config)
         m.config = config
@@ -2386,8 +2386,8 @@ function __Rooibos_Logger_builder()
     end sub
     return instance
 end function
-function Rooibos_Logger(config)
-    instance = __Rooibos_Logger_builder()
+function Rooibos_RLogger(config)
+    instance = __Rooibos_RLogger_builder()
     instance.new(config)
     return instance
 end function
@@ -2420,7 +2420,7 @@ function __Rooibos_TestRunner_builder()
             m.socket.CreateSocketAndWaitConnection(m.config.port)
         end if
         m.config.testsDirectory = config.testsDirectory
-        m.logger = Rooibos_Logger(m.config)
+        m.logger = Rooibos_RLogger(m.config)
         m.global = args.global
     end function
     instance.run = sub()
@@ -2504,7 +2504,7 @@ function __Rooibos_TestRunner_builder()
     end sub
     instance.sendHomeKeypress = sub()
         ut = CreateObject("roUrlTransfer")
-        ut.SetUrl("http://localhost:8060/keypress/Home")
+        ' ut.SetUrl("http://localhost:8060/keypress/Home")
         ut.PostFromString("")
     end sub
     return instance
