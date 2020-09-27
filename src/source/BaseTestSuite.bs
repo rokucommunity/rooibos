@@ -1,0 +1,1926 @@
+' /**
+'  * @module TestSuite
+'  * @description All brs files that include `'@TestSuite` annotations automatically extend the TestSuite.
+'  * The base test suite contains all of the assertions, and utility methods required to writey our tests, as well as being responsible for tracking the state of the tests and groups.
+'  */
+class BaseTestSuite
+
+  public name = "BaseTestSuite"
+  public invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
+  public ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
+
+  'built in any matchers
+  public anyStringMatcher = { "matcher": Rooibos_Matcher_anyString }
+  public anyBoolMatcher = { "matcher": Rooibos_Matcher_anyBool }
+  public anyNumberMatcher = { "matcher": Rooibos_Matcher_anyNumber }
+  public anyAAMatcher = { "matcher": Rooibos_Matcher_anyAA }
+  public anyArrayMatcher = { "matcher": Rooibos_Matcher_anyArray }
+  public anyNodeMatcher = { "matcher": Rooibos_Matcher_anyNode }
+  public allowNonExistingMethodsOnMocks = true
+  public isAutoAssertingMocks = true
+
+  'Test Cases methods
+  public testCases = []
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name addTest
+  '  * @function
+  '  * @instance
+  '  * @description Add a test to a suite's test cases array. Used internally.
+  '  * @param {Dynamic} name - A test name.
+  '  * @param {Dynamic} func - A test function name.
+  '  */
+  public function addTest(name, func, funcName, setup = invalid, teardown = invalid)
+    m.testCases.Push(m.createTest(name, func, setup, teardown))
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name createTest
+  '  * @function
+  '  * @instance
+  '  * @description Create a test object. Used internally
+  '  * @param {Dynamic} name - A test name.
+  '  * @param {Dynamic} func - A test function name.
+  '  */
+  public function createTest(name, func, funcName, setup = invalid, teardown = invalid) as object
+
+    if (func = invalid)
+      ? " ASKED TO CREATE TEST WITH INVALID FUNCITON POINTER FOR FUNCTION " ; funcName
+    end if
+
+    return {
+      name: name
+      func: func
+      funcName: funcName
+      setUp: setup
+      tearDown: teardown
+    }
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name fail
+  '  * @function
+  '  * @instance
+  '  * @description Fail immediately, with the given message
+  '  * @param {Dynamic} [msg=""] - message to display in the test report
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function fail(msg = "Error") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    m.currentResult.addResult(msg)
+    return m.getLegacyCompatibleReturnValue(false)
+  end function
+
+  '*************************************************************
+  '** GetLegacyCompatibleReturnValue
+  '** will return the correct type of return value for a new-style/legacy test
+  '*************************************************************
+  public function getLegacyCompatibleReturnValue(value) as object
+    if (value = true)
+      if (m.isLegacy = true)
+        return ""
+      else
+        return true
+      end if
+    else
+      if (m.isLegacy = true)
+        return "ERROR"
+      else
+        return false
+      end if
+    end if
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertFalse
+  '  * @function
+  '  * @instance
+  '  * @description Fail the test if the expression is true.
+  '  * @param {Dynamic} expr - An expression to evaluate.
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  ' Default value: "Expression evaluates to true"'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertFalse(expr, msg = "Expression evaluates to true") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if not Common.isBoolean(expr) or expr
+      return m.fail(msg)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertTrue
+  '  * @function
+  '  * @instance
+  '  * @description Fail the test unless the expression is true.
+  '  * @param {Dynamic} expr - An expression to evaluate.
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertTrue(expr, msg = "Expression evaluates to false")
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+
+    if not Common.isBoolean(expr) or not expr
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertEqual
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the two objects are unequal as determined by the '<>' operator.
+  '  * @param {Dynamic} first - first object to compare
+  '  * @param {Dynamic} second - second object to compare
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertEqual(first, second, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if not Common.eqValues(first, second)
+      if msg = ""
+        first_as_string = Common.asString(first)
+        second_as_string = Common.asString(second)
+        msg = first_as_string + " != " + second_as_string
+      end if
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertLike
+  '  * @function
+  '  * @instance
+  '  * @description does a fuzzy comparison
+  '  * @param {Dynamic} first - first object to compare
+  '  * @param {Dynamic} second - second object to compare
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertLike(first, second, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if first <> second
+      if msg = ""
+        first_as_string = Common.asString(first)
+        second_as_string = Common.asString(second)
+        msg = first_as_string + " != " + second_as_string
+      end if
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNotEqual
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the two objects are equal as determined by the '=' operator.
+  '  * @param {Dynamic} first - first object to compare
+  '  * @param {Dynamic} second - second object to compare
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNotEqual(first, second, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.eqValues(first, second)
+      if msg = ""
+        first_as_string = Common.asString(first)
+        second_as_string = Common.asString(second)
+        msg = first_as_string + " == " + second_as_string
+      end if
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertInvalid
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the value is not invalid.
+  '  * @param {Dynamic} value - value to check - value to check for
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertInvalid(value, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if value <> invalid
+      if msg = ""
+        expr_as_string = Common.asString(value)
+        msg = expr_as_string + " <> Invalid"
+      end if
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNotInvalid
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the value is invalid.
+  '  * @param {Dynamic} value - value to check - value to check for
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNotInvalid(value, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if value = invalid
+      if msg = ""
+        expr_as_string = Common.asString(value)
+        msg = expr_as_string + " = Invalid"
+      end if
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertAAHasKey
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array doesn't have the key.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} key - key name
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertAAHasKey(array, key, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(array)
+      if not array.DoesExist(key)
+        if msg = ""
+          msg = "Array doesn't have the '" + key + "' key."
+        end if
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Associative Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertAANotHasKey
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array has the key.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} key - key name
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertAANotHasKey(array, key, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(array)
+      if array.DoesExist(key)
+        if msg = ""
+          msg = "Array has the '" + key + "' key."
+        end if
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Associative Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertAAHasKeys
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array doesn't have the keys list.
+  '  * @param {Dynamic} array - A target associative array.
+  '  * @param {Dynamic} keys - Array of key names.
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertAAHasKeys(array, keys, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(array) and Common.isArray(keys)
+      for each key in keys
+        if not array.DoesExist(key)
+          if msg = ""
+            msg = "Array doesn't have the '" + key + "' key."
+          end if
+          m.currentResult.addResult(msg)
+          return m.getLegacyCompatibleReturnValue(false)
+        end if
+      end for
+    else
+      msg = "Input value is not an Associative Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertAANotHasKeys
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array has the keys list.
+  '  * @param {Dynamic} array - A target associative array.
+  '  * @param {Dynamic} keys - Array of key names.
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertAANotHasKeys(array, keys, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(array) and Common.isArray(keys)
+      for each key in keys
+        if array.DoesExist(key)
+          if msg = ""
+            msg = "Array has the '" + key + "' key."
+          end if
+          m.currentResult.addResult(msg)
+          return m.getLegacyCompatibleReturnValue(false)
+        end if
+      end for
+    else
+      msg = "Input value is not an Associative Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertArrayContains
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array doesn't have the item.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} value - value to check - value to check for
+  '  * @param {Dynamic} key - key name in associative array
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertArrayContains(array, value, key = invalid, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(array) or Common.isArray(array)
+      if not Common.arrayContains(array, value, key)
+        msg = "Array doesn't have the '" + Common.asString(value) + "' value."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertArrayContainsAAs
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array does not contain all of the aa's in the values array.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} values - array of aas to look for in target array
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertArrayContainsAAs(array, values, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+
+    if not Common.isArray(values)
+      msg = "values to search for are not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+
+    if Common.isArray(array)
+      for each value in values
+        isMatched = false
+        if not Common.isAssociativeArray(value)
+          msg = "Value to search for was not associativeArray " + Common.asString(value)
+          m.currentResult.addResult(msg)
+          return m.getLegacyCompatibleReturnValue(false)
+        end if
+        for each item in array
+          if (Common.IsAssociativeArray(item))
+            isValueMatched = true
+            for each key in value
+              fieldValue = value[key]
+              itemValue = item[key]
+              if (not Common.eqValues(fieldValue, itemValue))
+                isValueMatched = false
+                exit for
+              end if
+            end for
+            if (isValueMatched)
+              isMatched = true
+              exit for
+            end if
+          end if
+        end for ' items in array
+
+        if not isMatched
+          msg = "array missing value: " + Common.asString(value)
+          m.currentResult.addResult(msg)
+          return m.getLegacyCompatibleReturnValue(false)
+        end if
+
+      end for 'values to match
+    else
+      msg = "Input value is not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertArrayNotContains
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array has the item.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} value - value to check - Value to check for
+  '  * @param {Dynamic} key - A key name for associative array.
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertArrayNotContains(array, value, key = invalid, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(array) or Common.isArray(array)
+      if Common.arrayContains(array, value, key)
+        msg = "Array has the '" + Common.asString(value) + "' value."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertArrayContainsSubset
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array doesn't have the item subset.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} subset - items to check presnece of
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertArrayContainsSubset(array, subset, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if (Common.isAssociativeArray(array) and Common.isAssociativeArray(subset)) or (Common.isArray(array) and Common.isArray(subset))
+      isAA = Common.isAssociativeArray(subset)
+      for each item in subset
+        key = invalid
+        value = item
+        if isAA
+          key = item
+          value = subset[key]
+        end if
+        if not Common.arrayContains(array, value, key)
+          msg = "Array doesn't have the '" + Common.asString(value) + "' value."
+          m.currentResult.addResult(msg)
+          return m.getLegacyCompatibleReturnValue(false)
+        end if
+      end for
+    else
+      msg = "Input value is not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertArrayNotContainsSubset
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array have the item from subset.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} subset - items to check presnece of
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertArrayNotContainsSubset(array, subset, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if (Common.isAssociativeArray(array) and Common.isAssociativeArray(subset)) or (Common.isArray(array) and Common.isArray(subset))
+      isAA = Common.isAssociativeArray(subset)
+      for each item in subset
+        key = invalid
+        value = item
+        if isAA
+          key = item
+          value = item[key]
+        end if
+        if Common.arrayContains(array, value, key)
+          msg = "Array has the '" + Common.asString(value) + "' value."
+          m.currentResult.addResult(msg)
+          return m.getLegacyCompatibleReturnValue(false)
+        end if
+      end for
+    else
+      msg = "Input value is not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertArrayCount
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array items count <> expected count
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} count - An expected array items count
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertArrayCount(array, count, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(array) or Common.isArray(array)
+      if array.Count() <> count
+        msg = "Array items count " + Common.asString(array.Count()) + " <> " + Common.asString(count) + "."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertArrayNotCount
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array items count = expected count.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} count - An expected array items count.
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertArrayNotCount(array, count, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(array) or Common.isArray(array)
+      if array.Count() = count
+        msg = "Array items count = " + Common.asString(count) + "."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertEmpty
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the item is not empty array or string.
+  '  * @param {Dynamic} item - item to check
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertEmpty(item, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(item) or Common.isArray(item)
+      if item.count() > 0
+        msg = "Array is not empty."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else if (Common.isString(item))
+      if (Common.asString(item) <> "")
+        msg = "Input value is not empty."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "AssertEmpty: Input value was not an array or a string"
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNotEmpty
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the item is empty array or string.
+  '  * @param {Dynamic} item - item to check
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNotEmpty(item, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if Common.isAssociativeArray(item) or Common.isArray(item)
+      if item.count() = 0
+        msg = "Array is empty."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else if Common.isString(item)
+      if (item = "")
+        msg = "Input value is empty."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not a string or array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertArrayContainsOnlyValuesOfType
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the array doesn't contains items of specific type only.
+  '  * @param {Dynamic} array - target array
+  '  * @param {Dynamic} typeStr - type name - must be String, Array, Boolean, or AssociativeArray
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertArrayContainsOnlyValuesOfType(array, typeStr, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if typeStr <> "String" and typeStr <> "Integer" and typeStr <> "Boolean" and typeStr <> "Array" and typeStr <> "AssociativeArray"
+      msg = "Type must be Boolean, String, Array, Integer, or AssociativeArray"
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+
+    if Common.isAssociativeArray(array) or Common.isArray(array)
+      methodName = "Rooibos_Common_Is" + typeStr
+      typeCheckFunction = m.getIsTypeFunction(methodName)
+      if (typeCheckFunction <> invalid)
+        for each item in array
+          if not typeCheckFunction(item)
+            msg = Common.asString(item) + "is not a '" + typeStr + "' type."
+            m.currentResult.addResult(msg)
+            return m.getLegacyCompatibleReturnValue(false)
+          end if
+        end for
+      else
+        msg = "could not find comparator for type '" + typeStr + "' type."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Array."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  public function getIsTypeFunction(name)
+    if name = "Rooibos_Common_IsFunction"
+      return Common.isFunction
+    else if name = "Rooibos_Common_IsXmlElement"
+      return Common.isXmlElement
+    else if name = "Rooibos_Common_IsInteger"
+      return Common.isInteger
+    else if name = "Rooibos_Common_IsBoolean"
+      return Common.isBoolean
+    else if name = "Rooibos_Common_IsFloat"
+      return Common.isFloat
+    else if name = "Rooibos_Common_IsDouble"
+      return Common.isDouble
+    else if name = "Rooibos_Common_IsLongInteger"
+      return Common.isLongInteger
+    else if name = "Rooibos_Common_IsNumber"
+      return Common.isNumber
+    else if name = "Rooibos_Common_IsList"
+      return Common.isList
+    else if name = "Rooibos_Common_IsArray"
+      return Common.isArray
+    else if name = "Rooibos_Common_IsAssociativeArray"
+      return Common.isAssociativeArray
+    else if name = "Rooibos_Common_IsSGNode"
+      return Common.isSGNode
+    else if name = "Rooibos_Common_IsString"
+      return Common.isString
+    else if name = "Rooibos_Common_IsDateTime"
+      return Common.isDateTime
+    else if name = "Rooibos_Common_IsUndefined"
+      return Common.isUndefined
+    else
+      return invalid
+    end if
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertType
+  '  * @function
+  '  * @instance
+  '  * @description Asserts that the value is a node of designated type
+  '  * @param {Dynamic} value - value to check - target node
+  '  * @param {Dynamic} typeStr - type name
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertType(value, typeStr, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(value) <> typeStr
+      if msg = ""
+        expr_as_string = Common.asString(value)
+        msg = expr_as_string + " was not expected type " + typeStr
+      end if
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertSubType
+  '  * @function
+  '  * @instance
+  '  * @description Asserts that the value is a node of designated subtype
+  '  * @param {Dynamic} value - value to check - target node
+  '  * @param {Dynamic} typeStr - type name
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertSubType(value, typeStr, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(value) <> "roSGNode"
+      if msg = ""
+        expr_as_string = Common.asString(value)
+        msg = expr_as_string + " was not a node, so could not match subtype " + typeStr
+      end if
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    else if (value.subType() <> typeStr)
+      if msg = ""
+        expr_as_string = Common.asString(value)
+        msg = expr_as_string + "( type : " + value.subType() + ") was not of subType " + typeStr
+      end if
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ NEW NODE ASSERTS
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeCount
+  '  * @function
+  '  * @instance
+  '  * @description Asserts that the node contains the desginated number of children
+  '  * @param {Dynamic} node - target node
+  '  * @param {Dynamic} count - expected number of child items
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert w, false otherwise
+  '  */
+  public function assertNodeCount(node, count, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(node) = "roSGNode"
+      if node.getChildCount() <> count
+        msg = "node items count <> " + Common.asString(count) + ". Received " + Common.asString(node.getChildCount())
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an node."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeNotCount
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the node items count = expected count.
+  '  * @param {Dynamic} node - A target node
+  '  * @param {Dynamic} count - Expected item count
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNodeNotCount(node, count, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(node) = "roSGNode"
+      if node.getChildCount() = count
+        msg = "node items count = " + Common.asString(count) + "."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an node."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeEmpty
+  '  * @function
+  '  * @instance
+  '  * @description Asserts the node has no children
+  '  * @param {Dynamic} node - a node to check
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNodeEmpty(node, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(node) = "roSGNode"
+      if node.getChildCount() > 0
+        msg = "node is not empty."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeNotEmpty
+  '  * @function
+  '  * @instance
+  '  * @description Asserts the node has children
+  '  * @param {Dynamic} node - a node to check
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNodeNotEmpty(node, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(node) = "roSGNode"
+      if node.Count() = 0
+        msg = "Array is empty."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeContains
+  '  * @function
+  '  * @instance
+  '  * @description Asserts the node contains the child _value_
+  '  * @param {Dynamic} node - a node to check
+  '  * @param {Dynamic} value - value to check - value to look for
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNodeContains(node, value, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(node) = "roSGNode"
+      if not Common.nodeContains(node, value)
+        msg = "Node doesn't have the '" + Common.asString(value) + "' value."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Node."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeContainsOnly
+  '  * @function
+  '  * @instance
+  '  * @description Asserts the node contains only the child _value_
+  '  * @param {Dynamic} node - a node to check
+  '  * @param {Dynamic} value - value to check - value to look for
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNodeContainsOnly(node, value, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(node) = "roSGNode"
+      if not Common.nodeContains(node, value)
+        msg = "Node doesn't have the '" + Common.asString(value) + "' value."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      else if node.getChildCount() <> 1
+        msg = "Node Contains speicified value; but other values as well"
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Node."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeNotContains
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the node h item.
+  '  * @param {Dynamic} node - A target node
+  '  * @param {Dynamic} value - value to check - a node child
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNodeNotContains(node, value, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if type(node) = "roSGNode"
+      if Common.nodeContains(node, value)
+        msg = "Node has the '" + Common.asString(value) + "' value."
+        m.currentResult.addResult(msg)
+        return m.getLegacyCompatibleReturnValue(false)
+      end if
+    else
+      msg = "Input value is not an Node."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeContainsFields
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the node doesn't have the item subset.
+  '  * @param {Dynamic} node - A target node
+  '  * @param {Dynamic} subset - items to check
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertNodeContainsFields(node, subset, ignoredFields = invalid, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if (type(node) = "roSGNode" and Common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and Common.isArray(subset))
+      isAA = Common.isAssociativeArray(subset)
+      isIgnoredFields = Common.isArray(ignoredFields)
+      for each key in subset
+        if (key <> "")
+          if (not isIgnoredFields or not Common.arrayContains(ignoredFields, key))
+            subsetValue = subset[key]
+            nodeValue = node[key]
+            if not Common.eqValues(nodeValue, subsetValue)
+              msg = key + ": Expected '" + Common.asString(subsetValue) + "', got '" + Common.asString(nodeValue) + "'"
+              m.currentResult.addResult(msg)
+              return m.getLegacyCompatibleReturnValue(false)
+            end if
+          end if
+        else
+          ? "Found empty key!"
+        end if
+      end for
+    else
+      msg = "Input value is not an Node."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertNodeNotContainsFields
+  '  * @function
+  '  * @instance
+  '  * @description Fail if the node have the item from subset.
+  '  * @param {Dynamic} node - A target node
+  '  * @param {Dynamic} subset - the items to check for
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert w, false otherwise
+  ' */
+  public function assertNodeNotContainsFields(node, subset, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if (type(node) = "roSGNode" and Common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and Common.isArray(subset))
+      isAA = Common.isAssociativeArray(subset)
+      for each item in subset
+        key = invalid
+        value = item
+        if isAA
+          key = item
+          value = item[key]
+        end if
+        if Common.nodeContains(node, value)
+          msg = "Node has the '" + Common.asString(value) + "' value."
+          m.currentResult.addResult(msg)
+          return m.getLegacyCompatibleReturnValue(false)
+        end if
+      end for
+    else
+      msg = "Input value is not an Node."
+      m.currentResult.addResult(msg)
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ END NODE ASSERTS
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertAAContainsSubset
+  '  * @function
+  '  * @instance
+  '  * @description Asserts the associative array contains the fields contained in subset; while ignoring the fields in the ignoredFields array
+  '  * @param {Dynamic} array - associative array  to check
+  '  * @param {Dynamic} subset - associative array of values to check for
+  '  * @param {Dynamic} ignoredFields - array of fieldnames to ignore while comparing
+  '  * @param {Dynamic} [msg=""] - alternate error message
+  '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+  '  */
+  public function assertAAContainsSubset(array, subset, ignoredFields = invalid, msg = "") as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if (Common.isAssociativeArray(array) and Common.isAssociativeArray(subset))
+      isAA = Common.isAssociativeArray(subset)
+      isIgnoredFields = Common.isArray(ignoredFields)
+      for each key in subset
+        if (key <> "")
+          if (not isIgnoredFields or not Common.arrayContains(ignoredFields, key))
+            subsetValue = subset[key]
+            arrayValue = array[key]
+            if not Common.eqValues(arrayValue, subsetValue)
+              msg = key + ": Expected '" + Common.asString(subsetValue) + "', got '" + Common.asString(arrayValue) + "'"
+              m.currentResult.addResult(msg)
+              return m.getLegacyCompatibleReturnValue(false)
+            end if
+          end if
+        else
+          ? "Found empty key!"
+        end if
+      end for
+    else
+      msg = "Input values are not an Associative Array."
+
+      return m.getLegacyCompatibleReturnValue(false)
+    end if
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Stubbing helpers
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name stub
+  '  * @function
+  '  * @instance
+  '  * @description Creates a stub to replace a real method with
+  '  * @param {Dynamic} target - object on which the method to be stubbed is found
+  '  * @param {Dynamic} methodName - name of method to stub
+  '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+  '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
+  '  * @returns {Object} - stub that was wired into the real method
+  '  */
+  public function stub(target, methodName, returnValue = invalid, allowNonExistingMethods = false) as object
+    if (type(target) <> "roAssociativeArray")
+      m.fail("could not create Stub provided target was null")
+      return {}
+    end if
+
+    if (m.stubs = invalid)
+      m.__stubId = -1
+      m.stubs = {}
+    end if
+    m.__stubId++
+
+    if (m.__stubId > 5)
+      ? "ERROR ONLY 6 STUBS PER TEST ARE SUPPORTED!!"
+      return invalid
+    end if
+
+    id = stri(m.__stubId).trim()
+
+    fake = m.createFake(id, target, methodName, 1, invalid, returnValue)
+    m.stubs[id] = fake
+    allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+    isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
+    if (isMethodPresent or allowNonExisting)
+      target[methodName] = m["StubCallback" + id]
+      target.__stubs = m.stubs
+
+      if (not isMethodPresent)
+        ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
+      end if
+    else
+      ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName
+    end if
+
+    return fake
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name expectOnce
+  '  * @function
+  '  * @instance
+  '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
+  '  * @param {Dynamic} target - object on which the method to be stubbed is found
+  '  * @param {Dynamic} methodName - name of method to stub
+  '  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+  '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+  '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
+  '  * @returns {Object} - mock that was wired into the real method
+  '  */
+  public function expectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+    return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
+  end function
+
+  public function expectOnceWLN(lineNumber, target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+    return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods, lineNumber)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name expectOnceOrNone
+  '  * @function
+  '  * @instance
+  '  * @description Toggles between expectOnce and expectNone, to allow for easy paremeterized expect behaviour
+  '  * @param {Dynamic} target - object on which the method to be stubbed is found
+  '  * @param {Dynamic} methodName - name of method to stub
+  '  * @param {Dynamic} isExpected - if true, then this is the same as expectOnce, if false, then this is the same as expectNone
+  '  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+  '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+  '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
+  '  * @returns {Object} - mock that was wired into the real method
+  '  */
+  public function expectOnceOrNone(target, methodName, isExpected, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+    if isExpected
+      return m.expectOnce(target, methodName, expectedArgs, returnValue, allowNonExistingMethods)
+    else
+      return m.expectNone(target, methodName, allowNonExistingMethods)
+    end if
+  end function
+
+  public function expectOnceOrNoneWLN(lineNumber, target, methodName, isExpected, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+    if isExpected
+      return m.expectOnceWLN(lineNumber, target, methodName, expectedArgs, returnValue, allowNonExistingMethods)
+    else
+      return m.expectNoneWLN(lineNumber, target, methodName, allowNonExistingMethods)
+    end if
+  end function
+
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name expectNone
+  '  * @function
+  '  * @instance
+  '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked, it will result in test failure
+  '  * @param {Dynamic} target - object on which the method to be stubbed is found
+  '  * @param {Dynamic} methodName - name of method to stub
+  '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
+  '  * @returns {Object} - mock that was wired into the real method
+  '  */
+  public function expectNone(target, methodName, allowNonExistingMethods = false) as object
+    return m.mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods)
+  end function
+
+  public function expectNoneWLN(lineNumber, target, methodName, allowNonExistingMethods = false) as object
+    return m.mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods, lineNumber)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name expect
+  '  * @function
+  '  * @instance
+  '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
+  '  * @param {Dynamic} target - object on which the method to be stubbed is found
+  '  * @param {Dynamic} methodName - name of method to stub
+  '  * @param {Dynamic} [expectedInvocations=1] - number of invocations we expect
+  '  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+  '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+  '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
+  '  * @returns {Object} - mock that was wired into the real method
+  '  */
+  public function expect(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+    return m.mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods)
+  end function
+
+  public function expectWLN(lineNumber, target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+    return m.mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods, lineNumber)
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name mock
+  '  * @function
+  '  * @instance
+  '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
+  '  * @param {Dynamic} target - object on which the method to be stubbed is found
+  '  * @param {Dynamic} methodName - name of method to stub
+  '  * @param {Dynamic} expectedInvocations - number of invocations we expect
+  '  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+  '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+  '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
+  '  * @returns {Object} - mock that was wired into the real method
+  '  */
+  public function mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false, lineNumber = -1) as object
+    'check params
+    if not Common.isAssociativeArray(target)
+      methodName = ""
+      m.mockFail(lineNumber, "", "mock args: target was not an AA")
+    else if not Common.isString(methodName)
+      methodName = ""
+      m.mockFail(lineNumber, "", "mock args: methodName was not a string")
+    else if not Common.isNumber(expectedInvocations)
+      m.mockFail(lineNumber, methodName, "mock args: expectedInvocations was not an int")
+    else if not Common.isArray(expectedArgs) and Common.isValid(expectedArgs)
+      m.mockFail(lineNumber, methodName, "mock args: expectedArgs was not invalid or an array of args")
+    else if Common.isUndefined(expectedArgs)
+      m.mockFail(lineNumber, methodName, "mock args: expectedArgs undefined")
+    else if Common.isUndefined(returnValue)
+      m.mockFail(lineNumber, methodName, "mock args: returnValue undefined")
+    end if
+
+    if m.currentResult.isFail
+      ? "ERROR! Cannot create MOCK. method " ; methodName ;" " str(lineNumber) ; " "; m.currentResult.messages.peek()
+      return {}
+    end if
+
+    if (m.mocks = invalid)
+      m.__mockId = -1
+      m.__mockTargetId = -1
+      m.mocks = {}
+    end if
+
+    fake = invalid
+    if not target.doesExist("__rooibosTargetId")
+      m.__mockTargetId++
+      target["__rooibosTargetId"] = m.__mockTargetId
+    end if
+    'ascertain if mock already exists
+    for i = 0 to m.__mockId
+      id = stri(i).trim()
+      mock = m.mocks[id]
+      if mock <> invalid and mock.methodName = methodName and mock.target.__rooibosTargetId = target.__rooibosTargetId
+        fake = mock
+        fake.lineNumbers.push(lineNumber)
+        exit for
+      end if
+    end for
+    if fake = invalid
+      m.__mockId++
+      id = stri(m.__mockId).trim()
+      if (m.__mockId > 25)
+        ? "ERROR ONLY 25 MOCKS PER TEST ARE SUPPORTED!! you're on # " ; m.__mockId
+        ? " Method was " ; methodName
+        return invalid
+      end if
+
+      fake = m.createFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue, lineNumber)
+      m.mocks[id] = fake 'this will bind it to m
+      allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+      isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
+      if (isMethodPresent or allowNonExisting)
+        target[methodName] = m["MockCallback" + id]
+        target.__mocks = m.mocks
+
+        if (not isMethodPresent)
+          ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
+        end if
+      else
+        ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
+      end if
+    else
+      m.combineFakes(fake, m.createFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue, lineNumber))
+    end if
+    return fake
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name createFake
+  '  * @function
+  '  * @instance
+  '  * @description Creates a stub to replace a real method with. This is used internally.
+  '  * @param {Dynamic} target - object on which the method to be stubbed is found
+  '  * @param {Dynamic} methodName - name of method to stub
+  '  * @param {Dynamic} [expectedInvocations=1] - number of invocations we expect
+  '  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
+  '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+  '  * @returns {Object} - stub that was wired into the real method
+  '  */
+  public function createFake(id, target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, lineNumber = -1) as object
+    expectedArgsValues = []
+    hasArgs = Common.isArray(expectedArgs)
+    if (hasArgs)
+      defaultValue = m.invalidValue
+    else
+      defaultValue = m.ignoreValue
+      expectedArgs = []
+    end if
+    lineNumbers = [lineNumber]
+
+    for i = 0 to 9
+      if (hasArgs and expectedArgs.count() > i)
+        'guard against bad values 
+        value = expectedArgs[i]
+        if not Common.isUndefined(value)
+          if Common.isAssociativeArray(value) and Common.isValid(value.matcher)
+            if not Common.isFunction(value.matcher)
+              ? "[ERROR] you have specified a matching function; but it is not in scope!"
+              expectedArgsValues.push("#ERR-OUT_OF_SCOPE_MATCHER!")
+            else
+              expectedArgsValues.push(expectedArgs[i])
+            end if
+          else
+            expectedArgsValues.push(expectedArgs[i])
+          end if
+        else
+          expectedArgsValues.push("#ERR-UNDEFINED!")
+        end if
+      else
+        expectedArgsValues.push(defaultValue)
+      end if
+    end for
+    fake = {
+      id: id,
+      target: target,
+      methodName: methodName,
+      returnValue: returnValue,
+      lineNumbers: lineNumbers,
+      isCalled: false,
+      invocations: 0,
+      invokedArgs: [invalid, invalid, invalid, invalid, invalid, invalid, invalid, invalid, invalid],
+      expectedArgs: expectedArgsValues,
+      expectedInvocations: expectedInvocations,
+      callback: function(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+        ' ? "FAKE CALLBACK CALLED FOR " ; m.methodName
+        if (m.allInvokedArgs = invalid)
+          m.allInvokedArgs = []
+        end if
+        m.invokedArgs = [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+        m.allInvokedArgs.push ([arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9])
+        m.isCalled = true
+        m.invocations++
+
+        if (type(m.returnValue) = "roAssociativeArray" and m.returnValue.doesExist("multiResult"))
+          returnValues = m.returnValue["multiResult"]
+          returnIndex = m.invocations - 1
+
+          if (type(returnValues) = "roArray" and returnValues.count() > 0)
+
+            if returnValues.count() <= m.invocations
+              returnIndex = returnValues.count() - 1
+              print "Multi return values all used up - repeating last value"
+            end if
+            return returnValues[returnIndex]
+          else
+            ? "Multi return value was specified; but no array of results were found"
+            return invalid
+          end if
+        else
+          return m.returnValue
+        end if
+      end function
+    }
+    return fake
+  end function
+
+  public function combineFakes(fake, otherFake)
+    'add on the expected invoked args
+    if type(fake.expectedArgs) <> "roAssociativeArray" or not fake.expectedArgs.doesExist("multiInvoke")
+      currentExpectedArgsArgs = fake.expectedArgs
+      fake.expectedArgs = {
+        "multiInvoke": [currentExpectedArgsArgs]
+      }
+    end if
+    fake.expectedArgs.multiInvoke.push(otherFake.expectedArgs)
+
+    'add on the expected return values
+    if type(fake.returnValue) <> "roAssociativeArray" or not fake.returnValue.doesExist("multiResult")
+      currentReturnValue = fake.returnValue
+      fake.returnValue = {
+        "multiResult": [currentReturnValue]
+      }
+    end if
+    fake.returnValue.multiResult.push(otherFake.returnValue)
+    fake.lineNumbers.push(lineNumber)
+    fake.expectedInvocations++
+  end function
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name assertMocks
+  '  * @function
+  '  * @instance
+  '  * @description Will check all mocks that have been created to ensure they were invoked the expected amount of times, with the expected args.
+  '  */
+  public function assertMocks() as void
+    if (m.__mockId = invalid or not Common.isAssociativeArray(m.mocks))
+      return
+    end if
+
+    lastId = int(m.__mockId)
+    for each id in m.mocks
+      mock = m.mocks[id]
+      methodName = mock.methodName
+      if (mock.expectedInvocations <> mock.invocations)
+        m.mockFail(mock.lineNumbers[0], methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
+        m.cleanMocks()
+        return
+      else if mock.expectedInvocations > 0 and (Common.isArray(mock.expectedArgs) or (type(mock.expectedArgs) = "roAssociativeArray" and Common.isArray(mock.expectedArgs.multiInvoke)))
+        isMultiArgsSupported = type(mock.expectedArgs) = "roAssociativeArray" and Common.isArray(mock.expectedArgs.multiInvoke)
+
+        for invocationIndex = 0 to mock.invocations - 1
+          invokedArgs = mock.allInvokedArgs[invocationIndex]
+          if isMultiArgsSupported
+            expectedArgs = mock.expectedArgs.multiInvoke[invocationIndex]
+          else
+            expectedArgs = mock.expectedArgs
+          end if
+          for i = 0 to expectedArgs.count() - 1
+            value = invokedArgs[i]
+            expected = expectedArgs[i]
+            didNotExpectArg = Common.isString(expected) and expected = m.invalidValue
+            if (didNotExpectArg)
+              expected = invalid
+            end if
+
+            isUsingMatcher = Common.isAssociativeArray(expected) and Common.isFunction(expected.matcher)
+
+            if isUsingMatcher
+              if not expected.matcher(value)
+                m.mockFail(mock.lineNumbers[invocationIndex], methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to match matching function '" + Common.asString(expected.matcher) + "' got '" + Common.asString(value) + "')")
+                m.cleanMocks()
+              end if
+            else
+              if (not (Common.isString(expected) and expected = m.ignoreValue) and not Common.eqValues(value, expected))
+                if (expected = invalid)
+                  expected = "[INVALID]"
+                end if
+
+                m.mockFail(mock.lineNumbers[invocationIndex], methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + Common.asString(expected) + "' got '" + Common.asString(value) + "')")
+                m.cleanMocks()
+                return
+              end if
+            end if
+          end for
+        end for
+      end if
+    end for
+
+    m.cleanMocks()
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name cleanMocks
+  '  * @function
+  '  * @instance
+  '  * @description Cleans up all tracking data associated with mocks
+  '  */
+  public function cleanMocks() as void
+    if m.mocks = invalid then return
+    for each id in m.mocks
+      mock = m.mocks[id]
+      mock.target.__mocks = invalid
+    end for
+    m.mocks = invalid
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name cleanStubs
+  '  * @function
+  '  * @instance
+  '  * @description Cleans up all tracking data associated with stubs
+  '  */
+  public function cleanStubs() as void
+    if m.stubs = invalid then return
+    for each id in m.stubs
+      stub = m.stubs[id]
+      stub.target.__stubs = invalid
+    end for
+    m.stubs = invalid
+  end function
+
+
+  public function mockFail(lineNumber, methodName, message) as dynamic
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    m.currentResult.addMockResult(lineNumber, "mock failure on '" + methodName + "' : " + message)
+    return m.getLegacyCompatibleReturnValue(false)
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Fake Stub callback functions - this is required to get scope
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  public function stubCallback0(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__Stubs["0"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function stubCallback1(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__Stubs["1"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function stubCallback2(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__Stubs["2"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+
+  public function stubCallback3(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__Stubs["3"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+
+  public function stubCallback4(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__Stubs["4"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+
+  public function stubCallback5(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__Stubs["5"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Fake Mock callback functions - this is required to get scope
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  public function mockCallback0(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["0"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback1(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["1"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback2(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["2"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback3(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["3"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback4(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["4"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback5(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["5"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback6(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["6"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback7(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["7"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback8(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["8"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback9(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["9"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback10(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["10"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback11(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["11"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback12(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["12"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback13(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["13"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback14(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["14"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback15(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["15"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback16(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["16"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback17(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["17"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback18(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["18"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback19(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["19"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback20(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["20"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback21(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["21"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback22(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["22"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback23(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["23"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+  public function mockCallback24(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid)as dynamic
+    fake = m.__mocks["24"]
+    return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Utility functions!
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  '*************************************************************
+  '** ripped and adapted from rodash - thanks @veeta!
+  '** used by get method - consider thsis private
+  '*************************************************************
+  public function pathAsArray_(path)
+    pathRE = CreateObject("roRegex", "\[([0-9]+)\]", "i")
+    segments = []
+    if type(path) = "String" or type(path) = "roString"
+      dottedPath = pathRE.replaceAll(path, ".\1")
+      stringSegments = dottedPath.tokenize(".")
+      for each s in stringSegments
+        if (Asc(s) >= 48) and (Asc(s) <= 57)
+          segments.push(s.toInt())
+        else
+          segments.push(s)
+        end if
+      end for
+    else if type(path) = "roList" or type(path) = "roArray"
+      stringPath = ""
+      for each s in path
+        stringPath = stringPath + "." + Box(s).toStr()
+      end for
+      segments = m.pathAsArray_(stringPath)
+    else
+      segments = invalid
+    end if
+    return segments
+  end function
+
+  ' /**
+  '  * @memberof module:BaseTestSuite
+  '  * @name g
+  '  * @function
+  '  * @instance
+  '  * @description ripped and adapted from rodash - thanks @veeta!
+  '  * use this method to safely get anything. useful for when unit testing a collection
+  '  * or something and you're not sure if it's gonna crash!
+  '  * @param {Dynamic} aa - node, array or assoArray
+  '  * @param {Dynamic} subset - the items to check for
+  '  * @param {Dynamic} path -as string path to target field. Can use .0. or [0] index notation e.g. "children.0.title" or "children[0].title"
+  '  * @returns {dynamic} - matched item, on aa at path
+  ' */
+
+  public function g(aa, path, default = invalid)
+    if type(aa) <> "roAssociativeArray" and type(aa) <> "roArray" and type(aa) <> "roSGNode" then return default
+    segments = m.pathAsArray_(path)
+
+    if (Type(path) = "roInt" or Type(path) = "roInteger" or Type(path) = "Integer")
+      path = stri(path).trim()
+    end if
+
+    if segments = invalid then return default
+    result = invalid
+
+    while segments.count() > 0
+      key = segments.shift()
+      if (type(key) = "roInteger") 'it's a valid index
+        if (aa <> invalid and GetInterface(aa, "ifArray") <> invalid)
+          value = aa[key]
+        else if (aa <> invalid and GetInterface(aa, "ifSGNodeChildren") <> invalid)
+          value = aa.getChild(key)
+        else if (aa <> invalid and GetInterface(aa, "ifAssociativeArray") <> invalid)
+          key = str(key)
+          if not aa.doesExist(key)
+            exit while
+          end if
+
+          value = aa.lookup(key)
+        else
+          value = invalid
+        end if
+      else
+        if not aa.doesExist(key)
+          exit while
+        end if
+
+        value = aa.lookup(key)
+      end if
+
+      if segments.count() = 0
+        result = value
+        exit while
+      end if
+
+      if type(value) <> "roAssociativeArray" and type(value) <> "roArray" and type(value) <> "roSGNode"
+        exit while
+      end if
+      aa = value
+    end while
+
+    if result = invalid then return default
+    return result
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ crude async support
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  ' /**
+  '  * @member waitForField
+  '  * @memberof module:TestUtils
+  '  * @instance
+  '  * @function
+  '  * @description observeField doesn't work in regular unit tests, so we have to wait for the result. We can use this to wait for a network task, foe example, and pass the result directly to a handler. Note - we wait for the value TO CHANGE - so make sure that will be the case, or you'll get stuck forever :)
+  '  * @param {any} target to observe
+  '  * @param {string} field to observe
+  '  * @param {int} delay for each wait
+  '  * @param {int} max attempts
+  '  */
+  function waitForField(target, fieldName, delay = 500, maxAttempts = 10)
+    attempts = 0
+    if target = invalid
+      return false
+    end if
+
+    initialValue = target[fieldName]
+    while target[fieldName] = initialValue
+      port = CreateObject("roMessagePort")
+      wait(delay, port)
+      attempts++
+      if attempts = maxAttempts
+        return false
+      end if
+      ? "waiting for signal field '" ; fieldName "' - " ; attempts
+    end while
+
+    return true
+  end function
+
+  public function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)
+    if m.currentResult.isFail then return m.getLegacyCompatibleReturnValue(false)
+    if target = invalid
+      m.fail("Target was invalid")
+    end if
+
+    result = m.waitForField(target, fieldName, delay, maxAttempts)
+    if not result
+      return m.fail("Timeout waiting for targetField " + fieldName + " to be set on target")
+    end if
+
+    m.currentResult.addResult("")
+    return m.getLegacyCompatibleReturnValue(true)
+  end function
+
+end class

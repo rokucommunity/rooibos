@@ -1,0 +1,28 @@
+namespace Matcher
+
+  function anyString(value)
+    return Common.isString(value)
+  end function
+
+  function anyBool(value)
+    return Common.isBoolean(value)
+  end function
+
+  function anyNumber(value)
+    return Common.isNumber(value)
+  end function
+
+  function anyAA(value)
+    return Common.isAssociativeArray(value)
+  end function
+
+  function anyArray(value)
+    return Common.isArray(value)
+  end function
+
+  function anyNode(value)
+    return Common.isSGNode(value)
+  end function
+
+
+end namespace

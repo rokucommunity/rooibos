@@ -1,0 +1,16 @@
+{
+  "cSpell.words": [
+    "Roadmap",
+    "brightscript",
+    "rooibos"
+  ],
+  "jira-plugin.workingProject": "",
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#551A8B",
+    "statusBar.debuggingBackground": "#551A8B",
+    "panelTitle.activeBorder": "#ff0000",
+    "activityBar.background": "#0E3047",
+    "titleBar.activeBackground": "#134464",
+    "titleBar.activeForeground": "#F6FAFD"
+  }
+}

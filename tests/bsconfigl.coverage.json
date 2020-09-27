@@ -8,13 +8,7 @@
   "autoImportComponentScript": true,
   "createPackage": false,
   "stagingFolderPath": "dist",
-  "diagnosticFilters": [
-    {
-      "src": "**/roku_modules/**/*.*",
-      "codes": [
-        1107,
-        1009
-      ]
-    }
-  ]
+  "rooibos-settings": {
+    "coverage": true
+  }
 }

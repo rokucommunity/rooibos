@@ -2,47 +2,20 @@
   "name": "rooibos",
   "version": "4.0.0",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
-  "dependencies": {
-    "gulp-header": "^2.0.7",
-    "rimraf": "^3.0.2"
-  },
+  "files": [
+    "dist/**/!(manifest)*"
+  ],
+  "dependencies": {},
   "devDependencies": {
-    "brighterscript": "^0.10.10",
-    "burp-brightscript": "^0.3.2",
-    "del": "^3.0.0",
-    "docdash": "^0.4.0",
-    "dotenv": "^8.1.0",
-    "generate-changelog": "^1.8.0",
-    "glob-all": "^3.2.1",
-    "gulp": "^4.0.2",
-    "gulp-concat": "^2.6.1",
-    "gulp-copy": "^4.0.1",
-    "gulp-rm-lines": "0.0.9",
-    "gulpclass": "^0.2.0",
-    "ink-docstrap": "1.3.0",
-    "jsdoc": "3.5.5",
-    "maestro-cli-roku": "^0.15.4",
-    "minami": "^1.2.3",
-    "minimist": "^1.2.5",
-    "roku-deploy": "^2.7.0",
-    "rooibos-cli": "^1.3.0",
-    "ts-node": "^8.10.2",
-    "typescript": "3.7.4",
-    "vinyl-paths": "^2.1.0"
-  },
-  "scripts": {
-    "use-live-cli": "npm install maestro-cli-roku --save-dev",
-    "use-local-cli": "npm install ../maestro-cli --save-dev"
+    "brighterscript": "^0.15.0",
+    "ropm": "^0.5.0"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/georgejecook/rooibos.git"
   },
   "keywords": [
+    "ropm",
     "brightscript",
     "unit",
     "testing",
@@ -54,5 +27,14 @@
   "bugs": {
     "url": "https://github.com/georgejecook/rooibos/issues"
   },
-  "homepage": "https://github.com/georgejecook/rooibos#readme"
+  "ropm": {
+    "rootDir": "src",
+    "packageRootDir": "dist"
+  },
+  "homepage": "https://github.com/georgejecook/rooibos#readme",
+  "scripts": {
+    "build": "npx bsc",
+    "test": "cd tests && npx ropm copy && bsc --project ./bsconfig.json",
+    "coverage": "cd tests && npx ropm copy && bsc --project ./bsconfig.coverage.json"
+  }
 }

@@ -1,0 +1,27 @@
+'@TestSuite RCMT Common tests
+
+namespace Common
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '@It tests EqArray
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  '@Test
+  '@Params[invalid, [], false]
+  '@Params[[], invalid, false]
+  '@Params[invalid, invalid, false]
+  '@Params[["one", "three"], [], false]
+  '@Params[[], ["one", "three"], false]
+  '@Params[[], [], true]
+  '@Params[["one", "two", "three"], ["one", "three"], false]
+  '@Params[["one", "two", "three"], ["one", "two", "three"], true]
+  '@Params[[1, 2, 3], ["one", "two", "three"], false]
+  '@Params[[1, 2, 3], [1, 2, 3], true]
+  '@Params[[1, invalid, "3"], [1, invalid, "3"], true]
+  '@Params[[3, 2, 1], [1, 2, 3], false]
+  function eqArray_Pass(values, values2, expected) as void
+
+    result = Common.eqArray(values, values2)
+    m.assertEqual(result, expected)
+  end function
+
+end namespace

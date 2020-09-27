@@ -1,0 +1,56 @@
+<component
+    name="TrackerTask"
+    extends="Task">
+
+  <interface>
+    <field
+        id="event"
+        type="assocarray" />
+    <field
+        id="isExternallyExposed"
+        type="boolean"
+        value="true" />
+
+    <function name="UIThread_init" />
+    <function name="UIThread_showSelectorView" />
+    <function name="UIThread_hideSelectorView" />
+
+    <function name="UIThread_selectNode" />
+    <function name="UIThread_updateNode" />
+    <function name="UIThread_getNodeData" />
+
+    <function name="UIThread_getItemList" />
+    <function name="UIThread_getNodeTree" />
+    <function name="UIThread_getNodeById" />
+    <function name="UIThread_getNodeByName" />
+
+    <function name="UIThread_addChild" />
+    <function name="UIThread_removeChild" />
+    <function name="UIThread_moveChild" />
+
+    <function name="UIThread_setField" />
+    <function name="UIThread_removeField" />
+
+    <function name="UIThread_setFocus" />
+    <function name="UIThread_selectFocusedNode" />
+
+    <function name="UIThread_setBoundingRect" />
+
+    <function name="UIThread_getRegistrySections" />
+    <function name="UIThread_clearRegistry" />
+    <function name="UIThread_addRegistrySection" />
+    <function name="UIThread_removeRegistrySection" />
+    <function name="UIThread_addRegistryField" />
+    <function name="UIThread_removeRegistryField" />
+    <function name="UIThread_editRegistryField" />
+
+    <function name="UIThread_log" />
+    <function name="UIThread_setLogVerbosity" />
+    <function name="UIThread_setLogFormat" />
+
+    <function name="UIThread_setRulerLine" />
+    <function name="UIThread_setRulerLines" />
+    <function name="UIThread_removeRulerLine" />
+    <function name="UIThread_removeAllRulerLines" />
+  </interface>
+</component>

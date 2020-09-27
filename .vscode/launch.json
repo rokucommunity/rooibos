@@ -1,0 +1,42 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "bashdb",
+      "request": "launch",
+      "name": "Build",
+      "cwd": "${workspaceFolder}",
+      "program": "npm run build",
+      "args": []
+    },
+    {
+      "type": "brightscript",
+      "request": "launch",
+      "name": "TEST",
+      "internalConsoleOptions": "neverOpen",
+      "envFile": "${workspaceFolder}/devstuff/.env",
+      "preLaunchTask": "buildTests",
+      "host": "${env:ROKU_DEV_TARGET}",
+      "password": "${env:ROKU_DEVPASSWORD}",
+      "rootDir": "${workspaceFolder}/build",
+      // "debugServer": 4711,
+      "sourceDirs": [
+        "${workspaceFolder}/frameworkTests"
+      ],
+      "files": [
+        "*",
+        "*.*",
+        "**/*.*",
+        "!*.zip"
+      ],
+      "consoleOutput": "normal",
+      "stopOnEntry": false,
+      "retainDeploymentArchive": true,
+      "retainStagingFolder": true,
+      "stopDebuggerOnAppExit": true
+    },
+  ]
+}
