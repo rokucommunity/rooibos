@@ -706,14 +706,14 @@ namespace Common
 
 
   'Static, becuase the result might be created across node boundaries, therefore stripping methods
-  function getAssertLine(testCase, index)
-    if (testCase.assertLineNumberMap.doesExist(stri(index).trim()))
-      return testCase.assertLineNumberMap[stri(index).trim()]
-    else if (testCase.assertLineNumberMap.doesExist(stri(index + 1000).trim()))
+  function getAssertLine(test, index)
+    if (test.assertLineNumberMap.doesExist(stri(index).trim()))
+      return test.assertLineNumberMap[stri(index).trim()]
+    else if (test.assertLineNumberMap.doesExist(stri(index + 1000).trim()))
       'this is where we store line numbers for our
-      return testCase.assertLineNumberMap[stri(index + 1000).trim()]
+      return test.assertLineNumberMap[stri(index + 1000).trim()]
 
-      return testCase.lineNumber
+      return test.lineNumber
     end if
   end function
 end namespace

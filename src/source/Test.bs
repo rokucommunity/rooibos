@@ -1,0 +1,110 @@
+class Test
+
+  public name
+  public isSolo
+  public funcName
+  public isIgnored
+  public lineNumber
+  public paramLineNumber
+  public testSuite = invalid
+
+  public rawParams
+  public paramTestIndex
+  public isParamTest = false
+  public isParamsValid = false
+
+  public result = invalid
+
+  function new(testSuite, data)
+    m.testSuite = testSuite
+    m.isSolo = data.isSolo
+    m.funcName = data.funcName
+    m.isIgnored = data.isIgnored
+    m.name = data.name
+    m.lineNumber = data.lineNumber
+    m.paramLineNumber = data.paramLineNumber
+    m.rawParams = data.params
+    m.paramTestIndex = data.paramTestIndex
+    m.isParamTest = data.isParamTest
+    m.isParamsValid = data.isParamsValid
+    
+    if (params <> invalid)
+      m.name = m.name + stri(m.paramTestIndex)
+    end if
+    
+    m.result = new TestResult(m)
+    return this
+  end function
+  
+  function run()
+    timer = createObject("roTimespan")
+    timer.mark()
+    
+    if m.isParamsValid
+      if m.isParamTest
+        m.runParmsTest()
+      else
+        m.testSuite[m.funcName]()
+      end if
+    else
+      m.testSuite.fail("Could not parse args for test ")
+    end if
+    
+    m.result.time = timer.totalMilliseconds()
+
+  end function
+
+  function runParamsTest()
+    testParams = m.getTestParams()
+
+    if metaTest.expectedNumberOfParams = 1
+      m.testSuite[m.funcName](testParams[0])
+    else if metaTest.expectedNumberOfParams = 2
+      m.testSuite[m.funcName](testParams[0], testParams[1])
+    else if metaTest.expectedNumberOfParams = 3
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2])
+    else if metaTest.expectedNumberOfParams = 4
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3])
+    else if metaTest.expectedNumberOfParams = 5
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4])
+    else if metaTest.expectedNumberOfParams = 6
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5])
+    else if metaTest.expectedNumberOfParams = 7
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6])
+    else if metaTest.expectedNumberOfParams = 8
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7])
+    else if metaTest.expectedNumberOfParams = 9
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8])
+    else if metaTest.expectedNumberOfParams = 10
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9])
+    else if metaTest.expectedNumberOfParams = 11
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10])
+    else if metaTest.expectedNumberOfParams = 12
+      m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10], testParams[11])
+    else if metaTest.expectedNumberOfParams > 12
+      m.testSuite.fail("Test case had more than 12 params. Max of 12 params is supported")
+    end if
+  end function
+
+  function getTestsParams()
+    params = []
+    for paramIndex = 0 to m.rawParams.count()
+      paramValue = m.rawParams[paramIndex]
+      if type(paramValue) = "roString" and len(paramValue) >= 8 and left(paramValue, 8) = "#RBSNode"
+        nodeType = "ContentNode"
+        paramDirectiveArgs = paramValue.split("|")
+        if paramDirectiveArgs.count() > 1
+          nodeType = paramDirectiveArgs[1]
+        end if
+        paramValue = createObject("roSGNode", nodeType)
+      end if
+      params.push(paramValue)
+    end for
+    return params
+  end function
+  
+end class
+
+
+
+

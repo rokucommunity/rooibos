@@ -1,162 +1,46 @@
-namespace Stats
+class Stats
+  public testSuite = invalid
+  public time = 0
+  public ranCount = 0
+  public passedCount = 0
+  public failedCount = 0
+  public crashedCount = 0
+  public ignoredCount = 0
+  public ignoredTestNames = []
+  public hasFailures = false
+  public testResult = invalid
 
-  '----------------------------------------------------------------
-  ' Create an empty statistic object for totals in output log.
-  '
-  ' @return An empty statistic object.
-  '----------------------------------------------------------------
-  function createTotalStatistic() as object
-    statTotalItem = {
-      Suites: []
-      Time: 0
-      Total: 0
-      Correct: 0
-      Fail: 0
-      Ignored: 0
-      Crash: 0
-      IgnoredTestNames: []
-    }
-
-    return statTotalItem
+  function new(testSuite = invalid)
+    m.testSuite = testSuite
   end function
 
-  '*************************************************************
-  '** Stats_MergeTotalStatistic
-  '** merges the stats from stat2 onto stat1
-  '** @param param as ObjectP paramdesc
-  '** @return ObjectR retdesc
-  '*************************************************************
-  function mergeTotalStatistic(stat1, stat2) as void
-    for each suite in stat2.Suites
-      stat1.Suites.push(suite)
-    end for
-
-    stat1.time = stat1.Time + stat2.Time
-    stat1.total = stat1.Total + stat2.Total
-    stat1.correct = stat1.Correct + stat2.Correct
-    stat1.fail = stat1.Fail + stat2.Fail
-    stat1.crash = stat1.Crash + stat2.Crash
-    stat1.ignored = stat1.Ignored + stat2.Ignored
-    stat1.ignoredTestNames.append(stat2.IgnoredTestNames)
+  function merge(other) as void
+    m.time += other.time
+    m.ranCount += other.ranCount
+    m.passedCount += other.passedCount
+    m.failedCount += other.failedCount
+    m.crashedCount += other.crashedCount
+    m.ignoredCount += other.ignoredCount
+    m.ignoredTestNames.append(other.IgnoredTestNames)
+    m.onUpdate()
   end function
 
-  '----------------------------------------------------------------
-  ' Create an empty statistic object for test suite with specified name.
-  '
-  ' @param name (string) A test suite name for statistic object.
-  '
-  ' @return An empty statistic object for test suite.
-  '----------------------------------------------------------------
-  function createSuiteStatistic(name as string) as object
-    statSuiteItem = {
-      name: name
-      tests: []
-      time: 0
-      total: 0
-      correct: 0
-      fail: 0
-      crash: 0
-      ignored: 0
-      ignoredTestNames: []
-    }
-
-    return statSuiteItem
-  end function
-
-  '----------------------------------------------------------------
-  ' Create statistic object for test with specified name.
-  '
-  ' @param name (string) A test name.
-  ' @param result (string) A result of test running.
-  ' Posible values: "Success", "Fail".
-  ' Default value: "Success"
-  ' @param time (integer) A test running time.
-  ' Default value: 0
-  ' @param errorCode (integer) An error code for failed test.
-  ' Posible values:
-  '   252 (&hFC) : ERR_NORMAL_END
-  '   226 (&hE2) : ERR_VALUE_RETURN
-  '   233 (&hE9) : ERR_USE_OF_UNINIT_VAR
-  '   020 (&h14) : ERR_DIV_ZERO
-  '   024 (&h18) : ERR_TM
-  '   244 (&hF4) : ERR_RO2
-  '   236 (&hEC) : ERR_RO4
-  '   002 (&h02) : ERR_SYNTAX
-  '   241 (&hF1) : ERR_WRONG_NUM_PARAM
-  ' Default value: 0
-  ' @param errorMessage (string) An error message for failed test.
-  '
-  ' @return A statistic object for test.
-  '----------------------------------------------------------------
-  function createTestStatistic(name, result = "Success", time = 0, errorCode = 0, errorMessage = "") as object
-    statTestItem = {
-      name: name
-      result: result
-      time: time
-      error: {
-        code: errorCode
-        message: errorMessage
-      }
-    }
-
-    return statTestItem
-  end function
-
-  '----------------------------------------------------------------
-  ' Append test statistic to test suite statistic.
-  '
-  ' @param statSuiteObj (object) A target test suite object.
-  ' @param statTestObj (object) A test statistic to append.
-  '----------------------------------------------------------------
-  sub AppendTestStatistic(statSuiteObj as object, statTestObj as object)
-    if Common.IsAssociativeArray(statSuiteObj) and Common.IsAssociativeArray(statTestObj)
-      statSuiteObj.Tests.Push(statTestObj)
-
-      if Common.IsInteger(statTestObj.time)
-        statSuiteObj.Time = statSuiteObj.Time + statTestObj.Time
-      end if
-
-      statSuiteObj.Total = statSuiteObj.Total + 1
-
-      if lCase(statTestObj.Result) = "success"
-        statSuiteObj.Correct = statSuiteObj.Correct + 1
-      else if lCase(statTestObj.result) = "fail"
-        statSuiteObj.Fail = statSuiteObj.Fail + 1
-      else
-        statSuiteObj.crash = statSuiteObj.crash + 1
-      end if
-
+  function appendTestResult(testResult)
+    m.time += testResult.time
+    m.ranCount++
+    if testResult.isCrash
+      m.crashedCount++
+    else if testResult.isFail
+      m.failedCount++
+    else
+      m.passedCount++
     end if
-  end sub
 
-  '----------------------------------------------------------------
-  ' Append suite statistic to total statistic object.
-  '
-  ' @param statTotalObj (object) A target total statistic object.
-  ' @param statSuiteObj (object) A test suite statistic object to append.
-  '----------------------------------------------------------------
-  sub AppendSuiteStatistic(statTotalObj as object, statSuiteObj as object)
-    if Common.IsAssociativeArray(statTotalObj) and Common.IsAssociativeArray(statSuiteObj)
-      statTotalObj.Suites.Push(statSuiteObj)
-      statTotalObj.Time = statTotalObj.Time + statSuiteObj.Time
+    m.onUpdate()
+  end function
 
-      if Common.IsInteger(statSuiteObj.Total)
-        statTotalObj.Total = statTotalObj.Total + statSuiteObj.Total
-      end if
+  function onUpdate()
+    m.hasFailures = m.failedCount > 0 or m.crashedCount > 0
+  end function
 
-      if Common.IsInteger(statSuiteObj.Correct)
-        statTotalObj.Correct = statTotalObj.Correct + statSuiteObj.Correct
-      end if
-
-      if Common.IsInteger(statSuiteObj.Fail)
-        statTotalObj.Fail = statTotalObj.Fail + statSuiteObj.Fail
-      end if
-
-      if Common.IsInteger(statSuiteObj.Crash)
-        statTotalObj.Crash = statTotalObj.Crash + statSuiteObj.Crash
-      end if
-
-    end if
-  end sub
-
-end namespace
+end class

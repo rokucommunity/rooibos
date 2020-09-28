@@ -1,228 +1,140 @@
-class Logger
+class TestLogger
 
-  public function new(config)
-    m.config = config
-
-    m.verbosityLevel = {
-      basic: 0
-      normal: 1
-      verbose: 2
-    }
-
-    m.verbosity = m.config.logLevel
+  function new(testRunner)
+    m.testRunner = testRunner
+    m.config = testRunner.config
+    m.allStats = testRunner.stats
   end function
 
-  '----------------------------------------------------------------
-  ' Print statistic object with specified verbosity.
-  '
-  ' @param statObj (object) A statistic object to print.
-  '----------------------------------------------------------------
-  public sub printStatistic(statObj as object)
-    m.PrintStart()
-    previousfile = invalid
+  function printStats()
+    m.startReport()
+    previousSuiteName = invalid
 
-    for each testSuite in statObj.Suites
-      if (not statObj.testRunHasFailures or ((not m.config.showOnlyFailures) or testSuite.fail > 0 or testSuite.crash > 0))
-        if (testSuite.metaTestSuite.filePath <> previousfile)
-          m.PrintMetaSuiteStart(testSuite.metaTestSuite)
-          previousfile = testSuite.metaTestSuite.filePath
+    for each testSuite in m.testRunner.testSuites
+      if not m.allTests.hasFailures or ((not m.config.showOnlyFailures) or testSuite.failedCount > 0 or testSuite.crashedCount > 0)
+        if testSuite.name <> previousSuiteName
+          m.printMetaSuiteStart(testSuite)
+          previousSuiteName = testSuite.name
         end if
-        m.PrintSuiteStatistic(testSuite, statObj.testRunHasFailures)
+
+        m.startSuiteReport(testSuite)
       end if
     end for
 
     ? ""
-    m.PrintEnd()
+    m.endReport()
+
     'bs:disable-next-line
-    ignoredInfo = RBSFM_getIgnoredTestInfo()
-    ? "Total  = "; Common.AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Ignored   = "; ignoredInfo.count
-    ? " Time spent: "; statObj.Time; "ms"
+    ignoredInfo = rooibos_getIgnoredTestInfo()
+    ? "Total  = "; Common.AsString(m.allStats.total); " ; Passed  = "; m.allStats.passedCount; " ; Failed   = "; m.allStats.failedCount; " ; Ignored   = "; ignoredInfo.count
+    ? " Time spent: "; m.allStats.time; "ms"
     ? ""
     ? ""
-    if (ignoredInfo.count > 0)
+    
+    if ignoredInfo.count > 0
       ? "IGNORED TESTS:"
       for each ignoredItemName in ignoredInfo.items
         print ignoredItemName
       end for
+      ? ""
+      ? ""
     end if
 
-    if (statObj.ignored > 0)
-      ? "IGNORED TESTS:"
-      for each ignoredItemName in statObj.IgnoredTestNames
-        print ignoredItemName
-      end for
-    end if
-
-    if (statObj.Total = statObj.Correct)
+    if stats.hasFailures
       overrallResult = "Success"
     else
       overrallResult = "Fail"
     end if
     ? "RESULT: "; overrallResult
 
-  end sub
+  end function
 
-  '----------------------------------------------------------------
-  ' Print test suite statistic.
-  '
-  ' @param statSuiteObj (object) A target test suite object to print.
-  '----------------------------------------------------------------
-  public sub printSuiteStatistic(statSuiteObj as object, hasFailures)
-    m.PrintSuiteStart(statSuiteObj.Name)
+  function startSuiteReport(testSuite)
+    m.printSuiteStart(testSuite)
 
-    for each testCase in statSuiteObj.Tests
-      if (not hasFailures or ((not m.config.showOnlyFailures) or testCase.Result <> "Success"))
-        m.PrintTestStatistic(testCase)
+    for each test in testSuite.tests
+      if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
+        m.printTest(test)
       end if
     end for
 
     ? " |"
-  end sub
+  end function
 
-  public sub printTestStatistic(testCase as object)
-    metaTestCase = testCase.metaTestCase
-
-    if (LCase(testCase.Result) <> "success")
+  function printTest(test)
+    if test.result.isFail
       testChar = "-"
-      if metaTestCase.testResult.failedMockLineNumber > -1
-        lineNumber = metaTestCase.testResult.failedMockLineNumber
-      else
-        assertIndex = metaTestCase.testResult.failedAssertIndex
-        lineNumber = Common.getAssertLine(metaTestCase, assertIndex)
-      end if
-      if lineNumber <> invalid
-        locationLine = StrI(lineNumber).trim()
-      else
-        locationLine = StrI(metaTestCase.lineNumber).trim()
-      end if
-
+      locationLine = StrI(test.result.lineNumber).trim()
     else
       testChar = "|"
-      locationLine = StrI(metaTestCase.lineNumber).trim()
+      locationLine = StrI(test.lineNumber).trim()
     end if
-    locationText = "pkg:/" + testCase.filePath.trim() + "(" + locationLine + ")"
+
+    locationText = "pkg:/" + test.testSuite.filePath.trim() + "(" + locationLine + ")"
 
     if m.config.printTestTimes = true
-      timeText = " (" + stri(metaTestCase.time).trim() + "ms)"
+      timeText = " (" + stri(test.result.time).trim() + "ms)"
     else
       timeText = ""
     end if
 
     insetText = ""
-    if (metaTestcase.isParamTest <> true)
-      messageLine = Common.fillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
-      ? messageLine ; testCase.Result ; timeText
-    else if (metaTestcase.paramTestIndex = 0)
-      name = metaTestCase.Name
-      if (len(name) > 1 and right(name, 1) = "0")
-        name = left(name, len(name) - 1)
+    if test.isParamTest <> true
+      messageLine = Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", 80)
+      ? messageLine ; test.result.getStatusText() ; timeText
+      els if (test.paramTestIndex = 0
+        name = test.name
+        if len(name) > 1 and right(name, 1) = "0"
+          name = left(name, len(name) - 1)
+        end if
+        ? " " + testChar + " |--" + name + " : "
       end if
-      ? " " + testChar + " |--" + name + " : "
-    end if
 
-    if (metaTestcase.isParamTest = true)
-      insetText = "  "
+      if test.isParamTest = true
+        insetText = "  "
 
-      if type(metaTestCase.rawParams) = "roAssociativeArray"
-        rawParams = {}
-        for each key in metaTestCase.rawParams
-          if type(metaTestCase.rawParams[key]) <> "Function" and type(metaTestCase.rawParams[key]) <> "roFunction"
-            rawParams[key] = metaTestCase.rawParams[key]
-          end if
-        end for
-      else
-        rawParams = metaTestCase.rawParams
+        if type(test.rawParams) = "roAssociativeArray"
+          rawParams = {}
+          for each key in test.rawParams
+            if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
+              rawParams[key] = test.rawParams[key]
+            end if
+          end for
+        else
+          rawParams = test.rawParams
+        end if
+        messageLine = Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
+        ? messageLine ; test.result.getStatusText() ; timeText
       end if
-      messageLine = Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
-      ? messageLine ; testCase.Result ; timeText
-    end if
 
-    if LCase(testCase.Result) <> "success"
-      ? " | "; insettext ;"  |--Location: "; locationText
-      if (metaTestcase.isParamTest = true)
-        ? " | "; insettext ;"  |--Param Line: "; StrI(metaTestCase.paramlineNumber).trim()
+      if not test.isFail
+        ? " | "; insettext ;"  |--Location: "; locationText
+        if test.isParamTest = true
+          ? " | "; insettext ;"  |--Param Line: "; StrI(test.paramlineNumber).trim()
+        end if
+        ? " | "; insettext ;"  |--Error Message: "; test.result.message
       end if
-      ? " | "; insettext ;"  |--Error Message: "; testCase.Error.Message
-    end if
-  end sub
+    end function
 
-  '----------------------------------------------------------------
-  ' Print testting start message.
-  '----------------------------------------------------------------
-  public sub printStart()
-    ? ""
-    ? "[START TEST REPORT]"
-    ? ""
-  end sub
+    function startReport()
+      ? ""
+      ? "[START TEST REPORT]"
+      ? ""
+    end function
 
-  '----------------------------------------------------------------
-  ' Print testing end message.
-  '----------------------------------------------------------------
-  public sub printEnd()
-    ? ""
-    ? "[END TEST REPORT]"
-    ? ""
-  end sub
+    function endReport()
+      ? ""
+      ? "[END TEST REPORT]"
+      ? ""
+    end function
 
-  '----------------------------------------------------------------
-  ' Print test suite SetUp message.
-  '----------------------------------------------------------------
-  public sub printSuiteSetUp(sName as string)
-    if m.verbosity = m.verbosityLevel.verbose
-      ? "================================================================="
-      ? "===   SetUp "; sName; " suite."
-      ? "================================================================="
-    end if
-  end sub
+    '----------------------------------------------------------------
+    ' Print '@It group start message.
+    '----------------------------------------------------------------
+    function printSuiteStart(testSuite)
+      '  ? "It "; sName
+      ? " |-" ; testSuite.name
+      '  ? ""
+    end function
 
-
-  '----------------------------------------------------------------
-  ' Print test suite start message.
-  '----------------------------------------------------------------
-
-  public sub printMetaSuiteStart(metaTestSuite)
-    ? metaTestSuite.name; " " ; "pkg:/" ; metaTestSuite.filePath + "(1)"
-  end sub
-
-  '----------------------------------------------------------------
-  ' Print '@It group start message.
-  '----------------------------------------------------------------
-  public sub printSuiteStart(sName as string)
-    '  ? "It "; sName
-    ? " |-" ; sName
-    '  ? ""
-  end sub
-
-  '----------------------------------------------------------------
-  ' Print test suite TearDown message.
-  '----------------------------------------------------------------
-  public sub printSuiteTearDown(sName as string)
-    if m.verbosity = m.verbosityLevel.verbose
-      ? "================================================================="
-      ? "===   TearDown "; sName; " suite."
-      ? "================================================================="
-    end if
-  end sub
-
-  '----------------------------------------------------------------
-  ' Print test setUp message.
-  '----------------------------------------------------------------
-  public sub printTestSetUp(tName as string)
-    if m.verbosity = m.verbosityLevel.verbose
-      ? "----------------------------------------------------------------"
-      ? "---   SetUp "; tName; " test."
-      ? "----------------------------------------------------------------"
-    end if
-  end sub
-
-  '----------------------------------------------------------------
-  ' Print test TearDown message.
-  '----------------------------------------------------------------
-  public sub printTestTearDown(tName as string)
-    if m.verbosity = m.verbosityLevel.verbose
-      ? "----------------------------------------------------------------"
-      ? "---   TearDown "; tName; " test."
-      ? "----------------------------------------------------------------"
-    end if
-  end sub
-end class
+  end class

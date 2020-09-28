@@ -1,8 +1,8 @@
 
-sub AddTestUtils(testCase)
+sub AddTestUtils(test)
     'add your own test utils you want access to when testing here
     
     'e.g.
-    'testCase.testUtils = TestUtils()
-    'testCase.r = rodash()
+    'test.testUtils = TestUtils()
+    'test.r = rodash()
 end sub
