@@ -1,2 +1,2 @@
 ' import "pkg:/source/tests/rooibosFunctionMap.brs"
-import "pkg:/source/rooibos.bs"
+import "pkg:/source/rooibos-framework.bs"

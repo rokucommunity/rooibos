@@ -199,7 +199,7 @@ end class
 function createTestNode(nodeType) as object
   node = createObject("roSGNode", nodeType)
 
-  if (type(node) = "roSGNode" and node.subType() = nodeType)
+  if type(node) = "roSGNode" and node.subType() = nodeType
     m.top.AppendChild(node)
     return node
   else

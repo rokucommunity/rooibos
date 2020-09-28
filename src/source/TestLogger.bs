@@ -8,16 +8,14 @@ class TestLogger
 
   function printStats()
     m.startReport()
-    previousSuiteName = invalid
 
     for each testSuite in m.testRunner.testSuites
       if not m.allTests.hasFailures or ((not m.config.showOnlyFailures) or testSuite.failedCount > 0 or testSuite.crashedCount > 0)
-        if testSuite.name <> previousSuiteName
-          m.printMetaSuiteStart(testSuite)
-          previousSuiteName = testSuite.name
-        end if
-
         m.startSuiteReport(testSuite)
+        
+        for each testGroup in testSuite.groups
+          m.printGroup(testGroup)
+        end for
       end if
     end for
 
@@ -30,7 +28,7 @@ class TestLogger
     ? " Time spent: "; m.allStats.time; "ms"
     ? ""
     ? ""
-    
+
     if ignoredInfo.count > 0
       ? "IGNORED TESTS:"
       for each ignoredItemName in ignoredInfo.items
@@ -49,10 +47,10 @@ class TestLogger
 
   end function
 
-  function startSuiteReport(testSuite)
-    m.printSuiteStart(testSuite)
+  function printGroup(testGroup)
+    m.printGroupStart(testGrup)
 
-    for each test in testSuite.tests
+    for each test in testGroup.tests
       if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
         m.printTest(test)
       end if
@@ -82,59 +80,54 @@ class TestLogger
     if test.isParamTest <> true
       messageLine = Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", 80)
       ? messageLine ; test.result.getStatusText() ; timeText
-      els if (test.paramTestIndex = 0
-        name = test.name
-        if len(name) > 1 and right(name, 1) = "0"
-          name = left(name, len(name) - 1)
-        end if
-        ? " " + testChar + " |--" + name + " : "
+    else if test.paramTestIndex = 0
+      name = test.name
+      if len(name) > 1 and right(name, 1) = "0"
+        name = left(name, len(name) - 1)
       end if
+      ? " " + testChar + " |--" + name + " : "
+    end if
 
+    if test.isParamTest = true
+      insetText = "  "
+
+      if type(test.rawParams) = "roAssociativeArray"
+        rawParams = {}
+        for each key in test.rawParams
+          if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
+            rawParams[key] = test.rawParams[key]
+          end if
+        end for
+      else
+        rawParams = test.rawParams
+      end if
+      messageLine = Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
+      ? messageLine ; test.result.getStatusText() ; timeText
+    end if
+
+    if not test.isFail
+      ? " | "; insettext ;"  |--Location: "; locationText
       if test.isParamTest = true
-        insetText = "  "
-
-        if type(test.rawParams) = "roAssociativeArray"
-          rawParams = {}
-          for each key in test.rawParams
-            if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
-              rawParams[key] = test.rawParams[key]
-            end if
-          end for
-        else
-          rawParams = test.rawParams
-        end if
-        messageLine = Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
-        ? messageLine ; test.result.getStatusText() ; timeText
+        ? " | "; insettext ;"  |--Param Line: "; StrI(test.paramlineNumber).trim()
       end if
+      ? " | "; insettext ;"  |--Error Message: "; test.result.message
+    end if
+  end function
 
-      if not test.isFail
-        ? " | "; insettext ;"  |--Location: "; locationText
-        if test.isParamTest = true
-          ? " | "; insettext ;"  |--Param Line: "; StrI(test.paramlineNumber).trim()
-        end if
-        ? " | "; insettext ;"  |--Error Message: "; test.result.message
-      end if
-    end function
+  function startReport()
+    ? ""
+    ? "[START TEST REPORT]"
+    ? ""
+  end function
 
-    function startReport()
-      ? ""
-      ? "[START TEST REPORT]"
-      ? ""
-    end function
+  function endReport()
+    ? ""
+    ? "[END TEST REPORT]"
+    ? ""
+  end function
 
-    function endReport()
-      ? ""
-      ? "[END TEST REPORT]"
-      ? ""
-    end function
+  function printGroupStart(testGroup)
+    ? " |-" ; testGroup.name
+  end function
 
-    '----------------------------------------------------------------
-    ' Print '@It group start message.
-    '----------------------------------------------------------------
-    function printSuiteStart(testSuite)
-      '  ? "It "; sName
-      ? " |-" ; testSuite.name
-      '  ? ""
-    end function
-
-  end class
+end class

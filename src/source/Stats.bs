@@ -1,5 +1,4 @@
 class Stats
-  public testSuite = invalid
   public time = 0
   public ranCount = 0
   public passedCount = 0
@@ -10,8 +9,7 @@ class Stats
   public hasFailures = false
   public testResult = invalid
 
-  function new(testSuite = invalid)
-    m.testSuite = testSuite
+  function new()
   end function
 
   function merge(other) as void

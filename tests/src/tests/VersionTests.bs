@@ -1,4 +1,3 @@
-import "pkg:/source/Rooibos.bs"
 '@TestSuite [VT] Version tests
 
 namespace Tests.VersionTests

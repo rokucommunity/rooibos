@@ -1,4 +1,4 @@
-class UnitTestRuntimeConfig
+class RuntimeConfig
 
   public hasSoloSuites = false
   public hasSoloGroups = false
@@ -14,14 +14,14 @@ class UnitTestRuntimeConfig
     includedSuites = []
     for i = 0 to suites.count() - 1
       suite = suites[i]
-      if (suite.valid)
-        if (suite.isSolo)
+      if suite.valid
+        if suite.isSolo
           m.hasSoloSuites = true
         end if
-        if (suite.hasSoloTests = true)
+        if suite.hasSoloTests = true
           m.hasSoloTests = true
         end if
-        if (suite.hasSoloGroups = true)
+        if suite.hasSoloGroups = true
           m.hasSoloGroups = true
         end if
         '          ? "valid - suite"
