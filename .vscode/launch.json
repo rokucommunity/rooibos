@@ -17,7 +17,7 @@
       "request": "launch",
       "name": "TEST",
       "internalConsoleOptions": "neverOpen",
-      "envFile": "${workspaceFolder}/devstuff/.env",
+      "envFile": "${workspaceFolder}/.vscode/.env",
       "preLaunchTask": "buildTests",
       "host": "${env:ROKU_DEV_TARGET}",
       "password": "${env:ROKU_DEVPASSWORD}",

@@ -1,60 +1,53 @@
-' /**
-'  * @module TestSuite
-'  * @description All brs files that include `'@TestSuite` annotations automatically extend the TestSuite.
-'  * The base test suite contains all of the assertions, and utility methods required to writey our tests, as well as being responsible for tracking the state of the tests and groups.
-'  */
-class TestGroup
-  'test state
-  name = "Unnamed Suite"
+namespace Rooibos
+  ' /**
+  '  * @module TestSuite
+  '  * @description All brs files that include `'@TestSuite` annotations automatically extend the TestSuite.
+  '  * The base test suite contains all of the assertions, and utility methods required to writey our tests, as well as being responsible for tracking the state of the tests and groups.
+  '  */
+  class TestGroup
+    'test state
+    name = "Unnamed Suite"
 
-  testSuite = invalid
-  ignoredTestCases = []
-  soloTestCases = []
-  setupFunctionName = invalid
-  tearDownFunctionName = invalid
-  beforeEachFunctionName = invalid
-  afterEachFunctionName = invalid
-  isSolo = false
-  isLegacy = false
-  isIgnored = false
-  hasSoloTests = false
-  stats = invalid
-  tests = []
+    testSuite = invalid
+    setupFunctionName = invalid
+    tearDownFunctionName = invalid
+    beforeEachFunctionName = invalid
+    afterEachFunctionName = invalid
+    isSolo = false
+    isLegacy = false
+    isIgnored = false
+    stats = invalid
+    tests = []
 
-  function new(data, testSuite)
-    m.testSuite = testSuite
-    m.name = data.name
-    m.valid = data.valid
-    m.hasFailures = data.hasFailures
-    m.hasSoloTests = data.hasSoloTests
-    m.hasIgnoredTests = data.hasIgnoredTests
-    m.hasSoloGroups = data.hasSoloGroups
-    m.isSolo = data.isSolo
-    m.isIgnored = data.isIgnored
-    m.testsData = data.tests
-    m.isNodeTest = false
-    m.nodeName = invalid
-    m.setupFunctionName = data.setupFunctionName
-    m.tearDownFunctionName = data.tearDownFunctionName
-    m.beforeEachFunctionName = data.beforeEachFunctionName
-    m.afterEachFunctionName = data.afterEachFunctionName
+    function new(testSuite, data)
+      m.testSuite = testSuite
+      m.name = data.name
+      m.valid = data.valid
+      m.hasFailures = testSuite.hasFailures
+      m.isSolo = data.isSolo
+      m.isIgnored = data.isIgnored
+      m.testsData = data.tests
+      m.isNodeTest = false
+      m.nodeName = invalid
+      m.setupFunctionName = data.setupFunctionName
+      m.tearDownFunctionName = data.tearDownFunctionName
+      m.beforeEachFunctionName = data.beforeEachFunctionName
+      m.afterEachFunctionName = data.afterEachFunctionName
 
-    m.context = nodeContext
-    m.global = nodeContext.gobal
-    m.top = nodeContext.top
-    m.stats = new Stats()
-  end function
+      m.context = nodeContext
+      m.global = nodeContext.gobal
+      m.top = nodeContext.top
+      m.stats = new Stats()
+    end function
 
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ running
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ running
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  function run()
-    m.runSuiteFunction(m.setupFunctionName, "setup")
+    function run()
+      m.runSuiteFunction(m.setupFunctionName, "setup")
 
-    for each testData in m.getTestCaseData
-
-      if not m.testSuite.runHasSoloTests or test.isSolo
+      for each testsData in m.getTestCaseData
         test = new Test(m, testData)
         m.tests.push(test)
         m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach")
@@ -68,28 +61,24 @@ class TestGroup
           ? "Terminating group due to failed test"
           exit for
         end if
+
+      end for
+
+      m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
+    end function
+
+    private function getTestCaseData()
+      return m.testCases
+    end function
+
+    private function runSuiteFunction(methodName, defaultFunctionName) 
+      if methodName <> invalid and methodName <> ""
+        m.testSuite[methodName]()
+      else
+        m.testSuite[defaultMethodName]()
       end if
 
-    end for
+    end function
 
-    m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
-  end function
-
-  private function getTestCaseData()
-    if m.hasSoloTests
-      return m.soloTestCases
-    else
-      return m.testCases
-    end if
-  end function
-
-  private function runSuiteFunction(methodName, defaultFunctionName) 
-    if methodName <> invalid and methodName <> ""
-      m.testSuite[methodName]()
-    else
-      m.testSuite[defaultMethodName]()
-    end if
-
-  end function
-
-end class
+  end class
+end namespace

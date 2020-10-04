@@ -1,214 +1,191 @@
-' /**
-'  * @module TestRunner
-'  */
-
-' /**
-'  * @memberof module:TestRunner
-'  * @name Rooibos_TestRunner
-'  * @function
-'  * @description Creates an instance of the test runner
-'  */
-class TestRunner
-  public testScene = invalid
-  public logger = invalid
-  public nodeContext = invalid
-  public config = invalid
-  public testSuites = []
-
-  public function new(testScene, nodeContext)
-    m.testScene = testScene
-    m.nodeContext = nodeContext
-
-    'bs:disable-next-line
-    m.config = rooibos_getRuntimeConfig()
-
-    if m.config = invalid or not Common.isAssociativeArray(m.config)
-      ? "WARNING : specified config is invalid - using default"
-      m.config = {
-        showOnlyFailures: false
-        failFast: false
-      }
-    end if
-
-  end function
+namespace Rooibos
+  ' /**
+  '  * @module TestRunner
+  '  */
 
   ' /**
   '  * @memberof module:TestRunner
-  '  * @name Run
+  '  * @name Rooibos_TestRunner
   '  * @function
-  '  * @instance
-  '  * @description Executes all tests for a project, as per the config
+  '  * @description Creates an instance of the test runner
   '  */
-  public function run()
-    if type(rooibos_getTestSuitesForProject) <> "Function"
-      ? "ERROR! rooibos_getTestSuitesForProject is not found! That looks like you didn't run the bsc plugin."
-      ? "Please add plugins:['rooibos-roku-vsc-extension-plugin'] to your bsconfig.json file"
-      return
-    end if
-    timer = createObject("roTimespan")
-    timer.mark()
+  class TestRunner
+    public testScene = invalid
+    public logger = invalid
+    public nodeContext = invalid
+    public config = invalid
+    public testSuites = []
 
-    m.stats = new Stats()
-    m.runtimeConfig = new RuntimeConfig()
+    public function new(testScene, nodeContext)
+      m.testScene = testScene
+      m.nodeContext = nodeContext
 
-    for each suiteData in m.runtimeConfig.suites
-      m.createAndRunTestSuite(suiteData)
-
-      if m.stats.hasFailures = true and m.config.failFast = true
-        exit for
-      end if
-
-    end for
-
-    m.stats.time = timer.totalMilliseconds()
-
-    logger = new TestLogger(m)
-    logger.printStats()
-
-    if Common.isFunction(RBS_reportCodeCoverage)
       'bs:disable-next-line
-      RBS_reportCodeCoverage()
+      m.config = rooibos_getRuntimeConfig()
 
-      if m.config.printLcov = true
-        Coverage.printLCovInfo()
+      if m.config = invalid or not Rooibos.Common.isAssociativeArray(m.config)
+        ? "WARNING : specified config is invalid - using default"
+        m.config = {
+          showOnlyFailures: false
+          failFast: false
+        }
       end if
-    end if
-    m.sendHomeKeypress()
-  end function
 
-  public function runInNodeMode(nodeTestName)
-    if type(rooibos_getTestSuitesForProject) <> "Function"
-      ? "ERROR! rooibos_getTestSuitesForProject is not found! That looks like you didn't run the bsc plugin."
-      ? "Please add plugins:['rooibos-roku-vsc-extension-plugin'] to your bsconfig.json file"
+    end function
+
+    ' /**
+    '  * @memberof module:TestRunner
+    '  * @name Run
+    '  * @function
+    '  * @instance
+    '  * @description Executes all tests for a project, as per the config
+    '  */
+    public function run()
+      if type(rooibos_getTestSuitesForProject) <> "Function"
+        ? "ERROR! rooibos_getTestSuitesForProject is not found! That looks like you didn't run the bsc plugin."
+        ? "Please add plugins:['rooibos-roku-vsc-extension-plugin'] to your bsconfig.json file"
+        return
+      end if
+      timer = createObject("roTimespan")
+      timer.mark()
+
+      m.stats = new Stats()
+      m.runtimeConfig = new RuntimeConfig()
+
+      suiteNames = m.getGlobalScopeTestSuitesNames()
+      includedSuites = []
+      for each name in suiteNames
+        suiteClass = m.getTestSuiteClassWithName(name)
+        testSuite = invalid
+        if suiteClass <> invalid
+          testSuite = suiteClass(nodeContext)
+          m.runTestSuite(testSuite)
+          if m.stats.hasFailures = true and m.config.failFast = true
+            exit for
+          end if
+        else
+          ? "ERROR! coudl not create test for suite : "; name 
+        end if
+      end for
+
+      m.stats.time = timer.totalMilliseconds()
+
+      logger = new TestLogger(m)
+      logger.printStats()
+
+      if Rooibos.Common.isFunction(RBS_reportCodeCoverage)
+        'bs:disable-next-line
+        RBS_reportCodeCoverage()
+
+        if m.config.printLcov = true
+          Coverage.printLCovInfo()
+        end if
+      end if
+      m.sendHomeKeypress()
+    end function
+
+    public function runInNodeMode(nodeTestName)
+      if type(rooibos_getTestSuitesForProject) <> "Function"
+        ? "ERROR! rooibos_getTestSuitesForProject is not found! That looks like you didn't run the bsc plugin."
+        ? "Please add plugins:['rooibos-roku-vsc-extension-plugin'] to your bsconfig.json file"
+        return invalid
+      end if
+
+      m.runtimeConfig = new RuntimeConfig()
+      suiteClass = m.getTestSuiteClassWithName(nodeTestName)
+      testSuite = invalid
+
+      if suiteClass <> invalid
+        testSuite = suiteClass(m.top)
+      end if
+
+      if testSuite <> invalid
+        testSuite.run()
+        return {
+          stats: testSuite.stats
+          tests: testSuite.tests
+        }
+      else
+        ? "[ERROR] could not create test suite " ; nodeTestName
+      end if
+
+      ? "ERROR! executing node test " + nodeTestName + " was unsuccesful."
+
+      return invalid
+    end function
+
+    private function runTestSuite(testSuite) as void
+      ? ""
+      ? Rooibos.Common.fillText("> SUITE: " + testSuite.name, ">", 80)
+
+      m.testSuites.push(testSuite)
+
+      if testSuite.isNodeTest
+        m.runNodeTest(testSuite)
+      else
+        testSuite.run()
+      end if
+
+      m.stats.merge(testSuite.stats)
+
+    end function
+
+    private function runNodeTest(testSuite) as void
+      if testSuite.nodeName <> ""
+        ? " +++++RUNNING NODE TEST"
+        ? " node type is " ; testSuite.nodeName
+
+        node = m.testScene.callFunc("rooibos_createTestNode", testSuite.nodeName)
+
+        if type(node) = "roSGNode" and node.subType() = testSuite.nodeName
+          nodeResults = node.callFunc("rooibos_runNodeTestSuite", testSuite.name, m.config)
+          if nodeResults <> invalid
+            testSuite.stats = nodeResults.stats
+            testSuite.testCases = nodeResults.testCases
+          else
+            ? " ERROR! The node "; testSuite.nodeName; " did not return a result from from the rooibos_runNodeTestSuite method. This usually means you are not importing rooibos.brs and the required test file. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+          end if
+          m.testScene.removeChild(node)
+          return
+        else
+          ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
+          ? " Node of type " ; testSuite.nodeName ; " was not found/could not be instantiated"
+        end if
+      else
+        ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
+        ? " No node type was provided"
+      end if
+
+      testSuite.stats.hasFailures = true
+      testSuite.failedCount += testSuite.testsData.count()
+    end function
+
+    private function sendHomeKeypress()
+      ut = createObject("roUrlTransfer")
+      ut.SetUrl("http://localhost:8060/keypress/Home")
+      ut.PostFromString("")
+    end function
+
+  end class
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ This code is called inside of the node
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function createTestNode(nodeType) as object
+    node = createObject("roSGNode", nodeType)
+
+    if type(node) = "roSGNode" and node.subType() = nodeType
+      m.top.AppendChild(node)
+      return node
+    else
+      ? " Error creating test node of type " ; nodeType
       return invalid
     end if
-
-    m.runtimeConfig = new RuntimeConfig()
-
-    for each suiteData in m.runtimeConfig.suites
-      if suiteData.name = nodeTestName
-        testSuite = suiteData.constructor(suiteData, m.runtimeConfig.hasSoloTests, m.nodeContext)
-        if testSuite <> invalid
-          testSuite.run()
-          return {
-            stats: testSuite.stats
-            tests: testSuite.tests
-          }
-        else
-          ? "[ERROR] could not create test suite " ; suiteData.name ; " with class " ; suiteData.constructor
-        end if
-      end if
-    end for
-
-    ? "ERROR! executing node test " + m.nodeTestName + " was unsuccesful."
-
-    return invalid
   end function
 
-  private function createAndRunTestSuite(suiteData) as void
-    if m.runtimeConfig.hasSoloTests = true
-      if suiteData.hasSoloTests <> true
-        if m.config.logLevel = 2
-          ? "TestSuite " ; suiteData.name ; " Is filtered because it has no solo tests"
-        end if
-        return
-      end if
-
-    else if m.runtimeConfig.hasSoloSuites
-      if suiteData.isSolo <> true
-        if m.config.logLevel = 2
-          ? "TestSuite " ; suiteData.name ; " Is filtered due to solo flag"
-        end if
-
-        return
-      end if
-    end if
-
-    if suiteData.isIgnored = true
-      if m.config.logLevel = 2
-        ? "Ignoring TestSuite " ; suiteData.name ; " Due to Ignore flag"
-      end if
-
-      m.stats.ignoredCount++
-      m.stats.ignoredTestNames.push("|-" + suiteData.name + " [WHOLE SUITE]")
-
-      return
-    end if
-    ? ""
-    ? Common.fillText("> SUITE: " + suiteData.name, ">", 80)
-
-    testSuite = suiteData.constructor(suiteData, m.runtimeConfig.hasSoloTests, m.nodeContext)
-    m.testSuites.push(testSuite)
-
-    if testSuite.hasIgnoredTests
-      m.stats.ignoredTestNames.push("|-" + testSuite.name)
-    end if
-
-    if testSuite.isNodeTest
-      m.runNodeTest(testSuite)
-    else
-      testSuite.run()
-    end if
-
-    m.stats.merge(testSuite.stats)
-
+  function runNodeTestSuite(name)
+    nodeRunner = new TestRunner(m.top.getScene(), m)
+    return nodeRunner.runInNodeMode(name)
   end function
-
-  private function runNodeTest(testSuite) as void
-    if testSuite.nodeName <> ""
-      ? " +++++RUNNING NODE TEST"
-      ? " node type is " ; testSuite.nodeName
-
-      node = m.testScene.callFunc("rooibos_createTestNode", testSuite.nodeName)
-
-      if type(node) = "roSGNode" and node.subType() = testSuite.nodeName
-        nodeResults = node.callFunc("rooibos_runNodeTestSuite", suiteData.name, m.config)
-        if nodeResults <> invalid
-          testSuite.stats = nodeResults.stats
-          testSuite.testCases = nodeResults.testCases
-        else
-          ? " ERROR! The node "; testSuite.nodeName; " did not return a result from from the rooibos_runNodeTestSuite method. This usually means you are not importing rooibos.brs and the required test file. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
-        end if
-        m.testScene.removeChild(node)
-        return
-      else
-        ? " ERROR!! - could not create node required to execute tests for " ; suiteData.name
-        ? " Node of type " ; testSuite.nodeName ; " was not found/could not be instantiated"
-      end if
-    else
-      ? " ERROR!! - could not create node required to execute tests for " ; suiteData.name
-      ? " No node type was provided"
-    end if
-
-    testSuite.stats.hasFailures = true
-    testSuite.failedCount += testSuite.testsData.count()
-  end function
-
-  private function sendHomeKeypress()
-    ut = createObject("roUrlTransfer")
-    ut.SetUrl("http://localhost:8060/keypress/Home")
-    ut.PostFromString("")
-  end function
-
-end class
-
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'++ This code is called inside of the node
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-function createTestNode(nodeType) as object
-  node = createObject("roSGNode", nodeType)
-
-  if type(node) = "roSGNode" and node.subType() = nodeType
-    m.top.AppendChild(node)
-    return node
-  else
-    ? " Error creating test node of type " ; nodeType
-    return invalid
-  end if
-end function
-
-function runNodeTestSuite(name)
-  nodeRunner = new TestRunner(m.top.getScene(), m)
-  return nodeRunner.runInNodeMode(name)
-end function
+end namespace

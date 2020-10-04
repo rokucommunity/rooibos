@@ -1,37 +1,21 @@
-class RuntimeConfig
+namespace Rooibos
+  class RuntimeConfig
 
-  public hasSoloSuites = false
-  public hasSoloGroups = false
-  public hasSoloTests = false
+    function getVersionText()
+      'generated
+    end function
 
-  function new()
-    m.suites = m.createSuites()
-  end function
+    function getRuntimeConfig()
+      'generated
+    end function
 
-  function createSuites()
-    'bs:disable-next-line
-    suites = rooibos_getTestSuitesForProject()
-    includedSuites = []
-    for i = 0 to suites.count() - 1
-      suite = suites[i]
-      if suite.valid
-        if suite.isSolo
-          m.hasSoloSuites = true
-        end if
-        if suite.hasSoloTests = true
-          m.hasSoloTests = true
-        end if
-        if suite.hasSoloGroups = true
-          m.hasSoloGroups = true
-        end if
-        '          ? "valid - suite"
-        includedSuites.push(suite)
-      else
-        ? "ERROR! suite was not valid - ignoring"
-      end if
+    function getTestSuiteClassWithName(name)
+      'generated
+    end function
 
-    end for
-    return includedSuites
-  end function
+    function getGlobalScopeTestSuitesNames()
+      'generated
+    end function
 
-end class
+  end class
+end namespace

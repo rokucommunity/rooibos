@@ -1,133 +1,135 @@
-class TestLogger
+namespace Rooibos
+  class TestLogger
 
-  function new(testRunner)
-    m.testRunner = testRunner
-    m.config = testRunner.config
-    m.allStats = testRunner.stats
-  end function
+    function new(testRunner)
+      m.testRunner = testRunner
+      m.config = testRunner.config
+      m.allStats = testRunner.stats
+    end function
 
-  function printStats()
-    m.startReport()
+    function printStats()
+      m.startReport()
 
-    for each testSuite in m.testRunner.testSuites
-      if not m.allTests.hasFailures or ((not m.config.showOnlyFailures) or testSuite.failedCount > 0 or testSuite.crashedCount > 0)
-        m.startSuiteReport(testSuite)
-        
-        for each testGroup in testSuite.groups
-          m.printGroup(testGroup)
-        end for
-      end if
-    end for
+      for each testSuite in m.testRunner.testSuites
+        if not m.allTests.hasFailures or ((not m.config.showOnlyFailures) or testSuite.failedCount > 0 or testSuite.crashedCount > 0)
+          m.startSuiteReport(testSuite)
 
-    ? ""
-    m.endReport()
-
-    'bs:disable-next-line
-    ignoredInfo = rooibos_getIgnoredTestInfo()
-    ? "Total  = "; Common.AsString(m.allStats.total); " ; Passed  = "; m.allStats.passedCount; " ; Failed   = "; m.allStats.failedCount; " ; Ignored   = "; ignoredInfo.count
-    ? " Time spent: "; m.allStats.time; "ms"
-    ? ""
-    ? ""
-
-    if ignoredInfo.count > 0
-      ? "IGNORED TESTS:"
-      for each ignoredItemName in ignoredInfo.items
-        print ignoredItemName
+          for each testGroup in testSuite.groups
+            m.printGroup(testGroup)
+          end for
+        end if
       end for
+
+      ? ""
+      m.endReport()
+
+      'bs:disable-next-line
+      ignoredInfo = rooibos_getIgnoredTestInfo()
+      ? "Total  = "; Rooibos.Common.AsString(m.allStats.total); " ; Passed  = "; m.allStats.passedCount; " ; Failed   = "; m.allStats.failedCount; " ; Ignored   = "; ignoredInfo.count
+      ? " Time spent: "; m.allStats.time; "ms"
       ? ""
       ? ""
-    end if
 
-    if stats.hasFailures
-      overrallResult = "Success"
-    else
-      overrallResult = "Fail"
-    end if
-    ? "RESULT: "; overrallResult
-
-  end function
-
-  function printGroup(testGroup)
-    m.printGroupStart(testGrup)
-
-    for each test in testGroup.tests
-      if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
-        m.printTest(test)
-      end if
-    end for
-
-    ? " |"
-  end function
-
-  function printTest(test)
-    if test.result.isFail
-      testChar = "-"
-      locationLine = StrI(test.result.lineNumber).trim()
-    else
-      testChar = "|"
-      locationLine = StrI(test.lineNumber).trim()
-    end if
-
-    locationText = "pkg:/" + test.testSuite.filePath.trim() + "(" + locationLine + ")"
-
-    if m.config.printTestTimes = true
-      timeText = " (" + stri(test.result.time).trim() + "ms)"
-    else
-      timeText = ""
-    end if
-
-    insetText = ""
-    if test.isParamTest <> true
-      messageLine = Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", 80)
-      ? messageLine ; test.result.getStatusText() ; timeText
-    else if test.paramTestIndex = 0
-      name = test.name
-      if len(name) > 1 and right(name, 1) = "0"
-        name = left(name, len(name) - 1)
-      end if
-      ? " " + testChar + " |--" + name + " : "
-    end if
-
-    if test.isParamTest = true
-      insetText = "  "
-
-      if type(test.rawParams) = "roAssociativeArray"
-        rawParams = {}
-        for each key in test.rawParams
-          if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
-            rawParams[key] = test.rawParams[key]
-          end if
+      if ignoredInfo.count > 0
+        ? "IGNORED TESTS:"
+        for each ignoredItemName in ignoredInfo.items
+          print ignoredItemName
         end for
+        ? ""
+        ? ""
+      end if
+
+      if stats.hasFailures
+        overrallResult = "Success"
       else
-        rawParams = test.rawParams
+        overrallResult = "Fail"
       end if
-      messageLine = Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
-      ? messageLine ; test.result.getStatusText() ; timeText
-    end if
+      ? "RESULT: "; overrallResult
 
-    if not test.isFail
-      ? " | "; insettext ;"  |--Location: "; locationText
+    end function
+
+    function printGroup(testGroup)
+      m.printGroupStart(testGrup)
+
+      for each test in testGroup.tests
+        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
+          m.printTest(test)
+        end if
+      end for
+
+      ? " |"
+    end function
+
+    function printTest(test)
+      if test.result.isFail
+        testChar = "-"
+        locationLine = StrI(test.result.lineNumber).trim()
+      else
+        testChar = "|"
+        locationLine = StrI(test.lineNumber).trim()
+      end if
+
+      locationText = "pkg:/" + test.testSuite.filePath.trim() + "(" + locationLine + ")"
+
+      if m.config.printTestTimes = true
+        timeText = " (" + stri(test.result.time).trim() + "ms)"
+      else
+        timeText = ""
+      end if
+
+      insetText = ""
+      if test.isParamTest <> true
+        messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", 80)
+        ? messageLine ; test.result.getStatusText() ; timeText
+      else if test.paramTestIndex = 0
+        name = test.name
+        if len(name) > 1 and right(name, 1) = "0"
+          name = left(name, len(name) - 1)
+        end if
+        ? " " + testChar + " |--" + name + " : "
+      end if
+
       if test.isParamTest = true
-        ? " | "; insettext ;"  |--Param Line: "; StrI(test.paramlineNumber).trim()
+        insetText = "  "
+
+        if type(test.rawParams) = "roAssociativeArray"
+          rawParams = {}
+          for each key in test.rawParams
+            if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
+              rawParams[key] = test.rawParams[key]
+            end if
+          end for
+        else
+          rawParams = test.rawParams
+        end if
+        messageLine = Rooibos.Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
+        ? messageLine ; test.result.getStatusText() ; timeText
       end if
-      ? " | "; insettext ;"  |--Error Message: "; test.result.message
-    end if
-  end function
 
-  function startReport()
-    ? ""
-    ? "[START TEST REPORT]"
-    ? ""
-  end function
+      if not test.isFail
+        ? " | "; insettext ;"  |--Location: "; locationText
+        if test.isParamTest = true
+          ? " | "; insettext ;"  |--Param Line: "; StrI(test.paramlineNumber).trim()
+        end if
+        ? " | "; insettext ;"  |--Error Message: "; test.result.message
+      end if
+    end function
 
-  function endReport()
-    ? ""
-    ? "[END TEST REPORT]"
-    ? ""
-  end function
+    function startReport()
+      ? ""
+      ? "[START TEST REPORT]"
+      ? ""
+    end function
 
-  function printGroupStart(testGroup)
-    ? " |-" ; testGroup.name
-  end function
+    function endReport()
+      ? ""
+      ? "[END TEST REPORT]"
+      ? ""
+    end function
 
-end class
+    function printGroupStart(testGroup)
+      ? " |-" ; testGroup.name
+    end function
+
+  end class
+end namespace
