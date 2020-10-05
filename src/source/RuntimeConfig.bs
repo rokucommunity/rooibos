@@ -2,19 +2,17 @@ namespace Rooibos
   class RuntimeConfig
 
     function getVersionText()
-      'generated
     end function
 
     function getRuntimeConfig()
-      'generated
     end function
 
     function getTestSuiteClassWithName(name)
-      'generated
+      if false
+      end if
     end function
 
     function getAllTestSuitesNames()
-      'generated
     end function
 
   end class

@@ -85,12 +85,6 @@ namespace Rooibos
     end function
 
     public function runInNodeMode(nodeTestName)
-      if type(rooibos_getTestSuitesForProject) <> "Function"
-        ? "ERROR! rooibos_getTestSuitesForProject is not found! That looks like you didn't run the bsc plugin."
-        ? "Please add plugins:['rooibos-roku-vsc-extension-plugin'] to your bsconfig.json file"
-        return invalid
-      end if
-
       m.runtimeConfig = new RuntimeConfig()
       suiteClass = m.getTestSuiteClassWithName(nodeTestName)
       testSuite = invalid
@@ -131,26 +125,28 @@ namespace Rooibos
     end function
 
     private function runNodeTest(testSuite) as void
-      if testSuite.nodeName <> ""
+      if testSuite.generatedNodeName <> ""
         ? " +++++RUNNING NODE TEST"
-        ? " node type is " ; testSuite.nodeName
+        ? " node type is " ; testSuite.generatedNodeName
 
-        node = m.testScene.callFunc("rooibos_createTestNode", testSuite.nodeName)
+        node = m.testScene.createChild(testSuite.generatedNodeName)
 
-        if type(node) = "roSGNode" and node.subType() = testSuite.nodeName
-          nodeResults = node.callFunc("rooibos_runNodeTestSuite", testSuite.name, m.config)
+        if type(node) = "roSGNode"
+          nodeResults = node.rooibosTestResult
           if nodeResults <> invalid
             testSuite.stats = nodeResults.stats
             testSuite.testCases = nodeResults.testCases
           else
-            ? " ERROR! The node "; testSuite.nodeName; " did not return a result from from the rooibos_runNodeTestSuite method. This usually means you are not importing rooibos.brs and the required test file. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+            ? " ERROR! The node test"; testSuite.name; " did not return a result from from the rooibos_runNodeTestSuite method. This usually means you are not importing rooibos.brs and the required test file. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
           end if
           m.testScene.removeChild(node)
           return
+
         else
           ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
-          ? " Node of type " ; testSuite.nodeName ; " was not found/could not be instantiated"
+          ? " Node of type " ; testSuite.generatedNodeName ; " was not found/could not be instantiated"
         end if
+        
       else
         ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
         ? " No node type was provided"
