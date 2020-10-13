@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "build-plugin",
+      "command": "npm run build",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true,
+      },
+    }
+  ]
+}

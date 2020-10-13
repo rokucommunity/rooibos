@@ -1,0 +1,28 @@
+namespace Tests
+
+  '@TestSuite [VT] Version tests
+  class VersionTests extends Rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '@It tests versionCompare
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '@Test
+    '@Params["0.1", "0.1", 0]
+    '@Params["1.0", "1.0", 0]
+    '@Params["1.0.0", "1.0.0", 0]
+    '@Params["1.0.1", "1.0.1", 0]
+    '@Params["0.1", "0.2", -1]
+    '@Params["1.0", "2.0", -1]
+    '@Params["1.0.0", "2.0.0", -1]
+    '@Params["2.0.0", "2.0.1", -1]
+    '@Params["0.2", "0.1", 1]
+    '@Params["2.0", "1.0", 1]
+    '@Params["2.0.0", "1.0.0", 1]
+    '@Params["2.0.1", "2.0.0", 1]
+    function versionCompare(v1, v2, expected) as void
+      m.assertEqual(Rooibos.versionCompare(v1, v2), expected)
+    end function
+
+  end class
+end namespace

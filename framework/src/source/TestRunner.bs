@@ -19,10 +19,9 @@ namespace Rooibos
     public function new(testScene, nodeContext)
       m.testScene = testScene
       m.nodeContext = nodeContext
-
       'bs:disable-next-line
       m.config = rooibos_getRuntimeConfig()
-
+      
       if m.config = invalid or not Rooibos.Common.isAssociativeArray(m.config)
         ? "WARNING : specified config is invalid - using default"
         m.config = {
@@ -30,6 +29,9 @@ namespace Rooibos
           failFast: false
         }
       end if
+
+      'TODO - allow providing different reporters via config
+      m.logger = new Rooibos.ConsoleTestReporter(m)
 
     end function
 
@@ -70,17 +72,17 @@ namespace Rooibos
 
       m.stats.time = timer.totalMilliseconds()
 
-      logger = new TestLogger(m)
-      logger.printStats()
+      m.logger.reportStats(m.stats)
 
-      if Rooibos.Common.isFunction(RBS_reportCodeCoverage)
-        'bs:disable-next-line
-        RBS_reportCodeCoverage()
+      'code coverage is not enabled in rooibos 4.0.0 - will get added again in future
+      ' if Rooibos.Common.isFunction(RBS_reportCodeCoverage)
+      '   'bs:disable-next-line
+      '   RBS_reportCodeCoverage()
 
-        if m.config.printLcov = true
-          Coverage.printLCovInfo()
-        end if
-      end if
+      '   if m.config.printLcov = true
+      '     Coverage.printLCovInfo()
+      '   end if
+      ' end if
       m.sendHomeKeypress()
     end function
 

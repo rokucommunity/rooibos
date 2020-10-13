@@ -14,6 +14,9 @@ namespace Rooibos
 
     function getAllTestSuitesNames()
     end function
+    
+    function getIgnoredTestInfo()
+    end function
 
   end class
 end namespace

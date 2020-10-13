@@ -1,0 +1,76 @@
+{
+  "name": "rooibos-roku",
+  "version": "4.0.0-b5",
+  "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
+  "files": [
+    "dist/**/!(*.spec.*)*"
+  ],
+  "main": "dist/plugin.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "brighterscript": "file:/home/george/hope/open-source/vsc/brighterscript",
+    "source-map": "^0.7.3"
+  },
+  "devDependencies": {
+    "fs-extra": "^9.0.1",
+    "typescript": "^4.0.3"
+  },
+  "scripts": {
+    "clean": "rm -rf ./dist && mkdir dist",
+    "compile": "npm run clean && tsc -p .",
+    "prepublishOnly": "npm run build",
+    "tslint": "tslint ./src/**/*.ts",
+    "build": "npm run compile && cp -r ../framework/src/source ./dist/lib/framework",
+    "cli": "npm run compile && npm unlink && npm link",
+    "test": "npm run build && nyc mocha src/**/*.spec.ts --full-trace --bail",
+    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
+    "publish-npm": "npm run test && npm publish",
+    "publish-npm:beta": "npm run test && npm publish --tag=beta"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "maestro-cli": "dist/maestro-plugin.js"
+  },
+  "keywords": [
+    "brightscript",
+    "scenegraph",
+    "roku",
+    "rooibos",
+    "britherscript"
+  ],
+  "author": "George Cook",
+  "license": "ISC",
+  "watch": {
+    "test": {
+      "extensions": "ts",
+      "patterns": [
+        "src"
+      ]
+    }
+  },
+  "nyc": {
+    "include": [
+      "src/**/!(*.spec).ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register",
+      "source-map-support/register"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "sourceMap": true,
+    "instrument": true,
+    "check-coverage": true,
+    "lines": 5,
+    "statements": 5,
+    "functions": 5,
+    "branches": 5
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "rootDir": "src",
+  "files": [
+    "manifest",
+    "source/*.*",
+    "source/**/*.*",
+    "components/*.*",
+    "components/**/*.*"
+  ],
+  "autoImportComponentScript": true,
+  "createPackage": false,
+  "stagingFolderPath": "/tmp/out",
+  "plugins": [
+    "../../dist/plugin.js"
+  ]
+}

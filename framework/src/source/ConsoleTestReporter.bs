@@ -1,13 +1,13 @@
 namespace Rooibos
-  class TestLogger
+  class ConsoleTestReporter extends BaseTestReporter
 
     function new(testRunner)
-      m.testRunner = testRunner
-      m.config = testRunner.config
-      m.allStats = testRunner.stats
+      super(testRunner)
+      m.lineWidth = 60
     end function
 
-    function printStats()
+    override function reportResults(allStats)
+      m.allStats = allStats
       m.startReport()
 
       for each testSuite in m.testRunner.testSuites
@@ -20,23 +20,23 @@ namespace Rooibos
         end if
       end for
 
-      ? ""
+      m.printLine()
       m.endReport()
 
       'bs:disable-next-line
-      ignoredInfo = rooibos_getIgnoredTestInfo()
-      ? "Total  = "; Rooibos.Common.AsString(m.allStats.total); " ; Passed  = "; m.allStats.passedCount; " ; Failed   = "; m.allStats.failedCount; " ; Ignored   = "; ignoredInfo.count
-      ? " Time spent: "; m.allStats.time; "ms"
-      ? ""
-      ? ""
+      ignoredInfo = m.testRunner.getIgnoredTestInfo()
+      m.printLine(0, "Total  = " + Rooibos.Common.AsString(m.allStats.total) + "  + Passed  = " + Rooibos.Common.AsString(m.allStats.passedCount) + "  + Failed   = " + Rooibos.Common.AsString(m.allStats.failedCount) + "  + Ignored   = " + Rooibos.Common.AsString(ignoredInfo.count))
+      m.printLine(0, " Time spent: " + Rooibos.Common.AsString(m.allStats.time) + "ms")
+      m.printLine()
+      m.printLine()
 
       if ignoredInfo.count > 0
-        ? "IGNORED TESTS:"
+        m.printLine(0, "IGNORED TESTS:")
         for each ignoredItemName in ignoredInfo.items
-          print ignoredItemName
+          m.printLine(1, ignoredItemName)
         end for
-        ? ""
-        ? ""
+        m.printLine()
+        m.printLine()
       end if
 
       if stats.hasFailures
@@ -44,7 +44,7 @@ namespace Rooibos
       else
         overrallResult = "Fail"
       end if
-      ? "RESULT: "; overrallResult
+      m.printLine(0, "RESULT: " + overrallResult)
 
     end function
 
@@ -57,7 +57,7 @@ namespace Rooibos
         end if
       end for
 
-      ? " |"
+      m.printLine(0, " |")
     end function
 
     function printTest(test)
@@ -80,13 +80,13 @@ namespace Rooibos
       insetText = ""
       if test.isParamTest <> true
         messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", 80)
-        ? messageLine ; test.result.getStatusText() ; timeText
+        m.printLine(0, messageLine + test.result.getStatusText() + timeText)
       else if test.paramTestIndex = 0
         name = test.name
         if len(name) > 1 and right(name, 1) = "0"
           name = left(name, len(name) - 1)
         end if
-        ? " " + testChar + " |--" + name + " : "
+        m.printLine(0, " " + testChar + " |--" + name + " : ")
       end if
 
       if test.isParamTest = true
@@ -103,32 +103,48 @@ namespace Rooibos
           rawParams = test.rawParams
         end if
         messageLine = Rooibos.Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
-        ? messageLine ; test.result.getStatusText() ; timeText
+        m.printLine(0, messageLine +  test.result.getStatusText() +  timeText)
       end if
 
       if not test.isFail
-        ? " | "; insettext ;"  |--Location: "; locationText
+        m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
         if test.isParamTest = true
-          ? " | "; insettext ;"  |--Param Line: "; StrI(test.paramlineNumber).trim()
+          m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramlineNumber).trim())
         end if
-        ? " | "; insettext ;"  |--Error Message: "; test.result.message
+        m.printLine(0, " | " + insettext + "  |--Error Message: " + test.result.message)
       end if
     end function
 
     function startReport()
-      ? ""
-      ? "[START TEST REPORT]"
-      ? ""
+      m.printLine()
+      m.printLine(0, "[START TEST REPORT]")
+      m.printLine()
     end function
-
+    
     function endReport()
-      ? ""
-      ? "[END TEST REPORT]"
-      ? ""
+      m.printLine()
+      m.printLine(0, "[END TEST REPORT]")
+      m.printLine()
     end function
 
     function printGroupStart(testGroup)
-      ? " |-" ; testGroup.name
+      m.printLine(0, " |-" +  testGroup.name)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ printing
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    override function testLogInfo(text)
+      ? "INFO " ; text
+    end function
+
+    override function testLogError(text)
+      ? "ERROR " ; text
+    end function
+
+    function printLine(depth = 0, text = "")
+      ? " " ; text
     end function
 
   end class

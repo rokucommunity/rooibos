@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="CodeCoverage"
+           extends="ContentNode"
+>
+    <script type="text/brightscript" uri="CodeCoverage.brs" />
+    <interface>
+        <field id="entry" type="assocarray" />
+        <field id="save" type="boolean" />
+        <field id="expectedMap" type="assocarray" />
+        <field id="resolvedMap" type="assocarray" />
+        <field id="filePathMap" type="assocarray" />
+    </interface>
+</component>
