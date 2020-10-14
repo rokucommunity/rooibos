@@ -6,10 +6,11 @@
     "doc": "docs"
   },
   "dependencies": {
-    "log": "npm:maestro-roku-log@^0.2.2",
-    "rooibos": "../"
+    "brighterscript": "file:/home/george/hope/open-source/vsc/brighterscript"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "rooibos-roku": "^4.0.0-b7"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/georgejecook/rooibos.git"

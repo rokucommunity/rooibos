@@ -11,6 +11,7 @@
   "createPackage": false,
   "stagingFolderPath": "/tmp/out",
   "plugins": [
+    // "rooibos-roku"
     "../../dist/plugin.js"
   ]
 }
