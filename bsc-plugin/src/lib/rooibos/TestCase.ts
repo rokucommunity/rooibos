@@ -2,7 +2,7 @@ import { sanitizeBsJsonString } from './Utils';
 
 export class TestCase {
   constructor(name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number,
-    params: any[] = null, paramTestIndex: number = 0, paramLineNumber: number = 0, expectedNumberOfParams: number = 0) {
+    params: any[] = null, paramTestIndex = 0, paramLineNumber = 0, expectedNumberOfParams = 0) {
 
     this.isSolo = isSolo;
     this.funcName = funcName;

@@ -4,7 +4,7 @@
     {
       "type": "shell",
       "label": "build-plugin",
-      "command": "npm run build",
+      "command": "TS_NODE_TRANSPILE_ONLY=true npm run build",
       "presentation": {
         "echo": true,
         "reveal": "silent",
@@ -13,6 +13,24 @@
         "showReuseMessage": false,
         "clear": true,
       },
+    },
+    {
+      "type": "shell",
+      "label": "build-tests",
+      "command": "tsc -p .",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true,
+      },
+      "options": {
+        "env": {
+          "TS_NODE_TRANSPILE_ONLY": "true"
+        }
+      }
     }
   ]
 }

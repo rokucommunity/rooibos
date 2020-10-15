@@ -6,10 +6,10 @@ function addDiagnostic(
   file: BscFile,
   code: number,
   message: string,
-  startLine: number = 0,
-  startCol: number = 0,
-  endLine: number = -1,
-  endCol: number = 99999,
+  startLine = 0,
+  startCol = 0,
+  endLine = -1,
+  endCol = 99999,
   severity: DiagnosticSeverity = DiagnosticSeverity.Error
 ) {
   endLine = endLine === -1 ? startLine : endLine;
@@ -45,10 +45,10 @@ function createDiagnostic(
   bscFile: BscFile,
   code: number,
   message: string,
-  startLine: number = 0,
-  startCol: number = 99999,
-  endLine: number = 0,
-  endCol: number = 99999,
+  startLine = 0,
+  startCol = 99999,
+  endLine = 0,
+  endCol = 99999,
   severity: DiagnosticSeverity = DiagnosticSeverity.Error
 ) {
   const diagnostic = {

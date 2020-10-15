@@ -5,18 +5,16 @@ import { TestSuite } from './TestSuite';
 import { TestCase } from './TestCase';
 
 export class SessionInfo {
-  constructor(config: any) {
-  }
 
-  public ignoredCount: number = 0;
+  public ignoredCount = 0;
   public ignoredTestNames: string[] = [];
-  public testSuites: Map<string, TestSuite> = new Map();
-  public testSuitesByPath: Map<string, TestSuite[]> = new Map();
+  public testSuites = new Map<string, TestSuite>();
+  public testSuitesByPath = new Map<string, TestSuite[]>();
   public testSuitesToRun: TestSuite[] = [];
   public testCasesToRun: TestCase[] = [];
-  public hasSoloSuites: boolean = false;
-  public hasSoloGroups: boolean = false;
-  public hasSoloTests: boolean = false;
+  public hasSoloSuites = false;
+  public hasSoloGroups = false;
+  public hasSoloTests = false;
 
   public updateTestSuites(testSuites: TestSuite[]) {
     //we can assume at this point that all suites coming in belong to same file
@@ -41,7 +39,7 @@ export class SessionInfo {
     }
   }
 
-  private addTestSuiteToPath(testSuite: TestSuite) {
+  public addTestSuiteToPath(testSuite: TestSuite) {
     let suites = this.testSuitesByPath.get(testSuite.file.pkgPath) || [];
     //TODO - I think we could end up with duplicate suites in this case..
     suites.push(testSuite);
@@ -90,8 +88,8 @@ export class SessionInfo {
                 }
               });
             }
-            
-            
+
+
             if (this.hasSoloTests && !testGroup.hasSoloTests) {
               testGroup.isIncluded = false;
             } else if (this.hasSoloGroups && !testGroup.isSolo) {
@@ -99,10 +97,10 @@ export class SessionInfo {
             } else {
               testGroup.isIncluded = true;
             }
-            
+
             if (testGroup.isIncluded) {
               let testCases = [...testGroup.testCases.values()];
-              
+
               for (let testCase of testCases) {
                 if (this.hasSoloTests && !testCase.isSolo) {
                   testCase.isIncluded = false;
@@ -113,7 +111,7 @@ export class SessionInfo {
 
               for (let testCase of testGroup.soloTestCases) {
                 testCase.isIncluded = true;
-              };
+              }
             }
           }
         });

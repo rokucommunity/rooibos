@@ -49,17 +49,17 @@ export class TestGroup extends TestBlock {
         ExpressionStatement: (es) => {
           let ce = es.expression as CallExpression;
           if (isCallExpression(ce) && isDottedGetExpression(ce.callee)) {
-            let dge = ce.callee as DottedGetExpression;
+            let dge = ce.callee;
             let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*))/i;
             if (dge && assertRegex.test(dge.name.text)) {
               return new RawCodeStatement(`
     if not m.currentResult.isFail
       m.currentAssertLineNumber = ${ce.range.start.line}
       ${ce.transpile(transpileState).join('')}
-    end if`)
+    end if`);
             }
           }
-        },
+        }
       }), {
         walkMode: WalkMode.visitStatementsRecursive
       });

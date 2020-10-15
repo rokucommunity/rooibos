@@ -16,7 +16,7 @@ export class RawCodeStatement extends Statement {
   constructor(
     public source: string,
     public sourceFile?: BscFile,
-    public range: Range = Range.create(1, 1, 1, 99999),
+    public range: Range = Range.create(1, 1, 1, 99999)
   ) {
     super();
   }

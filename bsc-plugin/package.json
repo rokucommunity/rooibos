@@ -14,7 +14,21 @@
     "source-map": "^0.7.3"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.2",
+    "@types/expect": "^24.3.0",
+    "@types/mocha": "^5.2.7",
+    "@types/sinon": "^9.0.4",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "@typescript-eslint/parser": "^2.25.0",
+    "chai": "^4.2.0",
+    "chai-files": "^1.4.0",
+    "chai-subset": "^1.6.0",
+    "eslint": "^6.8.0",
     "fs-extra": "^9.0.1",
+    "mocha": "^7.1.1",
+    "sinon": "^9.0.2",
+    "source-map-support": "^0.5.13",
+    "ts-node": "^9.0.0",
     "typescript": "^4.0.3"
   },
   "scripts": {
@@ -22,9 +36,9 @@
     "compile": "npm run clean && tsc -p .",
     "prepublishOnly": "npm run build",
     "tslint": "tslint ./src/**/*.ts",
+    "lint": "eslint \"src/**\"",
     "build": "npm run compile && cp -r ../framework/src/source ./dist/lib/framework",
-    "cli": "npm run compile && npm unlink && npm link",
-    "test": "npm run build && nyc mocha src/**/*.spec.ts --full-trace --bail",
+    "test": "TS_NODE_TRANSPILE_ONLY=true mocha --full-trace --bail",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "publish-npm": "npm run test && npm publish",
     "publish-npm:beta": "npm run test && npm publish --tag=beta"
@@ -69,5 +83,13 @@
     "statements": 5,
     "functions": 5,
     "branches": 5
+  },
+  "mocha": {
+    "spec": "src/**/*.spec.ts",
+    "fullTrace": true,
+    "require": [
+      "source-map-support/register",
+      "ts-node/register"
+    ]
   }
 }

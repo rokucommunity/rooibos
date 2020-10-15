@@ -1,4 +1,4 @@
-import { BrsFile, CommentStatement, Token } from 'brighterscript'
+import { BrsFile, CommentStatement, Token } from 'brighterscript';
 import { diagnosticDuplicateSuite, diagnosticIllegalParams } from '../utils/Diagnostics';
 
 export enum AnnotationType {
@@ -33,7 +33,7 @@ let annotationLookup = {
   aftereach: AnnotationType.AfterEach,
   params: AnnotationType.Params,
   ignoreparams: AnnotationType.IgnoreParams,
-  onlyparams: AnnotationType.SoloParams,
+  onlyparams: AnnotationType.SoloParams
 };
 
 interface ParsedComment {
@@ -69,16 +69,16 @@ export class Annotation {
     public isSolo = false,
     public params: AnnotationParams[] = [],
     public nodeName?: string
-    ) {
-      
-    }
-    
-    public hasSoloParams = false;
-    
-    public static parseCommentStatement(file: BrsFile, statement: CommentStatement): ParsedComment | null {
-      
-      //split annotations in case they include an it group..
-      let blockAnnotation: Annotation;
+  ) {
+
+  }
+
+  public hasSoloParams = false;
+
+  public static parseCommentStatement(file: BrsFile, statement: CommentStatement): ParsedComment | null {
+
+    //split annotations in case they include an it group..
+    let blockAnnotation: Annotation;
     let testAnnotation: Annotation;
     let isSolo = false;
     let isIgnore = false;
@@ -90,8 +90,8 @@ export class Annotation {
       switch (annotationType) {
 
         case AnnotationType.None:
+        default:
           continue;
-          break;
         case AnnotationType.Solo:
           isSolo = true;
           break;
@@ -140,6 +140,7 @@ export class Annotation {
     try {
       const paramsInvalidToNullRegex = /(,|\:|\[)(\s*)(invalid)/g;
       let jsonText = rawParams.replace(paramsInvalidToNullRegex, '$1$2null');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       let jsonParams = getJsonFromString(jsonText);
       if (jsonParams) {
         this.params.push(new AnnotationParams(comment, jsonText, comment.range.start.line, jsonParams, isIgnore, isSolo));
@@ -154,22 +155,22 @@ export class Annotation {
 }
 
 function getAnnotationType(text: string): AnnotationType {
-  const regexp = new RegExp(`^\\s*'@([a-z]*)`, 'i');
-  const matches = text.match(regexp);
+  const regexp = /^\\s*'@([a-z]*)`/i;
+  const matches = regexp.exec(text);
   const tag = matches && matches.length > 0 ? matches[1].toLowerCase() : null;
 
   return annotationLookup[tag] || AnnotationType.None;
 }
 
 function getAnnotationText(text: string, annotationType: AnnotationType): string {
-  const regexp = new RegExp(`^\\s*'@${annotationType}\\s*(.*)`, 'i');
-  const matches = text.match(regexp);
+  const regexp = /^\\s*'@${annotationType}\\s*(.*)`/i;
+  const matches = regexp.exec(text);
   return matches && matches.length === 2 ? matches[1] : '';
 }
 
 function getJsonFromString(text) {
   let value = null;
-  // tslint:disable-next-line:no-eval
+  // eslint-disable-next-line no-eval
   eval('value = ' + text);
   return value;
 }

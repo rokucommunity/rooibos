@@ -36,8 +36,6 @@ import {
 } from '../utils/Diagnostics';
 import { RooibosSession } from './RooibosSession';
 
-const getJsonFromString = require('./getJsonFromString');
-
 export class TestSuiteBuilder {
   constructor(public session: RooibosSession) {
   }
@@ -65,7 +63,7 @@ export class TestSuiteBuilder {
                   let oldSuite = this.session.sessionInfo.testSuites.get(annotation.name);
                   if (!oldSuite || oldSuite.file.pathAbsolute ===
                     file.pathAbsolute) {
-                    suites.push(this.processClass(annotation, s as ClassStatement));
+                    suites.push(this.processClass(annotation, s));
                   } else {
                     diagnosticDuplicateSuite(file, s, annotation);
                   }
@@ -76,7 +74,7 @@ export class TestSuiteBuilder {
               }
               annotation = null; //clear out old annotation
             } else if (isCommentStatement(s)) {
-              let { blockAnnotation } = Annotation.parseCommentStatement(file, s as CommentStatement);
+              let { blockAnnotation } = Annotation.parseCommentStatement(file, s);
               annotation = blockAnnotation;
             }
           }
@@ -102,7 +100,7 @@ export class TestSuiteBuilder {
         this.processClassMethod(s);
         this.annotation = null;
       } else if (isCommentStatement(s)) {
-        let { blockAnnotation, testAnnotation } = Annotation.parseCommentStatement(this.file, s as CommentStatement);
+        let { blockAnnotation, testAnnotation } = Annotation.parseCommentStatement(this.file, s);
         if (blockAnnotation) {
           if (this.annotation) {
             diagnosticNoGroup(this.file, s);
@@ -132,8 +130,8 @@ export class TestSuiteBuilder {
   public isAllowedAnnotation(annotation: Annotation): boolean {
     switch (this.annotation ? this.annotation.annotationType : AnnotationType.None) {
       case AnnotationType.None:
-        return true;
-        break;
+      default:
+        return false;
       case AnnotationType.TestSuite:
       case AnnotationType.Setup:
       case AnnotationType.TearDown:
@@ -169,6 +167,7 @@ export class TestSuiteBuilder {
           if (statement.func.parameters.length > 0) {
             diagnosticWrongParameterCount(this.file, statement, 0);
           }
+          break;
         case AnnotationType.TearDown:
           block.tearDownFunctionName = statement.name.text;
           if (statement.func.parameters.length > 0) {
@@ -186,6 +185,8 @@ export class TestSuiteBuilder {
           if (statement.func.parameters.length > 0) {
             diagnosticWrongParameterCount(this.file, statement, 0);
           }
+          break;
+        default:
           break;
       }
     }
@@ -215,16 +216,13 @@ export class TestSuiteBuilder {
       }
       return true;
 
+    } else if (numberOfParams === 0) {
+      this.currentGroup.addTestCase(
+        new TestCase(annotation.name, statement.name.text, annotation.isSolo, annotation.isIgnore, lineNumber)
+      );
+      return true;
     } else {
-      if (numberOfParams === 0) {
-        this.currentGroup.addTestCase(
-          new TestCase(annotation.name, statement.name.text, annotation.isSolo, annotation.isIgnore, lineNumber)
-        );
-        return true;
-      } else {
-        diagnosticWrongParameterCount(this.file, statement, 0);
-      }
+      diagnosticWrongParameterCount(this.file, statement, 0);
     }
   }
-
 }

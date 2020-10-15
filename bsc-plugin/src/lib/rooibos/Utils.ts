@@ -15,6 +15,7 @@ export function spliceString(str: string, index: number, count: number, add: str
 export function getRegexMatchesValues(input, regex, groupIndex): any[] {
   let values = [];
   let matches: any[];
+  // eslint-disable-next-line
   while (matches = regex.exec(input)) {
     values.push(matches[groupIndex]);
   }
@@ -22,6 +23,7 @@ export function getRegexMatchesValues(input, regex, groupIndex): any[] {
 }
 export function getRegexMatchValue(input, regex, groupIndex): string {
   let matches: any[];
+  // eslint-disable-next-line
   while (matches = regex.exec(input)) {
     if (matches.length > groupIndex) {
       return matches[groupIndex];
@@ -132,6 +134,7 @@ export function getTokenText(operator: TokenKind): string {
       return '<';
     case TokenKind.Greater:
       return '>';
+    default:
+      return '';
   }
-  return '';
 }

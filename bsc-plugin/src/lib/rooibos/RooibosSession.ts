@@ -12,13 +12,13 @@ import { FileFactory } from './FileFactory';
 import { TestSuite } from './TestSuite';
 import { diagnosticErrorNoMainFound } from '../utils/Diagnostics';
 
-const fs = require('fs-extra');
+// eslint-disable-next-line
 const pkg = require('../../../package.json');
 
 export class RooibosSession {
   constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
     this.fileFactory = fileFactory;
-    this._config = (builder.options as any).rooibos as RooibosConfig || {};
+    this._config = builder.options ? (builder.options as any).rooibos as RooibosConfig || {} : {};
     this._builder = builder;
     this._suiteBuilder = new TestSuiteBuilder(this);
     this.reset();
@@ -32,7 +32,7 @@ export class RooibosSession {
   public sessionInfo: SessionInfo;
 
   public reset() {
-    this.sessionInfo = new SessionInfo(this._config);
+    this.sessionInfo = new SessionInfo();
   }
 
   public updateSessionStats() {
@@ -47,7 +47,7 @@ export class RooibosSession {
 
   public addLaunchHook() {
     let mainFunc = null;
-    let files = this._builder.program.getScopeByName("source").getFiles();
+    let files = this._builder.program.getScopeByName('source').getFiles();
     for (let file of files) {
       mainFunc = file.parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
       if (mainFunc) {
@@ -65,9 +65,9 @@ export class RooibosSession {
   }
 
   public addTestRunnerMetadata() {
-    let runtimeConfig = this._builder.program.getFileByPkgPath('source/rooibos/RuntimeConfig.bs') as BrsFile;
+    let runtimeConfig = this._builder.program.getFileByPkgPath('source/rooibos/RuntimeConfig.bs');
     if (runtimeConfig) {
-      let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
+      let classStatement = ((runtimeConfig as BrsFile).ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
       this.updateRunTimeConfigFunction(classStatement);
       this.updateVersionTextFunction(classStatement);
       this.updateClassLookupFunction(classStatement);
@@ -82,8 +82,8 @@ export class RooibosSession {
       method.func.body.statements.push(new RawCodeStatement(`
     return {
       "failFast": ${this._config.failFast ? 'true' : 'false'}
-      "logLevel": ${this._config.logLevel ?? 0 }
-      "showOnlyFailures": ${this._config.showFailuresOnly  ? 'true' : 'false'}
+      "logLevel": ${this._config.logLevel ?? 0}
+      "showOnlyFailures": ${this._config.showFailuresOnly ? 'true' : 'false'}
       "printLcov": ${this._config.printLcov ? 'true' : 'false'}
       "port": "${this._config.port || 'invalid'}"
     }`));
@@ -116,8 +116,8 @@ export class RooibosSession {
     if (method) {
       let text = `return [
         ${this.sessionInfo.testSuitesToRun.filter((s) => !s.isNodeTest)
-          .map((s) => `"${s.name}"`).join('\n')
-        }
+    .map((s) => `"${s.name}"`).join('\n')
+}
       ]`;
       method.func.body.statements.push(new RawCodeStatement(text));
     }
@@ -130,9 +130,9 @@ export class RooibosSession {
     for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
       let xmlText = this.getNodeTestXmlText(suite);
       let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
-      this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-      this.fileFactory.addFile(program, bsPath, '');
-      let bsFile = await program.getFileByPkgPath(bsPath) as BrsFile;
+      await this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
+      await this.fileFactory.addFile(program, bsPath, '');
+      let bsFile = program.getFileByPkgPath(bsPath);
       bsFile.parser.statements.push(this.getNodeTestBsBody(suite));
       bsFile.needsTranspiled = true;
     }

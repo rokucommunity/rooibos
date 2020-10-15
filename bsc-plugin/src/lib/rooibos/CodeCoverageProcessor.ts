@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   BrsFile,
   CompilerPlugin,
@@ -6,7 +8,7 @@ import {
   ProgramBuilder,
   SourceObj,
   Util,
-  XmlFile,
+  XmlFile
 } from 'brighterscript';
 
 import * as path from 'path';
@@ -27,7 +29,6 @@ export class CodeCoverageProcessor {
     this._config = (builder.options as any).rooibos as RooibosConfig || {};
     this._builder = builder;
     this._fileId = 0;
-    let fs = require('fs');
     this._filePathMap = new Map<number, string>();
     this._expectedCoverageMap = {};
     try {

@@ -55,7 +55,7 @@ export class TestSuite extends TestBlock {
     this.classStatement = classStatement;
     this.isNodeTest = annotation.nodeName && annotation.nodeName.trim() !== '';
     this.nodeName = annotation.nodeName;
-    this.generatedNodeName = this.name.replace(/[^a-zA-Z0-9]/g, "_");
+    this.generatedNodeName = this.name.replace(/[^a-zA-Z0-9]/g, '_');
 
   }
 
@@ -111,7 +111,7 @@ export class TestSuite extends TestBlock {
       isNodeTest: this.isNodeTest,
       nodeName: this.nodeName,
       beforeEachFunctionName: this.beforeEachFunctionName,
-      afterEachFunctionName: this.afterEachFunctionName,
+      afterEachFunctionName: this.afterEachFunctionName
     };
   }
 

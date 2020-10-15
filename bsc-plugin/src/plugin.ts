@@ -10,7 +10,7 @@ import {
   SourceObj,
   TranspileObj,
   Util,
-  XmlFile,
+  XmlFile
 } from 'brighterscript';
 
 import { isBrsFile } from 'brighterscript/dist/astUtils';
@@ -20,7 +20,7 @@ import { RooibosSession } from './lib/rooibos/RooibosSession';
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 
-const path = require('path');
+import * as path from 'path';
 
 const pluginInterface: CompilerPlugin = {
   name: 'rooibosPlugin',
@@ -43,23 +43,23 @@ export default pluginInterface;
 
 let session: RooibosSession;
 let codeCoverageProcessor: CodeCoverageProcessor;
-let fileFactory: FileFactory; 
+let fileFactory: FileFactory;
 let isFrameworkAdded = false;
 let _builder: ProgramBuilder;
 
 function beforeProgramCreate(builder: ProgramBuilder): void {
   _builder = builder;
   fileFactory = new FileFactory((builder.options as any).rooibos || {});
-  
+
   if (!session) {
     session = new RooibosSession(builder, fileFactory);
     codeCoverageProcessor = new CodeCoverageProcessor(builder);
   }
 }
 
-function afterProgramCreate(program: Program) {
+async function afterProgramCreate(program: Program) {
   if (!isFrameworkAdded) {
-    fileFactory.addFrameworkFiles(program);
+    await fileFactory.addFrameworkFiles(program);
   }
 }
 
@@ -105,6 +105,7 @@ function afterProgramValidate(program: Program) {
   for (let testSuite of [...session.sessionInfo.testSuites.values()]) {
     testSuite.validate();
   }
+  // eslint-disable-next-line
   program['diagnostics'] = program['diagnostics'].filter((d) => !d.file.pathAbsolute.startsWith('components/rooibos/generated'));
 }
 
