@@ -27,7 +27,7 @@ export class TestGroup extends TestBlock {
 
   public addTestCase(testCase: TestCase) {
 
-    this.testCases.set(testCase.name + testCase.isParamTest ? testCase.paramTestIndex.toString() : '', testCase);
+    this.testCases.set(testCase.name + (testCase.isParamTest ? testCase.paramTestIndex.toString() : ''), testCase);
 
     if (testCase.isIgnored) {
       this.ignoredTestCases.push(testCase);
@@ -35,6 +35,10 @@ export class TestGroup extends TestBlock {
       this.hasSoloTests = true;
       this.soloTestCases.push(testCase);
     }
+  }
+
+  public getTestCases(): TestCase[] {
+    return [...this.testCases.values()];
   }
 
   public modifyAssertions(testCase: TestCase) {

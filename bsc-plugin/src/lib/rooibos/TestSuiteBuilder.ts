@@ -60,13 +60,7 @@ export class TestSuiteBuilder {
             if (isClassStatement(s)) {
               if (annotation) {
                 if (annotation.annotationType === AnnotationType.TestSuite) {
-                  let oldSuite = this.session.sessionInfo.testSuites.get(annotation.name);
-                  if (!oldSuite || oldSuite.file.pathAbsolute ===
-                    file.pathAbsolute) {
-                    suites.push(this.processClass(annotation, s));
-                  } else {
-                    diagnosticDuplicateSuite(file, s, annotation);
-                  }
+                  this.addSuiteIfValid(file, annotation, s, suites);
                 } else {
                   diagnosticWrongAnnotation(file, s, 'Expected a TestSuite annotation, got: ' + annotation.annotationType);
                   throw new Error('bad test suite');
@@ -86,8 +80,33 @@ export class TestSuiteBuilder {
       console.log(e);
       diagnosticErrorProcessingFile(file, e.message);
     }
-
+    this.session.sessionInfo.updateTestSuites(suites);
     return suites;
+  }
+
+  public addSuiteIfValid(file: BrsFile, annotation: Annotation, s: ClassStatement, suites: TestSuite[]) {
+    let oldSuite = this.session.sessionInfo.testSuites.get(annotation.name);
+    let suite = this.processClass(annotation, s);
+    if ((oldSuite && oldSuite.file.pathAbsolute !==
+      file.pathAbsolute)) {
+      oldSuite.isValid = false;
+      suite.isValid = false;
+      diagnosticDuplicateSuite(file, oldSuite.classStatement, oldSuite.annotation);
+    }
+
+    let duplicateSuites = suites.filter((s) => s.name === suite.name);
+    if (duplicateSuites.length > 0) {
+      for (let duplicateSuite of duplicateSuites) {
+        duplicateSuite.isValid = false;
+        diagnosticDuplicateSuite(file, duplicateSuite.classStatement, duplicateSuite.annotation);
+      }
+      suite.isValid = false;
+    }
+
+    suites.push(suite);
+    if (!suite.isValid) {
+      diagnosticDuplicateSuite(file, suite.classStatement, suite.annotation);
+    }
   }
 
   public processClass(annotation: Annotation, classStatement: ClassStatement): TestSuite {
@@ -108,7 +127,8 @@ export class TestSuiteBuilder {
           if (this.currentGroup) {
             this.testSuite.addGroup(this.currentGroup);
           }
-          if (!this.addGroup(blockAnnotation)) {
+          if (!this.createGroup(blockAnnotation)) {
+            this.currentGroup = null;
             break;
           }
         }
@@ -124,6 +144,7 @@ export class TestSuiteBuilder {
     if (this.currentGroup) {
       this.testSuite.addGroup(this.currentGroup);
     }
+    this.testSuite.isValid = this.testSuite.file.getDiagnostics().length === 0;
     return this.testSuite;
   }
 
@@ -140,7 +161,7 @@ export class TestSuiteBuilder {
         return false;
     }
   }
-  public addGroup(blockAnnotation: Annotation): boolean {
+  public createGroup(blockAnnotation: Annotation): boolean {
     if (!this.testSuite.testGroups.has(blockAnnotation.name)) {
       this.currentGroup = new TestGroup(this.testSuite, blockAnnotation);
       return true;

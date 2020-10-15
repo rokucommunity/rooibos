@@ -41,7 +41,6 @@ export class RooibosSession {
 
   public processFile(file: BrsFile): boolean {
     let testSuites = this._suiteBuilder.processFile(file);
-    this.sessionInfo.updateTestSuites(testSuites);
     return testSuites.length > 0;
   }
 

@@ -75,6 +75,9 @@ export class TestSuite extends TestBlock {
     if (group.hasSoloTests) {
       this.hasSoloTests = true;
     }
+    if (group.isSolo) {
+      this.hasSoloGroups = true;
+    }
     this.isValid = true;
   }
 
@@ -82,6 +85,11 @@ export class TestSuite extends TestBlock {
     //add the data body to the test subclass
     addOverriddenMethod(this.classStatement, 'getTestSuiteData', `return ${this.asText()}`);
   }
+
+  public getTestGroups(): TestGroup[] {
+    return [...this.testGroups.values()];
+  }
+
 
   public validate() {
     if (this.isNodeTest) {
