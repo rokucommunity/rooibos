@@ -8,6 +8,9 @@ namespace Tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     '@Test Fail
+    function test_fail2() as void
+    end function
+    '@Test Fail
     function test_fail() as void
 
       assertResult = m.Fail("reason")
@@ -27,16 +30,16 @@ namespace Tests
     '@Params[1, false]
     '@Params["test", false]
     function test_assertTrue(value, expectedAssertResult) as void
-
+      
       assertResult = m.assertTrue(value)
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
-
+      
       m.assertEqual(assertResult, expectedAssertResult)
       m.assertEqual(isFail, not expectedAssertResult)
     end function
-
-    '@Test AssertFalse
+    
+    '@Test AssertTrue
     '@Params[false, true]
     '@Params[true, false]
     '@Params[invalid, false]

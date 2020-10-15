@@ -155,7 +155,7 @@ export class Annotation {
 }
 
 function getAnnotationType(text: string): AnnotationType {
-  const regexp = /^\\s*'@([a-z]*)`/i;
+  const regexp = /^\s*'@([a-z]*)/i;
   const matches = regexp.exec(text);
   const tag = matches && matches.length > 0 ? matches[1].toLowerCase() : null;
 
@@ -163,7 +163,7 @@ function getAnnotationType(text: string): AnnotationType {
 }
 
 function getAnnotationText(text: string, annotationType: AnnotationType): string {
-  const regexp = /^\\s*'@${annotationType}\\s*(.*)`/i;
+  const regexp = new RegExp(`^\s*'@${annotationType}\s*(.*)`, 'i');
   const matches = regexp.exec(text);
   return matches && matches.length === 2 ? matches[1] : '';
 }

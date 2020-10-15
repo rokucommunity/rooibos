@@ -73,7 +73,7 @@ describe.only('TestSuiteBuilder tests ', () => {
 
 
   describe('Has suites', () => {
-    it('class with one, group and 2 tests ', () => {
+    it.only('class with one, group and 2 tests ', () => {
       let testSuite = createTestSuite('test1.bs', `namespace Tests
 
   '@TestSuite Rooibos assertion tests

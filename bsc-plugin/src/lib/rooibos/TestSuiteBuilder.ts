@@ -131,7 +131,7 @@ export class TestSuiteBuilder {
     switch (this.annotation ? this.annotation.annotationType : AnnotationType.None) {
       case AnnotationType.None:
       default:
-        return false;
+        return true;
       case AnnotationType.TestSuite:
       case AnnotationType.Setup:
       case AnnotationType.TearDown:
