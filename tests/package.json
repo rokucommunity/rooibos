@@ -6,8 +6,8 @@
     "doc": "docs"
   },
   "dependencies": {
-    "log": "npm:maestro-roku-log@^0.2.2",
-    "rooibos": "../"
+    "brighterscript": "file:/home/george/hope/open-source/vsc/brighterscript",
+    "source-map": "^0.7.3"
   },
   "devDependencies": {},
   "repository": {
@@ -35,5 +35,8 @@
   },
   "ropm": {
     "rootDir": "src"
+  },
+  "scripts": {
+    "build": "npx bsc"
   }
 }

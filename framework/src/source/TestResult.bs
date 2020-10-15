@@ -3,7 +3,7 @@ namespace Rooibos
 
     public isFail = false
     public isCrash = false
-    public message = invalid
+    public message = ""
     public lineNumber = -1
     public test = invalid
     public time = 0

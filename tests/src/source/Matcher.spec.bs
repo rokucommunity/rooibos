@@ -2,7 +2,7 @@ namespace Tests
   '@TestSuite [MT] Matcher Tests
   class MatcherTests extends Rooibos.BaseTestSuite
 
-  override function beforeEach()
+    override function beforeEach()
       'make a mock class
       m.myClass = {}
     end function
@@ -18,7 +18,7 @@ namespace Tests
     '@Params[true, true, true]
     function matcher_boolean(v1, v2, expectedFail)
       returnValue = "notBroken"
-      m.expectOnce(m.myClass, "doWork", [{ "matcher": match_true }, { "matcher": match_false }], returnValue)
+      m.expectOnce(m.myClass, "doWork", [{ "matcher": Tests.Matchers.match_true }, { "matcher": Tests.Matchers.match_false }], returnValue)
 
       m.assertEqual(m.myClass.doWork(v1, v2), returnValue)
 
@@ -200,13 +200,17 @@ namespace Tests
     '++ matchers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function match_true(value)
-      return value = true
-    end function
-
-    function match_false(value)
-      return value = false
-    end function
-
   end class
+
+end namespace
+
+namespace Tests.Matchers
+  function match_true(value)
+    return value = true
+  end function
+
+  function match_false(value)
+    return value = false
+  end function
+
 end namespace

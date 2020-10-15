@@ -4,6 +4,13 @@ const path = require('path')
 const fs = require('fs-extra');
 
 export class FileFactory {
+
+  constructor(options: any) {
+    if (options.frameworkSourcePath) {
+      this.sourcePath = options.frameworkSourcePath;
+    }
+  }
+  
   private frameworkFileNames = [
     'BaseTestSuite',
     'CommonUtils',
@@ -50,10 +57,10 @@ export class FileFactory {
     program.addOrReplaceFile(entry, this.createTestXML('TestsScene', 'Scene'));
   }
 
-  public createTestXML(name: string, baseName: string, imports: string[] = []): string {
+  public createTestXML(name: string, baseName: string, useBs = true): string {
     let scriptImports = [];
-    for (let fileName of this.frameworkFileNames.concat(imports)) {
-      scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${this.targetPath}${fileName}.bs" />`);
+    for (let fileName of this.frameworkFileNames) {
+      scriptImports.push(`<script type="text/bright${useBs ? 'er' : ''}script" uri="pkg:/${this.targetPath}${fileName}.${useBs ? 'bs' : 'brs'}" />`);
     }
 
     let contents = `<?xml version="1.0" encoding="UTF-8" ?>

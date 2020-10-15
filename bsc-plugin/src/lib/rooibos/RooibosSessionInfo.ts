@@ -27,13 +27,15 @@ export class SessionInfo {
 
         this.addTestSuiteToPath(testSuite);
         if (testSuite.isSolo) {
-          this.hasSoloSuites = true;
+          this.hasSoloSuites = !this.hasSoloGroups && !this.hasSoloTests;
+        }
+        if (testSuite.hasSoloGroups) {
+          this.hasSoloGroups = !this.hasSoloTests;
         }
         if (testSuite.hasSoloTests) {
           this.hasSoloTests = true;
-        }
-        if (testSuite.hasSoloGroups) {
-          this.hasSoloGroups = true;
+          this.hasSoloGroups = false;
+          this.hasSoloSuites = false;
         }
       }
     }
@@ -63,52 +65,59 @@ export class SessionInfo {
       } else {
         testSuite.isIncluded = true;
       }
+      if (testSuite.isIncluded) {
+        //'testSuite  ' + testSuite.name);
+        testSuite.testGroups.forEach((testGroup) => {
 
-      //'testSuite  ' + testSuite.name);
-      testSuite.testGroups.forEach((testGroup) => {
-
-        //'GROUP  ' + testGroup.name);
-        if (testGroup.isIgnored) {
-          this.ignoredCount += testGroup.ignoredTestCases.length;
-          this.ignoredTestNames.push(testGroup.name + ' [WHOLE GROUP]');
-        } else {
-          if (testGroup.ignoredTestCases.length > 0) {
-            this.ignoredTestNames.push(testGroup.name);
+          //'GROUP  ' + testGroup.name);
+          if (testGroup.isIgnored) {
             this.ignoredCount += testGroup.ignoredTestCases.length;
-            testGroup.ignoredTestCases.forEach((ignoredTestCase) => {
-              if (!ignoredTestCase.isParamTest) {
-                this.ignoredTestNames.push(ignoredTestCase.name);
-              } else if (ignoredTestCase.paramTestIndex === 0) {
-                let testCaseName = ignoredTestCase.name;
-                if (testCaseName.length > 1 && testCaseName.substr(testCaseName.length - 1) === '0') {
-                  testCaseName = testCaseName.substr(0, testCaseName.length - 1);
-                }
-                this.ignoredTestNames.push(testCaseName);
-              }
-            });
-          }
-          let testCases = [...testGroup.testCases.values()];
-          if (this.hasSoloTests && !testGroup.hasSoloTests && !testGroup.isSolo) {
-            testGroup.isIncluded = false;
-          } else if (testCases.length === 0 && testGroup.soloTestCases.length === 0) {
+            this.ignoredTestNames.push(testGroup.name + ' [WHOLE GROUP]');
             testGroup.isIncluded = false;
           } else {
-            testGroup.isIncluded = testSuite.isIncluded;
-          }
-
-          for (let testCase of testCases) {
-            if (this.hasSoloTests && !testCase.isSolo) {
-              testCase.isIncluded = false;
+            if (testGroup.ignoredTestCases.length > 0) {
+              this.ignoredTestNames.push(testGroup.name);
+              this.ignoredCount += testGroup.ignoredTestCases.length;
+              testGroup.ignoredTestCases.forEach((ignoredTestCase) => {
+                if (!ignoredTestCase.isParamTest) {
+                  this.ignoredTestNames.push(ignoredTestCase.name);
+                } else if (ignoredTestCase.paramTestIndex === 0) {
+                  let testCaseName = ignoredTestCase.name;
+                  if (testCaseName.length > 1 && testCaseName.substr(testCaseName.length - 1) === '0') {
+                    testCaseName = testCaseName.substr(0, testCaseName.length - 1);
+                  }
+                  this.ignoredTestNames.push(testCaseName);
+                }
+              });
+            }
+            
+            
+            if (this.hasSoloTests && !testGroup.hasSoloTests) {
+              testGroup.isIncluded = false;
+            } else if (this.hasSoloGroups && !testGroup.isSolo) {
+              testGroup.isIncluded = false;
             } else {
-              testCase.isIncluded = testGroup.isIncluded || testCase.isSolo;
+              testGroup.isIncluded = true;
+            }
+            
+            if (testGroup.isIncluded) {
+              let testCases = [...testGroup.testCases.values()];
+              
+              for (let testCase of testCases) {
+                if (this.hasSoloTests && !testCase.isSolo) {
+                  testCase.isIncluded = false;
+                } else {
+                  testCase.isIncluded = testGroup.isIncluded || testCase.isSolo;
+                }
+              }
+
+              for (let testCase of testGroup.soloTestCases) {
+                testCase.isIncluded = true;
+              };
             }
           }
-
-          for (let testCase of testGroup.soloTestCases) {
-            testCase.isIncluded = true;
-          };
-        }
-      });
+        });
+      }
     }
     this.testSuitesToRun = [...this.testSuites.values()].filter((s) => s.isIncluded);
   }

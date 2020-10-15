@@ -11,8 +11,8 @@ namespace Rooibos
       m.startReport()
 
       for each testSuite in m.testRunner.testSuites
-        if not m.allTests.hasFailures or ((not m.config.showOnlyFailures) or testSuite.failedCount > 0 or testSuite.crashedCount > 0)
-          m.startSuiteReport(testSuite)
+        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.failedCount > 0 or testSuite.crashedCount > 0)
+          m.printSuiteStart(testSuite)
 
           for each testGroup in testSuite.groups
             m.printGroup(testGroup)
@@ -24,7 +24,7 @@ namespace Rooibos
       m.endReport()
 
       'bs:disable-next-line
-      ignoredInfo = m.testRunner.getIgnoredTestInfo()
+      ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
       m.printLine(0, "Total  = " + Rooibos.Common.AsString(m.allStats.total) + "  + Passed  = " + Rooibos.Common.AsString(m.allStats.passedCount) + "  + Failed   = " + Rooibos.Common.AsString(m.allStats.failedCount) + "  + Ignored   = " + Rooibos.Common.AsString(ignoredInfo.count))
       m.printLine(0, " Time spent: " + Rooibos.Common.AsString(m.allStats.time) + "ms")
       m.printLine()
@@ -39,7 +39,7 @@ namespace Rooibos
         m.printLine()
       end if
 
-      if stats.hasFailures
+      if m.allStats.hasFailures
         overrallResult = "Success"
       else
         overrallResult = "Fail"
@@ -49,7 +49,7 @@ namespace Rooibos
     end function
 
     function printGroup(testGroup)
-      m.printGroupStart(testGrup)
+      m.printGroupStart(testGroup)
 
       for each test in testGroup.tests
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
@@ -106,7 +106,7 @@ namespace Rooibos
         m.printLine(0, messageLine +  test.result.getStatusText() +  timeText)
       end if
 
-      if not test.isFail
+      if test.result.isFail
         m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
         if test.isParamTest = true
           m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramlineNumber).trim())
@@ -125,6 +125,11 @@ namespace Rooibos
       m.printLine()
       m.printLine(0, "[END TEST REPORT]")
       m.printLine()
+    end function
+
+    function printSuiteStart(testSuite)
+      m.printLine(0, " " +  testSuite.name + " pkg:/" + testSuite.filePath.trim() + "(" + str(testSuite.lineNumber).trim() + ")")
+
     end function
 
     function printGroupStart(testGroup)

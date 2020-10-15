@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 
-import { BrsFile, ClassStatement, FunctionStatement, IfStatement, NamespaceStatement, ParseMode, ProgramBuilder, TokenKind } from 'brighterscript';
+import { BrsFile, ClassStatement, FunctionStatement, IfStatement, NamespaceStatement, ParseMode, Program, ProgramBuilder, TokenKind } from 'brighterscript';
 
 import { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -16,8 +16,8 @@ const fs = require('fs-extra');
 const pkg = require('../../../package.json');
 
 export class RooibosSession {
-  constructor(builder: ProgramBuilder) {
-    this.fileFactory = new FileFactory();
+  constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
+    this.fileFactory = fileFactory;
     this._config = (builder.options as any).rooibos as RooibosConfig || {};
     this._builder = builder;
     this._suiteBuilder = new TestSuiteBuilder(this);
@@ -81,12 +81,11 @@ export class RooibosSession {
     if (method) {
       method.func.body.statements.push(new RawCodeStatement(`
     return {
-      "failFast": ${this._config.failFast}
-      "logLevel": ${this._config.logLevel}
-      "showOnlyFailures": ${this._config.showFailuresOnly}
-      "printLcov": ${this._config.printLcov === true}
-      "rooibosPreprocessorVersion": "${pkg.version}"
-      "port": ${this._config.port || 'Invalid'}
+      "failFast": ${this._config.failFast ? 'true' : 'false'}
+      "logLevel": ${this._config.logLevel ?? 0 }
+      "showOnlyFailures": ${this._config.showFailuresOnly  ? 'true' : 'false'}
+      "printLcov": ${this._config.printLcov ? 'true' : 'false'}
+      "port": "${this._config.port || 'invalid'}"
     }`));
     }
   }
@@ -105,6 +104,7 @@ export class RooibosSession {
 
       if (ifStatement) {
         for (let suite of this.sessionInfo.testSuitesToRun) {
+          let className = suite.classStatement.getName(ParseMode.BrightScript);
           ifStatement.elseIfs.push(createElseIf(createVarExpression('name', TokenKind.Equal, suite.name), [new RawCodeStatement(`return ${suite.classStatement.getName(ParseMode.BrightScript)}`)]));
         }
       }
@@ -116,49 +116,49 @@ export class RooibosSession {
     if (method) {
       let text = `return [
         ${this.sessionInfo.testSuitesToRun.filter((s) => !s.isNodeTest)
-          .map((s) => `"${s.classStatement.getName(ParseMode.BrightScript)}"`).join('\n')
+          .map((s) => `"${s.name}"`).join('\n')
         }
       ]`;
       method.func.body.statements.push(new RawCodeStatement(text));
     }
   }
 
-  public createNodeFiles(outPath: string) {
+  public async createNodeFiles(program: Program) {
 
-    let p = path.join(outPath, 'components', 'rooibos', 'generated');
-    fs.mkdirSync(p, { recursive: true });
+    let p = path.join('components', 'rooibos', 'generated');
 
     for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
       let xmlText = this.getNodeTestXmlText(suite);
-      let brsText = this.getNodeTestBrsText(suite.name);
-      fs.writeFileSync(path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-      fs.writeFileSync(path.join(p, `${suite.generatedNodeName}.brs`), brsText);
+      let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
+      this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
+      this.fileFactory.addFile(program, bsPath, '');
+      let bsFile = await program.getFileByPkgPath(bsPath) as BrsFile;
+      bsFile.parser.statements.push(this.getNodeTestBsBody(suite));
+      bsFile.needsTranspiled = true;
     }
   }
 
   private getNodeTestXmlText(suite: TestSuite) {
-    let imports = [suite.file.pkgPath];
-    return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName, imports);
+    return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName);
   }
 
-  private getNodeTestBrsText(testName: string) {
-    return `function init()
+  private getNodeTestBsBody(testSuite: TestSuite): RawCodeStatement {
+    return new RawCodeStatement(`import "pkg:/${testSuite.file.pkgPath}"
+    function init()
       nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
-      m.top.rooibosTestResult = nodeRunner.runInNodeMode("${testName}")
+      m.top.rooibosTestResult = nodeRunner.runInNodeMode("${testSuite.name}")
     end function
-    
-    `
+    `, testSuite.file, testSuite.annotation.token.range);
   }
 
   public createIgnoredTestsInfoFunction(cs: ClassStatement) {
     let method = cs.methods.find((m) => m.name.text === 'getIgnoredTestInfo');
     if (method) {
-      let text = `return [
-        {
+      let text = `return {
           "count": ${this.sessionInfo.ignoredCount}
           "items":[
         ${this.sessionInfo.ignoredTestNames.map((name) => `"${name}",`).join('\n')}
-  ]
+  ]}
   `;
 
       method.func.body.statements.push(new RawCodeStatement(text));

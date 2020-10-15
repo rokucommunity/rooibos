@@ -1,16 +1,38 @@
 {
-  "cSpell.words": [
-    "Roadmap",
-    "brightscript",
-    "rooibos"
-  ],
-  "jira-plugin.workingProject": "",
-  "workbench.colorCustomizations": {
-    "statusBar.background": "#551A8B",
-    "statusBar.debuggingBackground": "#551A8B",
-    "panelTitle.activeBorder": "#ff0000",
-    "activityBar.background": "#0E3047",
-    "titleBar.activeBackground": "#134464",
-    "titleBar.activeForeground": "#F6FAFD"
-  }
+  "files.exclude": {
+    "build": true,
+    ".history": true,
+    "node_modules": true,
+    "out": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true,
+    "/tmp/**": true,
+  },
+  "search.exclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.meteor/local": true,
+    "**/build/**": true,
+    "build/**": true,
+    "**/.history/**": true,
+    ".history/**": true,
+    ".history/**/*": true,
+    "out/**": true,
+    "**/out/**": true,
+    "/tmp/**": true,
+  },
+  "files.useExperimentalFileWatcher": true,
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.meteor/local": true,
+    "**/build/**": true,
+    "**/.history/**": true,
+    ".history/**": true,
+    "**/out/**": true,
+  },
 }

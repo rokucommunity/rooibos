@@ -5,38 +5,27 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "bashdb",
-      "request": "launch",
-      "name": "Build",
-      "cwd": "${workspaceFolder}",
-      "program": "npm run build",
-      "args": []
-    },
-    {
       "type": "brightscript",
       "request": "launch",
-      "name": "TEST",
-      "internalConsoleOptions": "neverOpen",
+      "name": "Framework Tests",
+      "stopOnEntry": false,
+      "preLaunchTask": "build-tests",
       "envFile": "${workspaceFolder}/.vscode/.env",
-      "preLaunchTask": "buildTests",
       "host": "${env:ROKU_DEV_TARGET}",
       "password": "${env:ROKU_DEVPASSWORD}",
       "rootDir": "${workspaceFolder}/build",
-      // "debugServer": 4711,
       "sourceDirs": [
-        "${workspaceFolder}/frameworkTests"
+        "${workspaceFolder}/src"
       ],
       "files": [
-        "*",
-        "*.*",
-        "**/*.*",
-        "!*.zip"
+        "manifest",
+        "source/**/*.*",
+        "components/**/*.*",
+        "images/**/*.*",
+        "font/**/*.*",
+        "!*.zip",
+        "!**/*.zip"
       ],
-      "consoleOutput": "normal",
-      "stopOnEntry": false,
-      "retainDeploymentArchive": true,
-      "retainStagingFolder": true,
-      "stopDebuggerOnAppExit": true
-    },
+    }
   ]
 }

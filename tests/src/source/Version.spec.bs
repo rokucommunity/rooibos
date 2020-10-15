@@ -21,7 +21,7 @@ namespace Tests
     '@Params["2.0.0", "1.0.0", 1]
     '@Params["2.0.1", "2.0.0", 1]
     function versionCompare(v1, v2, expected) as void
-      m.assertEqual(versionCompare(v1, v2), expected)
+      m.assertEqual(Rooibos.versionCompare(v1, v2), expected)
     end function
 
   end class

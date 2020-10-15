@@ -11,28 +11,24 @@ namespace Rooibos
   '  */
   class TestRunner
     public testScene = invalid
-    public logger = invalid
+    public testReporter = invalid
     public nodeContext = invalid
     public config = invalid
     public testSuites = []
 
     public function new(testScene, nodeContext)
       m.testScene = testScene
-      m.nodeContext = nodeContext
-      'bs:disable-next-line
-      m.config = rooibos_getRuntimeConfig()
-      
-      if m.config = invalid or not Rooibos.Common.isAssociativeArray(m.config)
-        ? "WARNING : specified config is invalid - using default"
-        m.config = {
-          showOnlyFailures: false
-          failFast: false
-        }
+      if nodeContext.top = invalid 
+        nodeContext.top = testScene
       end if
 
-      'TODO - allow providing different reporters via config
-      m.logger = new Rooibos.ConsoleTestReporter(m)
+      m.nodeContext = nodeContext
 
+      m.stats = new Stats()
+      m.runtimeConfig = new RuntimeConfig()
+      m.config = m.runtimeConfig.getRuntimeConfig()
+      'TODO - allow providing different reporters via config
+      m.testReporter = new Rooibos.ConsoleTestReporter(m)
     end function
 
     ' /**
@@ -43,24 +39,20 @@ namespace Rooibos
     '  * @description Executes all tests for a project, as per the config
     '  */
     public function run()
-      if type(rooibos_getTestSuitesForProject) <> "Function"
-        ? "ERROR! rooibos_getTestSuitesForProject is not found! That looks like you didn't run the bsc plugin."
-        ? "Please add plugins:['rooibos-roku-vsc-extension-plugin'] to your bsconfig.json file"
-        return
-      end if
+
       timer = createObject("roTimespan")
       timer.mark()
-
-      m.stats = new Stats()
-      m.runtimeConfig = new RuntimeConfig()
-
-      suiteNames = m.getGlobalScopeTestSuitesNames()
+      suiteNames = m.runtimeConfig.getAllTestSuitesNames()
       includedSuites = []
       for each name in suiteNames
-        suiteClass = m.getTestSuiteClassWithName(name)
+        suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
         testSuite = invalid
         if suiteClass <> invalid
-          testSuite = suiteClass(nodeContext)
+          testSuite = suiteClass()
+          testSuite.global = m.nodeContext.global
+          testSuite.context = m.nodeContext
+          testSuite.top = m.nodeContext.top
+
           m.runTestSuite(testSuite)
           if m.stats.hasFailures = true and m.config.failFast = true
             exit for
@@ -72,7 +64,7 @@ namespace Rooibos
 
       m.stats.time = timer.totalMilliseconds()
 
-      m.logger.reportStats(m.stats)
+      m.testReporter.reportResults(m.stats)
 
       'code coverage is not enabled in rooibos 4.0.0 - will get added again in future
       ' if Rooibos.Common.isFunction(RBS_reportCodeCoverage)
@@ -87,7 +79,6 @@ namespace Rooibos
     end function
 
     public function runInNodeMode(nodeTestName)
-      m.runtimeConfig = new RuntimeConfig()
       suiteClass = m.getTestSuiteClassWithName(nodeTestName)
       testSuite = invalid
 
@@ -148,7 +139,7 @@ namespace Rooibos
           ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
           ? " Node of type " ; testSuite.generatedNodeName ; " was not found/could not be instantiated"
         end if
-        
+
       else
         ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
         ? " No node type was provided"

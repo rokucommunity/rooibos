@@ -33,7 +33,7 @@ let annotationLookup = {
   aftereach: AnnotationType.AfterEach,
   params: AnnotationType.Params,
   ignoreparams: AnnotationType.IgnoreParams,
-  onlyparam: AnnotationType.SoloParams,
+  onlyparams: AnnotationType.SoloParams,
 };
 
 interface ParsedComment {
@@ -48,8 +48,8 @@ export class AnnotationParams {
     public text: string,
     public lineNumber: number,
     public params: object[],
-    public isIgnore: boolean = false,
-    public isSolo: boolean = false
+    public isIgnore = false,
+    public isSolo = false
   ) {
 
   }
@@ -65,18 +65,20 @@ export class Annotation {
     public annotationType: AnnotationType,
     public text: string,
     public name: string,
-    public isIgnore: boolean = false,
-    public isSolo: boolean = false,
+    public isIgnore = false,
+    public isSolo = false,
     public params: AnnotationParams[] = [],
     public nodeName?: string
-  ) {
-
-  }
-
-  public static parseCommentStatement(file: BrsFile, statement: CommentStatement): ParsedComment | null {
-
-    //split annotations in case they include an it group..
-    let blockAnnotation: Annotation;
+    ) {
+      
+    }
+    
+    public hasSoloParams = false;
+    
+    public static parseCommentStatement(file: BrsFile, statement: CommentStatement): ParsedComment | null {
+      
+      //split annotations in case they include an it group..
+      let blockAnnotation: Annotation;
     let testAnnotation: Annotation;
     let isSolo = false;
     let isIgnore = false;
@@ -103,7 +105,7 @@ export class Annotation {
         case AnnotationType.Group:
         case AnnotationType.TestSuite:
           const groupName = getAnnotationText(text, annotationType);
-          blockAnnotation = new Annotation(file, comment, annotationType, text, groupName, isIgnore, isSolo,null, nodeName);
+          blockAnnotation = new Annotation(file, comment, annotationType, text, groupName, isIgnore, isSolo, null, nodeName);
           nodeName = null;
           isSolo = false;
           isIgnore = false;
@@ -132,6 +134,9 @@ export class Annotation {
     let rawParams = getAnnotationText(text, annotationType);
     let isSolo = annotationType === AnnotationType.SoloParams;
     let isIgnore = annotationType === AnnotationType.IgnoreParams;
+    if (isSolo) {
+      this.hasSoloParams = true;
+    }
     try {
       const paramsInvalidToNullRegex = /(,|\:|\[)(\s*)(invalid)/g;
       let jsonText = rawParams.replace(paramsInvalidToNullRegex, '$1$2null');

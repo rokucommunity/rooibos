@@ -26,13 +26,12 @@ namespace Rooibos
       m.name = data.name
       m.lineNumber = data.lineNumber
       m.paramLineNumber = data.paramLineNumber
-      m.rawParams = data.params
+      m.rawParams = data.rawParams
       m.paramTestIndex = data.paramTestIndex
       m.isParamTest = data.isParamTest
-      m.isParamsValid = data.isParamsValid
       m.expectedNumberOfParams = data.expectedNumberOfParams
 
-      if params <> invalid
+      if m.isParamTest
         m.name = m.name + stri(m.paramTestIndex)
       end if
 
@@ -44,14 +43,10 @@ namespace Rooibos
       timer = createObject("roTimespan")
       timer.mark()
 
-      if m.isParamsValid
-        if m.isParamTest
-          m.runParmsTest()
-        else
-          m.testSuite[m.funcName]()
-        end if
+      if m.isParamTest
+        m.runParamsTest()
       else
-        m.testSuite.fail("Could not parse args for test ")
+        m.testSuite[m.funcName]()
       end if
 
       m.result.time = timer.totalMilliseconds()
@@ -90,7 +85,7 @@ namespace Rooibos
       end if
     end function
 
-    function getTestsParams()
+    function getTestParams()
       params = []
       for paramIndex = 0 to m.rawParams.count()
         paramValue = m.rawParams[paramIndex]

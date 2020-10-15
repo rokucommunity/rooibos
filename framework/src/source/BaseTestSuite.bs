@@ -18,6 +18,7 @@ namespace Rooibos
     isIgnored = false
     isNodeTest = false
     nodeName = invalid
+    lineNumber = 1
     groups = []
     groupsData = []
     stats = invalid
@@ -44,7 +45,7 @@ namespace Rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ base methods to override
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    function new(nodeContext)
+    function new()
       data = m.getTestSuitedata()
       m.name = data.name
       m.filePath = data.filePath
@@ -56,14 +57,12 @@ namespace Rooibos
       m.hasSoloGroups = data.hasSoloGroups
       m.isSolo = data.isSolo
       m.isIgnored = data.isIgnored
-      m.groupsData = data.groups
+      m.groupsData = data.testGroups
+      m.lineNumber = data.lineNumber
       m.isNodeTest = false
       m.nodeName = invalid
       m.isFailingFast = false
       m.stats = new Stats()
-      m.global = nodeContext.global
-      m.context = nodeContext
-      m.top = nodeContext.top
     end function
 
     function getTestSuiteData()
@@ -88,12 +87,12 @@ namespace Rooibos
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ running
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++++++++++++++++++++++++++++++++++++?+++++++++++++++++++++++++
 
     function run()
       for each groupData in m.groupsData
         'bs:disable-next-line
-        group = new TestGroup(m, data)
+        group = new TestGroup(m, groupData)
         m.groups.push(group)
         group.run()
 
@@ -1271,7 +1270,7 @@ namespace Rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-      return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods, m.currentAssertLineNumber)
+      return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
     end function
 
     ' /**
@@ -1843,7 +1842,7 @@ namespace Rooibos
 
       result = m.waitForField(target, fieldName, delay, maxAttempts)
       if not result
-        return m.fail("Timeout waiting for targetField " + fieldName + " to be set on target", m.currentAssertLineNumber)
+        return m.fail("Timeout waiting for targetField " + fieldName + " to be set on target")
       end if
 
       m.currentResult.fail("", m.nextTestLInNumber)

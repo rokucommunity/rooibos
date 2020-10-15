@@ -26,7 +26,8 @@ export class TestGroup extends TestBlock {
   public soloTestCases: TestCase[] = [];
 
   public addTestCase(testCase: TestCase) {
-    this.testCases.set(testCase.name, testCase);
+
+    this.testCases.set(testCase.name + testCase.isParamTest ? testCase.paramTestIndex.toString() : '', testCase);
 
     if (testCase.isIgnored) {
       this.ignoredTestCases.push(testCase);

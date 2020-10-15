@@ -1,4 +1,5 @@
 
+
 namespace Tests
 
   '@Ignore - only unignore to test compiler works
@@ -24,10 +25,12 @@ namespace Tests
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It group2
+    '@It group22
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test simple
+    '@BeforeEach
+
+    '@Test simple2
     function group2_dupe_test()
       m.assertTrue(true)
     end function
@@ -43,11 +46,16 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It group1
+    '@It group11
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     '@Test simple
     function group1_dupe_test()
+      m.assertTrue(true)
+    end function
+
+    '@Test simple2
+    function group1_dupe_test2()
       m.assertTrue(true)
     end function
   end class

@@ -35,12 +35,12 @@ export class TestBlock {
     return this.annotation.isIgnore;
   }
 
-  public isValid: boolean = false;
-  public isIncluded: boolean;
+  public isValid = false;
+  public isIncluded = false;
 
-  public hasFailures: boolean;
-  public hasSoloTests: boolean;
-  public hasIgnoredTests: boolean;
+  public hasFailures = false;
+  public hasSoloTests = false;
+  public hasIgnoredTests = false;
 
   public setupFunctionName: string;
   public tearDownFunctionName: string;
@@ -64,13 +64,17 @@ export class TestSuite extends TestBlock {
   public testGroups = new Map<string, TestGroup>();
   public nodeName: string;
   public generatedNodeName: string;
-  public hasSoloGroups: boolean;
-  public isNodeTest: boolean;
+  public hasSoloGroups = false;
+  public isNodeTest = false;
 
   public addGroup(group: TestGroup) {
     this.testGroups.set(group.name, group);
-    this.hasIgnoredTests = group.ignoredTestCases.length > 0;
-    this.hasSoloTests = group.hasSoloTests;
+    if (group.ignoredTestCases.length > 0) {
+      this.hasIgnoredTests = true;
+    }
+    if (group.hasSoloTests) {
+      this.hasSoloTests = true;
+    }
     this.isValid = true;
   }
 
@@ -119,6 +123,7 @@ export class TestSuite extends TestBlock {
       isSolo: ${this.isSolo}
       isIgnored: ${this.isIgnored}
       filePath: "${this.pkgPath}"
+      lineNumber: ${this.classStatement.range.start.line}
       valid: ${this.isValid}
       hasFailures: ${this.hasFailures}
       hasSoloTests: ${this.hasSoloTests}
@@ -128,7 +133,7 @@ export class TestSuite extends TestBlock {
       tearDownFunctionName: "${this.tearDownFunctionName || ''}"
       beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"
       afterEachFunctionName: "${this.afterEachFunctionName || ''}"
-      isNodeTest: ${this.isNodeTest}
+      isNodeTest: ${this.isNodeTest || false}
       nodeName: "${this.nodeName || ''}"
       generatedNodeName: "${this.generatedNodeName || ''}"
       testGroups: [${testGroups}]

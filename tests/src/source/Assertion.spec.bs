@@ -1,8 +1,8 @@
-
 namespace Tests
 
   '@TestSuite Rooibos assertion tests
   class AssertionTests extends Rooibos.BaseTestSuite
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '@It tests basic assertions
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -169,8 +169,6 @@ namespace Tests
 
       assertResult = m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
-
-      isFail = m.currentResult.isFail
       m.currentResult.Reset()
 
       m.assertFalse(assertResult)
@@ -196,13 +194,11 @@ namespace Tests
     'demonstrate
     '@Test comments between tests with params
     '@Params[1]
-
     '@Params[2]
     'that we can have comments
     '@Params[3]
     'between functions and tags
     '@Params[4]
-
     function test_whiteSpacing_params(value) as void
       m.assertTrue(true)
     end function

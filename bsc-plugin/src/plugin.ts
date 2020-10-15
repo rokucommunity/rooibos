@@ -1,5 +1,6 @@
 import {
   BrsFile,
+  BscFile,
   CallableContainerMap,
   CompilerPlugin,
   FileObj,
@@ -28,6 +29,8 @@ const pluginInterface: CompilerPlugin = {
   afterScopeCreate: afterScopeCreate,
   beforeFileParse: beforeFileParse,
   afterFileParse: afterFileParse,
+  afterFileValidate: afterFileValidate,
+  beforeProgramValidate: beforeProgramValidate,
   afterProgramValidate: afterProgramValidate,
   beforePublish: beforePublish,
   beforeFileTranspile: beforeFileTranspile,
@@ -40,12 +43,16 @@ export default pluginInterface;
 
 let session: RooibosSession;
 let codeCoverageProcessor: CodeCoverageProcessor;
-let fileFactory = new FileFactory();
+let fileFactory: FileFactory; 
 let isFrameworkAdded = false;
+let _builder: ProgramBuilder;
 
 function beforeProgramCreate(builder: ProgramBuilder): void {
+  _builder = builder;
+  fileFactory = new FileFactory((builder.options as any).rooibos || {});
+  
   if (!session) {
-    session = new RooibosSession(builder);
+    session = new RooibosSession(builder, fileFactory);
     codeCoverageProcessor = new CodeCoverageProcessor(builder);
   }
 }
@@ -76,7 +83,6 @@ function afterFileParse(file: (BrsFile | XmlFile)): void {
 }
 
 function beforePublish(builder: ProgramBuilder, files: FileObj[]) {
-  session.updateSessionStats();
   for (let testSuite of [...session.sessionInfo.testSuitesToRun.values()]) {
     testSuite.addDataFunctions();
     for (let group of [...testSuite.testGroups.values()]) {
@@ -90,11 +96,16 @@ function beforePublish(builder: ProgramBuilder, files: FileObj[]) {
   session.addLaunchHook();
 }
 
-function afterProgramValidate(program: Program) {
+async function beforeProgramValidate(program: Program) {
+  session.updateSessionStats();
+  await session.createNodeFiles(program);
+}
 
+function afterProgramValidate(program: Program) {
   for (let testSuite of [...session.sessionInfo.testSuites.values()]) {
     testSuite.validate();
   }
+  program['diagnostics'] = program['diagnostics'].filter((d) => !d.file.pathAbsolute.startsWith('components/rooibos/generated'));
 }
 
 function beforeFileTranspile(entry: TranspileObj) {
@@ -109,6 +120,7 @@ function beforeScopeValidate(scope: Scope, files: (BrsFile | XmlFile)[], callabl
 
 function afterPublish(builder: ProgramBuilder, files: FileObj[]) {
   //create node test files
-  session.createNodeFiles(path.resolve(builder.options.stagingFolderPath));
 }
 
+function afterFileValidate(file: BscFile) {
+}

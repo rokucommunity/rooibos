@@ -10,13 +10,9 @@ namespace Tests
     '@Test 
     function NodeScope() as void
       m.assertNotInvalid(m.node)
-      Tests.BasicTests.doSomethingInNodeScope(true)
+      Tests.doSomethingInNodeScope(true)
       m.assertInvalid(m._isNodeScopeVarSet)
       m.assertTrue(m.node._isNodeScopeVarSet)
-    end function
-
-    function doSomethingInNodeScope(value)
-      m._isNodeScopeVarSet = value
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -69,6 +65,7 @@ namespace Tests
     '@It tests async tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    '@Ignore
     '@Test times out
     function async_timeout()
       item = { "id": "item" }
@@ -80,4 +77,9 @@ namespace Tests
 
     end function
   end class
+
+  function doSomethingInNodeScope(value)
+    m._isNodeScopeVarSet = value
+  end function
+
 end namespace

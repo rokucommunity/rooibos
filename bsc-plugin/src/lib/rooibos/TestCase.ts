@@ -2,7 +2,7 @@ import { sanitizeBsJsonString } from './Utils';
 
 export class TestCase {
   constructor(name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number,
-              params: any[] = null, paramTestIndex: number = 0, paramLineNumber: number = 0, expectedNumberOfParams: number = 0) {
+    params: any[] = null, paramTestIndex: number = 0, paramLineNumber: number = 0, expectedNumberOfParams: number = 0) {
 
     this.isSolo = isSolo;
     this.funcName = funcName;
@@ -15,7 +15,7 @@ export class TestCase {
     this.rawParams = params;
     this.expectedNumberOfParams = expectedNumberOfParams;
     this.paramTestIndex = paramTestIndex;
-    this.isParamTest = false;
+    this.isParamTest = this.expectedNumberOfParams > 0;
 
   }
 

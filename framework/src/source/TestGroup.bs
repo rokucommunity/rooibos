@@ -26,7 +26,7 @@ namespace Rooibos
       m.hasFailures = testSuite.hasFailures
       m.isSolo = data.isSolo
       m.isIgnored = data.isIgnored
-      m.testsData = data.tests
+      m.testsData = data.testCases
       m.isNodeTest = false
       m.nodeName = invalid
       m.setupFunctionName = data.setupFunctionName
@@ -34,9 +34,8 @@ namespace Rooibos
       m.beforeEachFunctionName = data.beforeEachFunctionName
       m.afterEachFunctionName = data.afterEachFunctionName
 
-      m.context = nodeContext
-      m.global = nodeContext.gobal
-      m.top = nodeContext.top
+      m.global = testSuite.global
+      m.top = testSuite.top
       m.stats = new Stats()
     end function
 
@@ -47,13 +46,13 @@ namespace Rooibos
     function run()
       m.runSuiteFunction(m.setupFunctionName, "setup")
 
-      for each testsData in m.getTestCaseData
+      for each testData in m.testsData
         test = new Test(m, testData)
         m.tests.push(test)
         m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach")
 
         m.testSuite.runTest(test)
-        m.stats.appendTestResult(test)
+        m.stats.appendTestResult(test.result)
 
         m.runSuiteFunction(m.afterEachFunctionName, "afterEach")
 
@@ -67,11 +66,7 @@ namespace Rooibos
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
     end function
 
-    private function getTestCaseData()
-      return m.testCases
-    end function
-
-    private function runSuiteFunction(methodName, defaultFunctionName) 
+    private function runSuiteFunction(methodName, defaultMethodName) 
       if methodName <> invalid and methodName <> ""
         m.testSuite[methodName]()
       else

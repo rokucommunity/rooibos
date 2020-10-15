@@ -1,32 +1,25 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
-  "configurations": [
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
     {
-      "type": "brightscript",
-      "request": "launch",
-      "name": "Tests",
-      "stopOnEntry": false,
-      "preLaunchTask": "buildTests",
-      "envFile": "${workspaceFolder}/.vscode/.env",
-      "host": "${env:ROKU_DEV_TARGET}",
-      "password": "${env:ROKU_DEVPASSWORD}",
-      "rootDir": "${workspaceFolder}/tests/dist",
-      "sourceDirs": [
-        "${workspaceFolder}/src",
-        "${workspaceFolder}/tests/src"
-      ],
-      "files": [
-        "manifest",
-        "source/**/*.*",
-        "components/**/*.*",
-        "images/**/*.*",
-        "font/**/*.*",
-        "!*.zip",
-        "!**/*.zip"
-      ],
-    }
+      "label": "build-tests",
+      "type": "shell",
+      "command": "npm run build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+    },
   ]
 }

@@ -1,0 +1,6 @@
+sub AddTestUtils(test)
+    'add your own test utils you want access to when testing here
+    'e.g.
+    'test.testUtils = TestUtils()
+    'test.r = rodash()
+end sub

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+  <component
+      name="TestsScene"
+      extends="Scene">
+<script type="text/brightscript" uri="pkg:/source/rooibos/BaseTestSuite.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/CommonUtils.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/Coverage.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/Matchers.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/Rooibos.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/RuntimeConfig.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/Stats.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/Test.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/TestGroup.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/BaseTestReporter.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/ConsoleTestReporter.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/TestResult.brs" />
+<script type="text/brightscript" uri="pkg:/source/rooibos/TestRunner.brs" />
+    <interface>
+      <field id="rooibosTestResult" type="assocarray"/>
+    </interface>
+    <children>
+      <LayoutGroup>
+        <Label text="Rooibos tests are running" />
+      </LayoutGroup>
+    </children>
+      <script type="text/brightscript" uri="pkg:/source/bslib.brs" />
+  </component>
+   

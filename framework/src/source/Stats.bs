@@ -24,12 +24,12 @@ namespace Rooibos
       m.onUpdate()
     end function
 
-    function appendTestResult(testResult)
-      m.time += testResult.time
+    function appendTestResult(result)
+      m.time += result.time
       m.ranCount++
-      if testResult.isCrash
+      if result.isCrash
         m.crashedCount++
-      else if testResult.isFail
+      else if result.isFail
         m.failedCount++
       else
         m.passedCount++

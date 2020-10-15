@@ -16,5 +16,11 @@
         1009
       ]
     }
-  ]
+  ],
+  "plugins": [
+    "../bsc-plugin/dist/plugin.js"
+  ],
+  "rooibos": {
+    "frameworkSourcePath": "/home/george/hope/open-source/rooibos/rooibos/framework/src/source"
+  }
 }
