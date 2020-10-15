@@ -22,7 +22,7 @@ let programBuilder: ProgramBuilder;
 let session: RooibosSession;
 let testSuiteBuilder: TestSuiteBuilder;
 
-describe('TestSuiteBuilder tests ', () => {
+describe.only('TestSuiteBuilder tests ', () => {
 
   beforeEach(() => {
     program = new Program({});
@@ -705,7 +705,7 @@ end namespace
       expect(ts.hasIgnoredTests).to.be.false;
 
     });
-    it.only('only group', () => {
+    it('ignore group', () => {
       let ts = createTestSuite('test1.bs', `namespace Tests
       '@TestSuite Rooibos assertion tests
       class AssertionTests extends Rooibos.BaseTestSuite
@@ -729,10 +729,8 @@ end namespace
       expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.false;
       expect(ts.hasIgnoredTests).to.be.false;
-      expect(ts.hasIgnoredTests).to.be.true;
-
     });
-    it('only test', () => {
+    it('ignore test', () => {
       let ts = createTestSuite('test1.bs', `namespace Tests
       '@TestSuite Rooibos assertion tests
       class AssertionTests extends Rooibos.BaseTestSuite
@@ -753,10 +751,10 @@ end namespace
       assertGroupCount(ts, 0, 2);
       expect(ts.isIgnored).to.be.false;
       expect(getGroup(ts, 0).isIgnored).to.be.false;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.false;
-      expect(ts.hasIgnoredTests).to.be.false;
+      expect(ts.hasIgnoredTests).to.be.true;
 
     });
     it('two tests', () => {
@@ -781,10 +779,10 @@ end namespace
       assertGroupCount(ts, 0, 2);
       expect(ts.isIgnored).to.be.false;
       expect(getGroup(ts, 0).isIgnored).to.be.false;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.true;
-      expect(ts.hasIgnoredTests).to.be.false;
+      expect(ts.hasIgnoredTests).to.be.true;
     });
     it('two tests and group', () => {
       let ts = createTestSuite('test1.bs', `namespace Tests
@@ -809,10 +807,9 @@ end namespace
       assertGroupCount(ts, 0, 2);
       expect(ts.isIgnored).to.be.false;
       expect(getGroup(ts, 0).isIgnored).to.be.true;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.true;
-      expect(ts.hasIgnoredTests).to.be.true;
       expect(ts.hasIgnoredTests).to.be.true;
     });
     it('all', () => {
@@ -839,7 +836,7 @@ end namespace
       assertGroupCount(ts, 0, 2);
       expect(ts.isIgnored).to.be.true;
       expect(getGroup(ts, 0).isIgnored).to.be.true;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.true;
       expect(ts.hasIgnoredTests).to.be.true;
@@ -874,7 +871,7 @@ end namespace
       assertGroupCount(ts, 0, 2);
       expect(ts.isIgnored).to.be.true;
       expect(getGroup(ts, 0).isIgnored).to.be.true;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.true;
       assertGroupCount(ts, 1, 1);
@@ -913,17 +910,17 @@ end namespace
       assertGroupCount(ts, 0, 2);
       expect(ts.isIgnored).to.be.true;
       expect(getGroup(ts, 0).isIgnored).to.be.true;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.false;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.true;
       assertGroupCount(ts, 1, 1);
-      expect(getGroup(ts, 1).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 1).hasIgnoredTests).to.be.true;
       expect(getGroup(ts, 1).isIgnored).to.be.false;
       expect(getTestCase(ts, 1, 0).isIgnored).to.be.true;
       expect(ts.hasIgnoredTests).to.be.true;
       expect(ts.hasIgnoredTests).to.be.true;
     });
-    it('only on param block', () => {
+    it('ignore on param block', () => {
       let ts = createTestSuite('test1.bs', `namespace Tests
       '@TestSuite Rooibos assertion tests
       class AssertionTests extends Rooibos.BaseTestSuite
@@ -947,12 +944,12 @@ end namespace
       assertGroupCount(ts, 0, 4);
       expect(ts.isIgnored).to.be.false;
       expect(getGroup(ts, 0).isIgnored).to.be.false;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 2).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 3).isIgnored).to.be.false;
-      expect(ts.hasIgnoredTests).to.be.false;
+      expect(ts.hasIgnoredTests).to.be.true;
 
     });
 
@@ -979,12 +976,12 @@ end namespace
       assertGroupCount(ts, 0, 4);
       expect(ts.isIgnored).to.be.false;
       expect(getGroup(ts, 0).isIgnored).to.be.false;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.false;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 2).isIgnored).to.be.false;
       expect(getTestCase(ts, 0, 3).isIgnored).to.be.false;
-      expect(ts.hasIgnoredTests).to.be.false;
+      expect(ts.hasIgnoredTests).to.be.true;
 
     });
 
@@ -1011,12 +1008,12 @@ end namespace
       assertGroupCount(ts, 0, 4);
       expect(ts.isIgnored).to.be.false;
       expect(getGroup(ts, 0).isIgnored).to.be.false;
-      expect(getGroup(ts, 0).hasIgnoredTests).to.be.false;
+      expect(getGroup(ts, 0).hasIgnoredTests).to.be.true;
       expect(getTestCase(ts, 0, 0).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 1).isIgnored).to.be.false;
       expect(getTestCase(ts, 0, 2).isIgnored).to.be.true;
       expect(getTestCase(ts, 0, 3).isIgnored).to.be.false;
-      expect(ts.hasIgnoredTests).to.be.false;
+      expect(ts.hasIgnoredTests).to.be.true;
 
     });
 

@@ -226,7 +226,7 @@ export class TestSuiteBuilder {
       for (const param of annotation.params) {
         if (param.params.length === numberOfArgs) {
           let isSolo = annotation.hasSoloParams ? param.isSolo : annotation.isSolo;
-          let isIgnore = annotation.isIgnore ? true : annotation.isIgnore;
+          let isIgnore = annotation.isIgnore ? true : param.isIgnore;
           this.currentGroup.addTestCase(
             new TestCase(annotation.name, statement.name.text, isSolo, isIgnore, lineNumber, param.params, index, param.lineNumber, numberOfArgs)
           );
