@@ -22,7 +22,7 @@ let programBuilder: ProgramBuilder;
 let session: RooibosSession;
 let testSuiteBuilder: TestSuiteBuilder;
 
-describe.only('TestSuiteBuilder tests ', () => {
+describe('TestSuiteBuilder tests ', () => {
 
   beforeEach(() => {
     program = new Program({});
@@ -1016,7 +1016,120 @@ end namespace
       expect(ts.hasIgnoredTests).to.be.true;
 
     });
+  });
 
+  describe('params', () => {
+
+    it('simple params', () => {
+      let ts = createTestSuite('test1.bs', `namespace Tests
+      '@TestSuite Rooibos assertion tests
+      class AssertionTests extends Rooibos.BaseTestSuite
+      '@It group1
+      
+      '@Test one
+      '@Params["1"]
+      '@Params["2"]
+      '@Params["3"]
+      function test_one(value)
+      end function
+      end class
+      end namespace
+      `);
+      assertSuite(ts, 1);
+      assertGroupCount(ts, 0, 3);
+    });
+
+    it('2 params', () => {
+      let ts = createTestSuite('test1.bs', `namespace Tests
+      '@TestSuite Rooibos assertion tests
+      class AssertionTests extends Rooibos.BaseTestSuite
+      '@It group1
+      
+      '@Test one
+      '@Params["1", true]
+      '@Params["2", false]
+      '@Params["3", true]
+      function test_one(value, arg2)
+      end function
+      end class
+      end namespace
+      `);
+      assertSuite(ts, 1);
+      assertGroupCount(ts, 0, 3);
+    });
+  });
+
+  it('2 with url and chars', () => {
+    let ts = createTestSuite('test1.bs', `namespace Tests
+      '@TestSuite Rooibos assertion tests
+      class AssertionTests extends Rooibos.BaseTestSuite
+      '@It group1
+      
+      '@Test one
+      '@Params["http://google.com/thing", true]
+      '@Params["#'_!!@#%", false]
+      '@Params["3", true]
+      function test_one(value, arg2)
+      end function
+      end class
+      end namespace
+      `);
+    assertSuite(ts, 1);
+    assertGroupCount(ts, 0, 3);
+  });
+
+  it('param mismatch -one', () => {
+    let ts = createTestSuite('test1.bs', `namespace Tests
+      '@TestSuite Rooibos assertion tests
+      class AssertionTests extends Rooibos.BaseTestSuite
+      '@It group1
+      
+      '@Test one
+      '@Params["http://google.com/thing"]
+      '@Params["#'_!!@#%", false]
+      '@Params["3", true]
+      function test_one(value, arg2)
+      end function
+      end class
+      end namespace
+      `);
+    assertSuiteError(ts);
+  });
+
+  it('param mismatch -all', () => {
+    let ts = createTestSuite('test1.bs', `namespace Tests
+      '@TestSuite Rooibos assertion tests
+      class AssertionTests extends Rooibos.BaseTestSuite
+      '@It group1
+      
+      '@Test one
+      '@Params["http://google.com/thing", true]
+      '@Params["#'_!!@#%", false]
+      '@Params["3", true]
+      function test_one(value)
+      end function
+      end class
+      end namespace
+      `);
+    assertSuiteError(ts);
+  });
+
+  it('cannot parse', () => {
+    let ts = createTestSuite('test1.bs', `namespace Tests
+      '@TestSuite Rooibos assertion tests
+      class AssertionTests extends Rooibos.BaseTestSuite
+      '@It group1
+      
+      '@Test one
+      '@Params["http://google.com/thing", true "]
+      '@Params["#'_!!@#%", false]
+      '@Params["3", true]
+      function test_one(value, value)
+      end function
+      end class
+      end namespace
+      `);
+    assertSuiteError(ts);
   });
 });
 
