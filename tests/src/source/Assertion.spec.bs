@@ -16,7 +16,7 @@ namespace Tests
       m.currentResult.Reset()
 
       m.assertFalse(assertResult)
-      m.assertTrue(isFail)
+      m.assertFalse(isFail)
     end function
 
     '@Test AssertTrue

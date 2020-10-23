@@ -1,6 +1,3 @@
 
 function Main(args)
-
-  ? "here is my code"
-  ? "hello"
 end function

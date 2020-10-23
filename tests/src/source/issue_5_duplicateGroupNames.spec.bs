@@ -2,7 +2,7 @@ namespace Tests
 
   '@Ignore - only unignore to test compiler works - remove REMOVE_THIS to test
   '@TestSuite [RBSA] REMOVE_THIS Rooibos before after tests
-  class DuplicateGroupNames extends Rooibos.BaseTestSuite 
+  class DuplicateGroupNames extends Rooibos.BaseTestSuite
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '@It tests before each and after each are running
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

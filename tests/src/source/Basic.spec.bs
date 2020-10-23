@@ -61,11 +61,11 @@ namespace Tests
       m.assertEqual(aa.othervalue, 2)
     end function
 
+    '@Ignore
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '@It tests async tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Ignore
     '@Test times out
     function async_timeout()
       item = { "id": "item" }
