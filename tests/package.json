@@ -6,7 +6,7 @@
     "doc": "docs"
   },
   "dependencies": {
-    "brighterscript": "file:/home/george/hope/open-source/vsc/brighterscript",
+    "brighterscript": "^0.16.12",
     "source-map": "^0.7.3"
   },
   "devDependencies": {},
