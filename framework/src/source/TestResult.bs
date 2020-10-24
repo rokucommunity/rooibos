@@ -25,14 +25,16 @@ namespace Rooibos
         if not m.isFail
           m.lineNumber = lineNumber
           m.isFail = true
+          m.message = message
         end if
       end if
     end function
-
+    
     function crash(message as string, lineNumber = -1)
       if message <> "" and not m.isCrash
         if not m.isCrash
           m.lineNumber = lineNumber
+          m.message = message
           m.isFail = true
           m.isCrash = true
         end if
