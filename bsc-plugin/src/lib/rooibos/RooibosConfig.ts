@@ -10,9 +10,10 @@ export interface RooibosConfig {
   coverageSourceFilePattern?: string[];
   isRecordingCodeCoverage?: boolean;
   logLevel?: RooibosLogLevel;
-  showFailuresOnly?: boolean;
+  showOnlyFailures?: boolean;
   failFast?: boolean;
   printTestTimes?: boolean;
   printLcov?: boolean;
   port?: number;
+  lineWidth?: number;
 }

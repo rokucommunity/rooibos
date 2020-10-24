@@ -3,7 +3,11 @@ namespace Rooibos
 
     function new(testRunner)
       super(testRunner)
-      m.lineWidth = 60
+      if m.config.lineWidth <> invalid
+        m.lineWidth = m.config.lineWidth
+      else
+        m.lineWidth = 60
+      end if
     end function
 
     override function reportResults(allStats)
@@ -11,7 +15,7 @@ namespace Rooibos
       m.startReport()
 
       for each testSuite in m.testRunner.testSuites
-        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.failedCount > 0 or testSuite.crashedCount > 0)
+        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
           m.printSuiteStart(testSuite)
 
           for each testGroup in testSuite.groups
@@ -21,12 +25,14 @@ namespace Rooibos
       end for
 
       m.printLine()
-      m.endReport()
 
       'bs:disable-next-line
       ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
-      m.printLine(0, "Total  = " + Rooibos.Common.AsString(m.allStats.total) + "  + Passed  = " + Rooibos.Common.AsString(m.allStats.passedCount) + "  + Failed   = " + Rooibos.Common.AsString(m.allStats.failedCount) + "  + Ignored   = " + Rooibos.Common.AsString(ignoredInfo.count))
-      m.printLine(0, " Time spent: " + Rooibos.Common.AsString(m.allStats.time) + "ms")
+      m.printLine(0, "Total: " + Rooibos.Common.AsString(m.allStats.ranCount))
+      m.printLine(0, "  Passed: " + Rooibos.Common.AsString(m.allStats.passedCount))
+      m.printLine(0, "  Failed: " + Rooibos.Common.AsString(m.allStats.failedCount))
+      m.printLine(0, "  Ignored: " + Rooibos.Common.AsString(ignoredInfo.count))
+      m.printLine(0, "  Time: " + Rooibos.Common.AsString(m.allStats.time) + "ms")
       m.printLine()
       m.printLine()
 
@@ -45,25 +51,32 @@ namespace Rooibos
         overrallResult = "Fail"
       end if
       m.printLine(0, "RESULT: " + overrallResult)
-
+      m.endReport()
     end function
 
     function printGroup(testGroup)
-      m.printGroupStart(testGroup)
+      isGroupPrinted = false
 
       for each test in testGroup.tests
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
+          if not isGroupPrinted
+            m.printGroupStart(testGroup)
+            isGroupPrinted = true
+          end if
+
           m.printTest(test)
         end if
       end for
 
-      m.printLine(0, " |")
+      if isGroupPrinted
+        m.printLine(0, " |")
+      end if
     end function
 
     function printTest(test)
       if test.result.isFail
         testChar = "-"
-        locationLine = StrI(test.result.lineNumber).trim()
+        locationLine = StrI(test.result.lineNumber + 1).trim()
       else
         testChar = "|"
         locationLine = StrI(test.lineNumber).trim()
@@ -79,7 +92,7 @@ namespace Rooibos
 
       insetText = ""
       if test.isParamTest <> true
-        messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", 80)
+        messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
         m.printLine(0, messageLine + test.result.getStatusText() + timeText)
       else if test.paramTestIndex = 0
         name = test.name
@@ -102,8 +115,8 @@ namespace Rooibos
         else
           rawParams = test.rawParams
         end if
-        messageLine = Rooibos.Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
-        m.printLine(0, messageLine +  test.result.getStatusText() +  timeText)
+        messageLine = Rooibos.Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", m.lineWidth)
+        m.printLine(0, messageLine + test.result.getStatusText() + timeText)
       end if
 
       if test.result.isFail
@@ -120,7 +133,7 @@ namespace Rooibos
       m.printLine(0, "[START TEST REPORT]")
       m.printLine()
     end function
-    
+
     function endReport()
       m.printLine()
       m.printLine(0, "[END TEST REPORT]")
@@ -128,12 +141,12 @@ namespace Rooibos
     end function
 
     function printSuiteStart(testSuite)
-      m.printLine(0, " " +  testSuite.name + " pkg:/" + testSuite.filePath.trim() + "(" + str(testSuite.lineNumber).trim() + ")")
+      m.printLine(0, " " + testSuite.name + " pkg:/" + testSuite.filePath.trim() + "(" + str(testSuite.lineNumber).trim() + ")")
 
     end function
 
     function printGroupStart(testGroup)
-      m.printLine(0, " |-" +  testGroup.name)
+      m.printLine(0, " |-" + testGroup.name)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

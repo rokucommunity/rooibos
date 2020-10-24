@@ -82,7 +82,8 @@ export class RooibosSession {
     return {
       "failFast": ${this._config.failFast ? 'true' : 'false'}
       "logLevel": ${this._config.logLevel ?? 0}
-      "showOnlyFailures": ${this._config.showFailuresOnly ? 'true' : 'false'}
+      "showOnlyFailures": ${this._config.showOnlyFailures ? 'true' : 'false'}
+      "lineWidth": ${this._config.lineWidth || 60}
       "printLcov": ${this._config.printLcov ? 'true' : 'false'}
       "port": "${this._config.port || 'invalid'}"
     }`));
