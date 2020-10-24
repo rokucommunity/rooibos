@@ -58,7 +58,7 @@ export class SessionInfo {
         testSuite.isIncluded = false;
       } else if (testSuite.isIgnored) {
         testSuite.isIncluded = false;
-        this.ignoredTestNames.push('|-' + testSuite.name + ' [WHOLE SUITE]');
+        this.ignoredTestNames.push(testSuite.name + ' [WHOLE SUITE]');
         this.ignoredCount++;
       } else {
         testSuite.isIncluded = true;
@@ -91,7 +91,6 @@ export class SessionInfo {
             });
           }
 
-
           if (this.hasSoloTests && !testGroup.hasSoloTests) {
             testGroup.isIncluded = false;
           } else if (this.hasSoloGroups && !testGroup.isSolo) {
@@ -100,7 +99,7 @@ export class SessionInfo {
             testGroup.isIncluded = true;
           }
 
-          if (!testGroup.isIncluded) {
+          if (testGroup.isIncluded) {
             let testCases = [...testGroup.testCases.values()];
 
             for (let testCase of testCases) {

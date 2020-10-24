@@ -87,11 +87,13 @@ export class TestSuiteBuilder {
   public addSuiteIfValid(file: BrsFile, annotation: Annotation, s: ClassStatement, suites: TestSuite[]) {
     let oldSuite = this.session.sessionInfo.testSuites.get(annotation.name);
     let suite = this.processClass(annotation, s);
+    let isDuplicate = false;
     if ((oldSuite && oldSuite.file.pathAbsolute !==
       file.pathAbsolute)) {
       oldSuite.isValid = false;
       suite.isValid = false;
       diagnosticDuplicateSuite(file, oldSuite.classStatement, oldSuite.annotation);
+      isDuplicate = true;
     }
 
     let duplicateSuites = suites.filter((s) => s.name === suite.name);
@@ -101,10 +103,11 @@ export class TestSuiteBuilder {
         diagnosticDuplicateSuite(file, duplicateSuite.classStatement, duplicateSuite.annotation);
       }
       suite.isValid = false;
+      isDuplicate = true;
     }
 
     suites.push(suite);
-    if (!suite.isValid) {
+    if (isDuplicate) {
       diagnosticDuplicateSuite(file, suite.classStatement, suite.annotation);
     }
   }
@@ -167,6 +170,7 @@ export class TestSuiteBuilder {
       return true;
     } else {
       diagnosticGroupWithNameAlreadyDefined(this.file, blockAnnotation);
+      diagnosticGroupWithNameAlreadyDefined(this.file, this.testSuite.testGroups.get(blockAnnotation.name).annotation);
       return false;
     }
   }
@@ -219,6 +223,8 @@ export class TestSuiteBuilder {
     const numberOfParams = annotation.params.length;
     if (this.currentGroup.testCases.has(annotation.name)) {
       diagnosticTestWithNameAlreadyDefined(annotation);
+      diagnosticTestWithNameAlreadyDefined(this.currentGroup.testCases.get(annotation.name).annotation);
+
       return false;
     }
     if (numberOfParams > 0) {
@@ -228,7 +234,7 @@ export class TestSuiteBuilder {
           let isSolo = annotation.hasSoloParams ? param.isSolo : annotation.isSolo;
           let isIgnore = annotation.isIgnore ? true : param.isIgnore;
           this.currentGroup.addTestCase(
-            new TestCase(annotation.name, statement.name.text, isSolo, isIgnore, lineNumber, param.params, index, param.lineNumber, numberOfArgs)
+            new TestCase(annotation, annotation.name, statement.name.text, isSolo, isIgnore, lineNumber, param.params, index, param.lineNumber, numberOfArgs)
           );
         } else {
           diagnosticWrongTestParameterCount(this.file, param.token, param.params.length, numberOfArgs);
@@ -239,7 +245,7 @@ export class TestSuiteBuilder {
 
     } else if (numberOfParams === 0) {
       this.currentGroup.addTestCase(
-        new TestCase(annotation.name, statement.name.text, annotation.isSolo, annotation.isIgnore, lineNumber)
+        new TestCase(annotation, annotation.name, statement.name.text, annotation.isSolo, annotation.isIgnore, lineNumber)
       );
       return true;
     } else {

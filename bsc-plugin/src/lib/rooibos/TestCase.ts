@@ -1,9 +1,10 @@
+import { Annotation } from './Annotation';
 import { sanitizeBsJsonString } from './Utils';
 
 export class TestCase {
-  constructor(name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number,
+  constructor(annotation: Annotation, name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number,
     params: any[] = null, paramTestIndex = 0, paramLineNumber = 0, expectedNumberOfParams = 0) {
-
+    this.annotation = annotation;
     this.isSolo = isSolo;
     this.funcName = funcName;
     this.isIgnored = isIgnored;
@@ -19,6 +20,7 @@ export class TestCase {
 
   }
 
+  public annotation: Annotation;
   public isIncluded: boolean;
   public isSolo: boolean;
   public funcName: string;

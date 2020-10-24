@@ -1,5 +1,5 @@
 namespace Tests
-  '@SGNode NodeExample
+  '@noSGNode NodeExample
   '@TestSuite [NET] Node Example Tests
   class NodeExampleTests extends Rooibos.BaseTestSuite
     override function setup() as void
