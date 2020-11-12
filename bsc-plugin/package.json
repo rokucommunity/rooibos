@@ -10,7 +10,7 @@
     "test": "test"
   },
   "dependencies": {
-    "brighterscript": "file:/home/george/hope/open-source/vsc/brighterscript",
+    "brighterscript": "file:../../../vsc/brighterscript",
     "source-map": "^0.7.3"
   },
   "devDependencies": {
