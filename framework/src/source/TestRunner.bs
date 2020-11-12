@@ -21,6 +21,7 @@ namespace Rooibos
       if nodeContext.top = invalid 
         nodeContext.top = testScene
       end if
+      nodeContext.scene = testScene
 
       m.nodeContext = nodeContext
 
@@ -52,6 +53,7 @@ namespace Rooibos
           testSuite.global = m.nodeContext.global
           testSuite.context = m.nodeContext
           testSuite.top = m.nodeContext.top
+          testSuite.scene = m.nodeContext.global.testsScene
 
           m.runTestSuite(testSuite)
           if m.stats.hasFailures = true and m.config.failFast = true

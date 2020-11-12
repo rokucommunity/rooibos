@@ -36,6 +36,7 @@ namespace Rooibos
 
       m.global = testSuite.global
       m.top = testSuite.top
+      m.scene = testSuite.scene
       m.stats = new Stats()
     end function
 
