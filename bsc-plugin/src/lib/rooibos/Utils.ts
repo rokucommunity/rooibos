@@ -1,4 +1,4 @@
-import { BinaryExpression, Block, ClassMethodStatement, ClassStatement, createIdentifier, createStringLiteral, createToken, ElseIf, Expression, FunctionStatement, isClassMethodStatement, isClassStatement, Lexer, ParseMode, Parser, Position, Statement, TokenKind, Range } from 'brighterscript';
+import { BinaryExpression, Block, ClassMethodStatement, ClassStatement, createIdentifier, createStringLiteral, createToken, Expression, FunctionStatement, isClassMethodStatement, isClassStatement, Lexer, ParseMode, Parser, Position, Statement, TokenKind, Range, IfStatement } from 'brighterscript';
 
 export function spliceString(str: string, index: number, count: number, add: string): string {
   // We cannot pass negative indexes directly to the 2nd slicing operation.
@@ -101,24 +101,17 @@ export function sanitizeBsJsonString(text: string) {
   return `"${text ? text.replace(/"/g, '\'') : ''}"`;
 }
 
-export function createElseIf(condition: Expression, statements: Statement[]): ElseIf {
-  let elseIfToken = createToken(TokenKind.ElseIf, Position.create(1, 1));
-  elseIfToken.text = 'else if';
-
-  return {
-    condition: condition,
-    thenBranch: new Block(statements, Range.create(1, 1, 1, 1)),
-    thenToken: createToken(TokenKind.Then, Position.create(1, 1)),
-    elseIfToken: elseIfToken
-  };
+export function createIfStatement(condition: Expression, statements: Statement[]): IfStatement {
+  let ifToken = createToken(TokenKind.If, 'if', Range.create(1, 1, 1, 999999));
+  let thenBranch = new Block(statements, Range.create(1, 1, 1, 1));
+  return new IfStatement({if: ifToken, then: createToken(TokenKind.Then, '', Range.create(1, 1, 1, 999999))}, condition, thenBranch)
 }
 
 export function createVarExpression(varName: string, operator: TokenKind, value: string): BinaryExpression {
-  let variable = createIdentifier(varName, Position.create(1, 1));
-  let v = createStringLiteral(value, Position.create(1, 1));
+  let variable = createIdentifier(varName, Range.create(1, 1, 1, 999999));
+  let v = createStringLiteral(value, Range.create(1, 1, 1, 999999));
 
-  let t = createToken(operator, Position.create(1, 1));
-  t.text = getTokenText(operator);
+  let t = createToken(operator, getTokenText(operator), Range.create(1, 1, 1, 999999));
   return new BinaryExpression(variable, t, v);
 }
 

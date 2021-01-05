@@ -6,7 +6,7 @@ import { BrsFile, ClassStatement, FunctionStatement, IfStatement, NamespaceState
 import { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
-import { changeClassMethodBody, createElseIf, createVarExpression } from './Utils';
+import { changeClassMethodBody, createIfStatement, createVarExpression } from './Utils';
 import { RawCodeStatement } from './RawCodeStatement';
 import { FileFactory } from './FileFactory';
 import { TestSuite } from './TestSuite';
@@ -46,7 +46,7 @@ export class RooibosSession {
 
   public addLaunchHook() {
     let mainFunc = null;
-    let files = this._builder.program.getScopeByName('source').getFiles();
+    let files = this._builder.program.getScopeByName('source').getOwnFiles();
     for (let file of files) {
       mainFunc = file.parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
       if (mainFunc) {
@@ -103,9 +103,11 @@ export class RooibosSession {
       let ifStatement = method.func.body.statements[0] as IfStatement;
 
       if (ifStatement) {
+        let lastIf = ifStatement;
         for (let suite of this.sessionInfo.testSuitesToRun) {
-          let className = suite.classStatement.getName(ParseMode.BrightScript);
-          ifStatement.elseIfs.push(createElseIf(createVarExpression('name', TokenKind.Equal, suite.name), [new RawCodeStatement(`return ${suite.classStatement.getName(ParseMode.BrightScript)}`)]));
+          let nextIf = createIfStatement(createVarExpression('name', TokenKind.Equal, suite.name), [new RawCodeStatement(`return ${suite.classStatement.getName(ParseMode.BrightScript)}`)]);
+          (lastIf as any).elseBranch = nextIf;
+          lastIf = nextIf;
         }
       }
     }
@@ -133,8 +135,10 @@ export class RooibosSession {
       await this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
       await this.fileFactory.addFile(program, bsPath, '');
       let bsFile = program.getFileByPkgPath(bsPath);
-      bsFile.parser.statements.push(this.getNodeTestBsBody(suite));
-      bsFile.needsTranspiled = true;
+      if (bsFile) {
+        bsFile.parser.statements.push(this.getNodeTestBsBody(suite));
+        bsFile.needsTranspiled = true;
+      }
     }
   }
 

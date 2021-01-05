@@ -54,8 +54,11 @@ export class TestSuite extends TestBlock {
     super(annotation);
     this.classStatement = classStatement;
     this.isNodeTest = annotation.nodeName && annotation.nodeName.trim() !== '';
-    this.nodeName = annotation.nodeName;
+    this.nodeName = annotation.nodeName?.trim();
     this.generatedNodeName = this.name.replace(/[^a-zA-Z0-9]/g, '_');
+    if (this.annotation.name === '') {
+      this.annotation.name = classStatement.name.text;
+    }
 
   }
 
