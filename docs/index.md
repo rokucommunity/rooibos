@@ -41,176 +41,61 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Code coverage](#generate-code-coverage)
 
 ## Getting started
-Rooibos is intentionally simple to work with. Simply install the `rooibos-cli` npm package and use that to install the framework files, and run your tests.
+Rooibos is a brighterscript compiler and Visual Studio Extension plugin. That does not mean you need to write in brighterscript; the bsc compiler also parses regular brightscript projects.
 
-You can even use `rooibos-cli` from your npm-compatible build tools, such as gulp.
+The advantages of this are:
 
+ - you get warnings and errors for your tests as you write them in the ide.
+ - you do not have to install any thing in your projects, or maintain the rooibos libraries; it just works
+ - it is very easy to integrate into your CI toolchain.
+
+## Your project MUST use Vscode and the brighterscript compiler
+
+Rooibos will not work if you do not use the brighterscript compiler. I have no plans to support any other toolchains.
 
 ### Installation
 <a name="easy-to-integrate"></a>
 
-1. Either:
-   - use the `rooibos-cli` tool (preferred way)
+1. Add the rooibos plugin to your `bsconfig.json` file as follows:
 
-   ```
-   npm install rooibos-cli -g
-   rooibos-cli i myProject/source/tests
-   ```
-   
-	- download the [latest relases's] (https://github.com/georgejecook/rooibos/releases/latest) `rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.  
-	- clone or download this repo and copy `dist/rooibosDist.brs` to a location in your `source` folder. The suggested folder structure to keep things clear is `source/tests/rooibos`.  
-	
-3. Add the following line to your main method, in your `main.brs` file It should be placed before you initialize your scenegraph screens
-
-**(.brs)**
-	
 ```
-  'bs:disable-next-line
-  if (type(Rooibos_init) = "Function") then Rooibos_init()
+  "plugins": [
+    "rooibos-roku"
+  ]
 ```
 
-**(.bs)**
-```
-  'bs:disable-next-line
-  if (type(Rooibos.init) = "Function") then Rooibos.init()
-```
-	
-	Note - rooibos will run if it is present. *You should be filtering out your tests folder, containing rooibosDist.brs, and your tests as part of your non-test build/release process*, which is the preferred mechanism to disable/enable rooibos.
-	
-4. Create a Scene named `TestsScene.xml`, in your `components` folder. Again, we'd suggest following an easy to understand structure like `components/test/rooibos`. Rooibos will use this when running tests. This Scene must have a function definition for the `Rooibos_CreateTestNode` method, and include the rooibos library (which mixes in the method body for `Rooibos_CreateTestNode`.
-5. Create a folder for your test specs. We'd suggest `source/tests/specs` to keep things simple. Write your `.brs` test files here.  
-	If you are testing RSG components you will also need to create a folder to hold the test components, such as `components/tests/specs`.
+Rooibos will automatically inject the necessary source files into your project, at build time, and inject the hooks to run.
 
-	__See the example app to get a clearer understanding of the directory structures__ [Example app](../samples/example)
-	<br>
-6. Integrate [rooibos-cli](#rooibos-cli) into your tool-chain.
-7. Run your tests
+Note - you will likely use a seprate `bsconfig.json` file for your tests, e.g. `bsconfig-test.json`, which will be used by your CI/testing vscode launch target.
 
-
-#### Delaying start so you can set things up
+#### Delaying start so you can set things up - CURRENTLY UNSUPPORTED
 
 If you need to do some setup, like load some data from a service, before starting your tests:
 
  - add a field `isReadyToStartTests` to your tests scene
  - set the value to true, when the tests are ready to start.
+
+ NOTE: this is not yet supported in rooibos 4! I will add it again soon.
  
-**For an example of how to use rooibos with gulp, see the gulpfile.ts in this project, which is used to run the framework unit tests.**
-
-### rooibos-cli
-
-To get the best performance and test flexibility, rooibos leverages a typescript preprocessor, named [rooibos-cli](https://github.com/georgejecook/rooibosPreprocessor), which prepares some files which get sideloaded with your tests. 
-
-### From javascript/typescript/node
-
-#### Gulp typescript example
-
-See `gulpfile.ts`, in this project, for a robust typescript-based gulp example demonstrating how to seamlessly integrate rooibos with gulp. However, the process is as follows:
-
- - `npm install rooibos-cli --save-dev`
- - Add the following to the top of gulpfile.ts/js `import { RooibosProcessor, createProcessorConfig, ProcessorConfig } from 'rooibos-cli';`
- - Create a task to process your test files, such as:
-
- ```
-export async function prepareTests() {
-  await rokuDeploy.prepublishToStaging(args);
-  let config = createProcessorConfig({
-	"projectPath": "build"
-	"testsFilePattern": [
-		"**/tests/**/*.brs",
-		"!**/rooibosDist.brs",
-		"!**/rooibosFunctionMap.brs",
-		"!**/TestsScene.brs"
-	]
-});
-  let processor = new RooibosProcessor(config);
-  await processor.processFiles();
-}
-```
-
-#### Gulp javascript example
-
-For those who are not using typescript, the usage is as follows:
-
-```
-var rooibos = require('rooibos-cli');
-
-
-gulp.task('prepareTests', ['collect'], async function() {
-  let config = rooibos.createProcessorConfig({
-  "projectPath": "build/test",
-  "testsFilePattern": [
-      "**/tests/**/*.brs",
-      "!**/rooibosDist.brs",
-      "!**/rooibosFunctionMap.brs",
-      "!**/TestsScene.brs"
-  ]
-  });
-  let processor = new rooibos.RooibosProcessor(config);
-  await processor.processFiles();
-});
-
-```
-
-#### Installing or updating the testing framework with rooibos-cli
-
-To install latest
-
-	```
-	rooibos-cli i myProject/source/tests
-	```
-
-To install a specific release
-
-	```
-	rooibos-cli i myProject/source/tests -r 3.0.2
-	```
-
-
-#### Running tests with rooibos-cli
-
-You can also use rooibos-cli from the command line, by installing it globally. i.e `npm install -g rooibos-cli`. The CLI app is vcalled `rooibos-cli`
-
-Then call `rooibos-cli -h` to check the install worked and see the help menu.
-
-There are two ways to invoke rooibos-cli:
-
-1. Define a config file that returns a JSON object and tell rooibos-cli to use that via the `-c` flag:
-
-	```
-	rooibos-cli r path/to/config.json
-	```
-
-	_To see an example config file take a look at the [Example app](../samples/example)_
-	<br>
-
-2. Alternately, use the following flags to configure test behaviour, like so:
-
-	```
-	rooibos-cli r -p ./ -t source/tests
-	```
-	
-### Description of rooibos-cli commands
-
-
-
-| flag | argument                    | Fescription                                                                                                                                                                    |
-|------|-----------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-p` | `--projectPath`             | the path to the root of your project. This is used to fix the `pkg:/locations` in rooibos's output.                                                                            |
-| `-t` | `--testsFilePattern`        | array of globs, specifying which test files (i.e. your test _.brs_ files) to include. Relative to projectPath, relative to _"projectPath"_                                     |
-| `-o` | `--outputPath`              | you can also specity the _"outputPath"_. This is where rooibos-cli will write the map file, and other files it needs which informs rooibos about your tests. It is relative to |
-| `-v` | `--isRecordingCodeCoverage` | indicates that we want to generate coverage                                                                                                                                    |
-| `-s` | `--sourceFilePattern`       | array of globs, specifying which files to include/exclude in code coverage. Relative to projectPath. Required if `-v` is set.                                                  |
-| `-f` | `--showFailuresOnly`        | Show results for failed tests, if any. If none fail, then all results are shown                                                                                                |
-| `-F` | `--failFast`                | Test execution will stop at the first failure                                                                                                                                  |
-| `-l` | `--legacySupport`           | Flag indicating that rooibos should try to inlcude legacy roku unit tests                                                                                                      |
-| `-l` | `--printLCov`           | Flag indicating that rooibos should wil print lcov results to the log, so you can populate your lcov file with them|
-
 ### Configuring Rooibos's runtime behaviour
 
-Rooibos's configuration is controlled via the configuration passed into the `rooibos-cli` via flags on the `rooibos-cli` command, or values in the json used to initialize `rooibos-cli` via the command line, or via javacript code.
+Rooibos's configuration is controlled via the configuration passed into the `bsconfig.json` via flags on the `rooibos` json blob
 
+e.g.
 
-_Deprecation warning: This behaviour is going to change - in future, these json settings will be merged with the preprocessor config._
+```
+  "rooibos": {
+    "showOnlyFailures": true,
+    "lineWidth": 70
+  }
+```
+
+The following options are supported:
+
+- logLevel?: RooibosLogLevel - 0-4 (error, warn, info, debug)
+- showOnlyFailures?: boolean - if true, then only failed tests are shown; but everything is show if no failures occurred
+- printTestTimes?: boolean - if true then the time each test took is output
+- lineWidth?: number - width of test output lines in columns
 
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
@@ -223,49 +108,53 @@ Rooibos has a hiearchy of tests as follows:
 			 - Parameterized TestCase
 
 
-A file is considered a test suite if it contains a `@TestSuite` annotation. No special naming is required. <a name="no-need-for-special-file-or-method-names"></a>
+Test suites are defined by:
+ - declaring a class _inside_ a namespace
+ - which extends `Rooibos.BaseTestSuite`
+ - and has a `@TestSuite` annotation 
 
+No special file naming is required. I recommend you call your files `thing.spec.bs` <a name="no-need-for-special-file-or-method-names"></a>
+
+Please note that rooibos is _brighterscript_ only. You can test regular brs files; but all your tests must be brightersript files.
 
 ### Simple example
 The following is a minimum working example of a Rooibos TestSuite, named `Simple.brs`
 <a name="simple-syntax-for-writing-tests"></a>
 
 ```
-'@TestSuite [Simp] Simple Tests
+namespace Tests
 
-'@Setup
-function Simp_SetUp() as void
-    m.modelLocator = m.testUtils.GetStubModelLocator()
-    m.vm = BVM_CreateVM("testVM", m.modelLocator)
-end function
+  '@TestSuite
+  class BasicTests extends Rooibos.BaseTestSuite
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests initializaiton of vm
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '@It tests the node context is available for a Node scope function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Test can instantiate with invalid modelLocator
-function Simp_Init_invalid() as void
-    m.vm = BVM_CreateVM("testVM", invalid)
-    m.AssertNotInvalid(m.vm)
-end function
+    '@Test 
+    function NodeScope() as void
+      m.assertNotInvalid(m.node)
+      Tests.doSomethingInNodeScope(true)
+      m.assertInvalid(m._isNodeScopeVarSet)
+      m.assertTrue(m.node._isNodeScopeVarSet)
+    end function
+
+  end class
+
+end namespace
 ```
 
 #### Simple example Notes
 
 1. The `++++++++++++`'s around the `@It` declaration are not required; but I find it makes the file much easier to read, and recommend it (or something similar, such as `'*****` as a best practice.
-2. In the above example, `Simp` is the namespace, used to stop collisions between our tests and/or other source files
-
-
-This results in the following test output:
-
-![Simple test output](images/simpleReportOutput.png)
-
-Note the hierarchical display of the Testsuite _[Simp] Simple Tests_, the group _tests initialization of vm_ and the test itself _can instantiate with invalid modelLocator_.
+2. If you do not provide names for the `@TestSuite` and `@Test` annotations, they will automatically use the class/function names
 
 ### Rooibos annotations
 <a name="simple-syntax-for-writing-tests"></a>
 
 Rooibos provides a library of annotations which can be used to define TestSuites, It groups, Test Cases, Parameterized tests, and more. All annotations are of the following form
+
+NOTE - these are not official bsc compiler annotations - I will be making 4.1 release compatible with those.
 
 ```
 '@ANNOTATION DATA
@@ -279,8 +168,9 @@ The following annotations are supported.
 
 | Annotation                  | Description                                                                                                                                                                                                                                                                                                     | Data                                                                                              |
 |-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| @TestSuite                  | Indicates a file is a test suite                                                                                                                                                                                                                                                                                | Name of the test suite. Used in test output                                                       |
-| @Setup                      | Run once when the suite, or it group is executed <a name="common-tdd-methods"></a>                                                                                                                                                                                                                                           |                                                                                                   |
+| @TestSuite                  | Indicates a file is a test suite. Required.                                                                                                                                                                                                                                                                               | Name of the test suite. Used in test output                                                       |
+| @SGNode                  | Indicates that a test will run in a node. Rooibos plugin will automatically generate the test node and inject all the test code                                                                                                                                                                                                                                                                            | Name of the component to extend to run tests                                                     |
+| @Setup                      | Run once when the suite, or it group is executed <a name="common-tdd-methods"></a>.                                                                                                                                                                                                                                          |                                                                                                   |
 | @TearDown                   | Run once when the suite or it group is finished                                                                                                                                                                                                                                                                             |                                                                                                   |
 | @BeforeEach                 | Run before each test. Can be specified for the `@TestSuite`, or for each `@It` group                                                                                                                                                                                                                            |                                                                                                   |
 | @AfterEach                  | Run after each test. Can be specified for the `@TestSuite`, or for each `@It` group                                                                                                                                                                                                                             |                                                                                                   |
@@ -305,7 +195,7 @@ An assertion looks like this:
 m.AssertTrue(myValue)
 ```
 
-A (contrived) test, might look like this:
+An example test is as follows.
 
 ```
 '@Test can instantiate with invalid modelLocator
@@ -320,6 +210,44 @@ In this case, the test will fail
 ![Simple test output](images/simpleFail.png)
 
 Observe how the test output indicates in which file the test suite resides, and the line of the failed assert, plus the reason for the failure. If your IDE has integrated brightscript support, such as eclipse, you will find that the locations are clickable. In this example, clicking on the Location link will navigate the IDE to the exact line of code of the assertion.
+
+Rooibos provids many assertions to test your code with:
+
+ - assertFalse
+ - assertTrue
+ - assertEqual
+ - assertLike
+ - assertNotEqual
+ - assertInvalid
+ - assertNotInvalid
+ - assertAAHasKey
+ - assertAANotHasKey
+ - assertAAHasKeys
+ - assertAANotHasKeys
+ - assertArrayContains
+ - assertArrayNotContains
+ - assertArrayContainsSubset
+ - assertArrayContainsAAs
+ - assertArrayNotContainsSubset
+ - assertArrayCount
+ - assertArrayNotCount
+ - assertEmpty
+ - assertNotEmpty
+ - assertArrayContainsOnlyValuesOfType
+ - assertType
+ - assertSubType
+ - assertNodeCount
+ - assertNodeNotCount
+ - assertNodeEmpty
+ - assertNodeNotEmpty
+ - assertNodeContains
+ - assertNodeNotContains
+ - assertNodeContainsFields
+ - assertNodeNotContainsFields
+ - assertAAContainsSubset
+ - assertMocks
+
+If an assertion fails, then the next assertions will not run.
 
 ### Async tests
 
@@ -344,62 +272,11 @@ You can control the timeout behaviour by passing delay and maxAttempts, as follo
 
 If the field does not change during the retry period, the assertion will fail.
 
-### Laying out tests
-I suggest the following layout when writing your tests
-
-```
-'@Test that the correct index is found
-function Simpl_DataStore_index() as void
-	'1. setup your test data objects and values
-	values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
-	ds = CreateDataStore(values)
-
-	'2. Execute the method you wish to test
-	item = ds.GetDataItemWithIndex(55)
-
-	'3. Do your assertions
-	m.AssertNotInvald(item)
-	m.AssertEqual(item.name,"twelve")
-end function
-```
-
-So the final test would look like:
-
-```
-'@Test that the correct index is found
-function Simpl_DataStore_index() as void
-	values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
-	ds = CreateDataStore(values)
-
-	item = ds.GetDataItemWithIndex(12)
-
-	m.AssertNotInvald(item)
-	m.AssertEqual(item.name,"twelve")
-end function
-```
-
-### More Assertions
-The previous example can be written more succinctly using Rooibos's library of assertions
-
-```
-'@Test that the correct index is found
-function Simpl_DataStore_index() as void
-	values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
-	ds = CreateDataStore(values)
-
-	item = ds.GetDataItemWithIndex(12)
-
-	m.AssertAAContainsSubset(item, values[2])
-end function
-```
-
-
 ### Setting up and tearing down
-You may find that you have data which is common to all of your tests in a suite. In this case you can desginate functions to run, before and after **all** tests are executed in your suite. To achieve this, simply add a `'@Setup` or `'@TearDown` annotation before the appropriate method. In our example above, we could do the following:
+You may find that you have data which is common to all of your tests in a suite. In this case you can desginate functions to run, before and after **all** tests are executed in your suite. To achieve this, simply override the `setup` and `tearDown` functions. In our example above, we could do the following:
 
 ```
-'@Setup
-function Simpl_Setup() as void
+override function setup()
 	m.values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
 	m.ds = CreateDataStore(m.values)
 end function
@@ -415,42 +292,47 @@ end function
 ### Setup and TeardDown Scoping
 Setup and Teardown, can also be scoped to an it group. If the annotations appear _after_ an `'@It` group annotation, then the setup and teardown will apply only to that group. If the annotations appear _before the first it group annotation_ then they will be applied to all groups, _which do not have Setup and Teardown group-level-annotations_
 
+Like `setup` and `tearDown`, `beforeEach` and `afterEach` can be applied to the whole test by overriding the `beforeEach` and `afterEach` functions You can scope them to `@it` groups, by using the `@beforeEach` and `@afterEach` annotation
+
 
 ### Using BeforeEach and AfterEach
 In addition, we can also use beforeEach and afterEach to run before **each and every** test.
 
 ```
-'@Setup
-function Simpl_Setup() as void
-	m.values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
-	m.ds = CreateDataStore(m.values)
-end function
+namespace Tests
+  class SampleTest extends Rooibos.BaseTestSuite
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests alternate data
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    override function setup() as void
+      m.values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
+      m.ds = CreateDataStore(m.values)
+    end function
 
-'@BeforeEach
-function MST_OnConfigLoaded_BeforeEach() as void
-	m.alternateValues = [{index:2,name:"two"},{index:3, name:"three"},{index:20, name:"twenty"}]
-	m.alternateDS = CreateDataStore(m.alternateValues)
-end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '@It tests alternate data
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'@Test that the correct index is NOT found
-function Simpl_Datastore_alternate_failures() as void
-	item = m.alternateDS.GetDataItemWithIndex(12)
+    '@beforeEach
+    function alternateData_beforeEach() as void
+      m.alternateValues = [{index:2,name:"two"},{index:3, name:"three"},{index:20, name:"twenty"}]
+      m.alternateDS = CreateDataStore(m.alternateValues)
+    end function
 
-	m.AssertInvalid(item)
-end function
+    '@Test that the correct index is NOT found
+    function alternateData_failures() as void
+      item = m.alternateDS.GetDataItemWithIndex(12)
+
+      m.AssertInvalid(item)
+    end function
 
 
-'@Test that the correct index is found
-function Simpl_Datastore_alternate_success() as void
-	item = m.alternateDS.GetDataItemWithIndex(3)
+    '@Test that the correct index is found
+    function alternateData_success() as void
+      item = m.alternateDS.GetDataItemWithIndex(3)
 
-	m.AssertAAContainsSubset(item, m.alternateValues[1])
-end function
-
+      m.AssertAAContainsSubset(item, m.alternateValues[1])
+    end function
+  end class
+end namespace
 ```
 
 Note that in the example above, each of the tests in the `tests alternate data` group, can be run with different values; but we do not need to set the up in each test, or mutate the values used by other tests, which were defined in the `Setup` method.
@@ -608,54 +490,6 @@ This can be achieved by setting `showOnlyFailures` to true in the config, or, mo
 testFailures:
 	curl -d '' "http://${ROKU_DEV_TARGET}:8060/launch/dev?RunTests=true&showOnlyFailures=true&logLevel=4"
 ```
-
-## Integrating with your app setup and util methods
-
-### Hooking into your global setup
-<a name="hook-into-your-global-setup-mechanisms"></a>
-It is likely that your app will have some degree of setup (like loading config files, setting global properties, etc), that will be required to occur before starting your unit tests. You can have Rooibos invoke your setup methods, at the correct time during it's setup, by passing a function pointer into the `Rooibos__Init` method, as such:
-
-```
-if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals)
-
-....
-
-sub SetupGlobals()
-'some setup stuff that is pertinent to your app and unit tests
-end sub
-
-```
-
-### Adding your own util functions to the unit tests
-<a name="incorporate-your-own-util-methods"></a>
-If you wish, you can provide a third function pointer to the `Rooibos_Init` method, which will receive a _TestCase_ paremeter. You can decorate this TestCase with util methods you want to make accessible to your unit tests at runtime. e.g.
-
-
-```
-if (type(Rooibos__Init) = "Function") then Rooibos__Init(SetupGlobals, "DecorateTestUtils")
-
-....
-
-sub DecorateTestUtils(testCase)
-	'add rodash
-	testCase.r = rodash()
-	'add some test utils specific to my project
-	testCase.testUtils = TestUtils()
-end sub
-
-```
-
-These utility objects/methods/values, will then be available when the test is executed. e.g.
-
-```
-'@Test DataReceived
-function MyNS_DataReceived() as void
-	'using rodash to get the data value for the insert
-	m.AssertNotInvalid(m.r.get(result,"data.row[0]",invalid))
-end function
-```
-
-Note: The test utils decorator and all of it's dependencies must be visible to the current exeucting test. That means if you have a node test you must include the script file containing the `testCase.testUtils` method, and all other methods it invokes. The sample app contains an example.
 
 ### Accessing global scope
 
@@ -1005,64 +839,41 @@ Which will compress all of the source files in the `src` folder into `dist/rooib
 
 ## Testing scenegraph nodes
 <a name="execute-tests-on-scenegraph-nodes"></a>
-I prefer to use [MVVM](https://medium.com/flawless-app-stories/how-to-use-a-model-view-viewmodel-architecture-for-ios-46963c67be1b) (link is for iOS pattern, so I don't personally run tests on my scene graph nodes (I have a preprocessor that does all the glueing for me, so I really have very little logic to test), however, I know not everyone works with that practice, so I went to considerable effort to make sure you can run unit tests on your scene graph nodes :)
+Rooibos plugin genereates node files and test glue automatically, to make it very easy for you to test your nodes. Simply use the `@SGNode` annotation and specify which node component you are extending, and the plugin will:
 
-### Steps to test scenegraph nodes
-SceneGraph nodes are essentially _islands_ they cannot see any other code in your app, which is why they are not subject to name collisions. The only way to access methods in a node file, is to make an interface method and use `callFunc`. This is impractical for testing. We therefore need to create a _wrapper node_ which _extends_ the node we wish to test, and allows us to inject our tests into it.
+ - generate the files for you
+ - inject your tests
 
-It's a simple process; but I'm fully documenting it to facilitate a deep understanding. Once you do it once, you'll just be copy and pasting a node file, adding an annotation and changing a filename reference.
 
-For now, here are the complete steps:
 
-1. For each SceneGraph node you want to test, you need to create a corresponding xml file. Example
-	- The name is not important; but I suggest `[NODE_NAME]TestProxy.xml`, so if you were testing `NetworkLayer.xml`, you would create a `NetworkLayerTestProxy.xml` file.
-	- This file should be located somewhere in your `components` folder, placing it under `components/tests` is a good idea, as you can easily exclude it from production builds.
-	- The file must extend the node you wish to test, e.g. `extends="NetworkLayer.xml"`
-	- You must also include an interface function definition for a function named `Rooibos_RunNodeTests`. You _must not_ implement it, it is mixed in for you automatically.
-	- You must import your unit test suite (e.g. `NetworkLayerTests.brs`) as well as the rooibos framework (i.e. `rooibosDist.brs`) and the rooibos map file generated by `rooibos-cli` (i.e. `rooibosFunctionMap.brs`)
-2. In your unit test suite, before the ``@TestSuite` delcaration you _must_ place a `'@SGNode` Annotation, with the name of the node that will be used to test this suite. e.g. `'@SGNode NodeExampleTests.brs `
+#### Example Node test file
 
-#### Example test suite: NetworkLayerTests.brs
+In the following example, the tests will be run in a new (auto-generated) component that extends `NodeExample` component.
 
 ```
-'@SGNode NodeExampleTests
-'@TestSuite [NET] Node Example Tests
+namespace Tests
+  '@SGNode NodeExample
+  '@TestSuite [NET] Node Example Tests
+  class NodeExampleTests extends Rooibos.BaseTestSuite
+    override function setup() as void
+      m.setupThing = "something created during setup"
+    end function
 
-'@Setup
-function NET_setup() as void
-    m.setupThing = "something created during setup"
-end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '@It tests methods present on the node
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests methods present on the node
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    override function beforeEach() as void
+      m.beforeEachThing = "something created beforeEach"
+    end function
 
+    '@Test HelloFromNode
+    function helloFromNode_simple() as void
+      'bs:disable-next-line
+      text = HelloFromNode("georgejecook", 12)
+      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+    end function
 ...
-```
-
-
-#### Example node test wrapper: NetworkLayerTestProxy.xml
-
-This file is located in `components/tests`
-
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<component
-	name="NetworkLayerTestProxy.xml"
-	extends="NetworkLayer"
-	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
->
-	<interface>
-		<!-- public fields/functions -->
-		<function name="Rooibos_RunNodeTests" />
-	</interface>
-
-	<script type="text/brightscript" uri="pkg:/source/tests/NodeExampleTests.brs" />
-
-	<script type="text/brightscript" uri="pkg:/source/rooibosDist.brs" />
-
-    <script type="text/brightscript" uri="pkg:/source/rooibosFunctionMap.brs" />
-</component>
 ```
 
 ### Nuances of testing nodes
@@ -1100,46 +911,14 @@ I slap an `@Only` annotation on the suite, group and test I'm currently working 
 
 Once my test passes, I test for regression, then run the whole suite, then run the app and test out in the UI.
 
-I also have templates for creating groups and test cases, which you are free to copy : they are for eclipse ide.
-
-Configured as name `test`
-
-```
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'@It tests ${itDescription}
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-'@Test ${testDescription}
-function ${prefix}__${itDescription}_${testName}() as void
-	m.AssertFail("implement me!")
-	${cursor}
-end function
-```
-
-Configured as name `it`
-
-```
-'@Test ${testDescription}
-function ${prefix}__${testName}_${testCase}() as void
-	m.AssertFail("implementMe")
-	${cursor}
-end function
-```
-
 ## Backward compatibility
 
-<a name="compatible-with-legacy-framework"></a>
-
-Rooibos is backward compatible with the [legacy framework](https://github.com/rokudev/unit-testing-framework/), Use the `-l --legacySupport` flag with rooibos-cli to use this feature.
-
-`'@Only`, `'@Ingore`, `'@Setup`, `'@TearDown` are all supported. Only and Ignore can be applied to a whole test suite, or individual test cases.
-
-Your files required to follow the convention as laid out [here](https://github.com/rokudev/unit-testing-framework/blob/master/samples/SimpleTestApp/source/tests/Test__Main.brs) 
-
-
-It is recommended that you upgrade your legacy tests to the new syntax for maximum flexibility, functionality and comfort.
+Rooibos is NOT backward compatible with pre version 4 versions of rooibos; and not compatible with any other unit test framework.
 
 ## Generate code coverage
+
+THIS FEATURE IS NOT YET AVAILBALE - I WILL REENABLE THIS IN ROOIBOS 4.2
+
 
 Rooibos can measure and report the test coverage your unit tests are producing.
 
@@ -1193,13 +972,7 @@ This can be done, from the command line also, with the following command:
 
 ### How coverage works
 
-rooibos-cli, via `rooibos-cli` command line tool, or the npm package will run against a root project folder, and using the `sourceFilePattern` globs your provide, will ascertain which files require coverage.
-
-It then buils an Abstract Syntax Tree, using Sean Barag's wonderful [brs interpreter](https://github.com/sjbarag/brs), to ascertain which lines of the identified files can have their coverage tracked.
-
-The preprocessor then injects function calls for all trackable lines, which update tracking variables at runtime.
-
-Rooibos framework will then collate the stats and display them at the end of the run.
+TODO
 
 #### Statement support
 

@@ -21,7 +21,6 @@
     "../bsc-plugin/dist/plugin.js"
   ],
   "rooibos": {
-    // "frameworkSourcePath": "/home/george/hope/open-source/rooibos/framework/src/source",
     "showOnlyFailures": true,
     "lineWidth": 70
   }

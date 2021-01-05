@@ -12,7 +12,6 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 [![GitHub](https://img.shields.io/github/release/georgejecook/rooibos.svg?style=flat-square)](https://github.com/georgejecook/rooibos/releases) 
 
 ## Links
- - **[Youtube training videos](https://www.youtube.com/playlist?list=PLJRLV4QDx83vsYMD9bIs-cjoDXmNmO8Jv)**
  - **[Documentation](docs/index.md)**
  - **[API Documentaiton](https://georgejecook.github.io/rooibos)**
  - **[CHANGELOG](CHANGELOG.md)**
@@ -56,6 +55,6 @@ I am actively invovled in Rooibos's development, and add more features and fixes
 
 At this point, it's WIP. I keep adding tests as bugs come up, and will continue to improve the test coverage. 
 
-### Why 2.0.0?
+### Why 4.0.0?
 
-The latest version of Rooibos introduces a preprocessor which is a requirement for running all tests. I thought that was a significant enough departure to warrant a whole version bump.
+Rooibos now uses the excellent bsc compiler plugin mechanism to seamlessly integrate with the compiler and the vscode IDE extension. This is a breaking change - projects will require updates to work.
