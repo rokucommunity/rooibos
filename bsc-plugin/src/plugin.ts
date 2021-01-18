@@ -22,106 +22,94 @@ import { FileFactory } from './lib/rooibos/FileFactory';
 
 import * as path from 'path';
 
-const pluginInterface: CompilerPlugin = {
-  name: 'rooibosPlugin',
-  beforeProgramCreate: beforeProgramCreate,
-  afterProgramCreate: afterProgramCreate,
-  afterScopeCreate: afterScopeCreate,
-  beforeFileParse: beforeFileParse,
-  afterFileParse: afterFileParse,
-  afterFileValidate: afterFileValidate,
-  beforeProgramValidate: beforeProgramValidate,
-  afterProgramValidate: afterProgramValidate,
-  beforePublish: beforePublish,
-  beforeFileTranspile: beforeFileTranspile,
-  afterFileTranspile: afterFileTranspile,
-  beforeScopeValidate: beforeScopeValidate,
-  afterPublish: afterPublish
-};
+class RooibosPlugin {
 
-export default pluginInterface;
+  name: 'rooibosPlugin';
+  public session: RooibosSession;
+  public codeCoverageProcessor: CodeCoverageProcessor;
+  public fileFactory: FileFactory;
+  public isFrameworkAdded = false;
+  public _builder: ProgramBuilder;
 
-let session: RooibosSession;
-let codeCoverageProcessor: CodeCoverageProcessor;
-let fileFactory: FileFactory;
-let isFrameworkAdded = false;
-let _builder: ProgramBuilder;
+  beforeProgramCreate(builder: ProgramBuilder): void {
+    this._builder = builder;
+    this.fileFactory = new FileFactory((builder.options as any).rooibos || {});
 
-function beforeProgramCreate(builder: ProgramBuilder): void {
-  _builder = builder;
-  fileFactory = new FileFactory((builder.options as any).rooibos || {});
-
-  if (!session) {
-    session = new RooibosSession(builder, fileFactory);
-    codeCoverageProcessor = new CodeCoverageProcessor(builder);
-  }
-}
-
-async function afterProgramCreate(program: Program) {
-  if (!isFrameworkAdded) {
-    await fileFactory.addFrameworkFiles(program);
-  }
-}
-
-function afterScopeCreate(scope: Scope) {
-}
-
-function beforeFileParse(source: SourceObj): void {
-}
-
-function afterFileParse(file: (BrsFile | XmlFile)): void {
-  if (fileFactory.isIgnoredFile(file)) {
-    return;
-  }
-  if (isBrsFile(file)) {
-    if (session.processFile(file)) {
-      //
-    } else {
-      codeCoverageProcessor.addCodeCoverage(file);
+    if (!this.session) {
+      this.session = new RooibosSession(builder, this.fileFactory);
+      this.codeCoverageProcessor = new CodeCoverageProcessor(builder);
     }
   }
-}
 
-function beforePublish(builder: ProgramBuilder, files: FileObj[]) {
-  for (let testSuite of [...session.sessionInfo.testSuitesToRun.values()]) {
-    testSuite.addDataFunctions();
-    for (let group of [...testSuite.testGroups.values()]) {
-      for (let testCase of [...group.testCases.values()]) {
-        group.modifyAssertions(testCase);
+  afterProgramCreate(program: Program) {
+    if (!this.isFrameworkAdded) {
+      this.fileFactory.addFrameworkFiles(program);
+    }
+  }
+
+  afterScopeCreate(scope: Scope) {
+  }
+
+  beforeFileParse(source: SourceObj): void {
+  }
+
+  afterFileParse(file: (BrsFile | XmlFile)): void {
+    if (this.fileFactory.isIgnoredFile(file)) {
+      return;
+    }
+    if (isBrsFile(file)) {
+      if (this.session.processFile(file)) {
+        //
+      } else {
+        this.codeCoverageProcessor.addCodeCoverage(file);
       }
     }
-
   }
-  session.addTestRunnerMetadata();
-  session.addLaunchHook();
-}
 
-async function beforeProgramValidate(program: Program) {
-  session.updateSessionStats();
-  await session.createNodeFiles(program);
-}
+  beforePublish(builder: ProgramBuilder, files: FileObj[]) {
+    for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
+      testSuite.addDataFunctions();
+      for (let group of [...testSuite.testGroups.values()]) {
+        for (let testCase of [...group.testCases.values()]) {
+          group.modifyAssertions(testCase);
+        }
+      }
 
-function afterProgramValidate(program: Program) {
-  for (let testSuite of [...session.sessionInfo.testSuites.values()]) {
-    testSuite.validate();
+    }
+    this.session.addTestRunnerMetadata();
+    this.session.addLaunchHook();
+    this.session.createNodeFiles(this._builder.program);
   }
-  // eslint-disable-next-line
-  program['diagnostics'] = program['diagnostics'].filter((d) => !d.file.pathAbsolute.startsWith('components/rooibos/generated'));
+
+  beforeProgramValidate(program: Program) {
+    this.session.updateSessionStats();
+  }
+
+  afterProgramValidate(program: Program) {
+    for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
+      testSuite.validate();
+    }
+  }
+
+  beforeFileTranspile(entry: TranspileObj) {
+  }
+
+  afterFileTranspile(entry: TranspileObj) {
+  }
+
+  // tslint:disable-next-line:array-type
+  beforeScopeValidate(scope: Scope, files: (BrsFile | XmlFile)[], callables: CallableContainerMap) {
+  }
+
+  afterPublish(builder: ProgramBuilder, files: FileObj[]) {
+    //create node test files
+  }
+
+  afterFileValidate(file: BscFile) {
+  }
+
 }
 
-function beforeFileTranspile(entry: TranspileObj) {
-}
-
-function afterFileTranspile(entry: TranspileObj) {
-}
-
-// tslint:disable-next-line:array-type
-function beforeScopeValidate(scope: Scope, files: (BrsFile | XmlFile)[], callables: CallableContainerMap) {
-}
-
-function afterPublish(builder: ProgramBuilder, files: FileObj[]) {
-  //create node test files
-}
-
-function afterFileValidate(file: BscFile) {
+export default function () {
+  return new RooibosPlugin();
 }

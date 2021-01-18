@@ -42,20 +42,20 @@ export class FileFactory {
     return files;
   }
 
-  public async addFrameworkFiles(program: Program) {
+  public addFrameworkFiles(program: Program) {
     for (let fileName of this.frameworkFileNames) {
       let sourcePath = path.resolve(path.join(this.sourcePath, `${fileName}.bs`));
       let fileContents = fs.readFileSync(sourcePath, 'utf8');
       let destPath = path.join(this.targetPath, `${fileName}.bs`);
       let entry = { src: sourcePath, dest: destPath };
 
-      await program.addOrReplaceFile(entry, fileContents);
+      program.addOrReplaceFile(entry, fileContents);
     }
 
     let sourcePath = path.resolve(path.join(this.sourcePath, `RooibosScene.xml`));
     let destPath = path.join(this.targetCompsPath, `RooibosScene.xml`);
     let entry = { src: sourcePath, dest: destPath };
-    await program.addOrReplaceFile(entry, this.createTestXML('TestsScene', 'Scene'));
+    program.addOrReplaceFile(entry, this.createTestXML('TestsScene', 'Scene'));
   }
 
   public createTestXML(name: string, baseName: string, useBs = true): string {
@@ -91,8 +91,8 @@ ${scriptImports.join('\n')}
     return result !== undefined;
   }
 
-  public async addFile(program, projectPath: string, contents: string) {
-    await program.addOrReplaceFile({ src: projectPath, dest: projectPath }, contents);
+  public addFile(program, projectPath: string, contents: string) {
+    program.addOrReplaceFile({ src: path.resolve(projectPath), dest: projectPath }, contents);
   }
 
 }

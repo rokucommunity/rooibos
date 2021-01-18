@@ -35,4 +35,15 @@
     ".history/**": true,
     "**/out/**": true,
   },
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": "meta.function-call.brs,punctuation.decorator.brs",
+        "settings": {
+          "foreground": "#34BEB0",
+          "fontStyle": ""
+        }
+      }
+    ]
+  }
 }

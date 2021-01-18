@@ -2,59 +2,59 @@
 
 namespace Tests
 
-  '@Ignore - only unignore to test compiler works
-  '@TestSuite [DGNT] Duplicate Group Name Tests
+  @Ignore("only unignore to test compiler works")
+  @TestSuite
   class AfterEachNotRunning extends Rooibos.BaseTestSuite
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It group1
+    @It("group1")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test simple
+    @Test("simple")
     function group1_test()
       m.assertTrue(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It group2
+    @It("group2")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test simple
+    @Test("simple")
     function group2_test()
       m.assertTrue(true)
     end function
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It group22
+    @It("group22")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     '@BeforeEach
 
-    '@Test simple2
+    @Test("simple2")
     function group2_dupe_test()
       m.assertTrue(true)
     end function
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It group3
+    @It("group3")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test simple
+    @Test("simple")
     function group3_test()
       m.assertTrue(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It group11
+    @It("group11")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test simple
+    @Test("simple")
     function group1_dupe_test()
       m.assertTrue(true)
     end function
 
-    '@Test simple2
+    @Test("simple2")
     function group1_dupe_test2()
       m.assertTrue(true)
     end function

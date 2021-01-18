@@ -1,19 +1,19 @@
 
 namespace Tests
 
-  '@TestSuite ET ExpectTests
+  @TestSuite
   class ExpectTests extends Rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It tests bug with expectOnce not matching values
+    @It("tests bug with expectOnce not matching values")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test reported case
-    '@Params[[52], true]
-    '@Params[invalid, false]
-    '@Params[[invalid], true]
-    '@Params[["42"], true]
-    '@Params[[42], false]
+    @Test
+    @Params([52], true)
+    @Params(invalid, false)
+    @Params([invalid], true)
+    @Params(["42"], true)
+    @Params([42], false)
     function expectOnce_valuesBug_reported(expectedValue, expectMockFail) as void
       obj = {
         foo: function(arg0) : return arg0 : end function
@@ -32,10 +32,10 @@ namespace Tests
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It tests mock count limit
+    @It("tests mock count limit")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test mock count limit at least 25
+    @Test("mock count limit at least 25")
     function expect_mockCountLimitToBeAtLeast25() as void
 
       interface = {}

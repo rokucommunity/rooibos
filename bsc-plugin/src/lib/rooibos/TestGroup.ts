@@ -2,7 +2,7 @@ import { DottedGetExpression, createVisitor, WalkMode, CallExpression, createInt
 import { Int32 } from 'brighterscript/dist/brsTypes';
 import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
-import { Annotation } from './Annotation';
+import { RooibosAnnotation } from './Annotation';
 import { RawCodeStatement } from './RawCodeStatement';
 import { getSessionInfo } from './RooibosSessionInfo';
 import { TestCase } from './TestCase';
@@ -11,7 +11,7 @@ import { sanitizeBsJsonString } from './Utils';
 
 export class TestGroup extends TestBlock {
 
-  constructor(testSuite: TestSuite, annotation: Annotation) {
+  constructor(testSuite: TestSuite, annotation: RooibosAnnotation) {
     super(annotation);
     this.testSuite = testSuite;
     this.setupFunctionName = this.setupFunctionName || this.testSuite.setupFunctionName;

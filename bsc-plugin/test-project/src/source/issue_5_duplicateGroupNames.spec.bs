@@ -1,24 +1,24 @@
 namespace Tests
 
-  '@Ignore - only unignore to test compiler works - remove REMOVE_THIS to test
-  '@TestSuite [RBSA] REMOVE_THIS Rooibos before after tests
+  @Ignore("only unignore to test compiler works - remove REMOVE_THIS to test")
+  @TestSuite
   class DuplicateGroupNames extends Rooibos.BaseTestSuite 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It tests before each and after each are running
+    @It("tests before each and after each are running")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@BeforeEach
+    @BeforeEach
     override function group_beforeEach() as void
       ? "!!! Before"
     end function
 
 
-    '@AfterEach
+    @AfterEach
     override function group_afterEach() as void
       ? "!!! After"
     end function
 
-    '@Test before after
+    @Test
     function before_after() as void
 
       assertResult = m.Fail("reason")

@@ -1,5 +1,9 @@
-import { BrsFile, CommentStatement, Token } from 'brighterscript';
-import { diagnosticDuplicateSuite, diagnosticIllegalParams } from '../utils/Diagnostics';
+import { BrsFile, CommentStatement, Statement, Token, Expression, AnnotationExpression } from 'brighterscript';
+import { diagnosticDuplicateSuite, diagnosticIllegalParams, diagnosticNoTestFunctionDefined as diagnosticMultipleTestOnFunctionDefined } from '../utils/Diagnostics';
+
+declare type ExpressionValue = string | number | boolean | Expression | ExpressionValue[] | {
+  [key: string]: ExpressionValue;
+};
 
 export enum AnnotationType {
   None,
@@ -37,14 +41,14 @@ let annotationLookup = {
 };
 
 interface ParsedComment {
-  blockAnnotation?: Annotation;
-  testAnnotation?: Annotation;
+  blockAnnotation?: RooibosAnnotation;
+  testAnnotation?: RooibosAnnotation;
 }
 
 export class AnnotationParams {
 
   constructor(
-    public token: Token,
+    public annotation: AnnotationExpression,
     public text: string,
     public lineNumber: number,
     public params: object[],
@@ -54,14 +58,14 @@ export class AnnotationParams {
 
   }
 }
-export class Annotation {
+export class RooibosAnnotation {
   /**
    * Represents a group of comments which contain tags such as @only, @testsuite, @testcase, @testgroup etc
    * @param statement block of comments that contain annotations to apply to the next statement
    */
   constructor(
     public file: BrsFile,
-    public token: Token,
+    public annotation: AnnotationExpression,
     public annotationType: AnnotationType,
     public text: string,
     public name: string,
@@ -75,91 +79,88 @@ export class Annotation {
 
   public hasSoloParams = false;
 
-  public static parseCommentStatement(file: BrsFile, statement: CommentStatement): ParsedComment | null {
+  public static getAnnotation(file: BrsFile, statement: Statement): ParsedComment | null {
 
     //split annotations in case they include an it group..
-    let blockAnnotation: Annotation;
-    let testAnnotation: Annotation;
+    let blockAnnotation: RooibosAnnotation;
+    let testAnnotation: RooibosAnnotation;
     let isSolo = false;
     let isIgnore = false;
     let nodeName = null;
+    if (statement.annotations?.length) {
+      for (let annotation of statement.annotations) {
+        const annotationType = getAnnotationType(annotation.name);
+        switch (annotationType) {
 
-    for (let comment of statement.comments) {
-      const text = comment.text;
-      const annotationType = getAnnotationType(text);
-      switch (annotationType) {
-
-        case AnnotationType.None:
-        default:
-          continue;
-        case AnnotationType.Solo:
-          isSolo = true;
-          break;
-        case AnnotationType.NodeTest:
-          nodeName = getAnnotationText(text, annotationType);
-          break;
-        case AnnotationType.Ignore:
-          isIgnore = true;
-          break;
-        case AnnotationType.It:
-        case AnnotationType.Group:
-        case AnnotationType.TestSuite:
-          const groupName = getAnnotationText(text, annotationType);
-          blockAnnotation = new Annotation(file, comment, annotationType, text, groupName, isIgnore, isSolo, null, nodeName);
-          nodeName = null;
-          isSolo = false;
-          isIgnore = false;
-          break;
-        case AnnotationType.Test:
-          const testName = getAnnotationText(text, annotationType);
-          testAnnotation = new Annotation(file, comment, annotationType, text, testName, isIgnore, isSolo);
-          isSolo = false;
-          isIgnore = false;
-          break;
-        case AnnotationType.Params:
-        case AnnotationType.SoloParams:
-        case AnnotationType.IgnoreParams:
-          if (testAnnotation) {
-            testAnnotation.parseParams(file, comment, text, annotationType);
-          } else {
-            //error
-          }
-          break;
+          case AnnotationType.None:
+          default:
+            continue;
+          case AnnotationType.Solo:
+            isSolo = true;
+            break;
+          case AnnotationType.NodeTest:
+            nodeName = annotation.getArguments()[0] as string;
+            break;
+          case AnnotationType.Ignore:
+            isIgnore = true;
+            break;
+          case AnnotationType.It:
+          case AnnotationType.Group:
+          case AnnotationType.TestSuite:
+            const groupName = annotation.getArguments()[0] as string;
+            blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName);
+            nodeName = null;
+            isSolo = false;
+            isIgnore = false;
+            break;
+          case AnnotationType.Test:
+            const testName = annotation.getArguments()[0] as string;
+            let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo);
+            if (testAnnotation) {
+              diagnosticMultipleTestOnFunctionDefined(file, newAnnotation);
+            } else {
+              testAnnotation = newAnnotation;
+            }
+            isSolo = false;
+            isIgnore = false;
+            break;
+          case AnnotationType.Params:
+          case AnnotationType.SoloParams:
+          case AnnotationType.IgnoreParams:
+            if (testAnnotation) {
+              testAnnotation.parseParams(file, annotation, annotation.name, annotationType);
+            } else {
+              //error
+            }
+            break;
+        }
       }
     }
     return { blockAnnotation: blockAnnotation, testAnnotation: testAnnotation };
   }
 
-  public parseParams(file: BrsFile, comment: Token, text: string, annotationType: AnnotationType) {
-    let rawParams = getAnnotationText(text, annotationType);
+  public parseParams(file: BrsFile, annotation: AnnotationExpression, text: string, annotationType: AnnotationType) {
+    let rawParams = JSON.stringify(annotation.getArguments());
     let isSolo = annotationType === AnnotationType.SoloParams;
     let isIgnore = annotationType === AnnotationType.IgnoreParams;
     if (isSolo) {
       this.hasSoloParams = true;
     }
     try {
-      const paramsInvalidToNullRegex = /(,|\:|\[)(\s*)(invalid)/g;
-      let jsonText = rawParams.replace(paramsInvalidToNullRegex, '$1$2null');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      let jsonParams = getJsonFromString(jsonText);
-      if (jsonParams) {
-        this.params.push(new AnnotationParams(comment, jsonText, comment.range.start.line, jsonParams, isIgnore, isSolo));
+      if (rawParams) {
+        this.params.push(new AnnotationParams(annotation, rawParams, annotation.range.start.line, annotation.getArguments() as any, isIgnore, isSolo));
       } else {
-        diagnosticIllegalParams(file, comment);
+        diagnosticIllegalParams(file, annotation);
       }
     } catch (e) {
-      diagnosticIllegalParams(file, comment);
+      diagnosticIllegalParams(file, annotation);
     }
   }
 
 }
 
 function getAnnotationType(text: string): AnnotationType {
-  const regexp = /^\s*'@([a-z]*)/i;
-  const matches = regexp.exec(text);
-  const tag = matches && matches.length > 0 ? matches[1].toLowerCase() : null;
-
-  return annotationLookup[tag] || AnnotationType.None;
+  return annotationLookup[text.toLowerCase()] || AnnotationType.None;
 }
 
 function getAnnotationText(text: string, annotationType: AnnotationType): string {

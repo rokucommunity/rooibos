@@ -48,7 +48,7 @@ export class RooibosSession {
     let mainFunc = null;
     let files = this._builder.program.getScopeByName('source').getOwnFiles();
     for (let file of files) {
-      mainFunc = file.parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
+      mainFunc = (file as BrsFile).parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
       if (mainFunc) {
         mainFunc.func.body.statements.splice(0, 0, new RawCodeStatement(`
   Rooibos_init()
@@ -125,18 +125,18 @@ export class RooibosSession {
     }
   }
 
-  public async createNodeFiles(program: Program) {
+  public createNodeFiles(program: Program) {
 
     let p = path.join('components', 'rooibos', 'generated');
 
     for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
       let xmlText = this.getNodeTestXmlText(suite);
       let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
-      await this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-      await this.fileFactory.addFile(program, bsPath, '');
+      this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
+      this.fileFactory.addFile(program, bsPath, '');
       let bsFile = program.getFileByPkgPath(bsPath);
       if (bsFile) {
-        bsFile.parser.statements.push(this.getNodeTestBsBody(suite));
+        (bsFile as BrsFile).parser.statements.push(this.getNodeTestBsBody(suite));
         bsFile.needsTranspiled = true;
       }
     }
@@ -152,7 +152,7 @@ export class RooibosSession {
       nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
       m.top.rooibosTestResult = nodeRunner.runInNodeMode("${testSuite.name}")
     end function
-    `, testSuite.file, testSuite.annotation.token.range);
+    `, testSuite.file, testSuite.annotation.annotation.range);
   }
 
   public createIgnoredTestsInfoFunction(cs: ClassStatement) {

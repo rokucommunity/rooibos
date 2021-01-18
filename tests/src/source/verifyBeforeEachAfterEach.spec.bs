@@ -1,6 +1,6 @@
 namespace Tests
 
-  '@TestSuite [BEAER] BeforeEach and AfterEach Running
+  @TestSuite
   class VeritfyBeforeEachAfterEach extends Rooibos.BaseTestSuite
 
     override function Setup() as void
@@ -20,78 +20,77 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It tests group 1 - should have global before/after 
+    @It("tests group 1 - should have global before/after")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test 1 
+    @Test("1 ")
     function group1_1() as void
       m.assertTrue(true)
     end function
 
-    '@Test 2
+    @Test("2")
     function group1_2() as void
       m.assertTrue(true)
     end function
 
-    '@Test 3
-    '@Params["a"]
-    '@Params["b"]
-    '@Params["c"]
+    @Test("3")
+    @Params("a")
+    @Params("b")
+    @Params("c")
     function group1_3(values) as void
       m.assertTrue(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It tests group 2 - should have group before after
+    @It("tests group 2 - should have group before afte")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@BeforeEach
+    @BeforeEach
     function group2_BeforeEach() as void
       ? "!!! Before GROUP 2"
     end function
 
-
-    '@AfterEach
+    @AfterEach
     function group2_AfterEach() as void
       ? "!!! After GROUP 2"
     end function
 
-    '@Test 1 
+    @Test("1 ")
     function group2_1() as void
       m.assertTrue(true)
     end function
 
-    '@Test 2
+    @Test("2")
     function group2_2() as void
       m.assertTrue(true)
     end function
 
-    '@Test 3
-    '@Params["a"]
-    '@Params["b"]
-    '@Params["c"]
+    @Test("3")
+    @Params("a")
+    @Params("b")
+    @Params("c")
     function group2_3(values) as void
       m.assertTrue(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It tests group 3 - should have global before/after
+    @It("tests group 3 - should have global before/afte")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test 1 
+    @Test("1 ")
     function group3_1() as void
       m.assertTrue(true)
     end function
 
-    '@Test 2
+    @Test("2")
     function group3_2() as void
       m.assertTrue(true)
     end function
 
-    '@Test 3
-    '@Params["a"]
-    '@Params["b"]
-    '@Params["c"]
+    @Test("3")
+    @Params("a")
+    @Params("b")
+    @Params("c")
     function group3_3(values) as void
       m.assertTrue(true)
     end function

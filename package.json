@@ -5,9 +5,8 @@
   "files": [
     "dist/**/!(manifest)*"
   ],
-  "dependencies": {},
   "devDependencies": {
-    "brighterscript": "^0.15.0",
+    "brighterscript": "file:../vsc/brighterscript",
     "ropm": "^0.5.0"
   },
   "repository": {

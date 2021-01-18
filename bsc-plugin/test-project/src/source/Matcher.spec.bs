@@ -1,21 +1,21 @@
 namespace Tests
-  '@TestSuite [MT] Matcher Tests
+  @TestSuite
   class MatcherTests extends Rooibos.BaseTestSuite
 
-  override function beforeEach()
+    override function beforeEach()
       'make a mock class
       m.myClass = {}
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It tests a custom matcher
+    @It("tests a custom matcher")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test couple of custom matchers
-    '@Params[true, false, false]
-    '@Params[false, true, true]
-    '@Params[false, false, true]
-    '@Params[true, true, true]
+    @Test
+    @Params(true, false, false)
+    @Params(false, true, true)
+    @Params(false, false, true)
+    @Params(true, true, true)
     function matcher_boolean(v1, v2, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [{ "matcher": match_true }, { "matcher": match_false }], returnValue)
@@ -30,14 +30,14 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '@It tests a custom inline matcher
+    @It("tests a custom inline matcher")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test 
-    '@Params[true, false, false]
-    '@Params[false, true, true]
-    '@Params[false, false, true]
-    '@Params[true, true, true]
+    @Test("")
+    @Params(true, false, false)
+    @Params(false, true, true)
+    @Params(false, false, true)
+    @Params(true, true, true)
     function inline_matcher_boolean(v1, v2, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [{ "matcher": function(value)
@@ -59,15 +59,15 @@ namespace Tests
     '++ built in matchers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@Test anyBoolMatcher
-    '@Params[invalid, true]
-    '@Params["false", true]
-    '@Params["true", true]
-    '@Params[23, true]
-    '@Params[{}, true]
-    '@Params[[], true]
-    '@Params[false, false]
-    '@Params[true, false]
+    @Test("anyBoolMatcher")
+    @Params(invalid, true)
+    @Params("false", true)
+    @Params("true", true)
+    @Params(23, true)
+    @Params({}, true)
+    @Params([], true)
+    @Params(false, false)
+    @Params(true, false)
     function matcher_built_in_anyBoolean(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyBoolMatcher], returnValue)
@@ -81,15 +81,15 @@ namespace Tests
       m.assertEqual(isFail, expectedFail)
     end function
 
-    '@Test anyStringMatcher
-    '@Params[invalid, true]
-    '@Params["false", false]
-    '@Params["true", false]
-    '@Params[23, true]
-    '@Params[{}, true]
-    '@Params[[], true]
-    '@Params[false, true]
-    '@Params[true, true]
+    @Test("anyStringMatcher")
+    @Params(invalid, true)
+    @Params("false", false)
+    @Params("true", false)
+    @Params(23, true)
+    @Params({}, true)
+    @Params([], true)
+    @Params(false, true)
+    @Params(true, true)
     function matcher_built_in_anyString(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyStringMatcher], returnValue)
@@ -103,18 +103,18 @@ namespace Tests
       m.assertEqual(isFail, expectedFail)
     end function
 
-    '@Test anyNumberMatcher
-    '@Params[invalid, true]
-    '@Params["false", true]
-    '@Params["true", true]
-    '@Params[23, false]
-    '@Params[9, false]
-    '@Params[0, false]
-    '@Params[0.2, false]
-    '@Params[{}, true]
-    '@Params[[], true]
-    '@Params[false, true]
-    '@Params[true, true]
+    @Test("anyNumberMatcher")
+    @Params(invalid, true)
+    @Params("false", true)
+    @Params("true", true)
+    @Params(23, false)
+    @Params(9, false)
+    @Params(0, false)
+    @Params(0.2, false)
+    @Params({}, true)
+    @Params([], true)
+    @Params(false, true)
+    @Params(true, true)
     function matcher_built_in_anyNumber(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyNumberMatcher], returnValue)
@@ -128,15 +128,15 @@ namespace Tests
       m.assertEqual(isFail, expectedFail)
     end function
 
-    '@Test anyAAMatcher
-    '@Params[invalid, true]
-    '@Params["false", true]
-    '@Params["true", true]
-    '@Params[23, true]
-    '@Params[{}, false]
-    '@Params[[], true]
-    '@Params[false, true]
-    '@Params[true, true]
+    @Test("anyAAMatcher")
+    @Params(invalid, true)
+    @Params("false", true)
+    @Params("true", true)
+    @Params(23, true)
+    @Params({}, false)
+    @Params([], true)
+    @Params(false, true)
+    @Params(true, true)
     function matcher_built_in_anyAA(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyAAMatcher], returnValue)
@@ -150,15 +150,15 @@ namespace Tests
       m.assertEqual(isFail, expectedFail)
     end function
 
-    '@Test anyArrayMatcher
-    '@Params[invalid, true]
-    '@Params["false", true]
-    '@Params["true", true]
-    '@Params[23, true]
-    '@Params[{}, true]
-    '@Params[[], false]
-    '@Params[false, true]
-    '@Params[true, true]
+    @Test("anyArrayMatcher")
+    @Params(invalid, true)
+    @Params("false", true)
+    @Params("true", true)
+    @Params(23, true)
+    @Params({}, true)
+    @Params([], false)
+    @Params(false, true)
+    @Params(true, true)
     function matcher_built_in_anyArray(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyArrayMatcher], returnValue)
@@ -172,16 +172,16 @@ namespace Tests
       m.assertEqual(isFail, expectedFail)
     end function
 
-    '@Test anyNodeMatcher
-    '@Params[invalid, true]
-    '@Params["false", true]
-    '@Params["true", true]
-    '@Params[23, true]
-    '@Params[{}, true]
-    '@Params["#RBSNode", false]
-    '@Params[[], true]
-    '@Params[false, true]
-    '@Params[true, true]
+    @Test("anyNodeMatcher")
+    @Params(invalid, true)
+    @Params("false", true)
+    @Params("true", true)
+    @Params(23, true)
+    @Params({}, true)
+    @Params("#RBSNode", false)
+    @Params([], true)
+    @Params(false, true)
+    @Params(true, true)
     function matcher_built_in_anyNode(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyNodeMatcher], returnValue)

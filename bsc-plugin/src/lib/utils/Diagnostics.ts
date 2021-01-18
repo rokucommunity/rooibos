@@ -1,6 +1,6 @@
-import { BrsFile, ClassStatement, DiagnosticSeverity, FunctionStatement, Statement, Token, XmlFile, Range, BscFile } from 'brighterscript';
+import { BrsFile, ClassStatement, DiagnosticSeverity, FunctionStatement, Statement, Token, XmlFile, Range, BscFile, AnnotationExpression } from 'brighterscript';
 
-import { Annotation } from '../rooibos/Annotation';
+import { RooibosAnnotation } from '../rooibos/Annotation';
 
 function addDiagnostic(
   file: BscFile,
@@ -28,17 +28,18 @@ function addDiagnosticForStatement(
   file.addDiagnostics([createDiagnostic(file, code, message, line, col, line, 999999, severity)]);
 }
 
-function addDiagnosticForToken(
+function addDiagnosticForAnnotation(
   file: BscFile,
   code: number,
   message: string,
-  token: Token,
+  annotation: AnnotationExpression,
   severity: DiagnosticSeverity = DiagnosticSeverity.Error,
   endChar?: number
 ) {
-  let line = token.range.start.line;
-  let col = token.range.start.character;
-  file.addDiagnostics([createDiagnostic(file, code, message, line, col, line, endChar || token.range.end.character, severity)]);
+  let line = annotation.range.start.line;
+  let col = annotation.range.start.character;
+
+  file.addDiagnostics([createDiagnostic(file, code, message, line, col, annotation.range.end.line, annotation.range.end.character + 9999, severity)]);
 }
 
 function createDiagnostic(
@@ -92,7 +93,7 @@ export function diagnosticWrongParameterCount(file: BrsFile, statement: Function
   );
 }
 
-export function diagnosticDuplicateSuite(file: BrsFile, statement: ClassStatement, annotation: Annotation) {
+export function diagnosticDuplicateSuite(file: BrsFile, statement: ClassStatement, annotation: RooibosAnnotation) {
   addDiagnosticForStatement(
     file,
     2203,
@@ -101,7 +102,7 @@ export function diagnosticDuplicateSuite(file: BrsFile, statement: ClassStatemen
   );
 }
 
-export function diagnosticTestAnnotationOutsideOfGroup(file: BrsFile, statement: ClassStatement, annotation: Annotation) {
+export function diagnosticTestAnnotationOutsideOfGroup(file: BrsFile, statement: ClassStatement, annotation: RooibosAnnotation) {
   addDiagnosticForStatement(
     file,
     2204,
@@ -110,65 +111,66 @@ export function diagnosticTestAnnotationOutsideOfGroup(file: BrsFile, statement:
   );
 }
 
-export function diagnosticIllegalParams(file: BrsFile, token: Token) {
-  addDiagnosticForToken(
+export function diagnosticIllegalParams(file: BrsFile, annotation: AnnotationExpression) {
+  addDiagnosticForAnnotation(
     file,
     2205,
     `Could not parse params for test.`,
-    token
+    annotation
   );
 }
 
-export function diagnosticWrongTestParameterCount(file: BrsFile, token: Token, gotCount = 0, expectedParamCount = 0) {
-  addDiagnosticForToken(
+export function diagnosticWrongTestParameterCount(file: BrsFile, annotation: AnnotationExpression, gotCount = 0, expectedParamCount = 0) {
+  addDiagnosticForAnnotation(
     file,
     2206,
     `Params for test do not match arg count on method. Got ${gotCount} expected ${expectedParamCount}`,
-    token
+    annotation
   );
 }
 
-export function diagnosticNodeTestRequiresNode(file: BrsFile, token: Token) {
-  addDiagnosticForToken(
+export function diagnosticNodeTestRequiresNode(file: BrsFile, annotation: AnnotationExpression) {
+  addDiagnosticForAnnotation(
     file,
     2207,
     `Node name must be declared for a node test. This is the component that the generated test will extend.`,
-    token
+    annotation
   );
 }
 
-export function diagnosticNodeTestIllegalNode(file: BrsFile, token: Token, nodeName: string) {
-  addDiagnosticForToken(
+export function diagnosticNodeTestIllegalNode(file: BrsFile, annotation: AnnotationExpression, nodeName: string) {
+  addDiagnosticForAnnotation(
     file,
     2208,
     `Component ${nodeName}, is not found in this project. Node tests generate a new component that extends the component you wish to test. Please make sure that component exists and compiles.`,
-    token
+    annotation
   );
 }
-export function diagnosticGroupWithNameAlreadyDefined(file: BrsFile, annotation: Annotation) {
-  addDiagnosticForToken(
+
+export function diagnosticGroupWithNameAlreadyDefined(file: BrsFile, annotation: RooibosAnnotation) {
+  addDiagnosticForAnnotation(
     file,
     2209,
     `Test group with name ${annotation.name}, is already declared in this suite. Ignoring`,
-    annotation.token
+    annotation.annotation
   );
 }
 
-export function diagnosticTestWithNameAlreadyDefined(annotation: Annotation) {
-  addDiagnosticForToken(
+export function diagnosticTestWithNameAlreadyDefined(annotation: RooibosAnnotation) {
+  addDiagnosticForAnnotation(
     annotation.file,
     2210,
     `Test with name ${annotation.name}, is already declared in this group. Ignoring`,
-    annotation.token
+    annotation.annotation
   );
 }
 
-export function diagnosticIncompatibleAnnotation(annotation: Annotation) {
-  addDiagnosticForToken(
+export function diagnosticIncompatibleAnnotation(annotation: RooibosAnnotation) {
+  addDiagnosticForAnnotation(
     annotation.file,
     2211,
     `Was expecting a function, got a test annotation`,
-    annotation.token
+    annotation.annotation
   );
 }
 
@@ -187,3 +189,22 @@ export function diagnosticErrorNoMainFound(file: BscFile) {
     `Could not find main function to inject rooibos launch code. Please ensure your project has a main function`
   );
 }
+
+export function diagnosticEmptyGroup(file: BrsFile, annotation: RooibosAnnotation) {
+  addDiagnosticForAnnotation(
+    file,
+    2214,
+    `Test group with name ${annotation.name}, empty.`,
+    annotation.annotation
+  );
+}
+
+export function diagnosticNoTestFunctionDefined(file: BrsFile, annotation: RooibosAnnotation) {
+  addDiagnosticForAnnotation(
+    file,
+    2215,
+    `Multiple test annotations per functoin are not allows. ${annotation.name || ''}`,
+    annotation.annotation
+  );
+}
+

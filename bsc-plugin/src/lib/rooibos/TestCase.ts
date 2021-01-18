@@ -1,8 +1,8 @@
-import { Annotation } from './Annotation';
+import { RooibosAnnotation } from './Annotation';
 import { sanitizeBsJsonString } from './Utils';
 
 export class TestCase {
-  constructor(annotation: Annotation, name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number,
+  constructor(annotation: RooibosAnnotation, name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number,
     params: any[] = null, paramTestIndex = 0, paramLineNumber = 0, expectedNumberOfParams = 0) {
     this.annotation = annotation;
     this.isSolo = isSolo;
@@ -20,7 +20,7 @@ export class TestCase {
 
   }
 
-  public annotation: Annotation;
+  public annotation: RooibosAnnotation;
   public isIncluded: boolean;
   public isSolo: boolean;
   public funcName: string;

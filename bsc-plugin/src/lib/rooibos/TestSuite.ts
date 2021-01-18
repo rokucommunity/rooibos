@@ -2,7 +2,7 @@ import { BrsFile, ClassStatement } from 'brighterscript';
 
 import { diagnosticIllegalParams, diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
 
-import { Annotation } from './Annotation';
+import { RooibosAnnotation } from './Annotation';
 
 import { TestGroup } from './TestGroup';
 import { addOverriddenMethod, changeFunctionBody, sanitizeBsJsonString } from './Utils';
@@ -12,7 +12,7 @@ import { addOverriddenMethod, changeFunctionBody, sanitizeBsJsonString } from '.
  */
 export class TestBlock {
   constructor(
-    public annotation: Annotation
+    public annotation: RooibosAnnotation
   ) {
   }
 
@@ -50,15 +50,15 @@ export class TestBlock {
 }
 
 export class TestSuite extends TestBlock {
-  constructor(annotation: Annotation, classStatement: ClassStatement) {
+  constructor(annotation: RooibosAnnotation, classStatement: ClassStatement) {
     super(annotation);
     this.classStatement = classStatement;
     this.isNodeTest = annotation.nodeName && annotation.nodeName.trim() !== '';
     this.nodeName = annotation.nodeName?.trim();
-    this.generatedNodeName = this.name.replace(/[^a-zA-Z0-9]/g, '_');
-    if (this.annotation.name === '') {
+    if (!this.name) {
       this.annotation.name = classStatement.name.text;
     }
+    this.generatedNodeName = (this.name || 'ERROR').replace(/[^a-zA-Z0-9]/g, '_');
 
   }
 
@@ -97,9 +97,9 @@ export class TestSuite extends TestBlock {
   public validate() {
     if (this.isNodeTest) {
       if (!this.nodeName) {
-        diagnosticNodeTestRequiresNode(this.file, this.annotation.token);
+        diagnosticNodeTestRequiresNode(this.file, this.annotation.annotation);
       } else if (!this.file.program.getComponent(this.nodeName)) {
-        diagnosticNodeTestIllegalNode(this.file, this.annotation.token, this.nodeName);
+        diagnosticNodeTestIllegalNode(this.file, this.annotation.annotation, this.nodeName);
       }
     }
   }

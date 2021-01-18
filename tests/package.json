@@ -9,7 +9,7 @@
     "source-map": "^0.7.3"
   },
   "devDependencies": {
-    "brighterscript": "^0.23.1"
+    "brighterscript": "file:../../vsc/brighterscript"
   },
   "repository": {
     "type": "git",
