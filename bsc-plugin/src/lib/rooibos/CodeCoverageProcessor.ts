@@ -37,7 +37,7 @@ export class CodeCoverageProcessor {
       // this._coverageComponentXmlTemplate = fs.readFileSync(path.join(__dirname, './CodeCoverage.xml'), 'utf8');
       // this._coverageSupportTemplate = fs.readFileSync(path.join(__dirname, './CodeCoverageSupport.brs'), 'utf8');
     } catch (e) {
-      console.log('Error:', e.stack);
+      // console.log('Error:', e.stack);
     }
   }
 

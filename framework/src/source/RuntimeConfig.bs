@@ -8,8 +8,6 @@ namespace Rooibos
     end function
 
     function getTestSuiteClassWithName(name)
-      if false
-      end if
     end function
 
     function getAllTestSuitesNames()

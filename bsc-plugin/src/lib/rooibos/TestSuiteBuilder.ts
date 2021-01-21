@@ -23,7 +23,8 @@ import {
   diagnosticWrongAnnotation,
   diagnosticWrongParameterCount,
   diagnosticWrongTestParameterCount,
-  diagnosticEmptyGroup
+  diagnosticEmptyGroup,
+  diagnosticTestWithArgsButNoParams
 } from '../utils/Diagnostics';
 import { RooibosSession } from './RooibosSession';
 
@@ -56,7 +57,7 @@ export class TestSuiteBuilder {
         }
       }
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       diagnosticErrorProcessingFile(file, e.message);
     }
     this.session.sessionInfo.updateTestSuites(suites);
@@ -223,9 +224,13 @@ export class TestSuiteBuilder {
       return true;
 
     } else if (numberOfParams === 0) {
-      this.currentGroup.addTestCase(
-        new TestCase(annotation, annotation.name, statement.name.text, annotation.isSolo, annotation.isIgnore, lineNumber)
-      );
+      if (numberOfArgs === 0) {
+        this.currentGroup.addTestCase(
+          new TestCase(annotation, annotation.name, statement.name.text, annotation.isSolo, annotation.isIgnore, lineNumber)
+        );
+      } else {
+        diagnosticTestWithArgsButNoParams(this.file, annotation.annotation, numberOfArgs);
+      }
       return true;
     } else {
       diagnosticWrongParameterCount(this.file, statement, 0);

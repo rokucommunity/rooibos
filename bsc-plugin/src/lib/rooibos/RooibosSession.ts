@@ -100,16 +100,19 @@ export class RooibosSession {
   public updateClassLookupFunction(classStatement: ClassStatement) {
     let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
     if (method) {
-      let ifStatement = method.func.body.statements[0] as IfStatement;
-
-      if (ifStatement) {
-        let lastIf = ifStatement;
-        for (let suite of this.sessionInfo.testSuitesToRun) {
-          let nextIf = createIfStatement(createVarExpression('name', TokenKind.Equal, suite.name), [new RawCodeStatement(`return ${suite.classStatement.getName(ParseMode.BrightScript)}`)]);
-          (lastIf as any).elseBranch = nextIf;
-          lastIf = nextIf;
-        }
+      let text = `
+      if false
+        ? "noop"
+      `;
+      for (let suite of this.sessionInfo.testSuitesToRun) {
+        text += `
+        else if name = "${suite.name}"
+          return ${suite.classStatement.getName(ParseMode.BrightScript)}
+        `;
       }
+      text += `
+      end if`;
+      method.func.body.statements.push(new RawCodeStatement(text));
     }
   }
 
@@ -118,8 +121,8 @@ export class RooibosSession {
     if (method) {
       let text = `return [
         ${this.sessionInfo.testSuitesToRun.filter((s) => !s.isNodeTest)
-    .map((s) => `"${s.name}"`).join('\n')
-}
+          .map((s) => `"${s.name}"`).join('\n')
+        }
       ]`;
       method.func.body.statements.push(new RawCodeStatement(text));
     }

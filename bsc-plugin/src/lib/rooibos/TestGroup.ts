@@ -69,7 +69,7 @@ export class TestGroup extends TestBlock {
         walkMode: WalkMode.visitStatementsRecursive
       });
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       diagnosticErrorProcessingFile(this.testSuite.file, e.message);
     }
   }

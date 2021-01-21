@@ -208,3 +208,13 @@ export function diagnosticNoTestFunctionDefined(file: BrsFile, annotation: Rooib
   );
 }
 
+export function diagnosticTestWithArgsButNoParams(file: BrsFile, annotation: AnnotationExpression, gotCount = 0) {
+  addDiagnosticForAnnotation(
+    file,
+    2216,
+    `Test method signature has arguments; but test has no paremeters. Got ${gotCount} args: expected 0. Did you forget your @params annotations?`,
+    annotation
+  );
+}
+
+

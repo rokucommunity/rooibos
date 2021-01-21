@@ -83,12 +83,12 @@ class RooibosPlugin {
 
   beforeProgramValidate(program: Program) {
     this.session.updateSessionStats();
-  }
-
-  afterProgramValidate(program: Program) {
     for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
       testSuite.validate();
     }
+  }
+
+  afterProgramValidate(program: Program) {
   }
 
   beforeFileTranspile(entry: TranspileObj) {
