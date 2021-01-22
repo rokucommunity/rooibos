@@ -237,7 +237,6 @@ describe('RooibosPlugin', () => {
             expect(getContents('rooibosMain.brs')).to.eql(trimLeading(`function main()
     Rooibos_init()
 end function`).trim());
-            let tl = trimLeading;
             let a = getContents('test.spec.brs');
             let b = trimLeading(`function __ATest_builder()
             instance = __rooibos_BaseTestSuite_builder()
