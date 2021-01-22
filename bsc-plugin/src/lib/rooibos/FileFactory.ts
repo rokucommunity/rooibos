@@ -1,4 +1,4 @@
-import type {BrsFile, FileObj, Program, XmlFile} from 'brighterscript';
+import type { BrsFile, FileObj, Program, XmlFile } from 'brighterscript';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -36,9 +36,9 @@ export class FileFactory {
         let files: FileObj[] = [];
 
         for (let fileName of this.frameworkFileNames) {
-            files.push({src: path.resolve(path.join(this.sourcePath, `${fileName}.bs`)), dest: path.join(this.targetPath, `${fileName}.bs`)});
+            files.push({ src: path.resolve(path.join(this.sourcePath, `${fileName}.bs`)), dest: path.join(this.targetPath, `${fileName}.bs`) });
         }
-        files.push({src: path.resolve(path.join(this.sourcePath, `RooibosScene.xml`)), dest: path.join(this.targetCompsPath, `RooibosScene.xml`)});
+        files.push({ src: path.resolve(path.join(this.sourcePath, `RooibosScene.xml`)), dest: path.join(this.targetCompsPath, `RooibosScene.xml`) });
         return files;
     }
 
@@ -47,14 +47,14 @@ export class FileFactory {
             let sourcePath = path.resolve(path.join(this.sourcePath, `${fileName}.bs`));
             let fileContents = fs.readFileSync(sourcePath, 'utf8');
             let destPath = path.join(this.targetPath, `${fileName}.bs`);
-            let entry = {src: sourcePath, dest: destPath};
+            let entry = { src: sourcePath, dest: destPath };
 
             program.addOrReplaceFile(entry, fileContents);
         }
 
         let sourcePath = path.resolve(path.join(this.sourcePath, `RooibosScene.xml`));
         let destPath = path.join(this.targetCompsPath, `RooibosScene.xml`);
-        let entry = {src: sourcePath, dest: destPath};
+        let entry = { src: sourcePath, dest: destPath };
         program.addOrReplaceFile(entry, this.createTestXML('TestsScene', 'Scene'));
     }
 
@@ -92,7 +92,7 @@ ${scriptImports.join('\n')}
     }
 
     public addFile(program, projectPath: string, contents: string) {
-        program.addOrReplaceFile({src: path.resolve(projectPath), dest: projectPath}, contents);
+        program.addOrReplaceFile({ src: path.resolve(projectPath), dest: projectPath }, contents);
     }
 
 }

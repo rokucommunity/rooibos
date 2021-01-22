@@ -1,5 +1,5 @@
-import type {ClassMethodStatement, ClassStatement, Expression, FunctionStatement, Statement} from 'brighterscript';
-import {BinaryExpression, Block, createIdentifier, createStringLiteral, createToken, isClassMethodStatement, isClassStatement, Lexer, ParseMode, Parser, TokenKind, Range, IfStatement} from 'brighterscript';
+import type { ClassMethodStatement, ClassStatement, Expression, FunctionStatement, Statement } from 'brighterscript';
+import { BinaryExpression, Block, createIdentifier, createStringLiteral, createToken, isClassMethodStatement, isClassStatement, Lexer, ParseMode, Parser, TokenKind, Range, IfStatement } from 'brighterscript';
 
 import * as rokuDeploy from 'roku-deploy';
 
@@ -54,7 +54,7 @@ export function pad(pad: string, str: string, padLeft: number): string {
 
 export function makeASTFunction(source: string): FunctionStatement | undefined {
     let tokens = Lexer.scan(source).tokens;
-    let {statements} = Parser.parse(tokens, {mode: ParseMode.BrighterScript});
+    let { statements } = Parser.parse(tokens, { mode: ParseMode.BrighterScript });
     if (statements && statements.length > 0) {
         return statements[0] as FunctionStatement;
     }
@@ -107,7 +107,7 @@ export function sanitizeBsJsonString(text: string) {
 export function createIfStatement(condition: Expression, statements: Statement[]): IfStatement {
     let ifToken = createToken(TokenKind.If, 'if', Range.create(1, 1, 1, 999999));
     let thenBranch = new Block(statements, Range.create(1, 1, 1, 1));
-    return new IfStatement({if: ifToken, then: createToken(TokenKind.Then, '', Range.create(1, 1, 1, 999999))}, condition, thenBranch);
+    return new IfStatement({ if: ifToken, then: createToken(TokenKind.Then, '', Range.create(1, 1, 1, 999999)) }, condition, thenBranch);
 }
 
 export function createVarExpression(varName: string, operator: TokenKind, value: string): BinaryExpression {

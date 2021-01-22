@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type {BrsFile, ProgramBuilder} from 'brighterscript';
-import type {RooibosConfig} from './RooibosConfig';
+import type { BrsFile, ProgramBuilder } from 'brighterscript';
+import type { RooibosConfig } from './RooibosConfig';
 
 export class CodeCoverageProcessor {
 

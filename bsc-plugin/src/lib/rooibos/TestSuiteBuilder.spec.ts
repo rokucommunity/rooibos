@@ -3,13 +3,13 @@ import * as chai from 'chai';
 // eslint-disable-next-line
 import { expect } from 'chai';
 
-import {TestSuiteBuilder} from './TestSuiteBuilder';
-import type {TestSuite} from './TestSuite';
-import type {TestCase} from './TestCase';
-import {BrsFile, Program, ProgramBuilder} from 'brighterscript';
-import {RooibosSession} from './RooibosSession';
-import {FileFactory} from './FileFactory';
-import type {TestGroup} from './TestGroup';
+import { TestSuiteBuilder } from './TestSuiteBuilder';
+import type { TestSuite } from './TestSuite';
+import type { TestCase } from './TestCase';
+import { BrsFile, Program, ProgramBuilder } from 'brighterscript';
+import { RooibosSession } from './RooibosSession';
+import { FileFactory } from './FileFactory';
+import type { TestGroup } from './TestGroup';
 
 // eslint-disable-next-line
 const chaiSubset = require('chai-subset');

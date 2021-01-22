@@ -20,6 +20,7 @@ module.exports = {
         'plugin:@typescript-eslint/all'
     ],
     rules: {
+        '@typescript-eslint/object-curly-spacing': ['off'],
         '@typescript-eslint/array-type': 'off',
         '@typescript-eslint/consistent-type-assertions': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
@@ -140,10 +141,10 @@ module.exports = {
         'no-unneeded-ternary': 'off',
         'no-useless-escape': 'off',
         'no-warning-comments': 'off',
-        // 'object-curly-spacing': [
-        //     'error',
-        //     'always'
-        // ],
+        'object-curly-spacing': [
+            'error',
+            'always'
+        ],
         'object-property-newline': 'off',
         'object-shorthand': [
             'error',

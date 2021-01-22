@@ -1,5 +1,5 @@
-import type {BrsFile, Statement, AnnotationExpression} from 'brighterscript';
-import { diagnosticIllegalParams, diagnosticNoTestFunctionDefinedasdiagnosticMultipleTestOnFunctionDefined, diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations } from '../utils/Diagnostics';
+import type { BrsFile, Statement, AnnotationExpression } from 'brighterscript';
+import { diagnosticIllegalParams, diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined } from '../utils/Diagnostics';
 
 export enum AnnotationType {
     None = 'none',
@@ -115,7 +115,7 @@ export class RooibosAnnotation {
                         }
                         let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo);
                         if (testAnnotation) {
-                            diagnosticMultipleTestOnFunctionDefined(file, newAnnotation);
+                            diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
                         } else {
                             testAnnotation = newAnnotation;
                         }
@@ -137,7 +137,7 @@ export class RooibosAnnotation {
                 }
             }
         }
-        return {blockAnnotation: blockAnnotation, testAnnotation: testAnnotation};
+        return { blockAnnotation: blockAnnotation, testAnnotation: testAnnotation };
     }
 
     public parseParams(file: BrsFile, annotation: AnnotationExpression, text: string, annotationType: AnnotationType) {

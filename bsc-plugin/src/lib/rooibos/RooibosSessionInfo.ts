@@ -1,5 +1,5 @@
 
-import type {TestSuite} from './TestSuite';
+import type { TestSuite } from './TestSuite';
 
 export class SessionInfo {
 

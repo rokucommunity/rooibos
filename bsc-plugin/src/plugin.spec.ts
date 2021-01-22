@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-confusing-void-expression */
-import {Program, ProgramBuilder, util} from 'brighterscript';
-import {expect} from 'chai';
+import { Program, ProgramBuilder, util } from 'brighterscript';
+import { expect } from 'chai';
 import * as fsExtra from 'fs-extra';
-import {standardizePath as s} from './lib/rooibos/Utils';
-import {RooibosPlugin} from './plugin';
+import { standardizePath as s } from './lib/rooibos/Utils';
+import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 
 let tmpPath = s`${process.cwd()}/.tmp`;

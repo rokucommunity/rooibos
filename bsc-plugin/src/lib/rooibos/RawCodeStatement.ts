@@ -1,13 +1,12 @@
-import type {BscFile,
+import type { BscFile,
     WalkOptions,
-    WalkVisitor} from 'brighterscript';
-import {
-    Range,
-    Statement} from 'brighterscript';
+    WalkVisitor } from 'brighterscript';
+import { Range,
+    Statement } from 'brighterscript';
 
-import {SourceNode} from 'source-map';
+import { SourceNode } from 'source-map';
 
-import type {TranspileState} from 'brighterscript/dist/parser/TranspileState';
+import type { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 
 export class RawCodeStatement extends Statement {
     constructor(

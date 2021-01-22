@@ -1,11 +1,11 @@
-import type {BrsFile, ClassStatement} from 'brighterscript';
+import type { BrsFile, ClassStatement } from 'brighterscript';
 
-import {diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode} from '../utils/Diagnostics';
+import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
 
-import type {RooibosAnnotation} from './Annotation';
+import type { RooibosAnnotation } from './Annotation';
 
-import type {TestGroup} from './TestGroup';
-import {addOverriddenMethod, sanitizeBsJsonString} from './Utils';
+import type { TestGroup } from './TestGroup';
+import { addOverriddenMethod, sanitizeBsJsonString } from './Utils';
 
 /**
  * base of test suites and blocks..

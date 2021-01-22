@@ -1,7 +1,7 @@
-import type {BrsFile, ClassStatement, FunctionStatement, Statement, BscFile, AnnotationExpression} from 'brighterscript';
-import {DiagnosticSeverity, Range} from 'brighterscript';
+import type { BrsFile, ClassStatement, FunctionStatement, Statement, BscFile, AnnotationExpression } from 'brighterscript';
+import { DiagnosticSeverity, Range } from 'brighterscript';
 
-import type {RooibosAnnotation} from '../rooibos/Annotation';
+import type { RooibosAnnotation } from '../rooibos/Annotation';
 
 function addDiagnostic(
     file: BscFile,
@@ -232,8 +232,16 @@ export function diagnosticMultipleDescribeAnnotations(file: BrsFile, annotation:
     addDiagnosticForAnnotation(
         file,
         2218,
-        `Found multiple @Describe annotations. Did you forget to write some tests?`,
+        `Found multiple @describe annotations. Did you forget to write some tests?`,
         annotation
     );
 }
 
+export function diagnosticMultipleTestOnFunctionDefined(file: BrsFile, annotation: AnnotationExpression) {
+    addDiagnosticForAnnotation(
+        file,
+        2218,
+        `Found multiple @it annotations. Did you forget to write some tests?`,
+        annotation
+    );
+}

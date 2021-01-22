@@ -1,17 +1,17 @@
 
-import type {BrsFile,
+import type { BrsFile,
     ClassMethodStatement,
-    ClassStatement} from 'brighterscript';
+    ClassStatement } from 'brighterscript';
 import {
     isClassMethodStatement
 } from 'brighterscript';
 
-import {TestGroup} from './TestGroup';
+import { TestGroup } from './TestGroup';
 
-import {RooibosAnnotation, AnnotationType} from './Annotation';
+import { RooibosAnnotation, AnnotationType } from './Annotation';
 
-import {TestCase} from './TestCase';
-import {TestSuite} from './TestSuite';
+import { TestCase } from './TestCase';
+import { TestSuite } from './TestSuite';
 
 import {
     diagnosticDuplicateSuite,
@@ -26,7 +26,7 @@ import {
     diagnosticEmptyGroup,
     diagnosticTestWithArgsButNoParams
 } from '../utils/Diagnostics';
-import type {RooibosSession} from './RooibosSession';
+import type { RooibosSession } from './RooibosSession';
 
 export class TestSuiteBuilder {
     constructor(public session: RooibosSession) {
@@ -97,7 +97,7 @@ export class TestSuiteBuilder {
         this.currentGroup = null;
         this.annotation = null;
         for (let s of classStatement.body) {
-            let {blockAnnotation, testAnnotation} = RooibosAnnotation.getAnnotation(this.file, s);
+            let { blockAnnotation, testAnnotation } = RooibosAnnotation.getAnnotation(this.file, s);
             if (blockAnnotation) {
                 if (this.annotation) {
                     diagnosticNoGroup(this.file, s);

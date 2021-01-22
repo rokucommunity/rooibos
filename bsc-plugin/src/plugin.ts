@@ -5,12 +5,12 @@ import type {
     XmlFile
 } from 'brighterscript';
 
-import {isBrsFile} from 'brighterscript/dist/astUtils';
+import { isBrsFile } from 'brighterscript/dist/astUtils';
 
-import {RooibosSession} from './lib/rooibos/RooibosSession';
+import { RooibosSession } from './lib/rooibos/RooibosSession';
 
-import {CodeCoverageProcessor} from './lib/rooibos/CodeCoverageProcessor';
-import {FileFactory} from './lib/rooibos/FileFactory';
+import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
+import { FileFactory } from './lib/rooibos/FileFactory';
 
 
 export class RooibosPlugin {

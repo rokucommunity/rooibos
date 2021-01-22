@@ -1,5 +1,5 @@
-import type {RooibosAnnotation} from './Annotation';
-import {sanitizeBsJsonString} from './Utils';
+import type { RooibosAnnotation } from './Annotation';
+import { sanitizeBsJsonString } from './Utils';
 
 export class TestCase {
     constructor(annotation: RooibosAnnotation, name: string, funcName: string, isSolo: boolean, isIgnored: boolean, lineNumber: number,

@@ -1,15 +1,15 @@
 import * as path from 'path';
 
-import type {BrsFile, ClassStatement, NamespaceStatement, Program, ProgramBuilder} from 'brighterscript';
-import {ParseMode} from 'brighterscript';
+import type { BrsFile, ClassStatement, NamespaceStatement, Program, ProgramBuilder } from 'brighterscript';
+import { ParseMode } from 'brighterscript';
 
-import type {RooibosConfig} from './RooibosConfig';
-import {SessionInfo} from './RooibosSessionInfo';
-import {TestSuiteBuilder} from './TestSuiteBuilder';
-import {RawCodeStatement} from './RawCodeStatement';
-import type {FileFactory} from './FileFactory';
-import type {TestSuite} from './TestSuite';
-import {diagnosticErrorNoMainFound} from '../utils/Diagnostics';
+import type { RooibosConfig } from './RooibosConfig';
+import { SessionInfo } from './RooibosSessionInfo';
+import { TestSuiteBuilder } from './TestSuiteBuilder';
+import { RawCodeStatement } from './RawCodeStatement';
+import type { FileFactory } from './FileFactory';
+import type { TestSuite } from './TestSuite';
+import { diagnosticErrorNoMainFound } from '../utils/Diagnostics';
 
 // eslint-disable-next-line
 const pkg = require('../../../package.json');
