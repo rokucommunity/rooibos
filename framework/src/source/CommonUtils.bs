@@ -1,4 +1,4 @@
-namespace Rooibos.Common
+namespace rooibos.Common
   ' /**
   '  * @module CommonUtils
   '  */

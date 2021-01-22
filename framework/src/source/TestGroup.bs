@@ -1,4 +1,4 @@
-namespace Rooibos
+namespace rooibos
   ' /**
   '  * @module TestSuite
   '  * @description All brs files that include `'@TestSuite` annotations automatically extend the TestSuite.
@@ -67,7 +67,7 @@ namespace Rooibos
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
     end function
 
-    private function runSuiteFunction(methodName, defaultMethodName) 
+    private function runSuiteFunction(methodName, defaultMethodName)
       if methodName <> invalid and methodName <> ""
         m.testSuite[methodName]()
       else

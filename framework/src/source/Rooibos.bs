@@ -1,4 +1,4 @@
-namespace Rooibos
+namespace rooibos
   function init() as void
     args = {}
     if createObject("roAPPInfo").IsDev() <> true then
@@ -49,7 +49,7 @@ namespace Rooibos
     end while
   end function
 
-  function versionCompare(v1, v2) 
+  function versionCompare(v1, v2)
     v1parts = v1.split(".")
     v2parts = v2.split(".")
 
@@ -69,7 +69,7 @@ namespace Rooibos
       if v1parts[i] <> v2parts[i]
         if v1parts[i] > v2parts[i]
           return 1
-        else 
+        else
           return -1
         end if
       end if

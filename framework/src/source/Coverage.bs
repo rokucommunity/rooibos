@@ -1,4 +1,4 @@
-namespace Rooibos.Coverage
+namespace rooibos.Coverage
 
 '   function createLCovOutput()
 '     ? "Generating lcov.info file..."

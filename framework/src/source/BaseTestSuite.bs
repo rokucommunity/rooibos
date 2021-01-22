@@ -1,4 +1,4 @@
-namespace Rooibos
+namespace rooibos
   ' /**
   '  * @module TestSuite
   '  * @description All brs files that include `'@TestSuite` annotations automatically extend the TestSuite.
@@ -1443,7 +1443,7 @@ namespace Rooibos
 
       for i = 0 to 9
         if hasArgs and expectedArgs.count() > i
-          'guard against bad values 
+          'guard against bad values
           value = expectedArgs[i]
           if not Rooibos.Common.isUndefined(value)
             if Rooibos.Common.isAssociativeArray(value) and Rooibos.Common.isValid(value.matcher)

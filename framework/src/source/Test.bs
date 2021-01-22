@@ -1,4 +1,4 @@
-namespace Rooibos
+namespace rooibos
   class Test
 
     public name

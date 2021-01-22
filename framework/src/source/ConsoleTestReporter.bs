@@ -1,4 +1,4 @@
-namespace Rooibos
+namespace rooibos
   class ConsoleTestReporter extends BaseTestReporter
 
     function new(testRunner)

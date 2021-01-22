@@ -1,4 +1,4 @@
-namespace Rooibos.Matcher
+namespace rooibos.Matcher
 
   function anyString(value)
     return Rooibos.Common.isString(value)

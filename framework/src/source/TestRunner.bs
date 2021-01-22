@@ -1,4 +1,4 @@
-namespace Rooibos
+namespace rooibos
   ' /**
   '  * @module TestRunner
   '  */
@@ -18,7 +18,7 @@ namespace Rooibos
 
     public function new(testScene, nodeContext)
       m.testScene = testScene
-      if nodeContext.top = invalid 
+      if nodeContext.top = invalid
         nodeContext.top = testScene
       end if
       nodeContext.scene = testScene
@@ -60,7 +60,7 @@ namespace Rooibos
             exit for
           end if
         else
-          ? "ERROR! coudl not create test for suite : "; name 
+          ? "ERROR! coudl not create test for suite : "; name
         end if
       end for
 

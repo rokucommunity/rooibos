@@ -1,4 +1,4 @@
-namespace Rooibos
+namespace rooibos
   class TestResult
 
     public isFail = false
@@ -29,7 +29,7 @@ namespace Rooibos
         end if
       end if
     end function
-    
+
     function crash(message as string, lineNumber = -1)
       if message <> "" and not m.isCrash
         if not m.isCrash
