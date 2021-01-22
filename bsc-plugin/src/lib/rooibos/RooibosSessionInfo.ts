@@ -11,6 +11,9 @@ export class SessionInfo {
     public hasSoloSuites = false;
     public hasSoloGroups = false;
     public hasSoloTests = false;
+    public testsCount = 0;
+    public suitesCount = 0;
+    public groupsCount = 0;
 
     public updateTestSuites(testSuites: TestSuite[]) {
         //we can assume at this point that all suites coming in belong to same file
@@ -33,6 +36,7 @@ export class SessionInfo {
                 }
             }
         }
+        this.suitesCount = this.testSuites.size;
     }
 
     public addTestSuiteToPath(testSuite: TestSuite) {
@@ -96,6 +100,7 @@ export class SessionInfo {
                     }
 
                     if (testGroup.isIncluded) {
+                        this.groupsCount++;
                         let testCases = [...testGroup.testCases.values()];
 
                         for (let testCase of testCases) {
@@ -103,11 +108,13 @@ export class SessionInfo {
                                 testCase.isIncluded = false;
                             } else {
                                 testCase.isIncluded = testGroup.isIncluded || testCase.isSolo;
+                                this.testsCount++;
                             }
                         }
 
                         for (let testCase of testGroup.soloTestCases) {
                             testCase.isIncluded = true;
+                            this.testsCount++;
                         }
                     }
                 }

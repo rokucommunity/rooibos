@@ -1,10 +1,10 @@
-namespace Rooibos
+namespace rooibos
   class BaseTestReporter
 
     public testRunner = invalid
     public config = invalid
     public allStats = invalid
-    
+
     function new(testRunner)
       m.testRunner = testRunner
       m.config = testRunner.config
@@ -14,11 +14,11 @@ namespace Rooibos
     function reportResults(allStats)
       'override me
     end function
-    
+
     function testLogInfo(text)
       'override me
     end function
-    
+
     function testLogError(text)
       'override me
     end function

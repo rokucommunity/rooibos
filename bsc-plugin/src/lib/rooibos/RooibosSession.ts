@@ -9,7 +9,7 @@ import { TestSuiteBuilder } from './TestSuiteBuilder';
 import { RawCodeStatement } from './RawCodeStatement';
 import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
-import { diagnosticErrorNoMainFound } from '../utils/Diagnostics';
+import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound } from '../utils/Diagnostics';
 
 // eslint-disable-next-line
 const pkg = require('../../../package.json');
@@ -56,9 +56,10 @@ export class RooibosSession {
             }
         }
         if (!mainFunc) {
-            if (files.length > 0) {
-                diagnosticErrorNoMainFound(files[0]);
-            }
+            diagnosticWarnNoMainFound(files[0]);
+            this._builder.program.addOrReplaceFile('source/rooibosMain.brs', `function main()
+    Rooibos_init()
+end function`);
         }
     }
 

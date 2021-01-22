@@ -28,7 +28,7 @@ export class FileFactory {
         'TestRunner'
     ];
 
-    private sourcePath = path.join(__dirname, '../framework');
+    public sourcePath = path.join(__dirname, '../framework');
     private targetPath = 'source/rooibos/';
     private targetCompsPath = 'components/rooibos/';
 

@@ -1,37 +1,42 @@
 /* eslint-disable @typescript-eslint/no-confusing-void-expression */
-import { Program, ProgramBuilder, util } from 'brighterscript';
+import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
 import { expect } from 'chai';
 import * as fsExtra from 'fs-extra';
 import { standardizePath as s } from './lib/rooibos/Utils';
 import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
-
+import * as path from 'path';
 let tmpPath = s`${process.cwd()}/.tmp`;
-let rootDir = s`${tmpPath}/rootDir`;
-let stagingFolderPath = s`${tmpPath}/staging`;
+let _rootDir = s`${tmpPath}/rootDir`;
+let _stagingFolderPath = s`${tmpPath}/staging`;
+
+import { trimLeading } from './lib/utils/testHelpers.spec';
 
 describe('RooibosPlugin', () => {
     let program: Program;
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
-
+    let options;
     beforeEach(async () => {
         plugin = new RooibosPlugin();
+        options = {
+            rootDir: _rootDir,
+            stagingFolderPath: _stagingFolderPath
+        };
+        fsExtra.ensureDirSync(_stagingFolderPath);
+        fsExtra.ensureDirSync(_rootDir);
         fsExtra.ensureDirSync(tmpPath);
-        fsExtra.emptyDirSync(tmpPath);
 
         builder = new ProgramBuilder();
-        builder.options = await util.normalizeAndResolveConfig({
-            rootDir: rootDir
-        });
+        builder.options = await util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
-        program = new Program({
-            rootDir: rootDir,
-            stagingFolderPath: stagingFolderPath
-        });
+        program = builder.program;
+        // program = new Program(builder.options);
+        builder.plugins = new PluginInterface([plugin], undefined);
         program.plugins = new PluginInterface([plugin], undefined);
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate(builder);
+        plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
 
 
     });
@@ -206,5 +211,107 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
+        it('test full transpile', async () => {
+            plugin.afterProgramCreate(program);
+            // program.validate();
+            program.addOrReplaceFile('source/test.spec.bs', `
+                @suite
+                class ATest extends rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("is test1")
+                    function Test_3()
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.suitesCount).to.equal(1);
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+
+            expect(getContents('rooibosMain.brs')).to.eql(trimLeading(`function main()
+    Rooibos_init()
+end function`).trim());
+            let tl = trimLeading;
+            let a = getContents('test.spec.brs');
+            let b = trimLeading(`function __ATest_builder()
+            instance = __rooibos_BaseTestSuite_builder()
+            instance.super0_new = instance.new
+            instance.new = sub()
+                m.super0_new()
+            end sub
+            instance.Test_3 = function()
+            end function
+            instance.super0_getTestSuiteData = instance.getTestSuiteData
+            instance.getTestSuiteData = function()
+                return {
+                    name: "ATest",
+                    isSolo: false,
+                    isIgnored: false,
+                    filePath: "source/test.spec.bs",
+                    lineNumber: 2,
+                    valid: true,
+                    hasFailures: false,
+                    hasSoloTests: false,
+                    hasIgnoredTests: false,
+                    hasSoloGroups: false,
+                    setupFunctionName: "",
+                    tearDownFunctionName: "",
+                    beforeEachFunctionName: "",
+                    afterEachFunctionName: "",
+                    isNodeTest: false,
+                    nodeName: "",
+                    generatedNodeName: "ATest",
+                    testGroups: [
+                        {
+                            name: "groupA",
+                            isSolo: false,
+                            isIgnored: false,
+                            filename: "source/test.spec.bs",
+                            setupFunctionName: "",
+                            tearDownFunctionName: "",
+                            beforeEachFunctionName: "",
+                            afterEachFunctionName: "",
+                            testCases: [
+                                {
+                                    isSolo: false,
+                                    funcName: "Test_3",
+                                    isIgnored: false,
+                                    isParamTest: false,
+                                    name: "is test1",
+                                    lineNumber: 5,
+                                    paramLineNumber: 0,
+                                    assertIndex: 0,
+                                    assertLineNumberMap: {},
+                                    rawParams: [],
+                                    paramTestIndex: 0,
+                                    expectedNumberOfParams: 0,
+                                    isParamsValid: true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            end function
+            return instance
+        end function
+        function ATest()
+            instance = __ATest_builder()
+            instance.new()
+            return instance
+        end function`);
+            expect(a).to.eql(b);
+        });
+
     });
 });
+
+
+function getContents(filename: string) {
+    return trimLeading(fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString());
+}

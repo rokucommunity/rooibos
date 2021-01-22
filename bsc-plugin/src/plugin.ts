@@ -78,26 +78,6 @@ export class RooibosPlugin {
             testSuite.validate();
         }
     }
-
-    afterProgramValidate() {
-    }
-
-    beforeFileTranspile() {
-    }
-
-    afterFileTranspile() {
-    }
-
-    beforeScopeValidate() {
-    }
-
-    afterPublish() {
-    //create node test files
-    }
-
-    afterFileValidate() {
-    }
-
 }
 
 export default () => {

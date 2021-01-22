@@ -187,7 +187,7 @@ export function diagnosticErrorNoMainFound(file: BscFile) {
     addDiagnostic(
         file,
         2213,
-        `Could not find main function to inject rooibos launch code. Please ensure your project has a main function`
+        `Could not find main function to inject rooibos launch code. Rooibos has added one for you`, 1, 1, 1, 1, DiagnosticSeverity.Warning
     );
 }
 
