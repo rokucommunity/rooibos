@@ -35,4 +35,10 @@
     ".history/**": true,
     "**/out/**": true,
   },
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.tabSize": 2,
+  "tslint.autoFixOnSave": true,
+  "typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": false,
+  "files.trimTrailingWhitespace": false,
 }
