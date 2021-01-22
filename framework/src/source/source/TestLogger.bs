@@ -1,0 +1,230 @@
+namespace Rooibos
+  class Logger
+
+    public function new(config)
+      m.config = config
+
+      m.verbosityLevel = {
+        basic: 0
+        normal: 1
+        verbose: 2
+      }
+
+      m.verbosity = m.config.logLevel
+    end function
+
+    '----------------------------------------------------------------
+    ' Print statistic object with specified verbosity.
+    '
+    ' @param statObj (object) A statistic object to print.
+    '----------------------------------------------------------------
+    public sub printStatistic(statObj as object)
+      m.PrintStart()
+      previousfile = invalid
+
+      for each testSuite in statObj.Suites
+        if (not statObj.testRunHasFailures or ((not m.config.showOnlyFailures) or testSuite.fail > 0 or testSuite.crash > 0))
+          if (testSuite.metaTestSuite.filePath <> previousfile)
+            m.PrintMetaSuiteStart(testSuite.metaTestSuite)
+            previousfile = testSuite.metaTestSuite.filePath
+          end if
+          m.PrintSuiteStatistic(testSuite, statObj.testRunHasFailures)
+        end if
+      end for
+
+      ? ""
+      m.PrintEnd()
+      'bs:disable-next-line
+      ignoredInfo = RBSFM_getIgnoredTestInfo()
+      ? "Total  = "; Rooibos.Common.AsString(statObj.Total); " ; Passed  = "; statObj.Correct; " ; Failed   = "; statObj.Fail; " ; Ignored   = "; ignoredInfo.count
+      ? " Time spent: "; statObj.Time; "ms"
+      ? ""
+      ? ""
+      if (ignoredInfo.count > 0)
+        ? "IGNORED TESTS:"
+        for each ignoredItemName in ignoredInfo.items
+          print ignoredItemName
+        end for
+      end if
+
+      if (statObj.ignored > 0)
+        ? "IGNORED TESTS:"
+        for each ignoredItemName in statObj.IgnoredTestNames
+          print ignoredItemName
+        end for
+      end if
+
+      if (statObj.Total = statObj.Correct)
+        overrallResult = "Success"
+      else
+        overrallResult = "Fail"
+      end if
+      ? "RESULT: "; overrallResult
+
+    end sub
+
+    '----------------------------------------------------------------
+    ' Print test suite statistic.
+    '
+    ' @param statSuiteObj (object) A target test suite object to print.
+    '----------------------------------------------------------------
+    public sub printSuiteStatistic(statSuiteObj as object, hasFailures)
+      m.PrintSuiteStart(statSuiteObj.Name)
+
+      for each testCase in statSuiteObj.Tests
+        if (not hasFailures or ((not m.config.showOnlyFailures) or testCase.Result <> "Success"))
+          m.PrintTestStatistic(testCase)
+        end if
+      end for
+
+      ? " |"
+    end sub
+
+    public sub printTestStatistic(testCase as object)
+      metaTestCase = testCase.metaTestCase
+
+      if (LCase(testCase.Result) <> "success")
+        testChar = "-"
+        if metaTestCase.testResult.failedMockLineNumber > -1
+          lineNumber = metaTestCase.testResult.failedMockLineNumber
+        else
+          assertIndex = metaTestCase.testResult.failedAssertIndex
+          lineNumber = Rooibos.Common.getAssertLine(metaTestCase, assertIndex)
+        end if
+        if lineNumber <> invalid
+          locationLine = StrI(lineNumber).trim()
+        else
+          locationLine = StrI(metaTestCase.lineNumber).trim()
+        end if
+
+      else
+        testChar = "|"
+        locationLine = StrI(metaTestCase.lineNumber).trim()
+      end if
+      locationText = "pkg:/" + testCase.filePath.trim() + "(" + locationLine + ")"
+
+      if m.config.printTestTimes = true
+        timeText = " (" + stri(metaTestCase.time).trim() + "ms)"
+      else
+        timeText = ""
+      end if
+
+      insetText = ""
+      if (metaTestcase.isParamTest <> true)
+        messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + metaTestCase.Name + " : ", ".", 80)
+        ? messageLine ; testCase.Result ; timeText
+      else if (metaTestcase.paramTestIndex = 0)
+        name = metaTestCase.Name
+        if (len(name) > 1 and right(name, 1) = "0")
+          name = left(name, len(name) - 1)
+        end if
+        ? " " + testChar + " |--" + name + " : "
+      end if
+
+      if (metaTestcase.isParamTest = true)
+        insetText = "  "
+
+        if type(metaTestCase.rawParams) = "roAssociativeArray"
+          rawParams = {}
+          for each key in metaTestCase.rawParams
+            if type(metaTestCase.rawParams[key]) <> "Function" and type(metaTestCase.rawParams[key]) <> "roFunction"
+              rawParams[key] = metaTestCase.rawParams[key]
+            end if
+          end for
+        else
+          rawParams = metaTestCase.rawParams
+        end if
+        messageLine = Rooibos.Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", 80)
+        ? messageLine ; testCase.Result ; timeText
+      end if
+
+      if LCase(testCase.Result) <> "success"
+        ? " | "; insettext ;"  |--Location: "; locationText
+        if (metaTestcase.isParamTest = true)
+          ? " | "; insettext ;"  |--Param Line: "; StrI(metaTestCase.paramlineNumber).trim()
+        end if
+        ? " | "; insettext ;"  |--Error Message: "; testCase.Error.Message
+      end if
+    end sub
+
+    '----------------------------------------------------------------
+    ' Print testting start message.
+    '----------------------------------------------------------------
+    public sub printStart()
+      ? ""
+      ? "[START TEST REPORT]"
+      ? ""
+    end sub
+
+    '----------------------------------------------------------------
+    ' Print testing end message.
+    '----------------------------------------------------------------
+    public sub printEnd()
+      ? ""
+      ? "[END TEST REPORT]"
+      ? ""
+    end sub
+
+    '----------------------------------------------------------------
+    ' Print test suite SetUp message.
+    '----------------------------------------------------------------
+    public sub printSuiteSetUp(sName as string)
+      if m.verbosity = m.verbosityLevel.verbose
+        ? "================================================================="
+        ? "===   SetUp "; sName; " suite."
+        ? "================================================================="
+      end if
+    end sub
+
+
+    '----------------------------------------------------------------
+    ' Print test suite start message.
+    '----------------------------------------------------------------
+
+    public sub printMetaSuiteStart(metaTestSuite)
+      ? metaTestSuite.name; " " ; "pkg:/" ; metaTestSuite.filePath + "(1)"
+    end sub
+
+    '----------------------------------------------------------------
+    ' Print '@It group start message.
+    '----------------------------------------------------------------
+    public sub printSuiteStart(sName as string)
+      '  ? "It "; sName
+      ? " |-" ; sName
+      '  ? ""
+    end sub
+
+    '----------------------------------------------------------------
+    ' Print test suite TearDown message.
+    '----------------------------------------------------------------
+    public sub printSuiteTearDown(sName as string)
+      if m.verbosity = m.verbosityLevel.verbose
+        ? "================================================================="
+        ? "===   TearDown "; sName; " suite."
+        ? "================================================================="
+      end if
+    end sub
+
+    '----------------------------------------------------------------
+    ' Print test setUp message.
+    '----------------------------------------------------------------
+    public sub printTestSetUp(tName as string)
+      if m.verbosity = m.verbosityLevel.verbose
+        ? "----------------------------------------------------------------"
+        ? "---   SetUp "; tName; " test."
+        ? "----------------------------------------------------------------"
+      end if
+    end sub
+
+    '----------------------------------------------------------------
+    ' Print test TearDown message.
+    '----------------------------------------------------------------
+    public sub printTestTearDown(tName as string)
+      if m.verbosity = m.verbosityLevel.verbose
+        ? "----------------------------------------------------------------"
+        ? "---   TearDown "; tName; " test."
+        ? "----------------------------------------------------------------"
+      end if
+    end sub
+  end class
+end namespace
