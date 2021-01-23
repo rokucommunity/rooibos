@@ -82,7 +82,7 @@ namespace rooibos
         locationLine = StrI(test.lineNumber).trim()
       end if
 
-      locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine + 1
+      locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine
 
       if m.config.printTestTimes = true
         timeText = " (" + stri(test.result.time).trim() + "ms)"

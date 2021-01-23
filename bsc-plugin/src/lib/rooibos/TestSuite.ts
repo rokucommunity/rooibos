@@ -140,7 +140,7 @@ export class TestSuite extends TestBlock {
       isIgnored: ${this.isIgnored}
       pkgPath: "${this.pkgPath}"
       filePath: "${this.filePath}"
-      lineNumber: ${this.classStatement.range.start.line}
+      lineNumber: ${this.classStatement.range.start.line +1}
       valid: ${this.isValid}
       hasFailures: ${this.hasFailures}
       hasSoloTests: ${this.hasSoloTests}

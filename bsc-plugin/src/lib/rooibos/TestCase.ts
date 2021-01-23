@@ -42,7 +42,7 @@ export class TestCase {
             isIgnored: this.isIgnored,
             isParamTest: this.isParamTest,
             name: this.name,
-            lineNumber: this.lineNumber,
+            lineNumber: this.lineNumber + 2,
             paramLineNumber: this.paramLineNumber,
             assertIndex: this.assertIndex,
             assertLineNumberMap: this.assertLineNumberMap,
@@ -61,7 +61,7 @@ export class TestCase {
           isIgnored: ${this.isIgnored}
           isParamTest: ${this.isParamTest}
           name: ${sanitizeBsJsonString(this.name)}
-          lineNumber: ${this.lineNumber}
+          lineNumber: ${this.lineNumber + 2}
           paramLineNumber: ${this.paramLineNumber}
           assertIndex: ${this.assertIndex}
           assertLineNumberMap: ${JSON.stringify(this.assertLineNumberMap)}
