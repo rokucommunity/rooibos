@@ -82,7 +82,7 @@ namespace rooibos
         locationLine = StrI(test.lineNumber).trim()
       end if
 
-      locationText = "pkg:/" + test.testSuite.filePath.trim() + "(" + locationLine + ")"
+      locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine + 1
 
       if m.config.printTestTimes = true
         timeText = " (" + stri(test.result.time).trim() + "ms)"
@@ -94,12 +94,14 @@ namespace rooibos
       if test.isParamTest <> true
         messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
         m.printLine(0, messageLine + test.result.getStatusText() + timeText)
+        m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
       else if test.paramTestIndex = 0
         name = test.name
         if len(name) > 1 and right(name, 1) = "0"
           name = left(name, len(name) - 1)
         end if
         m.printLine(0, " " + testChar + " |--" + name + " : ")
+        m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
       end if
 
       if test.isParamTest = true
@@ -141,7 +143,7 @@ namespace rooibos
     end function
 
     function printSuiteStart(testSuite)
-      m.printLine(0, " " + testSuite.name + " pkg:/" + testSuite.filePath.trim() + "(" + str(testSuite.lineNumber).trim() + ")")
+      m.printLine(0, " " + testSuite.name + " file://" + testSuite.filePath.trim() + ":" + str(testSuite.lineNumber).trim())
 
     end function
 

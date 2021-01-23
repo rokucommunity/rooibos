@@ -23,6 +23,10 @@ export class TestBlock {
         return this.file.pkgPath;
     }
 
+    public get filePath(): string {
+        return this.file.pathAbsolute;
+    }
+
     public get name(): string {
         return this.annotation.name;
     }
@@ -107,7 +111,8 @@ export class TestSuite extends TestBlock {
     public asJson(): any {
         return {
             name: this.name,
-            filePath: this.pkgPath,
+            pkgPath: this.pkgPath,
+            filePath: this.file.pathAbsolute,
             valid: this.isValid,
             hasFailures: this.hasFailures,
             hasSoloTests: this.hasSoloTests,
@@ -133,7 +138,8 @@ export class TestSuite extends TestBlock {
       name: ${sanitizeBsJsonString(this.name)}
       isSolo: ${this.isSolo}
       isIgnored: ${this.isIgnored}
-      filePath: "${this.pkgPath}"
+      pkgPath: "${this.pkgPath}"
+      filePath: "${this.filePath}"
       lineNumber: ${this.classStatement.range.start.line}
       valid: ${this.isValid}
       hasFailures: ${this.hasFailures}
