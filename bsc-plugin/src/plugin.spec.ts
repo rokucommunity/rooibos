@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-confusing-void-expression */
 import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
 import { expect } from 'chai';
-import * as fsExtra from 'fs-extra';
 import { standardizePath as s } from './lib/rooibos/Utils';
 import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
+import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
@@ -31,7 +31,6 @@ describe('RooibosPlugin', () => {
         builder.options = await util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
         program = builder.program;
-        // program = new Program(builder.options);
         builder.plugins = new PluginInterface([plugin], undefined);
         program.plugins = new PluginInterface([plugin], undefined);
         program.createSourceScope(); //ensure source scope is created
@@ -309,7 +308,6 @@ end function`).trim());
 
     });
 });
-
 
 function getContents(filename: string) {
     return trimLeading(fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString());
