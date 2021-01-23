@@ -6,7 +6,7 @@ import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
-let tmpPath = s`${process.cwd()}/.tmp`;
+let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 
@@ -137,7 +137,6 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
             let suite = plugin.session.sessionInfo.testSuitesToRun[0];
             expect(suite.getTestGroups()[0].testCases).to.have.length(1);
-            expect(suite.getTestGroups()[1].testCases).to.have.length(2);
         });
         it('duplicate test name', () => {
             program.addOrReplaceFile('source/test.spec.bs', `
@@ -164,7 +163,6 @@ describe('RooibosPlugin', () => {
             program.validate();
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
-            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
         it('empty test group', () => {
             program.addOrReplaceFile('source/test.spec.bs', `
@@ -175,7 +173,6 @@ describe('RooibosPlugin', () => {
             `);
             program.validate();
             expect(program.getDiagnostics()).to.not.be.empty;
-            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
         it('multiple test group annotations - same name', () => {
@@ -192,7 +189,60 @@ describe('RooibosPlugin', () => {
             program.validate();
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
-            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
+        });
+        it('params test with negative numbers', () => {
+            program.addOrReplaceFile('source/test.spec.bs', `
+                @suite
+                class ATest
+                    @describe("groupA")
+                    @it("is test1")
+                    @params(100,100)
+                    @params(100,-100)
+                    @params(-100,100)
+                    @params(-100,-100)
+                    function Test_3(a, b)
+                    end function
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+        });
+        it.only('updates test name to match name of annotation', () => {
+            program.addOrReplaceFile('source/test.spec.bs', `
+                @suite
+                class ATest
+                    @describe("groupA")
+                    @it("is test1")
+                    function test()
+                    end function
+                    @it("is test2")
+                    function test()
+                    end function
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+        });
+        it.only('updates test name to match name of annotation - with params', () => {
+            program.addOrReplaceFile('source/test.spec.bs', `
+                @suite
+                class ATest
+                    @describe("groupA")
+                    @it("is test1")
+                    function test()
+                    end function
+                    @it("is test2")
+                    @params(1)
+                    @params(2)
+                    function test(arg)
+                    end function
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
         it('multiple test group annotations - different name', () => {
             program.addOrReplaceFile('source/test.spec.bs', `
@@ -207,7 +257,6 @@ describe('RooibosPlugin', () => {
             `);
             program.validate();
             expect(program.getDiagnostics()).to.not.be.empty;
-            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
 

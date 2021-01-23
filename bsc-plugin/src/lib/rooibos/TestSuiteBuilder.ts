@@ -198,6 +198,9 @@ export class TestSuiteBuilder {
         }
     }
 
+    private sanitizeFunctionName(name: string) {
+        return name.replace(/[^0-9_a-z]/ig, '_');
+    }
     public createTestCases(statement: ClassMethodStatement, annotation: RooibosAnnotation): boolean {
         const lineNumber = statement.func.range.start.line;
         const numberOfArgs = statement.func.parameters.length;
@@ -207,6 +210,11 @@ export class TestSuiteBuilder {
 
             return false;
         }
+
+        let sanitizedTestName = this.sanitizeFunctionName(this.currentGroup.name) + '_' + this.sanitizeFunctionName(annotation.name);
+        statement.name.text = sanitizedTestName;
+        statement.func.functionStatement.name.text = sanitizedTestName;
+
         if (numberOfParams > 0) {
             let index = 0;
             for (const param of annotation.params) {
