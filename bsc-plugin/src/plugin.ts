@@ -1,5 +1,6 @@
 import type {
     BrsFile,
+    BscFile,
     Program,
     ProgramBuilder,
     XmlFile
@@ -11,7 +12,10 @@ import { RooibosSession } from './lib/rooibos/RooibosSession';
 
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
+import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 
+
+import * as minimatch from 'minimatch';
 
 export class RooibosPlugin {
 
@@ -21,11 +25,20 @@ export class RooibosPlugin {
     public fileFactory: FileFactory;
     public isFrameworkAdded = false;
     public _builder: ProgramBuilder;
-
+    public config: RooibosConfig;
     beforeProgramCreate(builder: ProgramBuilder): void {
         this._builder = builder;
-        this.fileFactory = new FileFactory((builder.options as any).rooibos || {});
 
+        this.config = (builder.options as any).rooibos || {};
+
+        //ignore roku modules by default
+        if (this.config.includeFilters === undefined) {
+            this.config.includeFilters = [
+                '**/*.spec.bs',
+                '!**/roku_modules/**/*'];
+        }
+
+        this.fileFactory = new FileFactory(this.config);
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder);
@@ -45,7 +58,7 @@ export class RooibosPlugin {
     }
 
     afterFileParse(file: (BrsFile | XmlFile)): void {
-        if (this.fileFactory.isIgnoredFile(file)) {
+        if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
             return;
         }
         if (isBrsFile(file)) {
@@ -77,6 +90,21 @@ export class RooibosPlugin {
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
             testSuite.validate();
         }
+    }
+
+
+    shouldSearchInFileForTests(file: BscFile) {
+        if (!this.config.includeFilters || this.config.includeFilters.length === 0) {
+            return true;
+        } else {
+            for (let filter of this.config.includeFilters) {
+                if (!minimatch(file.pathAbsolute, filter)) {
+                    return false;
+                }
+            }
+        }
+        console.log(file.pkgPath);
+        return true;
     }
 }
 

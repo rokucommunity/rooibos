@@ -16,4 +16,5 @@ export interface RooibosConfig {
     printLcov?: boolean;
     port?: number;
     lineWidth?: number;
+    includeFilters?: string[];
 }
