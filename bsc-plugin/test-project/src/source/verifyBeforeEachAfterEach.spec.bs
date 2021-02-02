@@ -45,7 +45,7 @@ namespace Tests
     @It("tests group 2 - should have group before afte")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @BeforeEach
+    @beforeEach
     function group2_BeforeEach() as void
       ? "!!! Before GROUP 2"
     end function

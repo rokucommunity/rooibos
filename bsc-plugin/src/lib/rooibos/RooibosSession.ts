@@ -17,7 +17,7 @@ const pkg = require('../../../package.json');
 export class RooibosSession {
     constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
         this.fileFactory = fileFactory;
-        this._config = builder.options ? (builder.options as any).rooibos as RooibosConfig || {} : {};
+        this.config = builder.options ? (builder.options as any).rooibos as RooibosConfig || {} : {};
         this._builder = builder;
         this._suiteBuilder = new TestSuiteBuilder(this);
         this.reset();
@@ -25,13 +25,13 @@ export class RooibosSession {
 
     private fileFactory: FileFactory;
     private _builder: ProgramBuilder;
-    private readonly _config: RooibosConfig;
+    public config: RooibosConfig;
     private _suiteBuilder: TestSuiteBuilder;
 
     public sessionInfo: SessionInfo;
 
     public reset() {
-        this.sessionInfo = new SessionInfo();
+        this.sessionInfo = new SessionInfo(this.config);
     }
 
     public updateSessionStats() {
@@ -80,12 +80,12 @@ end function`);
         if (method) {
             method.func.body.statements.push(new RawCodeStatement(`
     return {
-      "failFast": ${this._config.failFast ? 'true' : 'false'}
-      "logLevel": ${this._config.logLevel ?? 0}
-      "showOnlyFailures": ${this._config.showOnlyFailures ? 'true' : 'false'}
-      "lineWidth": ${this._config.lineWidth || 60}
-      "printLcov": ${this._config.printLcov ? 'true' : 'false'}
-      "port": "${this._config.port || 'invalid'}"
+      "failFast": ${this.config.failFast ? 'true' : 'false'}
+      "logLevel": ${this.config.logLevel ?? 0}
+      "showOnlyFailures": ${this.config.showOnlyFailures ? 'true' : 'false'}
+      "lineWidth": ${this.config.lineWidth || 60}
+      "printLcov": ${this.config.printLcov ? 'true' : 'false'}
+      "port": "${this.config.port || 'invalid'}"
     }`));
         }
     }

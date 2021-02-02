@@ -15,7 +15,8 @@ export enum AnnotationType {
     AfterEach = 'aftereach',
     Params = 'params',
     IgnoreParams = 'ignoreparams',
-    SoloParams = 'onlyparams'
+    SoloParams = 'onlyparams',
+    Tags = 'tags'
 }
 
 let annotationLookup = {
@@ -31,7 +32,8 @@ let annotationLookup = {
     aftereach: AnnotationType.AfterEach,
     params: AnnotationType.Params,
     ignoreparams: AnnotationType.IgnoreParams,
-    onlyparams: AnnotationType.SoloParams
+    onlyparams: AnnotationType.SoloParams,
+    tags: AnnotationType.Tags
 };
 
 interface ParsedComment {
@@ -66,11 +68,12 @@ export class RooibosAnnotation {
         public isIgnore = false,
         public isSolo = false,
         public params: AnnotationParams[] = [],
-        public nodeName?: string
+        public nodeName?: string,
+        rawTags: string[] = []
     ) {
-
+        this.tags = new Set<string>(rawTags);
     }
-
+    public tags;
     public hasSoloParams = false;
 
     public static getAnnotation(file: BrsFile, statement: Statement): ParsedComment | null {
@@ -81,6 +84,7 @@ export class RooibosAnnotation {
         let isSolo = false;
         let isIgnore = false;
         let nodeName = null;
+        let tags = [];
         if (statement.annotations?.length) {
             let describeAnnotations = statement.annotations.filter((a) => getAnnotationType(a.name) === AnnotationType.Describe);
             if (describeAnnotations.length > 1) {
@@ -97,13 +101,22 @@ export class RooibosAnnotation {
                     case AnnotationType.NodeTest:
                         nodeName = annotation.getArguments()[0] as string;
                         break;
+                    case AnnotationType.Tags:
+                        tags = annotation.getArguments().map((a) => a.toString());
+                        break;
                     case AnnotationType.Ignore:
                         isIgnore = true;
+                        break;
+                    case AnnotationType.BeforeEach:
+                    case AnnotationType.AfterEach:
+                    case AnnotationType.Setup:
+                    case AnnotationType.TearDown:
+                        testAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, annotation.name);
                         break;
                     case AnnotationType.Describe:
                     case AnnotationType.TestSuite:
                         const groupName = annotation.getArguments()[0] as string;
-                        blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName);
+                        blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags);
                         nodeName = null;
                         isSolo = false;
                         isIgnore = false;
@@ -113,7 +126,7 @@ export class RooibosAnnotation {
                         if (!testName || testName.trim() === '') {
                             diagnosticNoTestNameDefined(file, annotation);
                         }
-                        let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo);
+                        let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags);
                         if (testAnnotation) {
                             diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
                         } else {
@@ -160,6 +173,6 @@ export class RooibosAnnotation {
 
 }
 
-function getAnnotationType(text: string): AnnotationType {
+export function getAnnotationType(text: string): AnnotationType {
     return annotationLookup[text.toLowerCase()] || AnnotationType.None;
 }

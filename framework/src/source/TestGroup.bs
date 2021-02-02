@@ -33,6 +33,7 @@ namespace rooibos
       m.tearDownFunctionName = data.tearDownFunctionName
       m.beforeEachFunctionName = data.beforeEachFunctionName
       m.afterEachFunctionName = data.afterEachFunctionName
+      m.lineNumber = data.lineNumber
 
       m.global = testSuite.global
       m.top = testSuite.top

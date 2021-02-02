@@ -47,22 +47,26 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     function new()
       data = m.getTestSuitedata()
-      m.name = data.name
-      m.filePath = data.filePath
-      m.pkgPath = data.pkgPath
-      m.valid = data.valid
-      m.hasFailures = data.hasFailures
-      m.hasSoloTests = data.hasSoloTests
-      m.hasIgnoredTests = data.hasIgnoredTests
-      m.hasSoloGroups = data.hasSoloGroups
-      m.isSolo = data.isSolo
-      m.isIgnored = data.isIgnored
-      m.groupsData = data.testGroups
-      m.lineNumber = data.lineNumber
-      m.isNodeTest = false
-      m.nodeName = invalid
-      m.isFailingFast = false
-      m.stats = new Stats()
+      if data = invalid
+        ? "ERROR RETRIEVING TEST SUITE DATA!! this is a rooibos BUG - please report the suite that resulted in a corrupt test. Thanks"
+      else
+        m.name = data.name
+        m.filePath = data.filePath
+        m.pkgPath = data.pkgPath
+        m.valid = data.valid
+        m.hasFailures = data.hasFailures
+        m.hasSoloTests = data.hasSoloTests
+        m.hasIgnoredTests = data.hasIgnoredTests
+        m.hasSoloGroups = data.hasSoloGroups
+        m.isSolo = data.isSolo
+        m.isIgnored = data.isIgnored
+        m.groupsData = data.testGroups
+        m.lineNumber = data.lineNumber
+        m.isNodeTest = false
+        m.nodeName = invalid
+        m.isFailingFast = false
+        m.stats = new Stats()
+      end if
     end function
 
     function getTestSuiteData()
@@ -92,7 +96,13 @@ namespace rooibos
     function run()
       for each groupData in m.groupsData
         'bs:disable-next-line
+
         group = new TestGroup(m, groupData)
+        ? ""
+        ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
+        ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
+        ? ""
+
         m.groups.push(group)
         group.run()
 
@@ -107,6 +117,11 @@ namespace rooibos
     end function
 
     function runTest(test)
+      ? ""
+      ? rooibos.common.fillText(">>>>>> It: " + test.name, ">", 80)
+      ? `  Location: file://${test.testSuite.filePath.trim()}:${test.lineNumber}`
+      ? ""
+
       m.currentResult = test.result
       test.run()
 
@@ -1405,7 +1420,7 @@ namespace rooibos
           target.__mocks = m.mocks
 
           if not isMethodPresent
-            ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
+            ' ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
           end if
         else
           ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
@@ -1832,6 +1847,11 @@ namespace rooibos
       end while
 
       return true
+    end function
+
+    function wait(delay = 1)
+      port = CreateObject("roMessagePort")
+      wait(delay, port)
     end function
 
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)

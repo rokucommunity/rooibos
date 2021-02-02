@@ -17,4 +17,5 @@ export interface RooibosConfig {
     port?: number;
     lineWidth?: number;
     includeFilters?: string[];
+    tags?: string[];
 }

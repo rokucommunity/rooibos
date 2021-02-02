@@ -28,7 +28,7 @@ namespace Tests
     @It("group22")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '@BeforeEach
+    '@beforeEach
 
     @Test("simple2")
     function group2_dupe_test()

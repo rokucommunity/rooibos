@@ -7,19 +7,19 @@ namespace Tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @It("tests basic assertions")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
     @Test("Fail")
     function test_fail() as void
-      
+
       assertResult = m.Fail("reason")
-      
+
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
-      
+
       m.assertFalse(assertResult)
       m.assertTrue(isFail)
     end function
-    
+
     @Test("AssertTrue")
     @Params(true, true)
     @Params(false, false)
@@ -111,7 +111,7 @@ namespace Tests
     @It("tests global is present on testSuite")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @BeforeEach
+    @beforeEach
     function test_assertGlobal_beforeEach() as void
       m.beforeEachGlobal = m.global
     end function

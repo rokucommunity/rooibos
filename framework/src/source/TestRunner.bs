@@ -104,19 +104,19 @@ namespace rooibos
     end function
 
     private function runTestSuite(testSuite) as void
-      ? ""
-      ? Rooibos.Common.fillText("> SUITE: " + testSuite.name, ">", 80)
+      if testSuite.groupsData <> invalid and testSuite.groupsData.count() > 0
+        ? ""
+        ? Rooibos.Common.fillText("> SUITE: " + testSuite.name, ">", 80)
+        m.testSuites.push(testSuite)
 
-      m.testSuites.push(testSuite)
+        if testSuite.isNodeTest
+          m.runNodeTest(testSuite)
+        else
+          testSuite.run()
+        end if
 
-      if testSuite.isNodeTest
-        m.runNodeTest(testSuite)
-      else
-        testSuite.run()
+        m.stats.merge(testSuite.stats)
       end if
-
-      m.stats.merge(testSuite.stats)
-
     end function
 
     private function runNodeTest(testSuite) as void

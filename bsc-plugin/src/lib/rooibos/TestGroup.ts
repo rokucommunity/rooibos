@@ -49,7 +49,7 @@ export class TestGroup extends TestBlock {
         //add line number as last param
         const transpileState = new TranspileState(this.file);
         try {
-            let func = this.testSuite.classStatement.memberMap[testCase.funcName.toLowerCase()];
+            let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(createVisitor({
                 ExpressionStatement: (es) => {
                     let ce = es.expression as CallExpression;
@@ -61,7 +61,7 @@ export class TestGroup extends TestBlock {
     if not m.currentResult.isFail
       m.currentAssertLineNumber = ${ce.range.start.line}
       ${ce.transpile(transpileState).join('')}
-    end if`);
+    end if`, this.file, ce.range);
                         }
                     }
                 }
@@ -74,34 +74,22 @@ export class TestGroup extends TestBlock {
         }
     }
 
-    public asJson(): any {
-        return {
-            pkgPath: this.pkgPath,
-            setupFunctionName: this.setupFunctionName,
-            tearDownFunctionName: this.tearDownFunctionName,
-            beforeEachFunctionName: this.beforeEachFunctionName,
-            afterEachFunctionName: this.afterEachFunctionName,
-            isSolo: this.isSolo,
-            isIgnored: this.isIgnored,
-            name: this.name
-        };
-    }
-
     public asText(): string {
         let testCaseText = [...this.testCases.values()].filter((tc) => tc.isIncluded).map((tc) => tc.asText());
 
         return `
-      {
-        name: ${sanitizeBsJsonString(this.name)}
-        isSolo: ${this.isSolo}
-        isIgnored: ${this.isIgnored}
-        filename: "${this.pkgPath}"
-        setupFunctionName: "${this.setupFunctionName || ''}"
-        tearDownFunctionName: "${this.tearDownFunctionName || ''}"
-        beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"
-        afterEachFunctionName: "${this.afterEachFunctionName || ''}"
-        testCases: [${testCaseText.join(',\n')}]
-      }`;
+            {
+                name: ${sanitizeBsJsonString(this.name)}
+                isSolo: ${this.isSolo}
+                isIgnored: ${this.isIgnored}
+                filename: "${this.pkgPath}"
+                lineNumber: "${this.annotation.annotation.range.start.line}"
+                setupFunctionName: "${this.setupFunctionName || ''}"
+                tearDownFunctionName: "${this.tearDownFunctionName || ''}"
+                beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"
+                afterEachFunctionName: "${this.afterEachFunctionName || ''}"
+                testCases: [${testCaseText.join(',\n')}]
+            }`;
     }
 
 }

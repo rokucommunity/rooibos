@@ -73,13 +73,17 @@ export class RooibosPlugin {
     beforePublish() {
         for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
             testSuite.addDataFunctions();
-            for (let group of [...testSuite.testGroups.values()]) {
-                for (let testCase of [...group.testCases.values()]) {
+            for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
+                for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
                     group.modifyAssertions(testCase);
                 }
             }
-
         }
+
+        for (let testSuite of [...this.session.sessionInfo.allTestSuites.values()].filter((ts) => !ts.isIncluded)) {
+            testSuite.removeCode();
+        }
+
         this.session.addTestRunnerMetadata();
         this.session.addLaunchHook();
         this.session.createNodeFiles(this._builder.program);
@@ -103,7 +107,7 @@ export class RooibosPlugin {
                 }
             }
         }
-        console.log(file.pkgPath);
+        // console.log(file.pkgPath);
         return true;
     }
 }

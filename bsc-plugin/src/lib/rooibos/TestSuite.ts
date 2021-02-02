@@ -89,8 +89,16 @@ export class TestSuite extends TestBlock {
     }
 
     public addDataFunctions() {
-        //add the data body to the test subclass
-        addOverriddenMethod(this.classStatement, 'getTestSuiteData', `return ${this.asText()}`);
+        if (this.isIncluded) {
+            addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`);
+        }
+    }
+
+    public removeCode() {
+        this.classStatement.fields = [];
+        this.classStatement.methods = [];
+        this.classStatement.body = [];
+        this.classStatement.memberMap = {};
     }
 
     public getTestGroups(): TestGroup[] {
@@ -108,39 +116,16 @@ export class TestSuite extends TestBlock {
         }
     }
 
-    public asJson(): any {
-        return {
-            name: this.name,
-            pkgPath: this.pkgPath,
-            filePath: this.file.pathAbsolute,
-            valid: this.isValid,
-            hasFailures: this.hasFailures,
-            hasSoloTests: this.hasSoloTests,
-            hasIgnoredTests: this.hasIgnoredTests,
-            hasSoloGroups: this.hasSoloGroups,
-            isSolo: this.isSolo,
-            isIgnored: this.isIgnored,
-            testGroups: [...this.testGroups.values()].filter((testGroup) => testGroup.isIncluded)
-                .map((testGroup) => testGroup.asJson()),
-            setupFunctionName: this.setupFunctionName,
-            tearDownFunctionName: this.tearDownFunctionName,
-            isNodeTest: this.isNodeTest,
-            nodeName: this.nodeName,
-            beforeEachFunctionName: this.beforeEachFunctionName,
-            afterEachFunctionName: this.afterEachFunctionName
-        };
-    }
-
     public asText(): string {
-        let testGroups = [...this.testGroups.values()].filter((testGroup) => testGroup.isIncluded)
-            .map((testGroup) => testGroup.asText());
+        let testGroups = this.isIncluded ? [...this.testGroups.values()].filter((testGroup) => testGroup.isIncluded)
+            .map((testGroup) => testGroup.asText()) : '';
         return `{
       name: ${sanitizeBsJsonString(this.name)}
       isSolo: ${this.isSolo}
       isIgnored: ${this.isIgnored}
       pkgPath: "${this.pkgPath}"
       filePath: "${this.filePath}"
-      lineNumber: ${this.classStatement.range.start.line +1}
+      lineNumber: ${this.classStatement.range.start.line + 1}
       valid: ${this.isValid}
       hasFailures: ${this.hasFailures}
       hasSoloTests: ${this.hasSoloTests}

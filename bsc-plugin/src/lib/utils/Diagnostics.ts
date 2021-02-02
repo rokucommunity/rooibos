@@ -1,7 +1,7 @@
 import type { BrsFile, ClassStatement, FunctionStatement, Statement, BscFile, AnnotationExpression } from 'brighterscript';
 import { DiagnosticSeverity, Range } from 'brighterscript';
 
-import type { RooibosAnnotation } from '../rooibos/Annotation';
+import type { AnnotationType, RooibosAnnotation } from '../rooibos/Annotation';
 
 function addDiagnostic(
     file: BscFile,
@@ -76,11 +76,11 @@ export function diagnosticWrongAnnotation(file: BrsFile, statement: Statement, m
     );
 }
 
-export function diagnosticNoGroup(file: BrsFile, statement: Statement) {
+export function diagnosticNoGroup(file: BrsFile, statement: Statement, annotationType: AnnotationType) {
     addDiagnosticForStatement(
         file,
         2201,
-        'Found test outside of a test group',
+        `Cannot process ${annotationType} of a test group`,
         statement
     );
 }
@@ -240,8 +240,17 @@ export function diagnosticMultipleDescribeAnnotations(file: BrsFile, annotation:
 export function diagnosticMultipleTestOnFunctionDefined(file: BrsFile, annotation: AnnotationExpression) {
     addDiagnosticForAnnotation(
         file,
-        2218,
+        2219,
         `Found multiple @it annotations. Did you forget to write some tests?`,
+        annotation
+    );
+}
+
+export function diagnosticCorruptTestProduced(file: BrsFile, annotation: AnnotationExpression, error: string, source: string) {
+    addDiagnosticForAnnotation(
+        file,
+        2220,
+        `The test resulted in a corrupt data file. This is typically because one of the param tests resulted in a failed transpilation. Please raise an issue with as much of your test file as possible to reproduce the issue.\n ${error} \n ${source} `,
         annotation
     );
 }

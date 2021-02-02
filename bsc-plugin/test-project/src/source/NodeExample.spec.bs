@@ -18,7 +18,7 @@ namespace Tests
     function helloFromNode_simple() as void
       'bs:disable-next-line
       text = HelloFromNode("georgejecook", 12)
-      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      m.assertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
     end function
 
     @Test("HelloFromNode with params")
@@ -31,7 +31,7 @@ namespace Tests
     function helloFromNode_params(name, age) as void
       'bs:disable-next-line
       text = HelloFromNode(name, age)
-      m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
+      m.assertEqual(text, "HELLO " + name + " age:" + stri(age))
     end function
   end class
 end namespace

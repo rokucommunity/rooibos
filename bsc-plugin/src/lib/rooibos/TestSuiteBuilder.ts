@@ -17,7 +17,7 @@ import {
     diagnosticDuplicateSuite,
     diagnosticErrorProcessingFile,
     diagnosticGroupWithNameAlreadyDefined,
-    diagnosticIncompatibleAnnotation,
+    // diagnosticIncompatibleAnnotation,
     diagnosticNoGroup,
     diagnosticTestWithNameAlreadyDefined,
     diagnosticWrongAnnotation,
@@ -100,7 +100,7 @@ export class TestSuiteBuilder {
             let { blockAnnotation, testAnnotation } = RooibosAnnotation.getAnnotation(this.file, s);
             if (blockAnnotation) {
                 if (this.annotation) {
-                    diagnosticNoGroup(this.file, s);
+                    diagnosticNoGroup(this.file, s, this.annotation.annotationType);
                 }
                 if (this.currentGroup) {
                     this.testSuite.addGroup(this.currentGroup);
@@ -113,11 +113,7 @@ export class TestSuiteBuilder {
                     break;
                 }
             }
-            if (this.isAllowedAnnotation(testAnnotation)) {
-                this.annotation = testAnnotation;
-            } else {
-                diagnosticIncompatibleAnnotation(this.annotation);
-            }
+            this.annotation = testAnnotation;
 
             if (isClassMethodStatement(s)) {
                 this.processClassMethod(s);
@@ -132,19 +128,6 @@ export class TestSuiteBuilder {
         return this.testSuite;
     }
 
-    public isAllowedAnnotation(annotation: RooibosAnnotation): boolean {
-        switch (this.annotation ? this.annotation.annotationType : AnnotationType.None) {
-            case AnnotationType.TestSuite:
-            case AnnotationType.Setup:
-            case AnnotationType.TearDown:
-            case AnnotationType.BeforeEach:
-            case AnnotationType.AfterEach:
-                return false;
-            case AnnotationType.None:
-            default:
-                return true;
-        }
-    }
     public createGroup(blockAnnotation: RooibosAnnotation): boolean {
         if (!this.testSuite.testGroups.has(blockAnnotation.name)) {
             this.currentGroup = new TestGroup(this.testSuite, blockAnnotation);
@@ -157,37 +140,35 @@ export class TestSuiteBuilder {
     }
 
     public processClassMethod(statement: ClassMethodStatement) {
-        let block = this.currentGroup ?? this.testSuite;
 
         if (this.annotation) {
+            if (!this.currentGroup) {
+                diagnosticNoGroup(this.file, statement, this.annotation.annotationType);
+            }
             switch (this.annotation.annotationType) {
                 case AnnotationType.It:
-                    if (!this.currentGroup) {
-                        diagnosticNoGroup(this.file, statement);
-                    } else {
-                        this.createTestCases(statement, this.annotation);
-                    }
+                    this.createTestCases(statement, this.annotation);
                     break;
                 case AnnotationType.Setup:
-                    block.setupFunctionName = statement.name.text;
+                    this.currentGroup.setupFunctionName = statement.name.text;
                     if (statement.func.parameters.length > 0) {
                         diagnosticWrongParameterCount(this.file, statement, 0);
                     }
                     break;
                 case AnnotationType.TearDown:
-                    block.tearDownFunctionName = statement.name.text;
+                    this.currentGroup.tearDownFunctionName = statement.name.text;
                     if (statement.func.parameters.length > 0) {
                         diagnosticWrongParameterCount(this.file, statement, 0);
                     }
                     break;
                 case AnnotationType.BeforeEach:
-                    block.beforeEachFunctionName = statement.name.text;
+                    this.currentGroup.beforeEachFunctionName = statement.name.text;
                     if (statement.func.parameters.length > 0) {
                         diagnosticWrongParameterCount(this.file, statement, 0);
                     }
                     break;
                 case AnnotationType.AfterEach:
-                    block.afterEachFunctionName = statement.name.text;
+                    this.currentGroup.afterEachFunctionName = statement.name.text;
                     if (statement.func.parameters.length > 0) {
                         diagnosticWrongParameterCount(this.file, statement, 0);
                     }

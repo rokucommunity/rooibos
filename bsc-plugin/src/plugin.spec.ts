@@ -17,7 +17,7 @@ describe('RooibosPlugin', () => {
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
     let options;
-    beforeEach(async () => {
+    beforeEach(() => {
         plugin = new RooibosPlugin();
         options = {
             rootDir: _rootDir,
@@ -28,7 +28,7 @@ describe('RooibosPlugin', () => {
         fsExtra.ensureDirSync(tmpPath);
 
         builder = new ProgramBuilder();
-        builder.options = await util.normalizeAndResolveConfig(options);
+        builder.options = util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
         program = builder.program;
         builder.plugins = new PluginInterface([plugin], undefined);
@@ -109,6 +109,42 @@ describe('RooibosPlugin', () => {
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
+        });
+        it('ignores a group', () => {
+            program.addOrReplaceFile('source/test.spec.bs', `
+            @suite
+                    class ATest
+                    @ignore
+                    @describe("groupA")
+
+                    @it("is test1")
+                    function Test()
+                    end function
+
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(0);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(0);
+        });
+        it('ignores a test', () => {
+            program.addOrReplaceFile('source/test.spec.bs', `
+            @suite
+            class ATest
+            @describe("groupA")
+
+            @ignore
+            @it("is test1")
+                    function Test()
+                    end function
+
+                    end class
+                    `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(0);
         });
         it('multiple groups', () => {
             program.addOrReplaceFile('source/test.spec.bs', `
@@ -208,7 +244,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
-        it.only('updates test name to match name of annotation', () => {
+        it('updates test name to match name of annotation', () => {
             program.addOrReplaceFile('source/test.spec.bs', `
                 @suite
                 class ATest
@@ -225,7 +261,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
-        it.only('updates test name to match name of annotation - with params', () => {
+        it('updates test name to match name of annotation - with params', () => {
             program.addOrReplaceFile('source/test.spec.bs', `
                 @suite
                 class ATest
@@ -290,71 +326,229 @@ end function`).trim());
             instance = __rooibos_BaseTestSuite_builder()
             instance.super0_new = instance.new
             instance.new = sub()
-                m.super0_new()
+            m.super0_new()
             end sub
-            instance.Test_3 = function()
+            instance.groupA_is_test1 = function()
             end function
             instance.super0_getTestSuiteData = instance.getTestSuiteData
             instance.getTestSuiteData = function()
-                return {
-                    name: "ATest",
-                    isSolo: false,
-                    isIgnored: false,
-                    filePath: "source/test.spec.bs",
-                    lineNumber: 2,
-                    valid: true,
-                    hasFailures: false,
-                    hasSoloTests: false,
-                    hasIgnoredTests: false,
-                    hasSoloGroups: false,
-                    setupFunctionName: "",
-                    tearDownFunctionName: "",
-                    beforeEachFunctionName: "",
-                    afterEachFunctionName: "",
-                    isNodeTest: false,
-                    nodeName: "",
-                    generatedNodeName: "ATest",
-                    testGroups: [
-                        {
-                            name: "groupA",
-                            isSolo: false,
-                            isIgnored: false,
-                            filename: "source/test.spec.bs",
-                            setupFunctionName: "",
-                            tearDownFunctionName: "",
-                            beforeEachFunctionName: "",
-                            afterEachFunctionName: "",
-                            testCases: [
-                                {
-                                    isSolo: false,
-                                    funcName: "Test_3",
-                                    isIgnored: false,
-                                    isParamTest: false,
-                                    name: "is test1",
-                                    lineNumber: 5,
-                                    paramLineNumber: 0,
-                                    assertIndex: 0,
-                                    assertLineNumberMap: {},
-                                    rawParams: [],
-                                    paramTestIndex: 0,
-                                    expectedNumberOfParams: 0,
-                                    isParamsValid: true
-                                }
-                            ]
-                        }
-                    ]
-                }
+            return {
+            name: "ATest",
+            isSolo: false,
+            isIgnored: false,
+            pkgPath: "source/test.spec.bs",
+            filePath: "/home/george/hope/open-source/rooibos/bsc-plugin/tmp/rootDir/source/test.spec.bs",
+            lineNumber: 3,
+            valid: true,
+            hasFailures: false,
+            hasSoloTests: false,
+            hasIgnoredTests: false,
+            hasSoloGroups: false,
+            setupFunctionName: "",
+            tearDownFunctionName: "",
+            beforeEachFunctionName: "",
+            afterEachFunctionName: "",
+            isNodeTest: false,
+            nodeName: "",
+            generatedNodeName: "ATest",
+            testGroups: [
+            {
+            name: "groupA",
+            isSolo: false,
+            isIgnored: false,
+            filename: "source/test.spec.bs",
+            setupFunctionName: "",
+            tearDownFunctionName: "",
+            beforeEachFunctionName: "",
+            afterEachFunctionName: "",
+            testCases: [
+            {
+            isSolo: false,
+            funcName: "groupA_is_test1",
+            isIgnored: false,
+            isParamTest: false,
+            name: "is test1",
+            lineNumber: 7,
+            paramLineNumber: 0,
+            assertIndex: 0,
+            assertLineNumberMap: {},
+            rawParams: invalid,
+            paramTestIndex: 0,
+            expectedNumberOfParams: 0,
+            isParamsValid: true
+            }
+            ]
+            }
+            ]
+            }
             end function
             return instance
-        end function
-        function ATest()
+            end function
+            function ATest()
             instance = __ATest_builder()
             instance.new()
             return instance
-        end function`);
+            end function`);
             expect(a).to.eql(b);
         });
+        it('test full transpile with complex params', async () => {
+            plugin.afterProgramCreate(program);
+            // program.validate();
+            program.addOrReplaceFile('source/test.spec.bs', `
+                @suite
+                class ATest extends rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("is test1")
+                    @params({"unknown_value": "color"})
+                    function Test_3(arg)
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.suitesCount).to.equal(1);
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
 
+            expect(getContents('rooibosMain.brs')).to.eql(trimLeading(`function main()
+    Rooibos_init()
+end function`).trim());
+        });
+    });
+
+    describe('honours tags - simple tests', () => {
+        let testSource = `
+                @tags("one", "two", "exclude")
+                @suite("a")
+                class ATest extends rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("is test1")
+                    function t1()
+                    end function
+                end class
+                @tags("one", "three")
+                @suite("b")
+                class BTest extends rooibos.BaseTestSuite
+                    @describe("groupB")
+                    @it("is test2")
+                    function t2()
+                    end function
+                end class
+            `;
+
+        beforeEach(() => {
+            plugin = new RooibosPlugin();
+            options = {
+                rootDir: _rootDir,
+                stagingFolderPath: _stagingFolderPath
+            };
+            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(_rootDir);
+            fsExtra.ensureDirSync(tmpPath);
+
+            builder = new ProgramBuilder();
+            builder.options = util.normalizeAndResolveConfig(options);
+            builder.program = new Program(builder.options);
+            program = builder.program;
+            builder.plugins = new PluginInterface([plugin], undefined);
+            program.plugins = new PluginInterface([plugin], undefined);
+            program.createSourceScope(); //ensure source scope is created
+            plugin.beforeProgramCreate(builder);
+            plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
+            plugin.afterProgramCreate(program);
+            // program.validate();
+        });
+        afterEach(() => {
+            fsExtra.ensureDirSync(tmpPath);
+            fsExtra.emptyDirSync(tmpPath);
+            builder.dispose();
+            program.dispose();
+        });
+        it('tag one', async () => {
+            plugin.session.sessionInfo.includeTags = ['one'];
+            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
+            expect(plugin.session.sessionInfo.testSuitesToRun[1].name).to.equal('b');
+        });
+        it('tag two', async () => {
+            plugin.session.sessionInfo.includeTags = ['two'];
+            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
+        });
+        it('tag three', async () => {
+            plugin.session.sessionInfo.includeTags = ['three'];
+            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
+        });
+        it('tag exclude', async () => {
+            plugin.session.sessionInfo.excludeTags = ['exclude'];
+            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
+        });
+        it('inlcude and exclude tags', async () => {
+            plugin.session.sessionInfo.includeTags = ['one', 'two'];
+            plugin.session.sessionInfo.excludeTags = ['exclude'];
+            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
+        });
+        it('Need all tags', async () => {
+            plugin.session.sessionInfo.includeTags = ['one', 'two'];
+            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
+        });
+    });
+
+
+});
+
+describe('run a local project', () => {
+    it.only('sanity checks on parsing - only run this outside of ci', () => {
+        let programBuilder = new ProgramBuilder();
+        programBuilder.run({
+            project: '/home/george/hope/applicaster/zapp-roku-app/bsconfig-test.json'
+            // project: '/home/george/hope/open-source/maestro/swerve-app/bsconfig-test.json'
+        }).catch(e => {
+            console.error(e);
+        });
     });
 });
 

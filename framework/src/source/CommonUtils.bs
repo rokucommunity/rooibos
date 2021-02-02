@@ -663,7 +663,7 @@ namespace rooibos.Common
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
   function eqArray(Value1, Value2) as dynamic
-    if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value) then return false
+    if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value2) then return false
 
     l1 = Value1.Count()
     l2 = Value2.Count()

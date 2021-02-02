@@ -19,15 +19,13 @@ namespace rooibos
     m.global = screen.getGlobalNode()
     m.global.addFields({ "testsScene": scene })
 
-    args.testScene = scene
-    args.global = m.global
     if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false
       ? "The scene is not ready yet - waiting for it to set isReadyToStartTests to true"
       scene.observeField("isReadyToStartTests", m.port)
 
     else
       ? "scene is ready; running tests now"
-      runner = new TestRunner(args, m)
+      runner = new TestRunner(scene, m)
       runner.Run()
     end if
 
@@ -42,7 +40,7 @@ namespace rooibos
 
         if msg.getField() = "isReadyToStartTests" and msg.getData() = true
           ? "scene is ready; running tests now"
-          runner = new TestRunner(args, m)
+          runner = new TestRunner(scene, m)
           runner.Run()
         end if
       end if

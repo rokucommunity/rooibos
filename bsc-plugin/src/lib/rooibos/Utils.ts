@@ -1,7 +1,8 @@
-import type { ClassMethodStatement, ClassStatement, Expression, FunctionStatement, Statement } from 'brighterscript';
-import { BinaryExpression, Block, createIdentifier, createStringLiteral, createToken, isClassMethodStatement, isClassStatement, Lexer, ParseMode, Parser, TokenKind, Range, IfStatement } from 'brighterscript';
+import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression } from 'brighterscript';
+import { BinaryExpression, Block, createIdentifier, createStringLiteral, createToken, isClassMethodStatement, Lexer, ParseMode, Parser, TokenKind, Range, IfStatement, ClassMethodStatement } from 'brighterscript';
 
 import * as rokuDeploy from 'roku-deploy';
+import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 
 export function spliceString(str: string, index: number, count: number, add: string): string {
     // We cannot pass negative indexes directly to the 2nd slicing operation.
@@ -75,19 +76,30 @@ export function changeFunctionBody(statement: ClassMethodStatement | FunctionSta
     }
 }
 
-export function addOverriddenMethod(target: ClassStatement, name: string, source: string): boolean {
-    let statement = makeASTFunction(`
-  class wrapper
-  override function ${name}()
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string): boolean {
+    let funcSource = `
+  function ${name}()
     ${source}
   end function
-  end class
-  `);
-    if (isClassStatement(statement)) {
-        let classStatement = statement as ClassStatement;
-        target.body.push(classStatement.methods[0]);
-        return true;
+  `;
+
+    let tokens = Lexer.scan(funcSource).tokens;
+    let { statements, diagnostics } = Parser.parse(tokens, { mode: ParseMode.BrighterScript });
+    let error = '';
+    if (statements && statements.length > 0) {
+        let statement = statements[0] as FunctionStatement;
+        if (statement.func.body.statements.length > 0) {
+            let p = createToken(TokenKind.Public, 'public', target.range);
+            let o = createToken(TokenKind.Override, 'override', target.range);
+            let n = createIdentifier(name, target.range).name;
+            let cms = new ClassMethodStatement(p, n, statement.func, o);
+            target.body.push(cms);
+            return true;
+        }
+
     }
+    error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
+    diagnosticCorruptTestProduced(file, annotation, error, funcSource);
     return false;
 }
 
@@ -164,4 +176,5 @@ function driveLetterToLower(fullPath: string) {
         }
     }
     return fullPath;
+
 }

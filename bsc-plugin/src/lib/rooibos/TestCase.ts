@@ -35,25 +35,9 @@ export class TestCase {
     public rawParams: any[];
     public paramTestIndex: number;
 
-    public asJson(): any {
-        return {
-            isSolo: this.isSolo,
-            funcName: this.funcName,
-            isIgnored: this.isIgnored,
-            isParamTest: this.isParamTest,
-            name: this.name,
-            lineNumber: this.lineNumber + 2,
-            paramLineNumber: this.paramLineNumber,
-            assertIndex: this.assertIndex,
-            assertLineNumberMap: this.assertLineNumberMap,
-            rawParams: this.rawParams ? JSON.stringify(this.rawParams).replace(/null/g, 'invalid') : '',
-            paramTestIndex: this.paramTestIndex,
-            expectedNumberOfParams: this.expectedNumberOfParams,
-            isParamsValid: (this.rawParams || []).length === this.expectedNumberOfParams
-        };
-    }
-
     public asText(): string {
+        let rawParamsText = this.fixBadJson(this.rawParams).replace(/null/g, 'invalid');
+
         return `
         {
           isSolo: ${this.isSolo}
@@ -65,7 +49,7 @@ export class TestCase {
           paramLineNumber: ${this.paramLineNumber}
           assertIndex: ${this.assertIndex}
           assertLineNumberMap: ${JSON.stringify(this.assertLineNumberMap)}
-          rawParams: ${this.rawParams ? JSON.stringify(this.rawParams).replace(/null/g, 'invalid') : '[]'}
+          rawParams: ${rawParamsText}
           paramTestIndex: ${this.paramTestIndex}
           expectedNumberOfParams: ${this.expectedNumberOfParams}
           isParamsValid: ${(this.rawParams || []).length === this.expectedNumberOfParams}
@@ -75,6 +59,29 @@ export class TestCase {
     public addAssertLine(lineNumber: number) {
         this.assertLineNumberMap[this.assertIndex.toString().trim()] = lineNumber;
         this.assertIndex++;
+    }
+
+    fixBadJson(o) {
+        // In case of an array we'll stringify all objects.
+        if (Array.isArray(o)) {
+            return `[${
+                o
+                    .map(obj => `${this.fixBadJson(obj)}`)
+                    .join(',')
+            }]`;
+        }
+        // not an object, stringify using native function
+        if (typeof o !== 'object' || o === null) {
+            return JSON.stringify(o);
+        }
+        return `{${
+            Object
+                .keys(o)
+                .map(key => {
+                    return `"${key.replace(/"/g, '')}":${this.fixBadJson(o[key])}`;
+                })
+                .join(',')
+        }}`;
     }
 
 }
