@@ -1,6 +1,6 @@
 {
   "name": "rooibos-roku",
-  "version": "4.0.0-b9",
+  "version": "4.0.0-b10",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
   "files": [
     "dist/**/!(*.spec.*)*"
@@ -23,7 +23,7 @@
     "@types/sinon": "^9.0.4",
     "@typescript-eslint/eslint-plugin": "^4.4.1",
     "@typescript-eslint/parser": "^4.4.1",
-    "brighterscript": "file:../../vsc/brighterscript",
+    "brighterscript": "^0.30.4",
     "chai": "^4.2.0",
     "chai-files": "^1.4.0",
     "chai-subset": "^1.6.0",

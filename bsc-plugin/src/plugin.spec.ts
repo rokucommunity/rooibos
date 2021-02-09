@@ -357,6 +357,7 @@ end function`).trim());
             isSolo: false,
             isIgnored: false,
             filename: "source/test.spec.bs",
+            lineNumber: "3",
             setupFunctionName: "",
             tearDownFunctionName: "",
             beforeEachFunctionName: "",
@@ -540,8 +541,8 @@ end function`).trim());
 
 });
 
-describe('run a local project', () => {
-    it.only('sanity checks on parsing - only run this outside of ci', () => {
+describe.skip('run a local project', () => {
+    it('sanity checks on parsing - only run this outside of ci', () => {
         let programBuilder = new ProgramBuilder();
         programBuilder.run({
             project: '/home/george/hope/applicaster/zapp-roku-app/bsconfig-test.json'
