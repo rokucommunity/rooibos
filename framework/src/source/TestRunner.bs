@@ -54,7 +54,7 @@ namespace rooibos
           testSuite.context = m.nodeContext
           testSuite.top = m.nodeContext.top
           testSuite.scene = m.nodeContext.global.testsScene
-
+          testSuite.catchCrashes = m.config.catchCrashes
           m.runTestSuite(testSuite)
           if m.stats.hasFailures = true and m.config.failFast = true
             exit for

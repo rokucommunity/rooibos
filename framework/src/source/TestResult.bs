@@ -7,6 +7,7 @@ namespace rooibos
     public lineNumber = -1
     public test = invalid
     public time = 0
+    public error = invalid
 
     function new(test)
       m.test = test
@@ -30,11 +31,11 @@ namespace rooibos
       end if
     end function
 
-    function crash(message as string, lineNumber = -1)
+    function crash(message as string, error)
       if message <> "" and not m.isCrash
         if not m.isCrash
-          m.lineNumber = lineNumber
-          m.message = message
+          m.error = error
+          m.message = "test crashed!"
           m.isFail = true
           m.isCrash = true
         end if
@@ -60,10 +61,10 @@ namespace rooibos
     end function
 
     function getStatusText()
-      if m.isFail
-        return "FAIL"
-      else if m.isCrash
+      if m.isCrash
         return "CRASH"
+      else if m.isFail
+        return "FAIL"
       else
         return "PASS"
       end if

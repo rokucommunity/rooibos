@@ -41,6 +41,7 @@ export class TestCase {
         return `
         {
           isSolo: ${this.isSolo}
+          noCatch: ${this.annotation.noCatch}
           funcName: "${this.funcName || ''}"
           isIgnored: ${this.isIgnored}
           isParamTest: ${this.isParamTest}

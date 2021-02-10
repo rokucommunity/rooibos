@@ -74,7 +74,10 @@ namespace rooibos
     end function
 
     function printTest(test)
-      if test.result.isFail
+      if test.result.isCrash
+        testChar = "|"
+        locationLine = StrI(test.lineNumber).trim()
+      else if test.result.isFail
         testChar = "-"
         locationLine = StrI(test.result.lineNumber + 1).trim()
       else
@@ -121,13 +124,26 @@ namespace rooibos
         m.printLine(0, messageLine + test.result.getStatusText() + timeText)
       end if
 
-      if test.result.isFail
+      if test.result.isCrash
+        m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
+        m.printStackTrace(insettext, test.result.error)
+      else if test.result.isFail
         m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
         if test.isParamTest = true
           m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramlineNumber).trim())
         end if
         m.printLine(0, " | " + insettext + "  |--Error Message: " + test.result.message)
       end if
+    end function
+
+    function printStackTrace(insettext, error)
+      m.printLine(0, " | " + insettext + "  |--Stack trace: ")
+      for i = error.backTrace.count() - 1 to 0 step -1
+        e = error.backTrace[i]
+        if e.filename.instr("pkg:/source/rooibos") = -1
+          m.printLine(0, " | " + insettext + "    " + e.filename + "(" + stri(e.line_number).trim() + ")")
+        end if
+      end for
     end function
 
     function startReport()

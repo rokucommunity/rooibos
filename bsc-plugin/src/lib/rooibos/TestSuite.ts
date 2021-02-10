@@ -122,6 +122,7 @@ export class TestSuite extends TestBlock {
         return `{
       name: ${sanitizeBsJsonString(this.name)}
       isSolo: ${this.isSolo}
+      noCatch: ${this.annotation.noCatch}
       isIgnored: ${this.isIgnored}
       pkgPath: "${this.pkgPath}"
       filePath: "${this.filePath}"

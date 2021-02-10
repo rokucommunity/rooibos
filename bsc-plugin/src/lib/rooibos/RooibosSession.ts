@@ -86,6 +86,7 @@ end function`);
       "lineWidth": ${this.config.lineWidth || 60}
       "printLcov": ${this.config.printLcov ? 'true' : 'false'}
       "port": "${this.config.port || 'invalid'}"
+      "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
     }`));
         }
     }

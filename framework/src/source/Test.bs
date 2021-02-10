@@ -3,6 +3,7 @@ namespace rooibos
 
     public name
     public isSolo
+    public noCatch = false
     public funcName
     public isIgnored
     public lineNumber
@@ -21,6 +22,7 @@ namespace rooibos
       m.testGroup = testGroup
       m.testSuite = testGroup.testSuite
       m.isSolo = data.isSolo
+      m.noCatch = data.noCatch
       m.funcName = data.funcName
       m.isIgnored = data.isIgnored
       m.name = data.name

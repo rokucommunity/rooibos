@@ -18,4 +18,5 @@ export interface RooibosConfig {
     lineWidth?: number;
     includeFilters?: string[];
     tags?: string[];
+    catchCrashes?: boolean;
 }

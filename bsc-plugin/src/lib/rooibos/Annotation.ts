@@ -16,7 +16,8 @@ export enum AnnotationType {
     Params = 'params',
     IgnoreParams = 'ignoreparams',
     SoloParams = 'onlyparams',
-    Tags = 'tags'
+    Tags = 'tags',
+    NoCatch = 'nocatch'
 }
 
 let annotationLookup = {
@@ -33,7 +34,8 @@ let annotationLookup = {
     params: AnnotationType.Params,
     ignoreparams: AnnotationType.IgnoreParams,
     onlyparams: AnnotationType.SoloParams,
-    tags: AnnotationType.Tags
+    tags: AnnotationType.Tags,
+    nocatch: AnnotationType.NoCatch
 };
 
 interface ParsedComment {
@@ -49,7 +51,8 @@ export class AnnotationParams {
         public lineNumber: number,
         public params: any[],
         public isIgnore = false,
-        public isSolo = false
+        public isSolo = false,
+        public noCatch = false,
     ) {
 
     }
@@ -69,7 +72,8 @@ export class RooibosAnnotation {
         public isSolo = false,
         public params: AnnotationParams[] = [],
         public nodeName?: string,
-        rawTags: string[] = []
+        rawTags: string[] = [],
+        public noCatch = false
     ) {
         this.tags = new Set<string>(rawTags);
     }
@@ -83,6 +87,7 @@ export class RooibosAnnotation {
         let testAnnotation: RooibosAnnotation;
         let isSolo = false;
         let isIgnore = false;
+        let noCatch = false;
         let nodeName = null;
         let tags = [];
         if (statement.annotations?.length) {
@@ -95,6 +100,9 @@ export class RooibosAnnotation {
             for (let annotation of statement.annotations) {
                 const annotationType = getAnnotationType(annotation.name);
                 switch (annotationType) {
+                    case AnnotationType.NoCatch:
+                        noCatch = true;
+                        break;
                     case AnnotationType.Solo:
                         isSolo = true;
                         break;
@@ -116,7 +124,7 @@ export class RooibosAnnotation {
                     case AnnotationType.Describe:
                     case AnnotationType.TestSuite:
                         const groupName = annotation.getArguments()[0] as string;
-                        blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags);
+                        blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch);
                         nodeName = null;
                         isSolo = false;
                         isIgnore = false;
@@ -126,7 +134,7 @@ export class RooibosAnnotation {
                         if (!testName || testName.trim() === '') {
                             diagnosticNoTestNameDefined(file, annotation);
                         }
-                        let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags);
+                        let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
                         if (testAnnotation) {
                             diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
                         } else {

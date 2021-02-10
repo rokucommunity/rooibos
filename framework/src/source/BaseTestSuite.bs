@@ -41,6 +41,7 @@ namespace rooibos
     currentResult = invalid
 
     protected global = invalid
+    public catchCrashes = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ base methods to override
@@ -123,13 +124,27 @@ namespace rooibos
       ? ""
 
       m.currentResult = test.result
-      test.run()
-
-      if m.isAutoAssertingMocks = true
-        m.AssertMocks()
-        m.CleanMocks()
-        m.CleanStubs()
+      if m.catchCrashes
+        try
+          test.run()
+          if m.isAutoAssertingMocks = true
+            m.AssertMocks()
+            m.CleanMocks()
+            m.CleanStubs()
+          end if
+        catch error
+          m.currentResult.crash("test crashed!", error)
+        end try
+      else
+        test.run()
+        if m.isAutoAssertingMocks = true
+          m.AssertMocks()
+          m.CleanMocks()
+          m.CleanStubs()
+        end if
       end if
+
+      ? rooibos.common.fillText("<<<< END It: " + test.name + " (" + m.currentResult.getStatusText() + ") ", "<", 80)
 
     end function
 
