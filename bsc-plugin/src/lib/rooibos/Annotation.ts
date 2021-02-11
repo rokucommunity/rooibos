@@ -52,7 +52,7 @@ export class AnnotationParams {
         public params: any[],
         public isIgnore = false,
         public isSolo = false,
-        public noCatch = false,
+        public noCatch = false
     ) {
 
     }
@@ -147,7 +147,7 @@ export class RooibosAnnotation {
                     case AnnotationType.SoloParams:
                     case AnnotationType.IgnoreParams:
                         if (testAnnotation) {
-                            testAnnotation.parseParams(file, annotation, annotation.name, annotationType);
+                            testAnnotation.parseParams(file, annotation, annotationType, noCatch);
                         } else {
                             //error
                         }
@@ -161,7 +161,7 @@ export class RooibosAnnotation {
         return { blockAnnotation: blockAnnotation, testAnnotation: testAnnotation };
     }
 
-    public parseParams(file: BrsFile, annotation: AnnotationExpression, text: string, annotationType: AnnotationType) {
+    public parseParams(file: BrsFile, annotation: AnnotationExpression, annotationType: AnnotationType, noCatch: boolean) {
         let rawParams = JSON.stringify(annotation.getArguments());
         let isSolo = annotationType === AnnotationType.SoloParams;
         let isIgnore = annotationType === AnnotationType.IgnoreParams;
@@ -170,7 +170,7 @@ export class RooibosAnnotation {
         }
         try {
             if (rawParams) {
-                this.params.push(new AnnotationParams(annotation, rawParams, annotation.range.start.line, annotation.getArguments() as any, isIgnore, isSolo));
+                this.params.push(new AnnotationParams(annotation, rawParams, annotation.range.start.line, annotation.getArguments() as any, isIgnore, isSolo, noCatch));
             } else {
                 diagnosticIllegalParams(file, annotation);
             }

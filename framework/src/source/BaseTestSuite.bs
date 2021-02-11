@@ -124,7 +124,7 @@ namespace rooibos
       ? ""
 
       m.currentResult = test.result
-      if m.catchCrashes
+      if m.catchCrashes and not test.noCatch and not m.noCatch
         try
           test.run()
           if m.isAutoAssertingMocks = true
