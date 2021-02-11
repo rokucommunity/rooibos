@@ -16,6 +16,7 @@ namespace rooibos
     hasIgnoredTests = false
     isSolo = false
     isIgnored = false
+    noCatch = false
     isNodeTest = false
     nodeName = invalid
     lineNumber = 1
@@ -61,12 +62,14 @@ namespace rooibos
         m.hasSoloGroups = data.hasSoloGroups
         m.isSolo = data.isSolo
         m.isIgnored = data.isIgnored
+        m.noCatch = data.noCatch
         m.groupsData = data.testGroups
         m.lineNumber = data.lineNumber
         m.isNodeTest = false
         m.nodeName = invalid
         m.isFailingFast = false
         m.stats = new Stats()
+        m.noCatch = false
       end if
     end function
 
