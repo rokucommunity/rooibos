@@ -46,35 +46,53 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function run()
-      m.runSuiteFunction(m.setupFunctionName, "setup")
+      isOk = m.runSuiteFunction(m.setupFunctionName, "setup")
 
-      for each testData in m.testsData
-        test = new Test(m, testData)
-        m.tests.push(test)
-        m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach")
+      if isOk
+        for each testData in m.testsData
+          test = new Test(m, testData)
+          m.tests.push(test)
 
-        m.testSuite.runTest(test)
-        m.stats.appendTestResult(test.result)
+          isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", test)
 
-        m.runSuiteFunction(m.afterEachFunctionName, "afterEach")
+          if isOk
+            m.testSuite.runTest(test)
+          end if
 
-        if m.stats.hasFailures and m.testSuite.isFailingFast
-          ? "Terminating group due to failed test"
-          exit for
-        end if
+          m.runSuiteFunction(m.afterEachFunctionName, "afterEach", test)
 
-      end for
+          m.stats.appendTestResult(test.result)
 
+          if m.stats.hasFailures and m.testSuite.isFailingFast
+            ? "Terminating group due to failed test"
+            exit for
+          end if
+
+        end for
+      end if
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
     end function
 
-    private function runSuiteFunction(methodName, defaultMethodName)
-      if methodName <> invalid and methodName <> ""
-        m.testSuite[methodName]()
+    private function runSuiteFunction(methodName, defaultMethodName, test = invalid)
+
+      if methodName = invalid or methodName = ""
+        methodName = defaultMethodName
+      end if
+      if m.testSuite.catchCrashes and not m.testSuite.noCatch and not (test <> invalid and test.noCatch)
+        try
+          m.testSuite[methodName]()
+          return true
+        catch error
+          if test <> invalid
+            test.result.crash("function " + methodName + "crashed!", error)
+          end if
+        end try
       else
-        m.testSuite[defaultMethodName]()
+        m.testSuite[methodName]()
+        return true
       end if
 
+      return false
     end function
 
   end class

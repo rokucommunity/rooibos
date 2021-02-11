@@ -1,6 +1,6 @@
 {
   "name": "rooibos-roku",
-  "version": "4.0.5",
+  "version": "4.0.6",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
   "files": [
     "dist/**/!(*.spec.*)*"
