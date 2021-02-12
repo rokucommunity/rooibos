@@ -182,11 +182,15 @@ namespace rooibos
     '  */
     function assertFalse(expr, msg = "Expression evaluates to true") as dynamic
       if m.currentResult.isFail then return false
-      if not Rooibos.Common.isBoolean(expr) or expr
-        return m.fail(msg)
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+      try
+        if not Rooibos.Common.isBoolean(expr) or expr
+          return m.fail(msg)
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
     end function
 
     ' /**
@@ -201,14 +205,17 @@ namespace rooibos
     '  */
     function assertTrue(expr, msg = "Expression evaluates to false")
       if m.currentResult.isFail then return false
+      try
+        if not Rooibos.Common.isBoolean(expr) or not expr
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
 
-      if not Rooibos.Common.isBoolean(expr) or not expr
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
     end function
 
     ' /**
@@ -224,17 +231,22 @@ namespace rooibos
     '  */
     function assertEqual(first, second, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if not Rooibos.Common.eqValues(first, second)
-        if msg = ""
-          first_as_string = Rooibos.Common.asString(first)
-          second_as_string = Rooibos.Common.asString(second)
-          msg = first_as_string + " != " + second_as_string
+      try
+        if not Rooibos.Common.eqValues(first, second)
+          if msg = ""
+            first_as_string = Rooibos.Common.asString(first)
+            second_as_string = Rooibos.Common.asString(second)
+            msg = first_as_string + " != " + second_as_string
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
         end if
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -250,17 +262,22 @@ namespace rooibos
     '  */
     function assertLike(first, second, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if first <> second
-        if msg = ""
-          first_as_string = Rooibos.Common.asString(first)
-          second_as_string = Rooibos.Common.asString(second)
-          msg = first_as_string + " != " + second_as_string
+      try
+        if first <> second
+          if msg = ""
+            first_as_string = Rooibos.Common.asString(first)
+            second_as_string = Rooibos.Common.asString(second)
+            msg = first_as_string + " != " + second_as_string
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
         end if
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -276,17 +293,22 @@ namespace rooibos
     '  */
     function assertNotEqual(first, second, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.eqValues(first, second)
-        if msg = ""
-          first_as_string = Rooibos.Common.asString(first)
-          second_as_string = Rooibos.Common.asString(second)
-          msg = first_as_string + " == " + second_as_string
+      try
+        if Rooibos.Common.eqValues(first, second)
+          if msg = ""
+            first_as_string = Rooibos.Common.asString(first)
+            second_as_string = Rooibos.Common.asString(second)
+            msg = first_as_string + " == " + second_as_string
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
         end if
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -301,16 +323,22 @@ namespace rooibos
     '  */
     function assertInvalid(value, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if value <> invalid
-        if msg = ""
-          expr_as_string = Rooibos.Common.asString(value)
-          msg = expr_as_string + " <> Invalid"
+
+      try
+        if value <> invalid
+          if msg = ""
+            expr_as_string = Rooibos.Common.asString(value)
+            msg = expr_as_string + " <> Invalid"
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
         end if
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -325,16 +353,21 @@ namespace rooibos
     '  */
     function assertNotInvalid(value, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if value = invalid
-        if msg = ""
-          expr_as_string = Rooibos.Common.asString(value)
-          msg = expr_as_string + " = Invalid"
+      try
+        if value = invalid
+          if msg = ""
+            expr_as_string = Rooibos.Common.asString(value)
+            msg = expr_as_string + " = Invalid"
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
         end if
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -350,21 +383,26 @@ namespace rooibos
     '  */
     function assertAAHasKey(array, key, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array)
-        if not array.DoesExist(key)
-          if msg = ""
-            msg = "Array doesn't have the '" + key + "' key."
+      try
+        if Rooibos.Common.isAssociativeArray(array)
+          if not array.DoesExist(key)
+            if msg = ""
+              msg = "Array doesn't have the '" + key + "' key."
+            end if
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
           end if
+        else
+          msg = "Input value is not an Associative Array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Associative Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -380,21 +418,27 @@ namespace rooibos
     '  */
     function assertAANotHasKey(array, key, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array)
-        if array.DoesExist(key)
-          if msg = ""
-            msg = "Array has the '" + key + "' key."
+
+      try
+        if Rooibos.Common.isAssociativeArray(array)
+          if array.DoesExist(key)
+            if msg = ""
+              msg = "Array has the '" + key + "' key."
+            end if
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
           end if
+        else
+          msg = "Input value is not an Associative Array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Associative Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -410,23 +454,29 @@ namespace rooibos
     '  */
     function assertAAHasKeys(array, keys, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isArray(keys)
-        for each key in keys
-          if not array.DoesExist(key)
-            if msg = ""
-              msg = "Array doesn't have the '" + key + "' key."
+
+      try
+        if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isArray(keys)
+          for each key in keys
+            if not array.DoesExist(key)
+              if msg = ""
+                msg = "Array doesn't have the '" + key + "' key."
+              end if
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        end for
-      else
-        msg = "Input value is not an Associative Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+          end for
+        else
+          msg = "Input value is not an Associative Array."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -442,23 +492,28 @@ namespace rooibos
     '  */
     function assertAANotHasKeys(array, keys, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isArray(keys)
-        for each key in keys
-          if array.DoesExist(key)
-            if msg = ""
-              msg = "Array has the '" + key + "' key."
+      try
+        if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isArray(keys)
+          for each key in keys
+            if array.DoesExist(key)
+              if msg = ""
+                msg = "Array has the '" + key + "' key."
+              end if
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        end for
-      else
-        msg = "Input value is not an Associative Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+          end for
+        else
+          msg = "Input value is not an Associative Array."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
 
@@ -477,19 +532,24 @@ namespace rooibos
     '  */
     function assertArrayContains(array, value, key = invalid, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
-        if not Rooibos.Common.arrayContains(array, value, key)
-          msg = "Array doesn't have the '" + Rooibos.Common.asString(value) + "' value."
+      try
+        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
+          if not Rooibos.Common.arrayContains(array, value, key)
+            msg = "Array doesn't have the '" + Rooibos.Common.asString(value) + "' value."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an Array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -505,53 +565,57 @@ namespace rooibos
     '  */
     function assertArrayContainsAAs(array, values, msg = "") as dynamic
       if m.currentResult.isFail then return false
+      try
+        if not Rooibos.Common.isArray(values)
+          msg = "values to search for are not an Array."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
 
-      if not Rooibos.Common.isArray(values)
-        msg = "values to search for are not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-
-      if Rooibos.Common.isArray(array)
-        for each value in values
-          isMatched = false
-          if not Rooibos.Common.isAssociativeArray(value)
-            msg = "Value to search for was not associativeArray " + Rooibos.Common.asString(value)
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-          for each item in array
-            if Rooibos.Common.IsAssociativeArray(item)
-              isValueMatched = true
-              for each key in value
-                fieldValue = value[key]
-                itemValue = item[key]
-                if not Rooibos.Common.eqValues(fieldValue, itemValue)
-                  isValueMatched = false
+        if Rooibos.Common.isArray(array)
+          for each value in values
+            isMatched = false
+            if not Rooibos.Common.isAssociativeArray(value)
+              msg = "Value to search for was not associativeArray " + Rooibos.Common.asString(value)
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
+            end if
+            for each item in array
+              if Rooibos.Common.IsAssociativeArray(item)
+                isValueMatched = true
+                for each key in value
+                  fieldValue = value[key]
+                  itemValue = item[key]
+                  if not Rooibos.Common.eqValues(fieldValue, itemValue)
+                    isValueMatched = false
+                    exit for
+                  end if
+                end for
+                if isValueMatched
+                  isMatched = true
                   exit for
                 end if
-              end for
-              if isValueMatched
-                isMatched = true
-                exit for
               end if
+            end for ' items in array
+
+            if not isMatched
+              msg = "array missing value: " + Rooibos.Common.asString(value)
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
             end if
-          end for ' items in array
 
-          if not isMatched
-            msg = "array missing value: " + Rooibos.Common.asString(value)
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
+          end for 'values to match
+        else
+          msg = "Input value is not an Array."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
 
-        end for 'values to match
-      else
-        msg = "Input value is not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
     end function
 
     ' /**
@@ -569,19 +633,24 @@ namespace rooibos
     '  */
     function assertArrayNotContains(array, value, key = invalid, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
-        if Rooibos.Common.arrayContains(array, value, key)
-          msg = "Array has the '" + Rooibos.Common.asString(value) + "' value."
+      try
+        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
+          if Rooibos.Common.arrayContains(array, value, key)
+            msg = "Array has the '" + Rooibos.Common.asString(value) + "' value."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an Array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -597,28 +666,33 @@ namespace rooibos
     '  */
     function assertArrayContainsSubset(array, subset, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if (Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)) or (Rooibos.Common.isArray(array) and Rooibos.Common.isArray(subset))
-        isAA = Rooibos.Common.isAssociativeArray(subset)
-        for each item in subset
-          key = invalid
-          value = item
-          if isAA
-            key = item
-            value = subset[key]
-          end if
-          if not Rooibos.Common.arrayContains(array, value, key)
-            msg = "Array doesn't have the '" + Rooibos.Common.asString(value) + "' value."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        end for
-      else
-        msg = "Input value is not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+      try
+        if (Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)) or (Rooibos.Common.isArray(array) and Rooibos.Common.isArray(subset))
+          isAA = Rooibos.Common.isAssociativeArray(subset)
+          for each item in subset
+            key = invalid
+            value = item
+            if isAA
+              key = item
+              value = subset[key]
+            end if
+            if not Rooibos.Common.arrayContains(array, value, key)
+              msg = "Array doesn't have the '" + Rooibos.Common.asString(value) + "' value."
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
+            end if
+          end for
+        else
+          msg = "Input value is not an Array."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -634,28 +708,33 @@ namespace rooibos
     '  */
     function assertArrayNotContainsSubset(array, subset, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if (Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)) or (Rooibos.Common.isArray(array) and Rooibos.Common.isArray(subset))
-        isAA = Rooibos.Common.isAssociativeArray(subset)
-        for each item in subset
-          key = invalid
-          value = item
-          if isAA
-            key = item
-            value = item[key]
-          end if
-          if Rooibos.Common.arrayContains(array, value, key)
-            msg = "Array has the '" + Rooibos.Common.asString(value) + "' value."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        end for
-      else
-        msg = "Input value is not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+      try
+        if (Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)) or (Rooibos.Common.isArray(array) and Rooibos.Common.isArray(subset))
+          isAA = Rooibos.Common.isAssociativeArray(subset)
+          for each item in subset
+            key = invalid
+            value = item
+            if isAA
+              key = item
+              value = item[key]
+            end if
+            if Rooibos.Common.arrayContains(array, value, key)
+              msg = "Array has the '" + Rooibos.Common.asString(value) + "' value."
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
+            end if
+          end for
+        else
+          msg = "Input value is not an Array."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -671,19 +750,24 @@ namespace rooibos
     '  */
     function assertArrayCount(array, count, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
-        if array.Count() <> count
-          msg = "Array items count " + Rooibos.Common.asString(array.Count()) + " <> " + Rooibos.Common.asString(count) + "."
+      try
+        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
+          if array.Count() <> count
+            msg = "Array items count " + Rooibos.Common.asString(array.Count()) + " <> " + Rooibos.Common.asString(count) + "."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an Array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -699,19 +783,24 @@ namespace rooibos
     '  */
     function assertArrayNotCount(array, count, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
-        if array.Count() = count
-          msg = "Array items count = " + Rooibos.Common.asString(count) + "."
+      try
+        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
+          if array.Count() = count
+            msg = "Array items count = " + Rooibos.Common.asString(count) + "."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an Array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -726,25 +815,30 @@ namespace rooibos
     '  */
     function assertEmpty(item, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(item) or Rooibos.Common.isArray(item)
-        if item.count() > 0
-          msg = "Array is not empty."
+      try
+        if Rooibos.Common.isAssociativeArray(item) or Rooibos.Common.isArray(item)
+          if item.count() > 0
+            msg = "Array is not empty."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else if Rooibos.Common.isString(item)
+          if Rooibos.Common.asString(item) <> ""
+            msg = "Input value is not empty."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "AssertEmpty: Input value was not an array or a string"
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else if Rooibos.Common.isString(item)
-        if Rooibos.Common.asString(item) <> ""
-          msg = "Input value is not empty."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
-          return false
-        end if
-      else
-        msg = "AssertEmpty: Input value was not an array or a string"
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -759,25 +853,30 @@ namespace rooibos
     '  */
     function assertNotEmpty(item, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(item) or Rooibos.Common.isArray(item)
-        if item.count() = 0
-          msg = "Array is empty."
+      try
+        if Rooibos.Common.isAssociativeArray(item) or Rooibos.Common.isArray(item)
+          if item.count() = 0
+            msg = "Array is empty."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else if Rooibos.Common.isString(item)
+          if item = ""
+            msg = "Input value is empty."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not a string or array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else if Rooibos.Common.isString(item)
-        if item = ""
-          msg = "Input value is empty."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
-          return false
-        end if
-      else
-        msg = "Input value is not a string or array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -793,35 +892,41 @@ namespace rooibos
     '  */
     function assertArrayContainsOnlyValuesOfType(array, typeStr, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if typeStr <> "String" and typeStr <> "Integer" and typeStr <> "Boolean" and typeStr <> "Array" and typeStr <> "AssociativeArray"
-        msg = "Type must be Boolean, String, Array, Integer, or AssociativeArray"
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
+      try
 
-      if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
-        methodName = "Rooibos_Common_Is" + typeStr
-        typeCheckFunction = m.getIsTypeFunction(methodName)
-        if typeCheckFunction <> invalid
-          for each item in array
-            if not typeCheckFunction(item)
-              msg = Rooibos.Common.asString(item) + "is not a '" + typeStr + "' type."
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
-              return false
-            end if
-          end for
-        else
-          msg = "could not find comparator for type '" + typeStr + "' type."
+        if typeStr <> "String" and typeStr <> "Integer" and typeStr <> "Boolean" and typeStr <> "Array" and typeStr <> "AssociativeArray"
+          msg = "Type must be Boolean, String, Array, Integer, or AssociativeArray"
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Array."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+
+        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
+          methodName = "Rooibos_Common_Is" + typeStr
+          typeCheckFunction = m.getIsTypeFunction(methodName)
+          if typeCheckFunction <> invalid
+            for each item in array
+              if not typeCheckFunction(item)
+                msg = Rooibos.Common.asString(item) + "is not a '" + typeStr + "' type."
+                m.currentResult.fail(msg, m.currentAssertLineNumber)
+                return false
+              end if
+            end for
+          else
+            msg = "could not find comparator for type '" + typeStr + "' type."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an Array."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     function getIsTypeFunction(name)
@@ -873,16 +978,21 @@ namespace rooibos
     '  */
     function assertType(value, typeStr, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(value) <> typeStr
-        if msg = ""
-          expr_as_string = Rooibos.Common.asString(value)
-          msg = expr_as_string + " was not expected type " + typeStr
+      try
+        if type(value) <> typeStr
+          if msg = ""
+            expr_as_string = Rooibos.Common.asString(value)
+            msg = expr_as_string + " was not expected type " + typeStr
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
         end if
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -898,23 +1008,28 @@ namespace rooibos
     '  */
     function assertSubType(value, typeStr, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(value) <> "roSGNode"
-        if msg = ""
-          expr_as_string = Rooibos.Common.asString(value)
-          msg = expr_as_string + " was not a node, so could not match subtype " + typeStr
+      try
+        if type(value) <> "roSGNode"
+          if msg = ""
+            expr_as_string = Rooibos.Common.asString(value)
+            msg = expr_as_string + " was not a node, so could not match subtype " + typeStr
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        else if value.subType() <> typeStr
+          if msg = ""
+            expr_as_string = Rooibos.Common.asString(value)
+            msg = expr_as_string + "( type : " + value.subType() + ") was not of subType " + typeStr
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
         end if
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      else if value.subType() <> typeStr
-        if msg = ""
-          expr_as_string = Rooibos.Common.asString(value)
-          msg = expr_as_string + "( type : " + value.subType() + ") was not of subType " + typeStr
-        end if
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
 
@@ -935,19 +1050,24 @@ namespace rooibos
     '  */
     function assertNodeCount(node, count, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(node) = "roSGNode"
-        if node.getChildCount() <> count
-          msg = "node items count <> " + Rooibos.Common.asString(count) + ". Received " + Rooibos.Common.asString(node.getChildCount())
+      try
+        if type(node) = "roSGNode"
+          if node.getChildCount() <> count
+            msg = "node items count <> " + Rooibos.Common.asString(count) + ". Received " + Rooibos.Common.asString(node.getChildCount())
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an node."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an node."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -963,19 +1083,24 @@ namespace rooibos
     '  */
     function assertNodeNotCount(node, count, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(node) = "roSGNode"
-        if node.getChildCount() = count
-          msg = "node items count = " + Rooibos.Common.asString(count) + "."
+      try
+        if type(node) = "roSGNode"
+          if node.getChildCount() = count
+            msg = "node items count = " + Rooibos.Common.asString(count) + "."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an node."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an node."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -990,15 +1115,20 @@ namespace rooibos
     '  */
     function assertNodeEmpty(node, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(node) = "roSGNode"
-        if node.getChildCount() > 0
-          msg = "node is not empty."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
-          return false
+      try
+        if type(node) = "roSGNode"
+          if node.getChildCount() > 0
+            msg = "node is not empty."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
         end if
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -1013,15 +1143,20 @@ namespace rooibos
     '  */
     function assertNodeNotEmpty(node, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(node) = "roSGNode"
-        if node.Count() = 0
-          msg = "Array is empty."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
-          return false
+      try
+        if type(node) = "roSGNode"
+          if node.Count() = 0
+            msg = "Array is empty."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
         end if
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -1037,19 +1172,24 @@ namespace rooibos
     '  */
     function assertNodeContains(node, value, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(node) = "roSGNode"
-        if not Rooibos.Common.nodeContains(node, value)
-          msg = "Node doesn't have the '" + Rooibos.Common.asString(value) + "' value."
+      try
+        if type(node) = "roSGNode"
+          if not Rooibos.Common.nodeContains(node, value)
+            msg = "Node doesn't have the '" + Rooibos.Common.asString(value) + "' value."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an Node."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Node."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -1065,23 +1205,28 @@ namespace rooibos
     '  */
     function assertNodeContainsOnly(node, value, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(node) = "roSGNode"
-        if not Rooibos.Common.nodeContains(node, value)
-          msg = "Node doesn't have the '" + Rooibos.Common.asString(value) + "' value."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
-          return false
-        else if node.getChildCount() <> 1
-          msg = "Node Contains speicified value; but other values as well"
+      try
+        if type(node) = "roSGNode"
+          if not Rooibos.Common.nodeContains(node, value)
+            msg = "Node doesn't have the '" + Rooibos.Common.asString(value) + "' value."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          else if node.getChildCount() <> 1
+            msg = "Node Contains speicified value; but other values as well"
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an Node."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Node."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
 
@@ -1098,19 +1243,24 @@ namespace rooibos
     '  */
     function assertNodeNotContains(node, value, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if type(node) = "roSGNode"
-        if Rooibos.Common.nodeContains(node, value)
-          msg = "Node has the '" + Rooibos.Common.asString(value) + "' value."
+      try
+        if type(node) = "roSGNode"
+          if Rooibos.Common.nodeContains(node, value)
+            msg = "Node has the '" + Rooibos.Common.asString(value) + "' value."
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else
+          msg = "Input value is not an Node."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-      else
-        msg = "Input value is not an Node."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -1126,31 +1276,36 @@ namespace rooibos
     '  */
     function assertNodeContainsFields(node, subset, ignoredFields = invalid, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if (type(node) = "roSGNode" and Rooibos.Common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and Rooibos.Common.isArray(subset))
-        isAA = Rooibos.Common.isAssociativeArray(subset)
-        isIgnoredFields = Rooibos.Common.isArray(ignoredFields)
-        for each key in subset
-          if key <> ""
-            if not isIgnoredFields or not Rooibos.Common.arrayContains(ignoredFields, key)
-              subsetValue = subset[key]
-              nodeValue = node[key]
-              if not Rooibos.Common.eqValues(nodeValue, subsetValue)
-                msg = key + ": Expected '" + Rooibos.Common.asString(subsetValue) + "', got '" + Rooibos.Common.asString(nodeValue) + "'"
-                m.currentResult.fail(msg, m.currentAssertLineNumber)
-                return false
+      try
+        if (type(node) = "roSGNode" and Rooibos.Common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and Rooibos.Common.isArray(subset))
+          isAA = Rooibos.Common.isAssociativeArray(subset)
+          isIgnoredFields = Rooibos.Common.isArray(ignoredFields)
+          for each key in subset
+            if key <> ""
+              if not isIgnoredFields or not Rooibos.Common.arrayContains(ignoredFields, key)
+                subsetValue = subset[key]
+                nodeValue = node[key]
+                if not Rooibos.Common.eqValues(nodeValue, subsetValue)
+                  msg = key + ": Expected '" + Rooibos.Common.asString(subsetValue) + "', got '" + Rooibos.Common.asString(nodeValue) + "'"
+                  m.currentResult.fail(msg, m.currentAssertLineNumber)
+                  return false
+                end if
               end if
+            else
+              ? "Found empty key!"
             end if
-          else
-            ? "Found empty key!"
-          end if
-        end for
-      else
-        msg = "Input value is not an Node."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+          end for
+        else
+          msg = "Input value is not an Node."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     ' /**
@@ -1166,28 +1321,33 @@ namespace rooibos
     ' */
     function assertNodeNotContainsFields(node, subset, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if (type(node) = "roSGNode" and Rooibos.Common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and Rooibos.Common.isArray(subset))
-        isAA = Rooibos.Common.isAssociativeArray(subset)
-        for each item in subset
-          key = invalid
-          value = item
-          if isAA
-            key = item
-            value = item[key]
-          end if
-          if Rooibos.Common.nodeContains(node, value)
-            msg = "Node has the '" + Rooibos.Common.asString(value) + "' value."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        end for
-      else
-        msg = "Input value is not an Node."
-        m.currentResult.fail(msg, m.currentAssertLineNumber)
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+      try
+        if (type(node) = "roSGNode" and Rooibos.Common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and Rooibos.Common.isArray(subset))
+          isAA = Rooibos.Common.isAssociativeArray(subset)
+          for each item in subset
+            key = invalid
+            value = item
+            if isAA
+              key = item
+              value = item[key]
+            end if
+            if Rooibos.Common.nodeContains(node, value)
+              msg = "Node has the '" + Rooibos.Common.asString(value) + "' value."
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
+            end if
+          end for
+        else
+          msg = "Input value is not an Node."
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1208,31 +1368,36 @@ namespace rooibos
     '  */
     function assertAAContainsSubset(array, subset, ignoredFields = invalid, msg = "") as dynamic
       if m.currentResult.isFail then return false
-      if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)
-        isAA = Rooibos.Common.isAssociativeArray(subset)
-        isIgnoredFields = Rooibos.Common.isArray(ignoredFields)
-        for each key in subset
-          if key <> ""
-            if not isIgnoredFields or not Rooibos.Common.arrayContains(ignoredFields, key)
-              subsetValue = subset[key]
-              arrayValue = array[key]
-              if not Rooibos.Common.eqValues(arrayValue, subsetValue)
-                msg = key + ": Expected '" + Rooibos.Common.asString(subsetValue) + "', got '" + Rooibos.Common.asString(arrayValue) + "'"
-                m.currentResult.fail(msg, m.currentAssertLineNumber)
-                return false
+      try
+        if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)
+          isAA = Rooibos.Common.isAssociativeArray(subset)
+          isIgnoredFields = Rooibos.Common.isArray(ignoredFields)
+          for each key in subset
+            if key <> ""
+              if not isIgnoredFields or not Rooibos.Common.arrayContains(ignoredFields, key)
+                subsetValue = subset[key]
+                arrayValue = array[key]
+                if not Rooibos.Common.eqValues(arrayValue, subsetValue)
+                  msg = key + ": Expected '" + Rooibos.Common.asString(subsetValue) + "', got '" + Rooibos.Common.asString(arrayValue) + "'"
+                  m.currentResult.fail(msg, m.currentAssertLineNumber)
+                  return false
+                end if
               end if
+            else
+              ? "Found empty key!"
             end if
-          else
-            ? "Found empty key!"
-          end if
-        end for
-      else
-        msg = "Input values are not an Associative Array."
+          end for
+        else
+          msg = "Input values are not an Associative Array."
 
-        return false
-      end if
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+          return false
+        end if
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
 
@@ -1303,7 +1468,12 @@ namespace rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-      return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
+      try
+        return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
+      catch error
+        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        return invalid
+      end try
     end function
 
     ' /**
@@ -1321,11 +1491,16 @@ namespace rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expectOnceOrNone(target, methodName, isExpected, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-      if isExpected
-        return m.expectOnce(target, methodName, expectedArgs, returnValue, allowNonExistingMethods)
-      else
-        return m.expectNone(target, methodName, allowNonExistingMethods)
-      end if
+      try
+        if isExpected
+          return m.expectOnce(target, methodName, expectedArgs, returnValue, allowNonExistingMethods)
+        else
+          return m.expectNone(target, methodName, allowNonExistingMethods)
+        end if
+      catch error
+        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        return invalid
+      end try
     end function
 
     ' /**
@@ -1340,7 +1515,13 @@ namespace rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expectNone(target, methodName, allowNonExistingMethods = false) as object
-      return m.mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods)
+      try
+        return m.mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods)
+      catch error
+        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        return invalid
+      end try
+
     end function
 
     ' /**
@@ -1358,7 +1539,12 @@ namespace rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expect(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-      return m.mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods)
+      try
+        return m.mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods)
+      catch error
+        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        return invalid
+      end try
     end function
 
     ' /**
@@ -1873,18 +2059,23 @@ namespace rooibos
     end function
 
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)
-      if m.currentResult.isFail then return false
-      if target = invalid
-        m.fail("Target was invalid")
-      end if
+      try
+        if m.currentResult.isFail then return false
+        if target = invalid
+          m.fail("Target was invalid")
+        end if
 
-      result = m.waitForField(target, fieldName, delay, maxAttempts)
-      if not result
-        return m.fail("Timeout waiting for targetField " + fieldName + " to be set on target")
-      end if
+        result = m.waitForField(target, fieldName, delay, maxAttempts)
+        if not result
+          return m.fail("Timeout waiting for targetField " + fieldName + " to be set on target")
+        end if
 
-      m.currentResult.fail("", m.nextTestLInNumber)
-      return true
+        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Error while waiting: " + error.message, m.currentAssertLineNumber)
+      end try
+
     end function
 
   end class

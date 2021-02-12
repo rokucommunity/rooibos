@@ -137,7 +137,10 @@ namespace rooibos
     end function
 
     function printStackTrace(insettext, error)
+      m.printLine(0, " | " + insettext + "  |")
+      m.printLine(0, " | " + insettext + "  |--Message: " + error.message)
       m.printLine(0, " | " + insettext + "  |--Stack trace: ")
+
       for i = error.backTrace.count() - 1 to 0 step -1
         e = error.backTrace[i]
         if e.filename.instr("pkg:/source/rooibos") = -1
