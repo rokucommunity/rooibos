@@ -26,6 +26,7 @@ export class RooibosPlugin {
     public isFrameworkAdded = false;
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
+
     beforeProgramCreate(builder: ProgramBuilder): void {
         this._builder = builder;
 
@@ -95,7 +96,6 @@ export class RooibosPlugin {
             testSuite.validate();
         }
     }
-
 
     shouldSearchInFileForTests(file: BscFile) {
         if (!this.config.includeFilters || this.config.includeFilters.length === 0) {

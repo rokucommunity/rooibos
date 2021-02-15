@@ -74,6 +74,10 @@ namespace rooibos
     end function
 
     function printTest(test)
+
+      testLocationLine = StrI(test.lineNumber).trim()
+
+      locationLine = invalid
       if test.result.isCrash
         testChar = "|"
         locationLine = StrI(test.lineNumber).trim()
@@ -82,10 +86,9 @@ namespace rooibos
         locationLine = StrI(test.result.lineNumber + 1).trim()
       else
         testChar = "|"
-        locationLine = StrI(test.lineNumber).trim()
       end if
 
-      locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine
+      testLocationText = "file://" + test.testSuite.filePath.trim() + ":" + testLocationLine
 
       if m.config.printTestTimes = true
         timeText = " (" + stri(test.result.time).trim() + "ms)"
@@ -97,16 +100,17 @@ namespace rooibos
       if test.isParamTest <> true
         messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
         m.printLine(0, messageLine + test.result.getStatusText() + timeText)
-        m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
+        m.printLine(0, " | " + insettext + "  |--Test : " + testLocationText)
       else if test.paramTestIndex = 0
         name = test.name
         if len(name) > 1 and right(name, 1) = "0"
           name = left(name, len(name) - 1)
         end if
         m.printLine(0, " " + testChar + " |--" + name + " : ")
-        m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
+        m.printLine(0, " | " + insettext + "  |--Test : " + testLocationText)
       end if
 
+      locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine
       if test.isParamTest = true
         insetText = "  "
 
@@ -125,14 +129,16 @@ namespace rooibos
       end if
 
       if test.result.isCrash
-        m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
+        m.printLine(0, " | " + insettext + "  |--Crashed at: " + locationText)
         m.printStackTrace(insettext, test.result.error)
+        m.printLine(0, " | ")
       else if test.result.isFail
-        m.printLine(0, " | " + insettext + "  |--Location: " + locationText)
+        m.printLine(0, " | " + insettext + "  |--Failed at: " + locationText)
         if test.isParamTest = true
-          m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramlineNumber).trim())
+          m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramlineNumber -1).trim())
         end if
         m.printLine(0, " | " + insettext + "  |--Error Message: " + test.result.message)
+        m.printLine(0, " | ")
       end if
     end function
 

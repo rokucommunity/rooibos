@@ -65,11 +65,10 @@ namespace rooibos
         m.noCatch = data.noCatch
         m.groupsData = data.testGroups
         m.lineNumber = data.lineNumber
-        m.isNodeTest = false
-        m.nodeName = invalid
+        m.isNodeTest = data.isNodeTest
+        m.nodeName = data.nodeName
         m.isFailingFast = false
         m.stats = new Stats()
-        m.noCatch = false
       end if
     end function
 
@@ -183,8 +182,12 @@ namespace rooibos
     function assertFalse(expr, msg = "Expression evaluates to true") as dynamic
       if m.currentResult.isFail then return false
       try
-        if not Rooibos.Common.isBoolean(expr) or expr
-          return m.fail(msg)
+        if Rooibos.Common.isBoolean(expr)
+          if expr
+            return m.fail(msg)
+          end if
+        else
+          return m.fail("value was not a boolean")
         end if
         m.currentResult.fail("", m.currentAssertLineNumber)
         return true
@@ -206,9 +209,12 @@ namespace rooibos
     function assertTrue(expr, msg = "Expression evaluates to false")
       if m.currentResult.isFail then return false
       try
-        if not Rooibos.Common.isBoolean(expr) or not expr
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
-          return false
+        if Rooibos.Common.isBoolean(expr)
+          if not expr
+            return m.fail(msg)
+          end if
+        else
+          return m.fail("value was not a boolean")
         end if
 
         m.currentResult.fail("", m.currentAssertLineNumber)
