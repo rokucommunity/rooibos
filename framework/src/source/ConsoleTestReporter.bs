@@ -86,6 +86,7 @@ namespace rooibos
         locationLine = StrI(test.result.lineNumber + 1).trim()
       else
         testChar = "|"
+        locationLine = StrI(test.lineNumber).trim()
       end if
 
       testLocationText = "file://" + test.testSuite.filePath.trim() + ":" + testLocationLine
