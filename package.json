@@ -1,12 +1,12 @@
 {
   "name": "rooibos",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "files": [
     "dist/**/!(manifest)*"
   ],
   "devDependencies": {
-    "brighterscript": "^0.28.1",
+    "brighterscript": "^0.32.2",
     "ropm": "^0.5.0"
   },
   "repository": {
