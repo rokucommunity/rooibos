@@ -67,8 +67,9 @@ namespace rooibos
             ? "Terminating group due to failed test"
             exit for
           end if
-
         end for
+      else
+        ? "ERROR running test setup function"
       end if
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
     end function

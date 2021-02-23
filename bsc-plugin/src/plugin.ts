@@ -36,6 +36,7 @@ export class RooibosPlugin {
         if (this.config.includeFilters === undefined) {
             this.config.includeFilters = [
                 '**/*.spec.bs',
+                '!**/BaseTestSuite.spec.bs',
                 '!**/roku_modules/**/*'];
         }
 
@@ -59,9 +60,12 @@ export class RooibosPlugin {
     }
 
     afterFileParse(file: (BrsFile | XmlFile)): void {
+        // console.log('afp', file.pkgPath);
         if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
             return;
         }
+
+        // console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
             if (this.session.processFile(file)) {
                 //
@@ -72,6 +76,7 @@ export class RooibosPlugin {
     }
 
     beforePublish() {
+        // console.log('bp');
         for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
             testSuite.addDataFunctions();
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
@@ -91,6 +96,7 @@ export class RooibosPlugin {
     }
 
     beforeProgramValidate() {
+        // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
             testSuite.validate();
@@ -107,7 +113,7 @@ export class RooibosPlugin {
                 }
             }
         }
-        // console.log(file.pkgPath);
+        // console.log('including ', file.pkgPath);
         return true;
     }
 }

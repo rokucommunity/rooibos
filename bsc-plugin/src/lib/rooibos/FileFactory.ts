@@ -25,7 +25,8 @@ export class FileFactory {
         'BaseTestReporter',
         'ConsoleTestReporter',
         'TestResult',
-        'TestRunner'
+        'TestRunner',
+        'Utils'
     ];
 
     public sourcePath = path.join(__dirname, '../framework');
