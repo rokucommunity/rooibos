@@ -1,104 +1,106 @@
 {
-  "name": "rooibos-roku",
-  "version": "4.0.9",
-  "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
-  "files": [
-    "dist/**/!(*.spec.*)*"
-  ],
-  "main": "dist/plugin.js",
-  "directories": {
-    "test": "test"
-  },
-  "dependencies": {
-    "@types/node": "^14.14.16",
-    "source-map": "^0.7.3",
-    "stringify-object": "^3.3.0",
-    "vscode-languageserver": "~6.1.1",
-    "vscode-languageserver-protocol": "~3.15.3"
-  },
-  "devDependencies": {
-    "@types/chai": "^4.1.2",
-    "@types/expect": "^24.3.0",
-    "@types/mocha": "^5.2.7",
-    "@types/sinon": "^9.0.4",
-    "@typescript-eslint/eslint-plugin": "^4.4.1",
-    "@typescript-eslint/parser": "^4.4.1",
-    "brighterscript": "^0.30.4",
-    "chai": "^4.2.0",
-    "chai-files": "^1.4.0",
-    "chai-subset": "^1.6.0",
-    "eslint": "^7.11.0",
-    "eslint-plugin-github": "^4.1.1",
-    "eslint-plugin-no-only-tests": "^2.4.0",
-    "fs-extra": "^9.0.1",
-    "minimatch": "^3.0.4",
-    "mocha": "^7.1.1",
-    "nyc": "^15.1.0",
-    "roku-deploy": "^3.2.4",
-    "sinon": "^9.0.2",
-    "source-map-support": "^0.5.13",
-    "ts-node": "^9.0.0",
-    "typescript": "^3.8.3",
-    "typescript-formatter": "^7.2.2"
-  },
-  "scripts": {
-    "clean": "rm -rf ./dist && mkdir dist",
-    "compile": "npm run clean && tsc -p .",
-    "prepublishOnly": "npm run build",
-    "lint": "eslint \"src/**\"",
-    "build": "npm run compile && cp -r ../framework/src/source ./dist/lib/framework",
-    "test": "TS_NODE_TRANSPILE_ONLY=true mocha --full-trace --bail",
-    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
-    "publish-npm": "npm run test && npm publish",
-    "publish-npm:beta": "npm run test && npm publish --tag=beta"
-  },
-  "preferGlobal": true,
-  "keywords": [
-    "brightscript",
-    "scenegraph",
-    "roku",
-    "rooibos",
-    "britherscript"
-  ],
-  "author": "George Cook",
-  "license": "ISC",
-  "watch": {
-    "test": {
-      "extensions": "ts",
-      "patterns": [
-        "src"
-      ]
+    "name": "rooibos-roku",
+    "version": "4.1.0",
+    "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
+    "files": [
+        "dist/**/!(*.spec.*)*"
+    ],
+    "main": "dist/plugin.js",
+    "directories": {
+        "test": "test"
+    },
+    "dependencies": {
+        "@types/node": "^14.14.16",
+        "source-map": "^0.7.3",
+        "stringify-object": "^3.3.0",
+        "vscode-languageserver": "~6.1.1",
+        "vscode-languageserver-protocol": "~3.15.3"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.1.2",
+        "@types/expect": "^24.3.0",
+        "@types/mocha": "^5.2.7",
+        "@types/sinon": "^9.0.4",
+        "@typescript-eslint/eslint-plugin": "^4.4.1",
+        "@typescript-eslint/parser": "^4.4.1",
+        "brighterscript": "^0.32.2",
+        "chai": "^4.2.0",
+        "chai-files": "^1.4.0",
+        "chai-subset": "^1.6.0",
+        "eslint": "^7.11.0",
+        "eslint-plugin-github": "^4.1.1",
+        "eslint-plugin-no-only-tests": "^2.4.0",
+        "fs-extra": "^9.1.0",
+        "minimatch": "^3.0.4",
+        "mocha": "^7.1.1",
+        "nyc": "^15.1.0",
+        "roku-deploy": "^3.2.4",
+        "sinon": "^9.0.2",
+        "source-map-support": "^0.5.13",
+        "ts-node": "^9.0.0",
+        "typescript": "^3.8.3",
+        "typescript-formatter": "^7.2.2"
+    },
+    "scripts": {
+        "clean": "rm -rf ./dist && mkdir dist",
+        "compile": "npm run clean && tsc -p .",
+        "prepublishOnly": "npm run build",
+        "lint": "eslint \"src/**\"",
+        "build": "npm run compile && cp -r ../framework/src/source ./dist/lib/framework",
+        "test": "TS_NODE_TRANSPILE_ONLY=true mocha --full-trace --bail",
+        "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
+        "publish-npm": "npm run test && npm publish",
+        "publish-npm:beta": "npm run test && npm publish --tag=beta",
+        "local": "ts-node scripts/install-local.js",
+        "remote": "ts-node scripts/install-npm.js"
+    },
+    "preferGlobal": true,
+    "keywords": [
+        "brightscript",
+        "scenegraph",
+        "roku",
+        "rooibos",
+        "britherscript"
+    ],
+    "author": "George Cook",
+    "license": "ISC",
+    "watch": {
+        "test": {
+            "extensions": "ts",
+            "patterns": [
+                "src"
+            ]
+        }
+    },
+    "nyc": {
+        "include": [
+            "src/**/!(*.spec).ts"
+        ],
+        "extension": [
+            ".ts"
+        ],
+        "require": [
+            "ts-node/register",
+            "source-map-support/register"
+        ],
+        "reporter": [
+            "text-summary",
+            "html"
+        ],
+        "sourceMap": true,
+        "instrument": true,
+        "check-coverage": true,
+        "lines": 5,
+        "statements": 5,
+        "functions": 5,
+        "branches": 5
+    },
+    "mocha": {
+        "spec": "src/**/*.spec.ts",
+        "fullTrace": true,
+        "require": [
+            "source-map-support/register",
+            "ts-node/register"
+        ]
     }
-  },
-  "nyc": {
-    "include": [
-      "src/**/!(*.spec).ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "require": [
-      "ts-node/register",
-      "source-map-support/register"
-    ],
-    "reporter": [
-      "text-summary",
-      "html"
-    ],
-    "sourceMap": true,
-    "instrument": true,
-    "check-coverage": true,
-    "lines": 5,
-    "statements": 5,
-    "functions": 5,
-    "branches": 5
-  },
-  "mocha": {
-    "spec": "src/**/*.spec.ts",
-    "fullTrace": true,
-    "require": [
-      "source-map-support/register",
-      "ts-node/register"
-    ]
-  }
 }

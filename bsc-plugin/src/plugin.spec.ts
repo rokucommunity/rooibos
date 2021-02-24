@@ -541,7 +541,7 @@ end function`).trim());
 
 });
 
-describe.only('run a local project', () => {
+describe.skip('run a local project', () => {
     it('sanity checks on parsing - only run this outside of ci', () => {
         let programBuilder = new ProgramBuilder();
         let swv = {
