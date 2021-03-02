@@ -2,14 +2,14 @@
   <img src="images/logo.png" alt="Rooibos test framework" width="200" height="200"/>
 </p>
 <h3 align="center">
-Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
+Simple, mocha-and junit inspired, flexible, fun Brightscript test framework for ROKU apps
 </h3>
 <p align="center">
   <img src="images/exampleImage.png" alt="Mocha test framework" />
 </p>
 
 [![Build Status](https://travis-ci.org/georgejecook/rooibos.svg?branch=master)](https://travis-ci.org/georgejecook/rooibos)
-[![GitHub](https://img.shields.io/github/release/georgejecook/rooibos.svg?style=flat-square)](https://github.com/georgejecook/rooibos/releases) 
+[![GitHub](https://img.shields.io/github/release/georgejecook/rooibos.svg?style=flat-square)](https://github.com/georgejecook/rooibos/releases)
 
 ## Links
  - **[Documentation](docs/index.md)**
@@ -36,24 +36,12 @@ Also thanks to the guys who made and maintain [mochaJs](https://mochajs.org/), o
 ## FAQ
 ### Is Rooibos ready for production use?
 
-Rooibos is the test framework used by several of my clients, running CI with over 3000 tests between them. It started life as rewrite of the official roku unit testing framework, which has been in circulation for several years.
+Yes, it's been used in production by quite a few folks, I'll provide a list in due-course; but there are 1000's of tests in production in some very respectable companies.
 
 
 ### Is Rooibos actively maintained?
 
-I am actively invovled in Rooibos's development, and add more features and fixes on a weekly basis. You can expect rapid responses to issues.
-
-### Why did you not just merge back your changes to roku's unit testing framework
-
-1. It does rewrite quite a lot of the original unit test framework code, so I doubt that roku would've merged it all back any time soon
-2. It's conceptually entirely different: e.g. using annotations instead of naming conventions and boiler-plate code, completely different test reporting output, assertions and test cases maintain their own state, runs in a scenegraph scene, to name but a few
-3. It has many more features than the original framework, not limited to : node specific assertions, exact assertion line failure reporting, better error messaging, easier setup, groupings, only and ignore for tests, mocks and stubs, etc, etc
-4. Being completely frank, I enjoy roku work and want to do more of it, so it's useful to me to own this project, rather than lose control and wait on other's to merge my changes. On that note, email me at george[AT]tantawowa.com, or pm me (georgejecook) on the roku slack group to discuss any roku development requirements
-5. I poured a _lot_ of work into the project (> 100 hours and counting), and expect to continue to do so. If I own the project, then I can do what I want, when I want. That goes for you guys as well, so get in touch with feature requests and PR's :)
-
-### Is Rooibos itself unit tested?
-
-At this point, it's WIP. I keep adding tests as bugs come up, and will continue to improve the test coverage. 
+I love rooibos, and always keep it up to date. I use it all the time.
 
 ### Why 4.0.0?
 
