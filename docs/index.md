@@ -203,7 +203,7 @@ m.assertTrue(myValue)
 An example test is as follows.
 
 ```
-@it("")can instantiate with invalid modelLocator
+@it("an instantiate with invalid modelLocator")
 function Simpl_Basic_true()
     myValue = false
     m.assertTrue(myValue)
@@ -467,7 +467,7 @@ You can give a reason for ignoring a test, as part of the annotation's data. e.g
 
 ```
 @ignore DataStore is being refactored
-@it("")that the correct index is NOT found
+@it("that the correct index is NOT found")
 function Simpl_Datastore_alternate_failures()
 	item = m.alternateDS.GetDataItemWithIndex(12)
 
@@ -852,7 +852,7 @@ namespace Tests
       m.beforeEachThing = "something created beforeEach"
     end function
 
-    @it("")HelloFromNode
+    @it("HelloFromNode")
     function helloFromNode_simple()
       'bs:disable-next-line
       text = HelloFromNode("georgejecook", 12)
