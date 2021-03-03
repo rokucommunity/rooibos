@@ -117,7 +117,6 @@ No special file naming is required. I recommend you call your files `thing.spec.
 
 Please note that rooibos tests are _brighterscript_ only. You can test regular brs files; but all your tests must be brightersript files.
 
-
 ### Some advice
 
 I find it really handy to have my own BaseTestSuite, that extends `Rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
@@ -160,13 +159,13 @@ end namespace
 
 Rooibos provides a library of annotations which can be used to define TestSuites, It groups, Test Cases, Parameterized tests, and more. All annotations are of the following form
 
-NOTE - these are not official bsc compiler annotations - I will be making 4.1 release compatible with those.
+NOTE - these are official bsc compiler annotations; not like comments in the previous version of rooibos _do not_ put a `'` in front of the, and use `@brighterscript("argument1", 2, "argument3", ["syntax])`
 
 ```
-@ANNOTATION DATA
+@annotation(args...)
 ```
 
-Where `ANNOTATION`, is the roku annotation and DATA is the data passed to it. e.g. `@it("")that it handles an empty collection`, defines a test case, with the title `that it handles an empty collection`
+Where `ANNOTATION`, is the roku annotation and DATA is the data passed to it. e.g. `@it("that it handles an empty collection")`, defines a test case, with the title `that it handles an empty collection`
 
 Some annotations act as modifiers. In these cases, they will affect some other annotation. For example `@only`, and `@ignore` will affect the following `@testSuite`, `@it` or `@it` annotation.
 
