@@ -102,7 +102,7 @@ The following options are supported:
 
 Rooibos has a hiearchy of tests as follows:
 
- - TestSuite
+ - Suite
 	 - Describe block
 		 - it test
 			 - Parameterized it test
@@ -111,7 +111,7 @@ Rooibos has a hiearchy of tests as follows:
 Test suites are defined by:
  - declaring a class _inside_ a namespace
  - which extends `Rooibos.BaseTestSuite`
- - and has a `@testSuite` annotation
+ - and has a `@suite` annotation
 
 No special file naming is required. I recommend you call your files `thing.spec.bs` <a name="no-need-for-special-file-or-method-names"></a>
 
@@ -122,13 +122,13 @@ Please note that rooibos tests are _brighterscript_ only. You can test regular b
 I find it really handy to have my own BaseTestSuite, that extends `Rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
 
 ### Simple example
-The following is a minimum working example of a Rooibos TestSuite, named `Simple.brs`
+The following is a minimum working example of a Rooibos test suite, named `Simple.brs`
 <a name="simple-syntax-for-writing-tests"></a>
 
 ```
 namespace Tests
 
-  @testSuite
+  @suite("basic tests")
   class BasicTests extends Rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -151,13 +151,13 @@ end namespace
 #### Simple example Notes
 
 1. The `++++++++++++`'s around the `@describe` declaration are not required; but I find it makes the file much easier to read, and recommend it (or something similar, such as `'*****` as a best practice.
-2. If you do not provide names for the `@testSuite` it will use the class name
-3. The function name is not required. Rooibos will rename your function to whatever your it group is (so you can easily navigate in the ide), and as such, the function name cann be anything you like. I like calling all tests functions `_`. Don't worry - the plugin will rename it before you get any duplicate function errors!
+2. If you do not provide names for the `@suite` it will use the class name
+3. The function name is not required. Rooibos will rename your function to whatever your describe group is (so you can easily navigate in the ide), and as such, the function name cann be anything you like. I like calling all tests functions `_`. Don't worry - the plugin will rename it before you get any duplicate function errors!
 
 ### Rooibos annotations
 <a name="simple-syntax-for-writing-tests"></a>
 
-Rooibos provides a library of annotations which can be used to define TestSuites, It groups, Test Cases, Parameterized tests, and more. All annotations are of the following form
+Rooibos provides a library of annotations which can be used to define test suites, describe groups, tests cases, Parameterized tests, and more. All annotations are of the following form
 
 NOTE - these are official bsc compiler annotations; not like comments in the previous version of rooibos _do not_ put a `'` in front of the, and use `@brighterscript("argument1", 2, "argument3", ["syntax])`
 
@@ -167,29 +167,29 @@ NOTE - these are official bsc compiler annotations; not like comments in the pre
 
 Where `ANNOTATION`, is the roku annotation and DATA is the data passed to it. e.g. `@it("that it handles an empty collection")`, defines a test case, with the title `that it handles an empty collection`
 
-Some annotations act as modifiers. In these cases, they will affect some other annotation. For example `@only`, and `@ignore` will affect the following `@testSuite`, `@it` or `@it` annotation.
+Some annotations act as modifiers. In these cases, they will affect some other annotation. For example `@only`, and `@ignore` will affect the following `@suite`, `@it` or `@it` annotation.
 
 The following annotations are supported.
 
 | Annotation                  | Description                                                                                                                                                                                                                                                                                                     | Data                                                                                              |
 |-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| @testSuite                  | Indicates a file is a test suite. Required.                                                                                                                                                                                                                                                                               | Name of the test suite. Used in test output                                                       |
+| @suite                  | Indicates a file is a test suite. Required.                                                                                                                                                                                                                                                                               | Name of the test suite. Used in test output                                                       |
 | @SGNode                  | Indicates that a test will run in a node. Rooibos plugin will automatically generate the test node and inject all the test code                                                                                                                                                                                                                                                                            | Name of the component to extend to run tests                                                     |
-| @setup                      | Run once when the suite, or it group is executed <a name="common-tdd-methods"></a>.                                                                                                                                                                                                                                          |                                                                                                   |
-| @tearDown                   | Run once when the suite or it group is finished                                                                                                                                                                                                                                                                             |                                                                                                   |
-| @beforeEach                 | Run before each test. Can be specified for the `@testSuite`, or for each `@it` group                                                                                                                                                                                                                            |                                                                                                   |
-| @afterEach                  | Run after each test. Can be specified for the `@testSuite`, or for each `@it` group                                                                                                                                                                                                                             |                                                                                                   |
-| @it                         | Indicates a group of tests. Groupings improve readability. A group might denote various tests for a given method, or even an aspect of functionality                                                                                                                                                            | Name of the it group, which is used in the test output                                            |
-| @it                       | Indicates a `TestCase`. Must directly precede a function definition                                                                                                                                                                                                                                             | The name of the test acse, which will be reported in the test output                              |
-| @only                       | Precedes a TestSuite, It group, or TestCase, to indicate that _only that item_ should be executed. This can be used to rapidly filter out tests. Only other `@only` items will be run.                                                                                                                          |                                                                                                   |
-| @ignore                     | Preceds a TestSuite, It group or TestCase, to indicate that that item should be ignored. If an `@ignore` tag is found before an item, then it will not be executed as part of the test run                                                                                                                      |                                                                                                   |
+| @setup                      | Run once when the suite, or describe group is executed <a name="common-tdd-methods"></a>.                                                                                                                                                                                                                                          |                                                                                                   |
+| @tearDown                   | Run once when the suite or describe group is finished                                                                                                                                                                                                                                                                             |                                                                                                   |
+| @beforeEach                 | Run before each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                            |                                                                                                   |
+| @afterEach                  | Run after each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                             |                                                                                                   |
+| @describe                         | Indicates a group of tests. Groupings improve readability. A group might denote various tests for a given method, or even an aspect of functionality                                                                                                                                                            | Name of the describe group, which is used in the test output                                            |
+| @it                       | Indicates a test. Must directly precede a function definition                                                                                                                                                                                                                                             | The name of the test acse, which will be reported in the test output                              |
+| @only                       | Precedes a Suite, Describe group, or it test, to indicate that _only that item_ should be executed. This can be used to rapidly filter out tests. Only other `@only` items will be run.                                                                                                                          |                                                                                                   |
+| @ignore                     | Precedes a suite, Describe group or it test, to indicate that that item should be ignored. If an `@ignore` tag is found before an item, then it will not be executed as part of the test run                                                                                                                      |                                                                                                   |
 | @params[p1,p2,...,p6]       | Indicates a Paremeterized test. Must come _after_ a `@it` annotation. Can accept up to 6 arguments, which are comma separated. When using paremeterized tests, the test function signature _must_ accept the same number of arguments, and each of params statemens, must also have the same number of params | Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function |
 | @ignoreParams[p1,p2,...,p6] | A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run.                                                                                                                                                                                                         | As per `@params`                                                                                  |
 | @onlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                               | As per `@params`                                                                                  |
 
 
 ## Writing tests
-Rooibos tests must be placed within a group, which in turn must be placed inside a TestSuite.
+Rooibos tests must be placed within a group, which in turn must be placed inside a suite.
 
 Tests then comprise assertions, which can test if values are equal, like (using fuzzy logic), contain values, etc.
 
@@ -295,7 +295,7 @@ end function
 ```
 
 ### Setup tearDown, beforeEach and afterEach Scoping
-Setup and Teardown, can also be scoped to an it group. If the annotations appear _after_ an `@describe` group annotation, then the setup and teardown will apply only to that group. If the annotations appear _before the first it group annotation_ then they will be applied to all groups, _which do not have Setup and Teardown group-level-annotations_")
+Setup and Teardown, can also be scoped to an describe group. If the annotations appear _after_ an `@describe` group annotation, then the setup and teardown will apply only to that group. If the annotations appear _before the first describe group annotation_ then they will be applied to all groups, _which do not have Setup and Teardown group-level-annotations_")
 
 Like `setup` and `tearDown`, `beforeEach` and `afterEach` can be applied to the whole test by overriding the `beforeEach` and `afterEach` functions. You can scope them to `@describe` blocks, by using the `@setUp`, `@tearDown`, `@beforeEach` and `@afterEach` annotation above the relevant function. Note you can call back your test suite class's overall setup, tearDown, beforeEach and afterEach.
 
@@ -343,7 +343,7 @@ end namespace
 Note that in the example above, each of the tests in the `tests alternate data` group, can be run with different values; but we do not need to set the up in each test, or mutate the values used by other tests, which were defined in the `Setup` method.
 
 #### BeforeEach and AfterEach Scoping
-BeforeEach and AfterEach, can also be scoped to an it group. If the annotations appear _after_ an `@describe(" group annotation, then they will only apply to that group. If the annotations appear _before the first it group annotation_ then they will be applied to all groups, _which do not have BeforeEach and AfterEach group-level-annotations_")
+BeforeEach and AfterEach, can also be scoped to an describe group. If the annotations appear _after_ an `@describe(" group annotation, then they will only apply to that group. If the annotations appear _before the first describe group annotation_ then they will be applied to all groups, _which do not have BeforeEach and AfterEach group-level-annotations_")
 
 ### Paremeterized tests
 <a name="parameterized-testing"></a>
@@ -383,7 +383,7 @@ function _(dayOfMonth, hour, minute, expectedDayIndex, expectedShowIndex)
 end function
 ```
 
-Paremeterized tests accept any valid json. However, the number of top level items in the params array must match the amount of arguments for your test method. If they don't the TestCase will fail.
+Paremeterized tests accept any valid json. However, the number of top level items in the params array must match the amount of arguments for your test method. If they don't the test will fail.
 
 #### Advanced paramter directives
 
@@ -436,7 +436,7 @@ The full list of asserts can be found in the documentation  - [assertion referen
 Rooibos reports test output in an easy to read hiearhchical manner.
 
 <a name="readable-test-output"></a>
-Each test suite has it's own tree structure in the output, and in turn has branches for each group, then each testcase that was run.
+Each test suite has it's own tree structure in the output, and in turn has branches for each group, then each test that was run.
 
 ### Success and Failure output
 When a test passes, it is indicated by the presence of `Success` at the end of the line
@@ -461,7 +461,7 @@ In addition, you get a simple to parse result as the last line of output, which 
 Rooibos is built to facilitate TDD, and other test-based developer workflows. For this reason, I made it _very easy_ to specify which tests run, so you can simply execute 1 or a few tests while developing, then more as you finish the method you are currently working with.
 
 ### Ignore annotation
-If you place `@ignore` above a test suite, it group, or test case, it will ignore it. i.e. it will not be executed.
+If you place `@ignore` above a test suite, describe group, or test case, it will ignore it. i.e. it will not be executed.
 
 You can give a reason for ignoring a test, as part of the annotation's data. e.g.
 
@@ -478,7 +478,7 @@ end function
 The log reporter will indicate which tests are ignored, if you have log verbosity set to 2 or greater
 
 ### Only annotation
-If you place `@only` above a test suite, it group, or test case, it will run that test in solo mode. In solo mode, execution is limited to those suites, groups or test cases, which also have a `@only' annotation.
+If you place `@only` above a test suite, describe group, or test case, it will run that test in solo mode. In solo mode, execution is limited to those suites, groups or test cases, which also have a `@only' annotation.
 
 A good working practice is to put a `@only` annotaiton on the suite for the class you are working on, then the group, then the individual test. You can tehn simply remove the annotation from the test when you have finished, and run the tests again, to see if you caused regression in any of the group's tests, then remove from the group and run the suite, then finally remove the `@only` annotation from the suite. This will allow you to run the least amount of tests at any time, while you work, giving you the fastest testing turnaround time.
 
@@ -838,7 +838,7 @@ In the following example, the tests will be run in a new (auto-generated) compon
 ```
 namespace Tests
   @SGNode NodeExample
-  @testSuite [NET] Node Example Tests
+  @suite [NET] Node Example Tests
   class NodeExampleTests extends Rooibos.BaseTestSuite
     override function setup()
       m.setupThing = "something created during setup"
