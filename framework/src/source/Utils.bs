@@ -46,13 +46,16 @@ namespace rooibos.utils
     function setField(field, value)
       m[field] = value
     end function
+    function setFields(fields)
+      m.append(fields)
+    end function
     function observeField(field, callback)
     end function
     function getChildren(offset, count)
       return m.children
     end function
     function removeChildren(children)
-  
+
     end function
     function observeFieldScoped(field, callback)
     end function
