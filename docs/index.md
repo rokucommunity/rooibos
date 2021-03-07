@@ -56,6 +56,8 @@ Rooibos will not work if you do not use the brighterscript compiler. I have no p
 ### Installation
 <a name="easy-to-integrate"></a>
 
+1. ensure you have a bsconfig.json, as per: https://github.com/rokucommunity/brighterscript
+1. `npm install rooibos-roku --save-dev`
 1. Add the rooibos plugin to your `bsconfig.json` file as follows:
 
 ```
@@ -85,10 +87,15 @@ e.g.
 
 ```
   "rooibos": {
+    "isRecordingCodeCoverage": false,
+    "printTestTimes": true,
+    "testsFilePattern": null,
+    "tags": ["!integration", "!deprecated", "!fixme"],
     "showOnlyFailures": true,
+    "catchCrashes": true,
     "lineWidth": 70
-  }
-```
+  },
+  ```
 
 The following options are supported:
 
@@ -96,6 +103,9 @@ The following options are supported:
 - showOnlyFailures?: boolean - if true, then only failed tests are shown; but everything is show if no failures occurred
 - printTestTimes?: boolean - if true then the time each test took is output
 - lineWidth?: number - width of test output lines in columns
+- catchCrashes? : boolean - if true, then any crashes will report CRASH statement, and note halt test execuction - very useful for running a whole suite
+- testsFilePattern?: string - the pattern to use to find tests, this is a glob, the defawult is "**/*.spec.bs"
+- tags?: string[] - the tags listed here control what is run - you can use !tagname to indicated any tests/suites that are skipped, all other tags are ANDed. This is very useful for having a bsconfig to run, say tests including long, and slow integration tests, or just running a certain subset of your suite.
 
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
@@ -126,7 +136,7 @@ The following is a minimum working example of a Rooibos test suite, named `Simpl
 <a name="simple-syntax-for-writing-tests"></a>
 
 ```
-namespace Tests
+namespace tests
 
   @suite("basic tests")
   class BasicTests extends Rooibos.BaseTestSuite
@@ -186,6 +196,9 @@ The following annotations are supported.
 | @params[p1,p2,...,p6]       | Indicates a Paremeterized test. Must come _after_ a `@it` annotation. Can accept up to 6 arguments, which are comma separated. When using paremeterized tests, the test function signature _must_ accept the same number of arguments, and each of params statemens, must also have the same number of params | Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function |
 | @ignoreParams[p1,p2,...,p6] | A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run.                                                                                                                                                                                                         | As per `@params`                                                                                  |
 | @onlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                               | As per `@params`                                                                                  |
+| @tags("one","two"..."n")   | Allows indicating the tags to apply to the group,test or suite. This is a really effective way to categorise your test suite. These tags can be used to filter tests in your rooibos bsconfig options.| List of tag names to apply                                                                                  |
+| @nocatch  | If present, will not catch errors for the test or suite it is placed on. This is handy when developing, and you want to debug the exact line on which an error occurred. | none|
+
 
 
 ## Writing tests
