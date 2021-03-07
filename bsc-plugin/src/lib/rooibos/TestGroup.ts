@@ -58,10 +58,10 @@ export class TestGroup extends TestBlock {
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*))/i;
                         if (dge && assertRegex.test(dge.name.text)) {
                             return new RawCodeStatement(`
-    if not m.currentResult.isFail
-      m.currentAssertLineNumber = ${ce.range.start.line}
-      ${ce.transpile(transpileState).join('')}
-    end if`, this.file, ce.range);
+                            m.currentAssertLineNumber = ${ce.range.start.line}
+                            ${ce.transpile(transpileState).join('')}
+                            if m.currentResult.isFail then return invalid
+    `, this.file, ce.range);
                         }
                     }
                 }
