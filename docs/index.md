@@ -18,6 +18,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Node specific assertions](#node-specific-assertions)
  - [Parameterized testing](#parameterized-testing)
  - [Mocks and stubs](#mocks-and-stubs)
+ - [Mocks node](#mocks-node)
  - [Execute tests on scenegraph nodes](#execute-tests-on-scenegraph-nodes)
  - [Incorporate your own util methods](#incorporate-your-own-util-methods)
  - [Hook into your global setup mechanisms](#hook-into-your-global-setup-mechanisms)
@@ -784,64 +785,11 @@ I am currently toying with integrating with : https://github.com/georgejecook/ro
 
 ## Advanced setup
 
-### Advanced use of TestsScene.xml - NOT SUPPORTED YET
-To use Rooibos, you need to provide a scene (default name `TestsScene.xml`). This scene should be empty; but may well contain code in the init method to setup global values, which you need to execute your runtime code. Consider an application which uses `ModelLocator` pattern, or some other _IOC_ pattern. In this case it would make sense to initiate the pattern in the `TestsScene.xml`, rather than have to set it up in every single test `Setup`.
+### Global test setup
 
-#### Example TestsScene.xml
+I find it really handy to have my own BaseTestSuite, that extends `Rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
 
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<component
-	name="TestsScene"
-	extends="Scene"
-	xsi:noNamespaceSchemaLocation="https://devtools.web.roku.com/schema/RokuSceneGraph.xsd"
->
->  <interface>
-    <function name="Rooibos_CreateTestNode" />
-  </interface>
-
-  <script type="text/brightscript" uri="TestsScene.brs" />
-
-  <script type="text/brightscript" uri="pkg:/source/rooibosDist.brs" />
-
-  <script type="text/brightscript" uri="pkg:/source/rooibosFunctionMap.brs" />
-</component>
-```
-
-#### Example TestsScene.brs
-```
-sub Init()
-	'Example of an application using ModelLocator pattern
-	'many of the codefiles will expect to have access to a global ModelLocator
-	'so setting it on the `TestsScene`, makes sense.
-
-    m.global.addFields({"modelLocator": createObject("roSGNode", "ModelLocator")})
-end sub
-```
-
-### Using a different TestsScene.xml NOT SUPPORTED YET
-The scene name can be overriden by passing in the desired scene name as the third `Rooibos__Init` parameter. e.g.
-
-
-```
-if (type(Rooibos__Init) = "Function") then Rooibos__Init(args, SetupGlobals, "DecorateTestUtils", "MyOtherTestsScene")
-```
-
-
-### Make from source
-You can rebuild by running the following command from the terminal:
-
-```make dist```
-
-Which will compress all of the source files in the `src` folder into `dist/rooibosDist.brs`, which can then be copied to your project
-
-## Testing scenegraph nodes
-<a name="execute-tests-on-scenegraph-nodes"></a>
-Rooibos plugin genereates node files and test glue automatically, to make it very easy for you to test your nodes. Simply use the `@SGNode` annotation and specify which node component you are extending, and the plugin will:
-
- - generate the files for you
- - inject your tests
-
+You can always call the super beforeEach/setup/teardown/etc from your other tests, making it trivial to do global setup functions.
 
 
 #### Example Node test file
@@ -915,7 +863,8 @@ Rooibos is NOT backward compatible with pre version 4 versions of rooibos; and n
 
 ## Generate code coverage
 
-THIS FEATURE IS NOT YET AVAILBALE - I WILL REENABLE THIS IN ROOIBOS 4.2
+**THIS FEATURE IS NOT YET AVAILBALE - I WILL REENABLE THIS IN ROOIBOS 4.2** : If you want it sooner, I can tell you how to implement it - it's a cpl hours of work, I don't have time for right now.
+
 
 
 Rooibos can measure and report the test coverage your unit tests are producing.
@@ -939,7 +888,7 @@ An example, using a json config file is :
 
 ```
 {
-	"projectPath": "build",
+  TBD
 	"sourceFilePattern": [
 		"**/*.brs",
 		"**/*.xml",
@@ -965,8 +914,6 @@ An example, using a json config file is :
 ```
 
 This can be done, from the command line also, with the following command:
-
-```rooibos-cli -p stubProject -t source/tests/**/*.brs -v -s '**/*.brs,**/*.xml,!**/tests/**/*.*,!**/tests,!**/rLog,!**/rLog/**/*.*,!**/rLogComponents,!**/rLogComponents/**/*.*,!**/rooibosDist.brs,!**/rooibosFunctionMap.brs,!**/TestsScene.brs,!**/ThreadaUtils.brs'```
 
 ### How coverage works
 
