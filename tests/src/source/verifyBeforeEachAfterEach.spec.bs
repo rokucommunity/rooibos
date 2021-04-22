@@ -1,98 +1,102 @@
-namespace Tests
+namespace tests
 
-  @TestSuite
+  @suite
+  @strict
   class VeritfyBeforeEachAfterEach extends Rooibos.BaseTestSuite
 
-    override function Setup() as void
+    private beforeEachValue
+    override function setup()
       ? "!!! Setup"
     end function
 
-    override function TearDown() as void
+    override function tearDown()
       ? "!!! TearDown"
     end function
 
-    override function BeforeEach() as void
+    override function beforeEach()
       ? "!!! Before"
+      m.beforeEachValue = 1
     end function
 
-    override function AfterEach() as void
+    override function afterEach()
       ? "!!! After"
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests group 1 - should have global before/after")
+    @describe("group 1")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("1 ")
-    function group1_1() as void
-      m.assertTrue(true)
+    @it("1")
+    function _()
+      m.assertEqual(m.beforeEachValue, 1)
     end function
 
-    @Test("2")
-    function group1_2() as void
-      m.assertTrue(true)
+    @it("2")
+    function _()
+      m.assertEqual(m.beforeEachValue, 1)
     end function
 
-    @Test("3")
-    @Params("a")
-    @Params("b")
-    @Params("c")
-    function group1_3(values) as void
-      m.assertTrue(true)
+    @it("3")
+    @params("a")
+    @params("b")
+    @params("c")
+    function _(values)
+      m.assertEqual(m.beforeEachValue, 1)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests group 2 - should have group before afte")
+    @describe("group 2")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @BeforeEach
-    function group2_BeforeEach() as void
+    @beforeEach
+    function g2_be()
+      m.beforeEachValue = 2
       ? "!!! Before GROUP 2"
     end function
 
-    @AfterEach
-    function group2_AfterEach() as void
+    @afterEach
+    function g2_ae()
       ? "!!! After GROUP 2"
     end function
 
-    @Test("1 ")
-    function group2_1() as void
-      m.assertTrue(true)
+    @it("1 ")
+    function _()
+      m.assertEqual(m.beforeEachValue, 2)
     end function
 
-    @Test("2")
-    function group2_2() as void
-      m.assertTrue(true)
+    @it("2")
+    function _()
+      m.assertEqual(m.beforeEachValue, 2)
     end function
 
-    @Test("3")
-    @Params("a")
-    @Params("b")
-    @Params("c")
-    function group2_3(values) as void
-      m.assertTrue(true)
+    @it("3")
+    @params("a")
+    @params("b")
+    @params("c")
+    function _(values)
+      m.assertEqual(m.beforeEachValue, 2)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests group 3 - should have global before/afte")
+    @describe("group 3")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("1 ")
-    function group3_1() as void
-      m.assertTrue(true)
+    @it("1 ")
+    function _()
+      m.assertEqual(m.beforeEachValue, 1)
     end function
 
-    @Test("2")
-    function group3_2() as void
-      m.assertTrue(true)
+    @it("2")
+    function _()
+      m.assertEqual(m.beforeEachValue, 1)
     end function
 
-    @Test("3")
-    @Params("a")
-    @Params("b")
-    @Params("c")
-    function group3_3(values) as void
-      m.assertTrue(true)
+    @it("3")
+    @params("a")
+    @params("b")
+    @params("c")
+    function _(values)
+      m.assertEqual(m.beforeEachValue, 1)
     end function
 
   end class

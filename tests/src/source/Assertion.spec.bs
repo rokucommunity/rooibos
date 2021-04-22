@@ -1,14 +1,15 @@
-namespace Tests
+namespace tests
 
-  @TestSuite("Rooibos assertion tests")
+  @noEarlyExit
+  @suite("Rooibos assertion tests")
   class AssertionTests extends Rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests basic assertions")
+    @describe("tests basic assertions")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("Fail")
-    function test_fail() as void
+    @it("Fail")
+    function _()
 
       assertResult = m.Fail("reason")
 
@@ -19,14 +20,14 @@ namespace Tests
       m.assertTrue(isFail)
     end function
 
-    @Test("AssertTrue")
-    @Params(true, true)
-    @Params(false, false)
-    @Params(invalid, false)
-    @Params(0, false)
-    @Params(1, false)
-    @Params("test", false)
-    function test_assertTrue(value, expectedAssertResult) as void
+    @it("AssertTrue")
+    @params(true, true)
+    @params(false, false)
+    @params(invalid, false)
+    @params(0, false)
+    @params(1, false)
+    @params("test", false)
+    function _(value, expectedAssertResult)
 
       assertResult = m.assertTrue(value)
       isFail = m.currentResult.isFail
@@ -37,14 +38,14 @@ namespace Tests
     end function
 
 
-    @Test("AssertFalse")
-    @Params(false, true)
-    @Params(true, false)
-    @Params(invalid, false)
-    @Params(0, false)
-    @Params(1, false)
-    @Params("test", false)
-    function test_assertFalse(value, expectedAssertResult) as void
+    @it("AssertFalse")
+    @params(false, true)
+    @params(true, false)
+    @params(invalid, false)
+    @params(0, false)
+    @params(1, false)
+    @params("test", false)
+    function _(value, expectedAssertResult)
 
       assertResult = m.assertFalse(value)
 
@@ -56,27 +57,27 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests AssertArrayContainsAAs")
+    @describe("tests AssertArrayContainsAAs")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("Fail")
-    @Params([{ "one": 1 }], [{ "one": 2 }])
-    @Params([{ "one": 1 }], [{ "one": "a" }])
-    @Params([{ "one": 1 }], [{}])
-    @Params([{ "one": 1 }], [invalid])
-    @Params([{ "one": 1 }], [])
-    @Params([{ "one": 1 }], invalid)
-    @Params([{ "one": 1 }], [[]])
-    @Params([{ "one": 1 }], ["wrong"])
-    @Params([{ "one": 1 }], [2])
-    @Params([{ "one": "a" }], [{ "one": 1 }])
-    @Params([{ "two": 1 }], [{ "one": 1 }])
-    @Params([invalid], [{ "one": 1 }])
-    @Params(invalid, [{ "one": 1 }])
-    @Params([{ "one": 1, "two": 2 }], [{ "one": "1" }])
-    @Params([{ "one": 1 }, { "two": 2 }], [{ "one": "1" }, { "two": "a" }])
-    @Params([{ "one": 1 }, { "two": 2 }], [{ "a": 1 }, { "a": 1 }, { "a": 1 }])
-    function test_assertArrayContainsAAs_Fail(expectedAAs, items) as void
+    @it("Fail")
+    @params([{ "one": 1 }], [{ "one": 2 }])
+    @params([{ "one": 1 }], [{ "one": "a" }])
+    @params([{ "one": 1 }], [{}])
+    @params([{ "one": 1 }], [invalid])
+    @params([{ "one": 1 }], [])
+    @params([{ "one": 1 }], invalid)
+    @params([{ "one": 1 }], [[]])
+    @params([{ "one": 1 }], ["wrong"])
+    @params([{ "one": 1 }], [2])
+    @params([{ "one": "a" }], [{ "one": 1 }])
+    @params([{ "two": 1 }], [{ "one": 1 }])
+    @params([invalid], [{ "one": 1 }])
+    @params(invalid, [{ "one": 1 }])
+    @params([{ "one": 1, "two": 2 }], [{ "one": "1" }])
+    @params([{ "one": 1 }, { "two": 2 }], [{ "one": "1" }, { "two": "a" }])
+    @params([{ "one": 1 }, { "two": 2 }], [{ "a": 1 }, { "a": 1 }, { "a": 1 }])
+    function _(expectedAAs, items)
 
       assertResult = m.assertArrayContainsAAs(items, expectedAAs)
 
@@ -88,15 +89,15 @@ namespace Tests
     end function
 
 
-    @Test("pass")
-    @Params([], [])
-    @Params([{}], [{}])
-    @Params([{ "one": 1 }], [{ "one": 1 }])
-    @Params([{ "one": 1, "two": 2 }], [{ "one": 1, "two": 2 }])
-    @Params([{ "one": 1, "two": 2 }], [{ "two": 2, "one": 1 }])
-    @Params([{ "one": 1, "two": 2 }, { "one": 1 }], [{ "one": 1 }, { "two": 2, "one": 1 }])
-    @Params([{ "one": 1, "two": 2 }, { "one": 1 }, { "three": 3 }], [{ "one": 1 }, { "three": 3 }, { "two": 2, "one": 1 }])
-    function test_assertArrayContainsAAs_Pass(expectedAAs, items) as void
+    @it("pass")
+    @params([], [])
+    @params([{}], [{}])
+    @params([{ "one": 1 }], [{ "one": 1 }])
+    @params([{ "one": 1, "two": 2 }], [{ "one": 1, "two": 2 }])
+    @params([{ "one": 1, "two": 2 }], [{ "two": 2, "one": 1 }])
+    @params([{ "one": 1, "two": 2 }, { "one": 1 }], [{ "one": 1 }, { "two": 2, "one": 1 }])
+    @params([{ "one": 1, "two": 2 }, { "one": 1 }, { "three": 3 }], [{ "one": 1 }, { "three": 3 }, { "two": 2, "one": 1 }])
+    function _(expectedAAs, items)
 
       assertResult = m.assertArrayContainsAAs(items, expectedAAs)
 
@@ -108,42 +109,42 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests global is present on testSuite")
+    @describe("tests global is present on testSuite")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @BeforeEach
-    function test_assertGlobal_beforeEach() as void
+    @beforeEach
+    function test_assertGlobal_beforeEach()
       m.beforeEachGlobal = m.global
     end function
 
-    @AfterEach
-    function test_assertGlobal_afterEach() as void
+    @afterEach
+    function test_assertGlobal_afterEach()
       m.afterEachGlobal = m.global
     end function
 
-    @Test("global is in test")
-    function test_assertGlobalIsPassedIntoTest() as void
+    @it("global is in test")
+    function _()
       m.assertNotInvalid(m.global)
     end function
 
-    @Test("global is in before each and after each")
-    function test_assertGlobalIsPassedInto_beforeEach_and_afterEach() as void
+    @it("global is in before each and after each")
+    function _()
       m.assertNotInvalid(m.global)
       m.assertNotInvalid(m.beforeEachGlobal)
       m.assertNotInvalid(m.afterEachGlobal)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests AssertArrayContainsOnlyValuesOfType")
+    @describe("tests AssertArrayContainsOnlyValuesOfType")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("pass")
-    @Params(["one", "two", "three"], "String")
-    @Params([1, 2, 3], "Integer")
-    @Params([true, true, false], "Boolean")
-    @Params([[true, true], [false, false]], "Array")
-    @Params([{ "test": 1 }, { "test": 1 }], "AssociativeArray")
-    function test_assertArrayContainsOnlyValuesOfType_Pass(values, typeName) as void
+    @it("pass")
+    @params(["one", "two", "three"], "String")
+    @params([1, 2, 3], "Integer")
+    @params([true, true, false], "Boolean")
+    @params([[true, true], [false, false]], "Array")
+    @params([{ "test": 1 }, { "test": 1 }], "AssociativeArray")
+    function _(values, typeName)
 
       assertResult = m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
@@ -154,19 +155,19 @@ namespace Tests
 
     end function
 
-    @Test("fail")
-    @Params(["one", 2, "three"], "String")
-    @Params([1, "two", 3], "Integer")
-    @Params([true, "true", false], "Boolean")
-    @Params([[true, true], false, false], "Array")
-    @Params([{ "test": 1 }, "notAA"], "AssociativeArray")
-    @Params(["one", "two", "three"], "UnknownType")
-    @Params(["one", "two", "three"], "Integer")
-    @Params([1, 2, 3], "String")
-    @Params([true, true, false], "String")
-    @Params([[true, true], [false, false]], "AssociativeArray")
-    @Params([{ "test": 1 }, { "test": 1 }], "Array")
-    function test_assertArrayContainsOnlyValuesOfType_Fail(values, typeName) as void
+    @it("fail")
+    @params(["one", 2, "three"], "String")
+    @params([1, "two", 3], "Integer")
+    @params([true, "true", false], "Boolean")
+    @params([[true, true], false, false], "Array")
+    @params([{ "test": 1 }, "notAA"], "AssociativeArray")
+    @params(["one", "two", "three"], "UnknownType")
+    @params(["one", "two", "three"], "Integer")
+    @params([1, 2, 3], "String")
+    @params([true, true, false], "String")
+    @params([[true, true], [false, false]], "AssociativeArray")
+    @params([{ "test": 1 }, { "test": 1 }], "Array")
+    function _(values, typeName)
 
       assertResult = m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
@@ -179,44 +180,18 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests white spaces work with annotations")
+    @describe("tests AssertNotEmpty")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    'some comments to
-    'demonstrate
-    @Test("comments between tests")
-    'that we can have comments
-    'between functions and tags
-    function test_whiteSpacing() as void
-      m.assertTrue(true)
-    end function
-
-    'some comments to
-    'demonstrate
-    @Test("comments between tests with params")
-    @Params(1)
-    @Params(2)
-    'that we can have comments
-    @Params(3)
-    'between functions and tags
-    @Params(4)
-    function test_whiteSpacing_params(value) as void
-      m.assertTrue(true)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests AssertNotEmpty")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @Test("pass")
-    @Params(["one", "two", "three"])
-    @Params([1, 2, 3])
-    @Params([true])
-    @Params([[true, true], [false, false]])
-    @Params([{ "test": 1 }])
-    @Params("not empty")
-    @Params([invalid])
-    function test_assertNotEmpty_Pass(values) as void
+    @it("pass")
+    @params(["one", "two", "three"])
+    @params([1, 2, 3])
+    @params([true])
+    @params([[true, true], [false, false]])
+    @params([{ "test": 1 }])
+    @params("not empty")
+    @params([invalid])
+    function _(values)
 
       assertResult = m.assertNotEmpty(values)
       isFail = m.currentResult.isFail
@@ -227,13 +202,13 @@ namespace Tests
 
     end function
 
-    @Test("fail")
-    @Params(invalid)
-    @Params([])
-    @Params({})
-    @Params(1)
-    @Params("")
-    function test_assertNotEmpty_Fail(values) as void
+    @it("fail")
+    @params(invalid)
+    @params([])
+    @params({})
+    @params(1)
+    @params("")
+    function _(values)
 
       assertResult = m.assertNotEmpty(values)
       isFail = m.currentResult.isFail
@@ -245,14 +220,14 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests AssertEmpty")
+    @describe("tests AssertEmpty")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("pass")
-    @Params([])
-    @Params({})
-    @Params("")
-    function test_assertEmpty_Pass(values) as void
+    @it("pass")
+    @params([])
+    @params({})
+    @params("")
+    function _(values)
 
       assertResult = m.assertEmpty(values)
       isFail = m.currentResult.isFail
@@ -263,17 +238,17 @@ namespace Tests
 
     end function
 
-    @Test("fail")
-    @Params(1)
-    @Params(invalid)
-    @Params(["one", "two", "three"])
-    @Params([1, 2, 3])
-    @Params([true])
-    @Params([[true, true], [false, false]])
-    @Params([{ "test": 1 }])
-    @Params("not empty")
-    @Params([invalid])
-    function test_assertEmpty_Fail(values) as void
+    @it("fail")
+    @params(1)
+    @params(invalid)
+    @params(["one", "two", "three"])
+    @params([1, 2, 3])
+    @params([true])
+    @params([[true, true], [false, false]])
+    @params([{ "test": 1 }])
+    @params("not empty")
+    @params([invalid])
+    function _(values)
 
       assertResult = m.assertEmpty(values)
       isFail = m.currentResult.isFail
@@ -285,11 +260,11 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests expect")
+    @describe("tests expect")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("multi return values")
-    function test_expect_multiValues()
+    @it("multi return values")
+    function _()
       obj = {}
       m.expect(obj, "mockMethod", 5, invalid, { "multiResult": ["one", 2, invalid, "last"] }, true)
 
@@ -317,11 +292,11 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests expect with overloaded expectOnce")
+    @describe("tests expect with overloaded expectOnce")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("simple test")
-    function test_expect_multiExpect_success()
+    @it("simple test")
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -351,8 +326,8 @@ namespace Tests
     end function
 
 
-    @Test("can set up multi expects on same method - one invocation with any args")
-    function test_expect_multiExpect_success_oneCallsArgsNotTracked()
+    @it("can set up multi expects on same method - one invocation with any args")
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -382,8 +357,8 @@ namespace Tests
 
     end function
 
-    @Test("can set up multi expects on same method - multi params")
-    function test_expect_multiExpect_multi_args_success()
+    @it("can set up multi expects on same method - multi params")
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -413,8 +388,8 @@ namespace Tests
 
     end function
 
-    @Test("multi test, multi params with other expects")
-    function test_expect_multiExpect_multi_args_others_success()
+    @it("multi test, multi params with other expects")
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -452,8 +427,8 @@ namespace Tests
 
     end function
 
-    @Test("multi test, multi params with other expects - fail others")
-    function test_expect_multiExpect_multi_args_others_fail()
+    @it("multi test, multi params with other expects - fail others")
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -491,14 +466,14 @@ namespace Tests
 
     end function
 
-    @Test("can set up multi expects on same method")
-    @Params("arg1_", "arg2", "arg3")
-    @Params("arg1", "arg2", "arg3_")
-    @Params("arg1", "arg2_", "arg3")
-    @Params("arg1", "arg2_", "arg3")
-    @Params("arg1_", "arg2_", "arg3")
-    @Params("arg1_", invalid, "arg3")
-    function test_expect_multiExpect_fail(call1, call2, call3)
+    @it("can set up multi expects on same method")
+    @params("arg1", "arg2", "arg3")
+    @params("arg1", "arg2", "arg3")
+    @params("arg1", "arg2", "arg3")
+    @params("arg1", "arg2", "arg3")
+    @params("arg1", "arg2", "arg3")
+    @params("arg1", invalid, "arg3")
+    function _(call1, call2, call3)
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -528,11 +503,11 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests overloaded expectOnce on different objects")
+    @describe("tests overloaded expectOnce on different objects")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("success")
-    function test_expect_multiExpect_differentOnj_success()
+    @it("success")
+    function _()
       obj = {}
       obj2 = {}
       arg1 = "arg1"
@@ -563,8 +538,8 @@ namespace Tests
 
     end function
 
-    @Test("fail to match")
-    function test_expect_multiExpect_differentOnj_fail()
+    @it("fail to match")
+    function _()
       obj = {}
       obj2 = {}
       arg1 = "arg1"

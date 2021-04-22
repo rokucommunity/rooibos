@@ -1,25 +1,25 @@
-namespace Tests
+namespace tests
+
 
   @Ignore("only unignore to test compiler works - remove REMOVE_THIS to test")
-  @TestSuite
-  class DuplicateGroupNames extends Rooibos.BaseTestSuite 
+  @noEarlyExit
+  @suite
+  class DuplicateGroupNames extends Rooibos.BaseTestSuite
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests before each and after each are running")
+    @describe("tests before each and after each are running")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @BeforeEach
-    override function group_beforeEach() as void
+    override function group_beforeEach()
       ? "!!! Before"
     end function
 
-
-    @AfterEach
-    override function group_afterEach() as void
+    override function group_afterEach()
       ? "!!! After"
     end function
 
-    @Test
-    function before_after() as void
+    @it("called beforeEach and afterEach")
+    function _()
 
       assertResult = m.Fail("reason")
 

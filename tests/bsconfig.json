@@ -23,5 +23,6 @@
   "rooibos": {
     "showOnlyFailures": true,
     "lineWidth": 70
-  }
+  },
+  "sourceMap": true
 }

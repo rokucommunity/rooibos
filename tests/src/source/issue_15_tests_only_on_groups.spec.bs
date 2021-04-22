@@ -1,32 +1,32 @@
-namespace Tests
+namespace tests
   'ADD '@Only ON NEXT LINE TO TEST
-  @TestSuite()
+  @suite()
   class OnlyOnGroups extends Rooibos.BaseTestSuite
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests one")
+    @describe("tests one")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test
-    function it_test_one() as void
+    @it("it test one")
+    function _()
       m.assertTrue(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests two")
+    @describe("tests two")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test
-    function it_test_two() as void
+    @it("it test two")
+    function _()
       m.assertTrue(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     'ADD '@Only ON NEXT LINE TO TEST
-    @It("tests three")
+    @describe("tests three")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test
-    function it_test_three() as void
+    @it("it test three")
+    function _()
       m.assertTrue(true)
     end function
   end class

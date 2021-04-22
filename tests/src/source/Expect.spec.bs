@@ -1,20 +1,21 @@
 
-namespace Tests
+namespace tests
 
-  @TestSuite
+  @noEarlyExit
+  @suite
   class ExpectTests extends Rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests bug with expectOnce not matching values")
+    @describe("expectonce bug")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test
-    @Params([52], true)
-    @Params(invalid, false)
-    @Params([invalid], true)
-    @Params(["42"], true)
-    @Params([42], false)
-    function expectOnce_valuesBug_reported(expectedValue, expectMockFail) as void
+    @it("tests bug with expectOnce not matching values")
+    @params([52], true)
+    @params(invalid, false)
+    @params([invalid], true)
+    @params(["42"], true)
+    @params([42], false)
+    function _(expectedValue, expectMockFail)
       obj = {
         foo: function(arg0) : return arg0 : end function
       }
@@ -27,26 +28,26 @@ namespace Tests
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
       m.CleanMocks()
-      m.assertEqual(isFail, expectMockFail) 
+      m.assertEqual(isFail, expectMockFail)
     end function
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests mock count limit")
+    @describe("tests mock count limit")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("mock count limit at least 25")
-    function expect_mockCountLimitToBeAtLeast25() as void
+    @it("mock count limit at least 25")
+    function _()
 
       interface = {}
 
-      mockCountLimit = 25 
+      mockCountLimit = 25
       for i = 1 to mockCountLimit
         keyName = StrI(i).trim()
         interface[keyName] = function(arg0) : return arg0 : end function
 
         expectedArg = "a"
-        expectedReturnValue = "b" 
+        expectedReturnValue = "b"
         m.ExpectOnce(interface, keyName, [expectedArg], [expectedReturnValue])
 
         interface[keyName](expectedArg)

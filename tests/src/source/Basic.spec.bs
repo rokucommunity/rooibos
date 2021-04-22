@@ -1,30 +1,15 @@
-namespace Tests
+namespace tests
 
-  @TestSuite
+  @noEarlyExit
+  @suite
   class BasicTests extends Rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests the node context is available for a Node scope function")
+    @describe("equals fix for stubbed aas")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test 
-    function NodeScope() as void
-      m.assertNotInvalid(m.node)
-      Tests.BasicTests.doSomethingInNodeScope(true)
-      m.assertInvalid(m._isNodeScopeVarSet)
-      m.assertTrue(m.node._isNodeScopeVarSet)
-    end function
-
-    function doSomethingInNodeScope(value)
-      m._isNodeScopeVarSet = value
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests aa's with a mock will not crash the box!")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @Test 
-    function EqualsFixForStubbedAAs() as void
+    @it("tests aa's with a mock will not crash the box!")
+    function _()
       aa = { "test": "value" }
       m.expectOnce(aa, "getStubbedObject", [aa])
 
@@ -32,11 +17,11 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests aa's that get printed as failures don't crash box")
+    @describe("print results fix for stubbed aas")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test 
-    function PrintResultsFixForStubbedAAs() as void
+    @it("tests aa's that get printed as failures don't crash box")
+    function _()
       aa = { "test": "value" }
       bb = { "other": "value" }
       m.expectOnce(bb, "getStubbedObject", [aa])
@@ -47,36 +32,36 @@ namespace Tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("url in params")
+    @describe("url in params")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("simple")
-    @Params("http://101.rooibos.com")
-    function urlParams(url) as void
+    @it("works for simple case")
+    @params("http://101.rooibos.com")
+    function _(url)
       m.assertEqual(url, "http://101.rooibos.com")
     end function
 
-    @Test("on objects")
-    @Params({"url":"http://101.rooibos.com", "othervalue":2})
-    @Params({url:"http://101.rooibos.com", "othervalue":2})
-    @Params({url:"http://101.rooibos.com", othervalue:2})
-    function urlParams_objects(aa) as void
+    @it("on objects")
+    @params({"url":"http://101.rooibos.com", "othervalue":2})
+    @params({url:"http://101.rooibos.com", "othervalue":2})
+    @params({url:"http://101.rooibos.com", othervalue:2})
+    function urlParams_objects(aa)
       m.assertEqual(aa.url, "http://101.rooibos.com")
       m.assertEqual(aa.othervalue, 2)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("tests async tests")
+    @describe("assertAsyncField")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("times out")
-    function async_timeout()
+    @it("times out")
+    function _()
       item = { "id": "item" }
 
       m.assertAsyncField(item, "id")
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
-      m.assertTrue(isFail) 
+      m.assertTrue(isFail)
 
     end function
   end class

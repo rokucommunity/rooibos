@@ -1,61 +1,59 @@
 
 
-namespace Tests
+namespace tests
 
   @Ignore("only unignore to test compiler works")
-  @TestSuite
+  @suite
   class AfterEachNotRunning extends Rooibos.BaseTestSuite
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("group1")
+    @describe("group1")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("simple")
-    function group1_test()
+    @it("simple")
+    function _()
       m.assertTrue(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("group2")
+    @describe("group2")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("simple")
-    function group2_test()
-      m.assertTrue(true)
-    end function
-
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("group22")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    '@BeforeEach
-
-    @Test("simple2")
-    function group2_dupe_test()
+    @it("simple")
+    function _()
       m.assertTrue(true)
     end function
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("group3")
+    @describe("group22")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("simple")
-    function group3_test()
+    @it("simple2")
+    function _()
+      m.assertTrue(true)
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group3")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple")
+    function _()
       m.assertTrue(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @It("group11")
+    @describe("group11")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Test("simple")
-    function group1_dupe_test()
+    @it("simple")
+    function _()
       m.assertTrue(true)
     end function
 
-    @Test("simple2")
-    function group1_dupe_test2()
+    @it("simple2")
+    function _()
       m.assertTrue(true)
     end function
   end class
