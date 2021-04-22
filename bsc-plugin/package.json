@@ -23,7 +23,7 @@
         "@types/sinon": "^9.0.4",
         "@typescript-eslint/eslint-plugin": "^4.4.1",
         "@typescript-eslint/parser": "^4.4.1",
-        "brighterscript": "^0.33.0",
+        "brighterscript": "^0.37.4",
         "chai": "^4.2.0",
         "chai-files": "^1.4.0",
         "chai-subset": "^1.6.0",

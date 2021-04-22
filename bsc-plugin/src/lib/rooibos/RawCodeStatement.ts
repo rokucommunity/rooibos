@@ -3,10 +3,9 @@ import type { BscFile,
     WalkVisitor } from 'brighterscript';
 import { Range,
     Statement } from 'brighterscript';
+import type { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 
 import { SourceNode } from 'source-map';
-
-import type { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 
 export class RawCodeStatement extends Statement {
     constructor(
@@ -17,11 +16,11 @@ export class RawCodeStatement extends Statement {
         super();
     }
 
-    public transpile(state: TranspileState) {
+    public transpile(state: BrsTranspileState) {
         return [new SourceNode(
             this.range.start.line + 1,
             this.range.start.character,
-            this.sourceFile ? this.sourceFile.pathAbsolute : state.pathAbsolute,
+            this.sourceFile ? this.sourceFile.pathAbsolute : state.srcPath,
             this.source
         )];
     }

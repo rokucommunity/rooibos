@@ -1,5 +1,6 @@
 import type { CallExpression } from 'brighterscript';
 import { createVisitor, WalkMode, isDottedGetExpression, isCallExpression } from 'brighterscript';
+import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { RooibosAnnotation } from './Annotation';
@@ -42,12 +43,12 @@ export class TestGroup extends TestBlock {
         return [...this.testCases.values()];
     }
 
-    public modifyAssertions(testCase: TestCase) {
+    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean) {
         //for each method
         //if assertion
         //wrap with if is not fail
         //add line number as last param
-        const transpileState = new TranspileState(this.file);
+        const transpileState = new BrsTranspileState(this.file);
         try {
             let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(createVisitor({
@@ -60,7 +61,7 @@ export class TestGroup extends TestBlock {
                             return new RawCodeStatement(`
                             m.currentAssertLineNumber = ${ce.range.start.line}
                             ${ce.transpile(transpileState).join('')}
-                            if m.currentResult.isFail then return invalid
+                            ${noEarlyExit ? '' : 'if m.currentResult.isFail then return invalid'}
     `, this.file, ce.range);
                         }
                     }
