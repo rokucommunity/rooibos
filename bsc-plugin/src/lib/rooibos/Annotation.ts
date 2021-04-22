@@ -17,7 +17,8 @@ export enum AnnotationType {
     IgnoreParams = 'ignoreparams',
     SoloParams = 'onlyparams',
     Tags = 'tags',
-    NoCatch = 'nocatch'
+    NoCatch = 'nocatch',
+    NoEarlyExit = 'noearlyexit'
 }
 
 let annotationLookup = {
@@ -35,7 +36,8 @@ let annotationLookup = {
     ignoreparams: AnnotationType.IgnoreParams,
     onlyparams: AnnotationType.SoloParams,
     tags: AnnotationType.Tags,
-    nocatch: AnnotationType.NoCatch
+    nocatch: AnnotationType.NoCatch,
+    noearlyexit: AnnotationType.NoEarlyExit
 };
 
 interface ParsedComment {
@@ -52,7 +54,8 @@ export class AnnotationParams {
         public params: any[],
         public isIgnore = false,
         public isSolo = false,
-        public noCatch = false
+        public noCatch = false,
+        public noearlyexit = false
     ) {
 
     }
@@ -73,7 +76,8 @@ export class RooibosAnnotation {
         public params: AnnotationParams[] = [],
         public nodeName?: string,
         rawTags: string[] = [],
-        public noCatch = false
+        public noCatch = false,
+        public noEarlyExit = false
     ) {
         this.tags = new Set<string>(rawTags);
     }
@@ -88,6 +92,7 @@ export class RooibosAnnotation {
         let isSolo = false;
         let isIgnore = false;
         let noCatch = false;
+        let noEarlyExit = false;
         let nodeName = null;
         let tags = [];
         if (statement.annotations?.length) {
@@ -100,6 +105,9 @@ export class RooibosAnnotation {
             for (let annotation of statement.annotations) {
                 const annotationType = getAnnotationType(annotation.name);
                 switch (annotationType) {
+                    case AnnotationType.NoEarlyExit:
+                        noEarlyExit = true;
+                        break;
                     case AnnotationType.NoCatch:
                         noCatch = true;
                         break;
@@ -124,7 +132,7 @@ export class RooibosAnnotation {
                     case AnnotationType.Describe:
                     case AnnotationType.TestSuite:
                         const groupName = annotation.getArguments()[0] as string;
-                        blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch);
+                        blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch, noEarlyExit);
                         nodeName = null;
                         isSolo = false;
                         isIgnore = false;

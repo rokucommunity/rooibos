@@ -78,11 +78,16 @@ export class RooibosPlugin {
     beforePublish() {
         // console.log('bp');
         for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
+            let noEarlyExit = testSuite.annotation.noEarlyExit;
+            if (noEarlyExit) {
+              console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
+            }
+
             testSuite.addDataFunctions();
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
-                for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase);
-                }
+              for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
+                group.modifyAssertions(testCase, noEarlyExit);
+              }
             }
         }
 
