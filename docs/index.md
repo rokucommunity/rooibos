@@ -198,7 +198,8 @@ The following annotations are supported.
 | @ignoreParams[p1,p2,...,p6] | A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run.                                                                                                                                                                                                         | As per `@params`                                                                                  |
 | @onlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                               | As per `@params`                                                                                  |
 | @tags("one","two"..."n")   | Allows indicating the tags to apply to the group,test or suite. This is a really effective way to categorise your test suite. These tags can be used to filter tests in your rooibos bsconfig options.| List of tag names to apply                                                                                  |
-| @nocatch  | If present, will not catch errors for the test or suite it is placed on. This is handy when developing, and you want to debug the exact line on which an error occurred. | none|
+| @noatch  | If present, will not catch errors for the test or suite it is placed on. This is handy when developing, and you want to debug the exact line on which an error occurred. | none|
+| @noearlyexit  | If present, will not exit a test on an assertion failure, which prevents crashes/skwewed results. This annotation is mainly used for testing, such as testing rooibos framework itself. It is recommend that you _do not_ use this annotation. | none|
 
 
 
