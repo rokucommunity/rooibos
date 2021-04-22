@@ -137,12 +137,13 @@ end function`);
             let xmlText = this.getNodeTestXmlText(suite);
             let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
             this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-            this.fileFactory.addFile(program, bsPath, '');
             let bsFile = program.getFileByPkgPath(bsPath);
             if (bsFile) {
-                (bsFile as BrsFile).parser.statements.push(this.getNodeTestBsBody(suite));
+                (bsFile as BrsFile).parser.statements.push();
                 bsFile.needsTranspiled = true;
             }
+            let brsFile = this.fileFactory.addFile(program, bsPath, this.getNodeTestBsBody(suite));
+            brsFile.parser.invalidateReferences();
         }
     }
 
@@ -150,13 +151,13 @@ end function`);
         return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName);
     }
 
-    private getNodeTestBsBody(testSuite: TestSuite): RawCodeStatement {
-        return new RawCodeStatement(`import "pkg:/${testSuite.file.pkgPath}"
+    private getNodeTestBsBody(testSuite: TestSuite): string {
+        return `import "pkg:/${testSuite.file.pkgPath}"
     function init()
       nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
       m.top.rooibosTestResult = nodeRunner.runInNodeMode("${testSuite.name}")
     end function
-    `, testSuite.file, testSuite.annotation.annotation.range);
+    `;
     }
 
     public createIgnoredTestsInfoFunction(cs: ClassStatement) {

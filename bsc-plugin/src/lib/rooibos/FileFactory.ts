@@ -93,7 +93,11 @@ ${scriptImports.join('\n')}
     }
 
     public addFile(program, projectPath: string, contents: string) {
-        program.addOrReplaceFile({ src: path.resolve(projectPath), dest: projectPath }, contents);
+        try {
+            return program.addOrReplaceFile({ src: path.resolve(projectPath), dest: projectPath }, contents);
+        } catch (error) {
+            console.error(`Error adding framework file: ${projectPath} : ${error.message}`);
+        }
     }
 
 }
