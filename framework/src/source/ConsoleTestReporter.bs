@@ -46,9 +46,9 @@ namespace rooibos
       end if
 
       if m.allStats.hasFailures
-        overrallResult = "Success"
-      else
         overrallResult = "Fail"
+      else
+        overrallResult = "Success"
       end if
       m.printLine(0, "RESULT: " + overrallResult)
       m.endReport()
