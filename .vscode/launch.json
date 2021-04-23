@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "test",
+      "type": "brightscript",
+      "request": "launch",
+      "consoleOutput": "full",
+      "internalConsoleOptions": "neverOpen",
+      "preLaunchTask": "build-tests",
+      "envFile": "${workspaceFolder}/tests/.vscode/.env",
+      "host": "${env:ROKU_DEV_TARGET}",
+      "password": "${env:ROKU_DEVPASSWORD}",
+      "retainStagingFolder": true,
+      "stopOnEntry": false,
+      "files": [
+        "!**/images/*.*",
+        "!**/fonts/*.*",
+        "!*.jpg",
+        "!*.png",
+        "*",
+        "*.*",
+        "**/*.*",
+        "!*.zip",
+        "!**/*.zip"
+      ],
+      "rootDir": "${workspaceFolder}/tests/build",
+      "sourceDirs": [
+        "${workspaceFolder}/tests/src",
+      ],
+      "enableDebuggerAutoRecovery": true,
+      "stopDebuggerOnAppExit": true,
+      "enableVariablesPanel": false,
+      "injectRaleTrackerTask": false,
+      "enableDebugProtocol": false
+    }
+  ]
+}

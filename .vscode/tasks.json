@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-tests",
+      "type": "shell",
+      "command": "gulp build && cd frameworkTests && export TS_NODE_COMPILER_OPTIONS='{\"incremental\":true, \"allowJs\":false}' && export TS_NODE_TRANSPILE_ONLY=true && gulp prePublishTests",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    }
+  ]
+}
