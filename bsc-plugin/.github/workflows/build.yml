@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: "10.19.0"
       # - run: npm run build
-      # - run: cd bsc-plugin && npm i
+      # - run: cd bsc-plugin && npm  i
       # - run: cd bsc-plugin && npm ci
       # - run: cd bsc-plugin && npm run build
       # - run: cd bsc-plugin && npm run lint
