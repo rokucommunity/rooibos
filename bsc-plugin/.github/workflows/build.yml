@@ -4,9 +4,6 @@ on: [push, pull_request]
 jobs:
   ci:
     runs-on: ${{ matrix.os }}
-    env:
-      #hardcode the coveralls token...it's not overly important to protect, and github actions won't allow forks to work with coveralls otherwise
-      COVERALLS_REPO_TOKEN: "cAEPfB2XY4L96cxO0SFaZeKdxwRCSNjZV"
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-10.15, windows-2019]
