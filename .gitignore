@@ -44,3 +44,5 @@ rooibosDist.brs
 yarn.lock
 yarn-error.log
 /outRun/
+dist
+
