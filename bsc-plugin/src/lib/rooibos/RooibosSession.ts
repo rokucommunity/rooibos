@@ -83,6 +83,7 @@ end function`);
       "failFast": ${this.config.failFast ? 'true' : 'false'}
       "logLevel": ${this.config.logLevel ?? 0}
       "showOnlyFailures": ${this.config.showOnlyFailures ? 'true' : 'false'}
+      "printTestTimes": ${this.config.printTestTimes ? 'true' : 'false'}
       "lineWidth": ${this.config.lineWidth || 60}
       "printLcov": ${this.config.printLcov ? 'true' : 'false'}
       "port": "${this.config.port || 'invalid'}"

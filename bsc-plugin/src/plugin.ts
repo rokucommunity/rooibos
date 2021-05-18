@@ -30,21 +30,40 @@ export class RooibosPlugin {
     beforeProgramCreate(builder: ProgramBuilder): void {
         this._builder = builder;
 
-        this.config = (builder.options as any).rooibos || {};
-
-        //ignore roku modules by default
-        if (this.config.includeFilters === undefined) {
-            this.config.includeFilters = [
-                '**/*.spec.bs',
-                '!**/BaseTestSuite.spec.bs',
-                '!**/roku_modules/**/*'];
-        }
+        this.config = this.getConfig((builder.options as any).rooibos || {});
 
         this.fileFactory = new FileFactory(this.config);
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder);
         }
+    }
+    private getConfig(options: any) {
+      let config: RooibosConfig = options;
+      if (config.printTestTimes === undefined) {
+        config.printTestTimes = true;
+      }
+      if (config.catchCrashes === undefined) {
+        config.catchCrashes = true;
+      }
+      if (config.failFast === undefined) {
+        config.failFast = true;
+      }
+      if (config.showOnlyFailures === undefined) {
+        config.showOnlyFailures = true;
+      }
+      if (config.isRecordingCodeCoverage === undefined) {
+        config.isRecordingCodeCoverage = true;
+      }
+      //ignore roku modules by default
+      if (config.includeFilters === undefined) {
+          config.includeFilters = [
+              '**/*.spec.bs',
+              '!**/BaseTestSuite.spec.bs',
+              '!**/roku_modules/**/*'];
+      }
+
+      return config
     }
 
     afterProgramCreate(program: Program) {
