@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "module": "commonjs",
+    "sourceMap": true,
+    "rootDir": "src",
+    "outDir": "./dist",
+    "strictNullChecks": false,
+    "forceConsistentCasingInFileNames": true,
+    "preserveConstEnums": true,
+    "allowJs": true,
+    "target": "ES2017",
+    "downlevelIteration": true
+  },
+  "allowSyntheticDefaultImports": true,
+  "lib": ["es2017", "es2019.array", "esnext", "dom"],
+  "outDir": "./dist",
+  "exclude": ["node_modules/**/*"],
+  "include": ["./src/**/*"]
+}

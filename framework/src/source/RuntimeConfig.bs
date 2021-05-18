@@ -1,0 +1,20 @@
+namespace rooibos
+  class RuntimeConfig
+
+    function getVersionText()
+    end function
+
+    function getRuntimeConfig()
+    end function
+
+    function getTestSuiteClassWithName(name)
+    end function
+
+    function getAllTestSuitesNames()
+    end function
+
+    function getIgnoredTestInfo()
+    end function
+
+  end class
+end namespace

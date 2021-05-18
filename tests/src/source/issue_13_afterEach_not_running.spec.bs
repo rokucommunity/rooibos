@@ -1,0 +1,60 @@
+
+
+namespace tests
+
+  @Ignore("only unignore to test compiler works")
+  @suite
+  class AfterEachNotRunning extends Rooibos.BaseTestSuite
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group1")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple")
+    function _()
+      m.assertTrue(true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group2")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple")
+    function _()
+      m.assertTrue(true)
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group22")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple2")
+    function _()
+      m.assertTrue(true)
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group3")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple")
+    function _()
+      m.assertTrue(true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group11")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple")
+    function _()
+      m.assertTrue(true)
+    end function
+
+    @it("simple2")
+    function _()
+      m.assertTrue(true)
+    end function
+  end class
+end namespace

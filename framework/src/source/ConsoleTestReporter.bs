@@ -1,0 +1,198 @@
+namespace rooibos
+  class ConsoleTestReporter extends BaseTestReporter
+
+    function new(testRunner)
+      super(testRunner)
+      if m.config.lineWidth <> invalid
+        m.lineWidth = m.config.lineWidth
+      else
+        m.lineWidth = 60
+      end if
+    end function
+
+    override function reportResults(allStats)
+      m.allStats = allStats
+      m.startReport()
+
+      for each testSuite in m.testRunner.testSuites
+        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
+          m.printSuiteStart(testSuite)
+
+          for each testGroup in testSuite.groups
+            m.printGroup(testGroup)
+          end for
+        end if
+      end for
+
+      m.printLine()
+
+      'bs:disable-next-line
+      ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
+      m.printLine(0, "Total: " + Rooibos.Common.AsString(m.allStats.ranCount))
+      m.printLine(0, "  Passed: " + Rooibos.Common.AsString(m.allStats.passedCount))
+      m.printLine(0, "  Crashed: " + Rooibos.Common.AsString(m.allStats.crashedCount))
+      m.printLine(0, "  Failed: " + Rooibos.Common.AsString(m.allStats.failedCount))
+      m.printLine(0, "  Ignored: " + Rooibos.Common.AsString(ignoredInfo.count))
+      m.printLine(0, "  Time: " + Rooibos.Common.AsString(m.allStats.time) + "ms")
+      m.printLine()
+      m.printLine()
+
+      if ignoredInfo.count > 0
+        m.printLine(0, "IGNORED TESTS:")
+        for each ignoredItemName in ignoredInfo.items
+          m.printLine(1, ignoredItemName)
+        end for
+        m.printLine()
+        m.printLine()
+      end if
+
+      if m.allStats.hasFailures
+        overrallResult = "Fail"
+      else
+        overrallResult = "Success"
+      end if
+      m.printLine(0, "RESULT: " + overrallResult)
+      m.endReport()
+    end function
+
+    function printGroup(testGroup)
+      isGroupPrinted = false
+
+      for each test in testGroup.tests
+        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
+          if not isGroupPrinted
+            m.printGroupStart(testGroup)
+            isGroupPrinted = true
+          end if
+
+          m.printTest(test)
+        end if
+      end for
+
+      if isGroupPrinted
+        m.printLine(0, " |")
+      end if
+    end function
+
+    function printTest(test)
+
+      testLocationLine = StrI(test.lineNumber).trim()
+
+      locationLine = invalid
+      if test.result.isCrash
+        testChar = "|"
+        locationLine = StrI(test.lineNumber).trim()
+      else if test.result.isFail
+        testChar = "-"
+        locationLine = StrI(test.result.lineNumber + 1).trim()
+      else
+        testChar = "|"
+        locationLine = StrI(test.lineNumber).trim()
+      end if
+
+      testLocationText = "file://" + test.testSuite.filePath.trim() + ":" + testLocationLine
+
+      if m.config.printTestTimes = true
+        timeText = " (" + stri(test.result.time).trim() + "ms)"
+      else
+        timeText = ""
+      end if
+
+      insetText = ""
+      if test.isParamTest <> true
+        messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
+        m.printLine(0, messageLine + test.result.getStatusText() + timeText)
+        m.printLine(0, " | " + insettext + "  |--Test : " + testLocationText)
+      else if test.paramTestIndex = 0
+        name = test.name
+        if len(name) > 1 and right(name, 1) = "0"
+          name = left(name, len(name) - 1)
+        end if
+        m.printLine(0, " " + testChar + " |--" + name + " : ")
+        m.printLine(0, " | " + insettext + "  |--Test : " + testLocationText)
+      end if
+
+      locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine
+      if test.isParamTest = true
+        insetText = "  "
+
+        if type(test.rawParams) = "roAssociativeArray"
+          rawParams = {}
+          for each key in test.rawParams
+            if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
+              rawParams[key] = test.rawParams[key]
+            end if
+          end for
+        else
+          rawParams = test.rawParams
+        end if
+        messageLine = Rooibos.Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", m.lineWidth)
+        m.printLine(0, messageLine + test.result.getStatusText() + timeText)
+      end if
+
+      if test.result.isCrash
+        m.printLine(0, " | " + insettext + "  |--Crashed at: " + locationText)
+        m.printStackTrace(insettext, test.result.error)
+        m.printLine(0, " | ")
+      else if test.result.isFail
+        m.printLine(0, " | " + insettext + "  |--Failed at: " + locationText)
+        if test.isParamTest = true
+          m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramlineNumber -1).trim())
+        end if
+        m.printLine(0, " | " + insettext + "  |--Error Message: " + test.result.message)
+        m.printLine(0, " | ")
+      end if
+    end function
+
+    function printStackTrace(insettext, error)
+      m.printLine(0, " | " + insettext + "  |")
+      m.printLine(0, " | " + insettext + "  |--Message: " + error.message)
+      m.printLine(0, " | " + insettext + "  |--Stack trace: ")
+
+      for i = error.backTrace.count() - 1 to 0 step -1
+        e = error.backTrace[i]
+        if e.filename.instr("pkg:/source/rooibos") = -1
+          m.printLine(0, " | " + insettext + "    " + e.filename + "(" + stri(e.line_number).trim() + ")")
+        end if
+      end for
+    end function
+
+    function startReport()
+      m.printLine()
+      m.printLine(0, "[START TEST REPORT]")
+      m.printLine()
+    end function
+
+    function endReport()
+      m.printLine()
+      m.printLine(0, "[END TEST REPORT]")
+      m.printLine()
+    end function
+
+    function printSuiteStart(testSuite)
+      m.printLine(0, " " + testSuite.name + " file://" + testSuite.filePath.trim() + ":" + str(testSuite.lineNumber).trim())
+
+    end function
+
+    function printGroupStart(testGroup)
+      m.printLine(0, " |-" + testGroup.name)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ printing
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    override function testLogInfo(text)
+      ? "INFO " ; text
+    end function
+
+    override function testLogError(text)
+      ? "ERROR " ; text
+    end function
+
+    function printLine(depth = 0, text = "")
+      ? " " ; text
+    end function
+
+  end class
+end namespace

@@ -1,0 +1,214 @@
+namespace tests
+
+  @noEarlyExit
+  @suite
+  class MatcherTests extends Rooibos.BaseTestSuite
+
+    override function beforeEach()
+      'make a mock class
+      m.myClass = {}
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("boolean matcher")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("matches values")
+    @params(true, false, false)
+    @params(false, true, true)
+    @params(false, false, true)
+    @params(true, true, true)
+    function _(v1, v2, expectedFail)
+      returnValue = "notBroken"
+      m.expectOnce(m.myClass, "doWork", [{ "matcher": m.match_true }, { "matcher": m.match_false }], returnValue)
+
+      m.assertEqual(m.myClass.doWork(v1, v2), returnValue)
+
+      m.assertMocks()
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+      m.assertEqual(isFail, expectedFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("inline matcher")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("matches values")
+    @params(true, false, false)
+    @params(false, true, true)
+    @params(false, false, true)
+    @params(true, true, true)
+    function _(v1, v2, expectedFail)
+      returnValue = "notBroken"
+      m.expectOnce(m.myClass, "doWork", [{ "matcher": function(value)
+          return value = true
+      end function }, { "matcher": function(value)
+          return value = false
+      end function }], returnValue)
+
+      m.assertEqual(m.myClass.doWork(v1, v2), returnValue)
+
+      m.assertMocks()
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+      m.assertEqual(isFail, expectedFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ built in matchers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("anyBoolMatcher")
+    @params(invalid, true)
+    @params("false", true)
+    @params("true", true)
+    @params(23, true)
+    @params({}, true)
+    @params([], true)
+    @params(false, false)
+    @params(true, false)
+    function _(v1, expectedFail)
+      returnValue = "notBroken"
+      m.expectOnce(m.myClass, "doWork", [m.anyBoolMatcher], returnValue)
+
+      m.assertEqual(m.myClass.doWork(v1), returnValue)
+
+      m.assertMocks()
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+      m.assertEqual(isFail, expectedFail)
+    end function
+
+    @it("anyStringMatcher")
+    @params(invalid, true)
+    @params("false", false)
+    @params("true", false)
+    @params(23, true)
+    @params({}, true)
+    @params([], true)
+    @params(false, true)
+    @params(true, true)
+    function _(v1, expectedFail)
+      returnValue = "notBroken"
+      m.expectOnce(m.myClass, "doWork", [m.anyStringMatcher], returnValue)
+
+      m.assertEqual(m.myClass.doWork(v1), returnValue)
+
+      m.assertMocks()
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+      m.assertEqual(isFail, expectedFail)
+    end function
+
+    @it("anyNumberMatcher")
+    @params(invalid, true)
+    @params("false", true)
+    @params("true", true)
+    @params(23, false)
+    @params(9, false)
+    @params(0, false)
+    @params(0.2, false)
+    @params({}, true)
+    @params([], true)
+    @params(false, true)
+    @params(true, true)
+    function _(v1, expectedFail)
+      returnValue = "notBroken"
+      m.expectOnce(m.myClass, "doWork", [m.anyNumberMatcher], returnValue)
+
+      m.assertEqual(m.myClass.doWork(v1), returnValue)
+
+      m.assertMocks()
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+      m.assertEqual(isFail, expectedFail)
+    end function
+
+    @it("anyAAMatcher")
+    @params(invalid, true)
+    @params("false", true)
+    @params("true", true)
+    @params(23, true)
+    @params({}, false)
+    @params([], true)
+    @params(false, true)
+    @params(true, true)
+    function _(v1, expectedFail)
+      returnValue = "notBroken"
+      m.expectOnce(m.myClass, "doWork", [m.anyAAMatcher], returnValue)
+
+      m.assertEqual(m.myClass.doWork(v1), returnValue)
+
+      m.assertMocks()
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+      m.assertEqual(isFail, expectedFail)
+    end function
+
+    @it("anyArrayMatcher")
+    @params(invalid, true)
+    @params("false", true)
+    @params("true", true)
+    @params(23, true)
+    @params({}, true)
+    @params([], false)
+    @params(false, true)
+    @params(true, true)
+    function _(v1, expectedFail)
+      returnValue = "notBroken"
+      m.expectOnce(m.myClass, "doWork", [m.anyArrayMatcher], returnValue)
+
+      m.assertEqual(m.myClass.doWork(v1), returnValue)
+
+      m.assertMocks()
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+      m.assertEqual(isFail, expectedFail)
+    end function
+
+    @it("anyNodeMatcher")
+    @params(invalid, true)
+    @params("false", true)
+    @params("true", true)
+    @params(23, true)
+    @params({}, true)
+    @params("#RBSNode", false)
+    @params([], true)
+    @params(false, true)
+    @params(true, true)
+    function _(v1, expectedFail)
+      returnValue = "notBroken"
+      m.expectOnce(m.myClass, "doWork", [m.anyNodeMatcher], returnValue)
+
+      m.assertEqual(m.myClass.doWork(v1), returnValue)
+
+      m.assertMocks()
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+      m.assertEqual(isFail, expectedFail)
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ matchers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function match_true(value)
+      return value = true
+    end function
+
+    function match_false(value)
+      return value = false
+    end function
+
+  end class
+end namespace

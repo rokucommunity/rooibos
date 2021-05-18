@@ -1,0 +1,63 @@
+namespace rooibos.utils
+  class MockNode
+    public id
+    public name
+
+    public createdNodes = []
+    public createdChildren = []
+    public children = []
+    public _subType = "Node"
+    public _parent
+
+    function new(id = "", subType = "Node")
+      m.id = id
+      m._subType = subType
+    end function
+
+    function subType()
+      return m._subType
+    end function
+
+    function createObject(nodeType)
+      node = new rooibos.utils.MockNode("", nodeType)
+      m.createdNodes.push(node)
+      return node
+    end function
+
+    function createChild(nodeType)
+      node = new rooibos.utils.MockNode("", nodeType)
+      m.createdChildren.push(node)
+      return node
+    end function
+
+    function appendChild(child)
+      m.children.push(child)
+    end function
+    function getParent()
+      if m._parent = invalid
+        m._parent = new rooibos.utils.MockNode("_generated_parent")
+      end if
+      return m._parent
+    end function
+
+    function addFields(fields)
+      m.append(fields)
+    end function
+    function setField(field, value)
+      m[field] = value
+    end function
+    function setFields(fields)
+      m.append(fields)
+    end function
+    function observeField(field, callback)
+    end function
+    function getChildren(offset, count)
+      return m.children
+    end function
+    function removeChildren(children)
+
+    end function
+    function observeFieldScoped(field, callback)
+    end function
+  end class
+end namespace

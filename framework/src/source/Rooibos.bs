@@ -1,0 +1,83 @@
+namespace rooibos
+  function init() as void
+    args = {}
+    if createObject("roAPPInfo").IsDev() <> true then
+      ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
+      return
+    end if
+
+    screen = CreateObject("roSGScreen")
+    m.port = CreateObject("roMessagePort")
+    screen.setMessagePort(m.port)
+    testSceneName = "TestsScene"
+
+    ? "Starting test using test scene with name TestsScene" ; testSceneName
+    scene = screen.CreateScene(testSceneName)
+    scene.id = "ROOT"
+    screen.show()
+
+    m.global = screen.getGlobalNode()
+    m.global.addFields({ "testsScene": scene })
+
+    if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false
+      ? "The scene is not ready yet - waiting for it to set isReadyToStartTests to true"
+      scene.observeField("isReadyToStartTests", m.port)
+
+    else
+      ? "scene is ready; running tests now"
+      runner = new TestRunner(scene, m)
+      runner.Run()
+    end if
+
+    while(true)
+      msg = wait(0, m.port)
+      msgType = type(msg)
+      if msgType = "roSGScreenEvent"
+        if msg.isScreenClosed()
+          return
+        end if
+      else if msgType = "roSGNodeEvent"
+
+        if msg.getField() = "isReadyToStartTests" and msg.getData() = true
+          ? "scene is ready; running tests now"
+          runner = new TestRunner(scene, m)
+          runner.Run()
+        end if
+      end if
+    end while
+  end function
+
+  function versionCompare(v1, v2)
+    v1parts = v1.split(".")
+    v2parts = v2.split(".")
+
+    while v1parts.count() < v2parts.count()
+      v1parts.push("0")
+    end while
+
+    while v2parts.count() < v1parts.count()
+      v2parts.push("0")
+    end while
+
+    for i = 0 to v1parts.count() - 1
+      if v2parts.count() = i
+        return 1
+      end if
+
+      if v1parts[i] <> v2parts[i]
+        if v1parts[i] > v2parts[i]
+          return 1
+        else
+          return -1
+        end if
+      end if
+    end for
+
+    if v1parts.count() <> v2parts.count()
+      return -1
+    end if
+
+    return 0
+
+  end function
+end namespace

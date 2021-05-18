@@ -1,0 +1,29 @@
+{
+	"folders": [
+    {
+      "path": "bsc-plugin"
+    },
+    {
+      "path": "framework"
+    },
+    {
+      "path": "tests"
+    },
+    {
+      "path": "../vsc/brighterscript"
+    }
+  ],
+  "settings": {
+    "jira-plugin.workingProject": "",
+    "workbench.colorCustomizations": {
+      "statusBar.background": "#b3b024",
+      "statusBar.debuggingBackground": "#f1ee2f",
+      "panelTitle.activeBorder": "#ff0000",
+      "activityBar.background": "#f1ee2f",
+      "activityBar.foreground": "#1b1b1a",
+      "activityBar.activeBackground": "#b3b024",
+      "titleBar.activeBackground": "#b3b024",
+      "titleBar.activeForeground": "#F9F9F8"
+    }
+  }
+}

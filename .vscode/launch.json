@@ -8,7 +8,7 @@
       "consoleOutput": "full",
       "internalConsoleOptions": "neverOpen",
       "preLaunchTask": "build-tests",
-      "envFile": "${workspaceFolder}/frameworkTests/.vscode/.env",
+      "envFile": "${workspaceFolder}/tests/.vscode/.env",
       "host": "${env:ROKU_DEV_TARGET}",
       "password": "${env:ROKU_DEVPASSWORD}",
       "retainStagingFolder": true,
@@ -24,9 +24,9 @@
         "!*.zip",
         "!**/*.zip"
       ],
-      "rootDir": "${workspaceFolder}/frameworkTests/build",
+      "rootDir": "${workspaceFolder}/tests/build",
       "sourceDirs": [
-        "${workspaceFolder}/frameworkTests/src",
+        "${workspaceFolder}/tests/src",
       ],
       "enableDebuggerAutoRecovery": true,
       "stopDebuggerOnAppExit": true,

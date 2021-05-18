@@ -1,0 +1,51 @@
+namespace rooibos.Coverage
+
+'   function createLCovOutput()
+'     ? "Generating lcov.info file..."
+
+'     cc = m.global._rbs_ccn
+'     expectedMap = cc.expectedMap
+'     filePathMap = cc.filePathMap
+'     resolvedMap = cc.resolvedMap
+
+'     buffer = ""
+
+'     for each module in filePathMap.items()
+'       moduleNumber = module.key
+'       filePath = module.value
+'       packageName = "."
+
+'       relativePath = filePath.replace("pkg:", packageName)
+'       sanitizedPath = relativePath.replace("\\", "/")
+
+'       buffer = buffer + "TN:" + chr(10)
+'       buffer = buffer + "SF:" + sanitizedPath + chr(10)
+
+'       for each expected in expectedMap[moduleNumber]
+'         lineNumber = expected[0]
+'         SHIFT = 1
+
+'         if resolvedMap[moduleNumber] <> invalid and resolvedMap[moduleNumber].doesExist(str(lineNumber)) then
+'           buffer = buffer + "DA:" + str(lineNumber + SHIFT) + ",1" + chr(10)
+'         else
+'           buffer = buffer + "DA:" + str(lineNumber + SHIFT) + ",0" + chr(10)
+'         end if
+'       end for
+
+'       buffer = buffer + "end_of_record" + chr(10)
+'     end for
+'     return buffer
+'   end function
+
+'   function printLCovInfo()
+'     ?
+'     ? "+++++++++++++++++++++++++++++++++++++++++++"
+'     ? "LCOV.INFO FILE"
+'     ? "+++++++++++++++++++++++++++++++++++++++++++"
+'     ?
+'     ? "+-=-coverage:start"
+'     ? Coverage.createLCovOutput()
+'     ? "+-=-coverage:end"
+'   end function
+
+end namespace

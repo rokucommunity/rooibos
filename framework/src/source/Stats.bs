@@ -1,0 +1,46 @@
+namespace rooibos
+  class Stats
+    public time = 0
+    public ranCount = 0
+    public passedCount = 0
+    public failedCount = 0
+    public crashedCount = 0
+    public ignoredCount = 0
+    public ignoredTestNames = []
+    public hasFailures = false
+    public testResult = invalid
+
+    function new()
+    end function
+
+    function merge(other) as void
+      m.time += other.time
+      m.ranCount += other.ranCount
+      m.passedCount += other.passedCount
+      m.failedCount += other.failedCount
+      m.crashedCount += other.crashedCount
+      m.ignoredCount += other.ignoredCount
+      m.ignoredTestNames.append(other.IgnoredTestNames)
+      m.onUpdate()
+    end function
+
+    function appendTestResult(result)
+      m.time += result.time
+      m.ranCount++
+      if result.isCrash
+        m.crashedCount++
+      else if result.isFail
+        m.failedCount++
+      else
+        m.passedCount++
+      end if
+
+      m.onUpdate()
+    end function
+
+    function onUpdate()
+      m.hasFailures = m.failedCount > 0 or m.crashedCount > 0
+    end function
+
+  end class
+end namespace

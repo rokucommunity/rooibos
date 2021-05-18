@@ -1,0 +1,68 @@
+namespace tests
+
+  @noEarlyExit
+  @suite
+  class BasicTests extends Rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("equals fix for stubbed aas")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("tests aa's with a mock will not crash the box!")
+    function _()
+      aa = { "test": "value" }
+      m.expectOnce(aa, "getStubbedObject", [aa])
+
+      aa.getStubbedObject(aa)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("print results fix for stubbed aas")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("tests aa's that get printed as failures don't crash box")
+    function _()
+      aa = { "test": "value" }
+      bb = { "other": "value" }
+      m.expectOnce(bb, "getStubbedObject", [aa])
+      m.assertEqual(aa, bb)
+      'not crashing on printing the wrong output is a pass
+      m.assertMocks()
+      m.currentResult.Reset()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("url in params")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("works for simple case")
+    @params("http://101.rooibos.com")
+    function _(url)
+      m.assertEqual(url, "http://101.rooibos.com")
+    end function
+
+    @it("on objects")
+    @params({"url":"http://101.rooibos.com", "othervalue":2})
+    @params({url:"http://101.rooibos.com", "othervalue":2})
+    @params({url:"http://101.rooibos.com", othervalue:2})
+    function urlParams_objects(aa)
+      m.assertEqual(aa.url, "http://101.rooibos.com")
+      m.assertEqual(aa.othervalue, 2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("assertAsyncField")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("times out")
+    function _()
+      item = { "id": "item" }
+
+      m.assertAsyncField(item, "id")
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.assertTrue(isFail)
+
+    end function
+  end class
+end namespace

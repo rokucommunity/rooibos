@@ -1,0 +1,182 @@
+namespace rooibos
+  ' /**
+  '  * @module TestRunner
+  '  */
+
+  ' /**
+  '  * @memberof module:TestRunner
+  '  * @name Rooibos_TestRunner
+  '  * @function
+  '  * @description Creates an instance of the test runner
+  '  */
+  class TestRunner
+    public testScene = invalid
+    public testReporter = invalid
+    public nodeContext = invalid
+    public config = invalid
+    public testSuites = []
+
+    public function new(testScene, nodeContext)
+      m.testScene = testScene
+      if nodeContext.top = invalid
+        nodeContext.top = testScene
+      end if
+      nodeContext.scene = testScene
+
+      m.nodeContext = nodeContext
+
+      m.stats = new Stats()
+      m.runtimeConfig = new RuntimeConfig()
+      m.config = m.runtimeConfig.getRuntimeConfig()
+      'TODO - allow providing different reporters via config
+      m.testReporter = new Rooibos.ConsoleTestReporter(m)
+    end function
+
+    ' /**
+    '  * @memberof module:TestRunner
+    '  * @name Run
+    '  * @function
+    '  * @instance
+    '  * @description Executes all tests for a project, as per the config
+    '  */
+    public function run()
+
+      timer = createObject("roTimespan")
+      timer.mark()
+      suiteNames = m.runtimeConfig.getAllTestSuitesNames()
+      includedSuites = []
+      for each name in suiteNames
+        suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
+        testSuite = invalid
+        if suiteClass <> invalid
+          testSuite = suiteClass()
+          testSuite.global = m.nodeContext.global
+          testSuite.context = m.nodeContext
+          testSuite.top = m.nodeContext.top
+          testSuite.scene = m.nodeContext.global.testsScene
+          testSuite.catchCrashes = m.config.catchCrashes
+          m.runTestSuite(testSuite)
+          if m.stats.hasFailures = true and m.config.failFast = true
+            exit for
+          end if
+        else
+          ? "ERROR! coudl not create test for suite : "; name
+        end if
+      end for
+
+      m.stats.time = timer.totalMilliseconds()
+
+      m.testReporter.reportResults(m.stats)
+
+      'code coverage is not enabled in rooibos 4.0.0 - will get added again in future
+      ' if Rooibos.Common.isFunction(RBS_reportCodeCoverage)
+      '   'bs:disable-next-line
+      '   RBS_reportCodeCoverage()
+
+      '   if m.config.printLcov = true
+      '     Coverage.printLCovInfo()
+      '   end if
+      ' end if
+      m.sendHomeKeypress()
+    end function
+
+    public function runInNodeMode(nodeTestName)
+      suiteClass = m.getTestSuiteClassWithName(nodeTestName)
+      testSuite = invalid
+
+      if suiteClass <> invalid
+        testSuite = suiteClass(m.top)
+      end if
+
+      if testSuite <> invalid
+        testSuite.run()
+        return {
+          stats: testSuite.stats
+          tests: testSuite.tests
+        }
+      else
+        ? "[ERROR] could not create test suite " ; nodeTestName
+      end if
+
+      ? "ERROR! executing node test " + nodeTestName + " was unsuccesful."
+
+      return invalid
+    end function
+
+    private function runTestSuite(testSuite) as void
+      if testSuite.groupsData <> invalid and testSuite.groupsData.count() > 0
+        ? ""
+        ? Rooibos.Common.fillText("> SUITE: " + testSuite.name, ">", 80)
+        m.testSuites.push(testSuite)
+
+        if testSuite.isNodeTest
+          m.runNodeTest(testSuite)
+        else
+          testSuite.run()
+        end if
+
+        m.stats.merge(testSuite.stats)
+      end if
+    end function
+
+    private function runNodeTest(testSuite) as void
+      if testSuite.generatedNodeName <> ""
+        ? " +++++RUNNING NODE TEST"
+        ? " node type is " ; testSuite.generatedNodeName
+
+        node = m.testScene.createChild(testSuite.generatedNodeName)
+
+        if type(node) = "roSGNode"
+          nodeResults = node.rooibosTestResult
+          if nodeResults <> invalid
+            testSuite.stats = nodeResults.stats
+            testSuite.testCases = nodeResults.testCases
+          else
+            ? " ERROR! The node test"; testSuite.name; " did not return a result from from the rooibos_runNodeTestSuite method. This usually means you are not importing rooibos.brs and the required test file. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+          end if
+          m.testScene.removeChild(node)
+          return
+
+        else
+          ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
+          ? " Node of type " ; testSuite.generatedNodeName ; " was not found/could not be instantiated"
+        end if
+
+      else
+        ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
+        ? " No node type was provided"
+      end if
+
+      testSuite.stats.hasFailures = true
+      testSuite.failedCount += testSuite.testsData.count()
+    end function
+
+    private function sendHomeKeypress()
+      ut = createObject("roUrlTransfer")
+      ut.SetUrl("http://localhost:8060/keypress/Home")
+      ut.PostFromString("")
+    end function
+
+  end class
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ This code is called inside of the node
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function createTestNode(nodeType) as object
+    node = createObject("roSGNode", nodeType)
+
+    if type(node) = "roSGNode" and node.subType() = nodeType
+      m.top.AppendChild(node)
+      return node
+    else
+      ? " Error creating test node of type " ; nodeType
+      return invalid
+    end if
+  end function
+
+  function runNodeTestSuite(name)
+    nodeRunner = new TestRunner(m.top.getScene(), m)
+    return nodeRunner.runInNodeMode(name)
+  end function
+end namespace

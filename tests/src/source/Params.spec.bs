@@ -1,0 +1,36 @@
+namespace tests
+
+  @suite
+  class ParamsTest extends Rooibos.BaseTestSuite
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("params")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates nodes with RBSNode directive")
+    @params("#RBSNode", "ContentNode")
+    @params("#RBSNode|Group", "Group")
+    @params("#RBSNode|Label", "Label")
+    function _(node, expectedNodeType)
+      m.assertSubType(node, expectedNodeType)
+    end function
+
+    @it("creates nodes on other arguments")
+    @params(1, 2, 3, "#RBSNode", "ContentNode")
+    @params(1, 2, 3, "#RBSNode|Group", "Group")
+    @params(1, 2, 3, "#RBSNode|Label", "Label")
+    function _(arg1, arg2, arg3, node, expectedNodeType)
+      m.assertSubType(node, expectedNodeType)
+      m.assertEqual(arg1, 1)
+      m.assertEqual(arg2, 2)
+      m.assertEqual(arg3, 3)
+    end function
+
+    @it("does not affect regular params")
+    @params("#someValue", "#someValue")
+    @params(22, 22)
+    @params([1,2,3], [1,2,3])
+    function _(arg1, expectedValue)
+      m.assertEqual(arg1, expectedValue)
+    end function
+  end class
+end namespace

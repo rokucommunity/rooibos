@@ -1,5 +1,5 @@
 {
-  "rootDir": "framework/src",
+  "rootDir": "src",
   "files": [
     "manifest",
     "source/**/*.*",
@@ -7,7 +7,7 @@
   ],
   "autoImportComponentScript": true,
   "createPackage": false,
-  "stagingFolderPath": "dist",
+  "stagingFolderPath": "build",
   "diagnosticFilters": [
     {
       "src": "**/roku_modules/**/*.*",
@@ -16,5 +16,13 @@
         1009
       ]
     }
-  ]
+  ],
+  "plugins": [
+    "../bsc-plugin/dist/plugin.js"
+  ],
+  "rooibos": {
+    "showOnlyFailures": true,
+    "lineWidth": 70
+  },
+  "sourceMap": true
 }

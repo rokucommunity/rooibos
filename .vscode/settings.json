@@ -4,8 +4,8 @@
     "statusBar.background": "#551A8B",
     "statusBar.debuggingBackground": "#551A8B",
     "panelTitle.activeBorder": "#ff0000",
-    "activityBar.background": "#452613",
-    "titleBar.activeBackground": "#61351A",
-    "titleBar.activeForeground": "#FDFAF9"
+    "activityBar.background": "#143141",
+    "titleBar.activeBackground": "#1D445B",
+    "titleBar.activeForeground": "#F7FBFD"
   }
 }

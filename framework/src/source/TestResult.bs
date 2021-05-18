@@ -1,0 +1,74 @@
+namespace rooibos
+  class TestResult
+
+    public isFail = false
+    public isCrash = false
+    public message = ""
+    public lineNumber = -1
+    public test = invalid
+    public time = 0
+    public error = invalid
+
+    function new(test)
+      m.test = test
+    end function
+
+    function reset() as void
+      m.isFail = false
+      m.isCrash = false
+      m.time = 0
+      m.message = ""
+      m.lineNumber = -1
+    end function
+
+    function fail(message as string, lineNumber = -1)
+      if message <> "" and not m.isFail
+        if not m.isFail
+          m.lineNumber = lineNumber
+          m.isFail = true
+          m.message = message
+        end if
+      end if
+    end function
+
+    function crash(message as string, error)
+      if message <> "" and not m.isCrash
+        if not m.isCrash
+          m.error = error
+          m.message = "test crashed!"
+          m.isFail = true
+          m.isCrash = true
+        end if
+      end if
+    end function
+
+    function getMessage() as string
+      if m.isFail
+        if m.message <> invalid
+          return m.message
+        else
+          return "unknown test failure"
+        end if
+      else if m.isCrash
+        if m.message <> invalid
+          return m.message
+        else
+          return "unknown test crash"
+        end if
+      else
+        return ""
+      end if
+    end function
+
+    function getStatusText()
+      if m.isCrash
+        return "CRASH"
+      else if m.isFail
+        return "FAIL"
+      else
+        return "PASS"
+      end if
+    end function
+
+  end class
+end namespace

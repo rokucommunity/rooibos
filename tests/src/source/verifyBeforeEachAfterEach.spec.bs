@@ -1,0 +1,103 @@
+namespace tests
+
+  @suite
+  @strict
+  class VeritfyBeforeEachAfterEach extends Rooibos.BaseTestSuite
+
+    private beforeEachValue
+    override function setup()
+      ? "!!! Setup"
+    end function
+
+    override function tearDown()
+      ? "!!! TearDown"
+    end function
+
+    override function beforeEach()
+      ? "!!! Before"
+      m.beforeEachValue = 1
+    end function
+
+    override function afterEach()
+      ? "!!! After"
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group 1")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("1")
+    function _()
+      m.assertEqual(m.beforeEachValue, 1)
+    end function
+
+    @it("2")
+    function _()
+      m.assertEqual(m.beforeEachValue, 1)
+    end function
+
+    @it("3")
+    @params("a")
+    @params("b")
+    @params("c")
+    function _(values)
+      m.assertEqual(m.beforeEachValue, 1)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group 2")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @beforeEach
+    function g2_be()
+      m.beforeEachValue = 2
+      ? "!!! Before GROUP 2"
+    end function
+
+    @afterEach
+    function g2_ae()
+      ? "!!! After GROUP 2"
+    end function
+
+    @it("1 ")
+    function _()
+      m.assertEqual(m.beforeEachValue, 2)
+    end function
+
+    @it("2")
+    function _()
+      m.assertEqual(m.beforeEachValue, 2)
+    end function
+
+    @it("3")
+    @params("a")
+    @params("b")
+    @params("c")
+    function _(values)
+      m.assertEqual(m.beforeEachValue, 2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group 3")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("1 ")
+    function _()
+      m.assertEqual(m.beforeEachValue, 1)
+    end function
+
+    @it("2")
+    function _()
+      m.assertEqual(m.beforeEachValue, 1)
+    end function
+
+    @it("3")
+    @params("a")
+    @params("b")
+    @params("c")
+    function _(values)
+      m.assertEqual(m.beforeEachValue, 1)
+    end function
+
+  end class
+end namespace
