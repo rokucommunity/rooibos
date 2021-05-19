@@ -1,30 +1,14 @@
-<p align="center">
-  <img src="images/logo.png" alt="Plugin for using maestro with vscode ide" width="200" height="200"/>
-</p>
 <h3 align="center">
-VSCode ide plugin for [maestro](https://github.com/georgejecook/maestro) projects
+VSCode ide plugin for [rooibos](https://github.com/georgejecook/rooibos)
 </h3>
 
-[![Build Status](https://travis-ci.org/georgejecook/maestro-vsc-extension-plugin.svg?branch=master)](https://travis-ci.org/georgejecook/maestro-vsc-extension-plugin)
-[![codecov](https://codecov.io/gh/georgejecook/maestro-vsc-extension-plugin/branch/master/graph/badge.svg)](https://codecov.io/gh/georgejecook/maestro-vsc-extension-plugin)
-[![GitHub](https://img.shields.io/github/release/georgejecook/maestro-vsc-extension-plugin.svg?style=flat-square)](https://github.com/georgejecook/maestro-vsc-extension-plugin/releases) 
-[![NPM](https://nodei.co/npmmaestro-vsc-extension-plugin.png)](https://npmjs.org/packagemaestro-vsc-extension-plugin)
+[![Build Status](https://travis-ci.org/georgejecook/rooibos.svg?branch=master)](https://travis-ci.org/georgejecook/rooibos)
+[![GitHub](https://img.shields.io/github/release/georgejecook/rooibos.svg?style=flat-square)](https://github.com/georgejecook/rooibos/releases)
+[![NPM Version](https://badge.fury.io/js/rooibos-roku.svg?style=flat)](https://npmjs.org/package/rooibos-roku)
 
 ## Links
- - [maestro](https://github.com/georgejecook/maestro)
- - [Issue tracker](https://github.com/georgejecook/maestro-vsc-extension-plugin/issues)
- - [CHANGELOG](CHANGELOG.md) 
-
-# About
-
-This repo contains the source for `maestro-vsc-extension-plugin`, which is used by the - [maestro framework](https://github.com/georgejecook/maestro). 
-
-Use this plugin with vscode to use advanced features of maestro such as:
-
- - XML binding support
- - Reflection
- - Dynamic imports
-
-## Get help
-
-Read how to use these features and the maestro framework [here](https://github.com/georgejecook/maestro: 
+ - **[Documentation](docs/index.md)**
+ - **[API Documentation](https://georgejecook.github.io/rooibos)**
+ - **[CHANGELOG](CHANGELOG.md)**
+ - **[VSCode snippets](docs/vsCodeSnippets.md)**
+ - \#roku channel on the [roku developer's slack](https://join.slack.com/t/rokudevelopers/shared_invite/enQtMzgyODg0ODY0NDM5LTc2ZDdhZWI2MDBmYjcwYTk5MmE1MTYwMTA2NGVjZmJiNWM4ZWY2MjY1MDY0MmViNmQ1ZWRmMWUzYTVhNzJiY2M)
