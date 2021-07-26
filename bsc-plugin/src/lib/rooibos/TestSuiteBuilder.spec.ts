@@ -1078,6 +1078,20 @@ end namespace
         assertGroupCount(ts, 0, 3);
     });
 
+    it('param mismatch -no params', () => {
+        let ts = createTestSuite('test1.bs', `namespace Tests
+      @suite("Rooibos assertion tests")
+      class AssertionTests extends Rooibos.BaseTestSuite
+      @describe("group1")
+
+      @it("one")
+      function test_one(value, arg2)
+      end function
+      end class
+      end namespace
+      `);
+        assertSuiteError(ts);
+    });
     it('param mismatch -one', () => {
         let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
