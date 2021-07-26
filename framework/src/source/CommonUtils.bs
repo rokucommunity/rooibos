@@ -311,6 +311,21 @@ namespace rooibos.Common
       end for
       text = text + "}"
       return text
+    else if Rooibos.Common.isArray(input)
+      text = "["
+      join = ""
+      maxLen = 500
+      for each v in input
+        if len(text) < maxLen
+          text += join + rooibos.Common.asString(v)
+          join = ", "
+        end if
+      end for
+      if len(text) > maxLen
+        text = left(text, maxLen -3) + "..."
+      end if
+      text = text + "]"
+      return text
     else if Rooibos.Common.isFunction(input)
       return input.toStr()
     else

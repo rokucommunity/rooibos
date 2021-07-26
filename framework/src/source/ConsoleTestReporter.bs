@@ -137,7 +137,7 @@ namespace rooibos
       else if test.result.isFail
         m.printLine(0, " | " + insettext + "  |--Failed at: " + locationText)
         if test.isParamTest = true
-          m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramlineNumber -1).trim())
+          m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramLineNumber -1).trim())
         end if
         m.printLine(0, " | " + insettext + "  |--Error Message: " + test.result.message)
         m.printLine(0, " | ")
