@@ -42,9 +42,9 @@ namespace tests
     end function
 
     @it("on objects")
-    @params({"url":"http://101.rooibos.com", "othervalue":2})
-    @params({url:"http://101.rooibos.com", "othervalue":2})
-    @params({url:"http://101.rooibos.com", othervalue:2})
+    @params({ "url": "http://101.rooibos.com", "othervalue": 2 })
+    @params({ url: "http://101.rooibos.com", "othervalue": 2 })
+    @params({ url: "http://101.rooibos.com", othervalue: 2 })
     function urlParams_objects(aa)
       m.assertEqual(aa.url, "http://101.rooibos.com")
       m.assertEqual(aa.othervalue, 2)
@@ -64,5 +64,123 @@ namespace tests
       m.assertTrue(isFail)
 
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("assertClass")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @it("fails if not passed a class")
+    @params(invalid)
+    @params([])
+    @params("wrong")
+    function _(value)
+      m.assertClass(value, "myClass")
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+
+      m.assertTrue(isFail)
+    end function
+
+    @it("fails if wrong class name")
+    @params({})
+    @params({ __classname: invalid })
+    @params({ __classname: "other" })
+    function _(value)
+      m.assertClass(value, "myClass")
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+
+      m.assertTrue(isFail)
+    end function
+
+    @it("passes If Is correct Class")
+    function _()
+      m.assertClass({
+        __classname: "myClass"
+      }, "myClass")
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+
+      m.assertFalse(isFail)
+    end function
+
+    @it("passes If Is correct Class - with namespace")
+    function _()
+      m.assertClass({
+        __classname: "namespace.myClass"
+      }, "namespace.myClass")
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+
+      m.assertFalse(isFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("assertAAContainsSubset")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @it("fails if not passed an aa")
+    @params(invalid)
+    @params([])
+    @params("wrong")
+    function _(value)
+      m.assertAAContainsSubset(value, { a: 1 })
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+
+      m.assertTrue(isFail)
+    end function
+
+    @it("fails if subset is not an aa")
+    @params(invalid)
+    @params([])
+    @params("wrong")
+    function _(value)
+      m.assertAAContainsSubset({ a: 1 }, value)
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+
+      m.assertTrue(isFail)
+    end function
+
+    @it("passes if subset is present")
+    function _()
+      m.assertAAContainsSubset({
+        a: 1
+      }, { a: 1 })
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+
+      m.assertFalse(isFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("test array string printing")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("prints strings for failed array tests - simple")
+    function _()
+      arr1 = [
+        "one", "two", "three"
+      ]
+      arr2 = [
+        "2one", "2two", "2three"
+      ]
+      m.assertEqual(arr1, arr2)
+      isFail = m.currentResult.isFail
+      msg = m.currentResult.getMessage()
+      m.currentResult.Reset()
+      m.assertTrue(isFail)
+
+      m.assertEqual(msg, "[one, two, three] != [2one, 2two, 2three]")
+
+
+    end function
+
   end class
 end namespace

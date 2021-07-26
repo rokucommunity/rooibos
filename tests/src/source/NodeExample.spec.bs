@@ -2,11 +2,11 @@ namespace tests
   @SGNode("NodeExample")
   @suite
   class NodeExampleTests extends Rooibos.BaseTestSuite
-    override function setup()
+    protected override function setup()
       m.setupThing = "something created during setup"
     end function
 
-    override function beforeEach()
+    protected override function beforeEach()
       m.beforeEachThing = "something created beforeEach"
     end function
 
