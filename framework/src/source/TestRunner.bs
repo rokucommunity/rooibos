@@ -64,7 +64,7 @@ namespace rooibos
             exit for
           end if
         else
-          ? "ERROR! coudl not create test for suite : "; name
+          ? "ERROR! could not create test for suite : "; name
         end if
       end for
 
