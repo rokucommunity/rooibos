@@ -2,23 +2,23 @@ namespace tests
 
   @suite
   @strict
-  class VeritfyBeforeEachAfterEach extends Rooibos.BaseTestSuite
+  class VerifyBeforeEachAfterEach extends Rooibos.BaseTestSuite
 
     private beforeEachValue
-    override function setup()
+    protected override function setup()
       ? "!!! Setup"
     end function
 
-    override function tearDown()
+    protected override function tearDown()
       ? "!!! TearDown"
     end function
 
-    override function beforeEach()
+    protected override function beforeEach()
       ? "!!! Before"
       m.beforeEachValue = 1
     end function
 
-    override function afterEach()
+    protected override function afterEach()
       ? "!!! After"
     end function
 

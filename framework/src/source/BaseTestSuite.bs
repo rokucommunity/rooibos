@@ -7,42 +7,50 @@ namespace rooibos
   class BaseTestSuite
 
     'test state
-    name = "BaseTestSuite" 'set the name to the name of your test
-
-    filePath = invalid
-    pkgPath = invalid
-    isValid = false
-    hasSoloTests = false
-    hasIgnoredTests = false
-    isSolo = false
-    isIgnored = false
-    noCatch = false
-    isNodeTest = false
-    nodeName = invalid
-    lineNumber = 1
-    groups = []
-    groupsData = []
-    stats = invalid
-    currentAssertLineNumber = -1
+    protected name = "BaseTestSuite" 'set the name to the name of your test
+    protected filePath = invalid
+    protected pkgPath = invalid
+    protected isValid = false
+    protected hasSoloTests = false
+    protected hasIgnoredTests = false
+    protected isSolo = false
+    protected isIgnored = false
+    protected noCatch = false
+    protected isNodeTest = false
+    protected nodeName = invalid
+    protected lineNumber = 1
+    protected groups = []
+    protected groupsData = []
+    protected stats = invalid
+    protected currentAssertLineNumber = -1
+    protected valid = false
+    protected hasFailures = false
+    protected hasSoloGroups = false
+    protected isFailingFast = false
+    protected stubs = invalid
+    protected mocks = invalid
+    protected __stubId = -1
+    protected __mockId = -1
+    protected __mockTargetId = -1
 
     'special values
-    invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
-    ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
+    protected invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
+    protected ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
 
     'built in any matchers
-    anyStringMatcher = { "matcher": Rooibos_Matcher_anyString }
-    anyBoolMatcher = { "matcher": Rooibos_Matcher_anyBool }
-    anyNumberMatcher = { "matcher": Rooibos_Matcher_anyNumber }
-    anyAAMatcher = { "matcher": Rooibos_Matcher_anyAA }
-    anyArrayMatcher = { "matcher": Rooibos_Matcher_anyArray }
-    anyNodeMatcher = { "matcher": Rooibos_Matcher_anyNode }
-    allowNonExistingMethodsOnMocks = true
-    isAutoAssertingMocks = true
+    protected anyStringMatcher = { "matcher": Rooibos_Matcher_anyString }
+    protected anyBoolMatcher = { "matcher": Rooibos_Matcher_anyBool }
+    protected anyNumberMatcher = { "matcher": Rooibos_Matcher_anyNumber }
+    protected anyAAMatcher = { "matcher": Rooibos_Matcher_anyAA }
+    protected anyArrayMatcher = { "matcher": Rooibos_Matcher_anyArray }
+    protected anyNodeMatcher = { "matcher": Rooibos_Matcher_anyNode }
+    protected allowNonExistingMethodsOnMocks = true
+    protected isAutoAssertingMocks = true
 
-    currentResult = invalid
+    protected currentResult = invalid
 
     protected global = invalid
-    public catchCrashes = false
+    protected catchCrashes = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ base methods to override
@@ -189,7 +197,6 @@ namespace rooibos
         else
           return m.fail("value was not a boolean")
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -217,7 +224,6 @@ namespace rooibos
           return m.fail("value was not a boolean")
         end if
 
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -247,7 +253,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -278,7 +283,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -309,7 +313,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -339,7 +342,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -368,7 +370,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -403,7 +404,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -439,7 +439,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -477,7 +476,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -514,7 +512,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -550,7 +547,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -616,7 +612,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -651,7 +646,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -693,7 +687,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -735,7 +728,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -768,7 +760,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -801,7 +792,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -839,7 +829,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -877,7 +866,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -927,7 +915,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -993,7 +980,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1030,7 +1016,32 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
+        return true
+      catch error
+        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+      end try
+
+    end function
+
+    function assertClass(value, typeStr, msg = "") as dynamic
+      if m.currentResult.isFail then return false
+      try
+        if not Rooibos.Common.isAssociativeArray(value)
+          if msg = ""
+            expr_as_string = Rooibos.Common.asString(value)
+            msg = expr_as_string + " was not an aa, so could not match Class " + typeStr
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+        className = Rooibos.Common.asString(value.__classname)
+        if className <> typeStr
+          if msg = ""
+            msg = "Expected class: " + typeStr + ", got " + classNAme
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1068,7 +1079,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1101,7 +1111,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1129,7 +1138,6 @@ namespace rooibos
             return false
           end if
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1157,7 +1165,6 @@ namespace rooibos
             return false
           end if
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1190,7 +1197,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1227,7 +1233,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1261,7 +1266,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1306,7 +1310,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1348,7 +1351,6 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1366,10 +1368,10 @@ namespace rooibos
     '  * @function
     '  * @instance
     '  * @description Asserts the associative array contains the fields contained in subset; while ignoring the fields in the ignoredFields array
-    '  * @param {Dynamic} array - associative array  to check
-    '  * @param {Dynamic} subset - associative array of values to check for
-    '  * @param {Dynamic} ignoredFields - array of fieldnames to ignore while comparing
-    '  * @param {Dynamic} [msg=""] - alternate error message
+    '  * @param {assocarray} array - associative array  to check
+    '  * @param {assocarray} subset - associative array of values to check for
+    '  * @param {array} ignoredFields - array of fieldnames to ignore while comparing
+    '  * @param {string} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
     function assertAAContainsSubset(array, subset, ignoredFields = invalid, msg = "") as dynamic
@@ -1395,10 +1397,9 @@ namespace rooibos
           end for
         else
           msg = "Input values are not an Associative Array."
-
+          m.currentResult.fail("Assert failed: " + msg, m.currentAssertLineNumber)
           return false
         end if
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
@@ -1701,20 +1702,30 @@ namespace rooibos
         expectedInvocations: expectedInvocations,
         callback: function(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
           ' ? "FAKE CALLBACK CALLED FOR " ; m.methodName
+          'bs:disable-next-line
           if m.allInvokedArgs = invalid
+            'bs:disable-next-line
             m.allInvokedArgs = []
           end if
+          'bs:disable-next-line
           m.invokedArgs = [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15]
+          'bs:disable-next-line
           m.allInvokedArgs.push ([arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15])
+          'bs:disable-next-line
           m.isCalled = true
+          'bs:disable-next-line
           m.invocations++
 
+          'bs:disable-next-line
           if type(m.returnValue) = "roAssociativeArray" and m.returnValue.doesExist("multiResult")
+            'bs:disable-next-line
             returnValues = m.returnValue["multiResult"]
+            'bs:disable-next-line
             returnIndex = m.invocations - 1
 
             if type(returnValues) = "roArray" and returnValues.count() > 0
 
+              'bs:disable-next-line
               if returnValues.count() <= m.invocations
                 returnIndex = returnValues.count() - 1
                 print "Multi return values all used up - repeating last value"
@@ -1725,6 +1736,7 @@ namespace rooibos
               return invalid
             end if
           else
+            'bs:disable-next-line
             return m.returnValue
           end if
         end function
@@ -1863,34 +1875,40 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function stubCallback0(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__Stubs["0"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function stubCallback1(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__Stubs["1"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function stubCallback2(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__Stubs["2"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
 
     function stubCallback3(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__Stubs["3"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
 
     function stubCallback4(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__Stubs["4"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
 
     function stubCallback5(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__Stubs["5"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
@@ -1900,126 +1918,151 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function mockCallback0(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["0"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback1(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["1"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback2(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["2"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback3(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["3"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback4(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["4"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback5(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["5"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback6(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["6"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback7(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["7"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback8(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["8"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback9(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["9"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback10(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["10"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback11(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["11"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback12(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["12"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback13(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["13"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback14(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["14"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback15(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["15"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback16(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["16"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback17(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["17"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback18(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["18"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback19(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["19"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback20(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["20"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback21(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["21"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback22(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["22"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback23(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["23"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
 
     function mockCallback24(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid)as dynamic
+      'bs:disable-next-line
       fake = m.__mocks["24"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
@@ -2076,7 +2119,6 @@ namespace rooibos
           return m.fail("Timeout waiting for targetField " + fieldName + " to be set on target")
         end if
 
-        m.currentResult.fail("", m.currentAssertLineNumber)
         return true
       catch error
         m.currentResult.fail("Error while waiting: " + error.message, m.currentAssertLineNumber)

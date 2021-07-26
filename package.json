@@ -6,7 +6,7 @@
     "dist/**/!(manifest)*"
   ],
   "devDependencies": {
-    "brighterscript": "^0.32.2",
+    "brighterscript": "^0.39.0",
     "ropm": "^0.5.0"
   },
   "repository": {
@@ -33,7 +33,6 @@
   "homepage": "https://github.com/georgejecook/rooibos#readme",
   "scripts": {
     "build": "npx bsc",
-    "test": "cd tests && npx ropm copy && bsc --project ./bsconfig.json",
-    "coverage": "cd tests && npx ropm copy && bsc --project ./bsconfig.coverage.json"
+    "test": "npx bsc --project ./bsconfig-tests.json"
   }
 }

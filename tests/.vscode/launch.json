@@ -1,31 +1,36 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "test",
       "type": "brightscript",
       "request": "launch",
-      "name": "Framework Tests",
-      "stopOnEntry": false,
+      "consoleOutput": "full",
+      "internalConsoleOptions": "neverOpen",
       "preLaunchTask": "build-tests",
       "envFile": "${workspaceFolder}/.vscode/.env",
       "host": "${env:ROKU_DEV_TARGET}",
       "password": "${env:ROKU_DEVPASSWORD}",
-      "rootDir": "${workspaceFolder}/build",
-      "sourceDirs": [
-        "${workspaceFolder}/src"
-      ],
+      "retainStagingFolder": true,
+      "stopOnEntry": false,
       "files": [
-        "manifest",
-        "source/**/*.*",
-        "components/**/*.*",
-        "images/**/*.*",
-        "font/**/*.*",
+        "!**/images/*.*",
+        "!**/fonts/*.*",
+        "!*.jpg",
+        "!*.png",
+        "*",
+        "*.*",
+        "**/*.*",
         "!*.zip",
         "!**/*.zip"
       ],
+      "rootDir": "${workspaceFolder}/build",
+      "sourceDirs": ["${workspaceFolder}/src"],
+      "enableDebuggerAutoRecovery": true,
+      "stopDebuggerOnAppExit": true,
+      "enableVariablesPanel": false,
+      "injectRaleTrackerTask": false,
+      "enableDebugProtocol": false
     }
   ]
 }

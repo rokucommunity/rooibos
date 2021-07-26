@@ -2,7 +2,7 @@ namespace rooibos
   ' /**
   '  * @module TestSuite
   '  * @description All brs files that include `'@TestSuite` annotations automatically extend the TestSuite.
-  '  * The base test suite contains all of the assertions, and utility methods required to writey our tests, as well as being responsible for tracking the state of the tests and groups.
+  '  * The base test suite contains all of the assertions, and utility methods required to write our tests, as well as being responsible for tracking the state of the tests and groups.
   '  */
   class TestGroup
     'test state
@@ -17,6 +17,14 @@ namespace rooibos
     isLegacy = false
     isIgnored = false
     stats = invalid
+    scene = invalid
+    lineNumber = 00
+    top = invalid
+    valid = false
+    hasFailures = false
+    isNodeTest = false
+    nodeName = invalid
+    testsData = invalid
     tests = []
 
     function new(testSuite, data)
@@ -35,6 +43,7 @@ namespace rooibos
       m.afterEachFunctionName = data.afterEachFunctionName
       m.lineNumber = data.lineNumber
 
+      'bs:disable-next-line
       m.global = testSuite.global
       m.top = testSuite.top
       m.scene = testSuite.scene

@@ -1,49 +1,11 @@
 {
-  "files.exclude": {
-    "build": true,
-    ".history": true,
-    "node_modules": true,
-    "out": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    "**/.settings": true,
-    "**/.factorypath": true,
-    "/tmp/**": true,
-  },
-  "search.exclude": {
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-    "**/node_modules/**": true,
-    "**/.meteor/local": true,
-    "**/build/**": true,
-    "build/**": true,
-    "**/.history/**": true,
-    ".history/**": true,
-    ".history/**/*": true,
-    "out/**": true,
-    "**/out/**": true,
-    "/tmp/**": true,
-  },
-  "files.useExperimentalFileWatcher": true,
-  "files.watcherExclude": {
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-    "**/node_modules/**": true,
-    "**/.meteor/local": true,
-    "**/build/**": true,
-    "**/.history/**": true,
-    ".history/**": true,
-    "**/out/**": true,
-  },
-  "editor.tokenColorCustomizations": {
-    "textMateRules": [
-      {
-        "scope": "meta.function-call.brs,punctuation.decorator.brs",
-        "settings": {
-          "foreground": "#34BEB0",
-          "fontStyle": ""
-        }
-      }
-    ]
+  "jira-plugin.workingProject": "",
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#551A8B",
+    "statusBar.debuggingBackground": "#551A8B",
+    "panelTitle.activeBorder": "#ff0000",
+    "activityBar.background": "#143141",
+    "titleBar.activeBackground": "#1D445B",
+    "titleBar.activeForeground": "#F7FBFD"
   }
 }

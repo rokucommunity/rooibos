@@ -31,8 +31,8 @@ describe('RooibosPlugin', () => {
         builder.options = util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
         program = builder.program;
-        builder.plugins = new PluginInterface([plugin], undefined);
-        program.plugins = new PluginInterface([plugin], undefined);
+        builder.plugins = new PluginInterface([plugin], builder.logger);
+        program.plugins = new PluginInterface([plugin], builder.logger);
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate(builder);
         plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
@@ -335,6 +335,7 @@ end function`).trim());
             return {
             name: "ATest",
             isSolo: false,
+            noCatch: false,
             isIgnored: false,
             pkgPath: "source/test.spec.bs",
             filePath: "/home/george/hope/open-source/rooibos/bsc-plugin/tmp/rootDir/source/test.spec.bs",
@@ -365,6 +366,7 @@ end function`).trim());
             testCases: [
             {
             isSolo: false,
+            noCatch: false,
             funcName: "groupA_is_test1",
             isIgnored: false,
             isParamTest: false,
@@ -455,8 +457,8 @@ end function`).trim());
             builder.options = util.normalizeAndResolveConfig(options);
             builder.program = new Program(builder.options);
             program = builder.program;
-            builder.plugins = new PluginInterface([plugin], undefined);
-            program.plugins = new PluginInterface([plugin], undefined);
+            builder.plugins = new PluginInterface([plugin], builder.logger);
+            program.plugins = new PluginInterface([plugin], builder.logger);
             program.createSourceScope(); //ensure source scope is created
             plugin.beforeProgramCreate(builder);
             plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));

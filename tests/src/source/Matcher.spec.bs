@@ -4,7 +4,7 @@ namespace tests
   @suite
   class MatcherTests extends Rooibos.BaseTestSuite
 
-    override function beforeEach()
+    protected override function beforeEach()
       'make a mock class
       m.myClass = {}
     end function

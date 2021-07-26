@@ -39,43 +39,37 @@ export class RooibosPlugin {
         }
     }
     private getConfig(options: any) {
-      let config: RooibosConfig = options;
-      if (config.printTestTimes === undefined) {
-        config.printTestTimes = true;
-      }
-      if (config.catchCrashes === undefined) {
-        config.catchCrashes = true;
-      }
-      if (config.failFast === undefined) {
-        config.failFast = true;
-      }
-      if (config.showOnlyFailures === undefined) {
-        config.showOnlyFailures = true;
-      }
-      if (config.isRecordingCodeCoverage === undefined) {
-        config.isRecordingCodeCoverage = true;
-      }
-      //ignore roku modules by default
-      if (config.includeFilters === undefined) {
-          config.includeFilters = [
-              '**/*.spec.bs',
-              '!**/BaseTestSuite.spec.bs',
-              '!**/roku_modules/**/*'];
-      }
+        let config: RooibosConfig = options;
+        if (config.printTestTimes === undefined) {
+            config.printTestTimes = true;
+        }
+        if (config.catchCrashes === undefined) {
+            config.catchCrashes = true;
+        }
+        if (config.failFast === undefined) {
+            config.failFast = true;
+        }
+        if (config.showOnlyFailures === undefined) {
+            config.showOnlyFailures = true;
+        }
+        if (config.isRecordingCodeCoverage === undefined) {
+            config.isRecordingCodeCoverage = true;
+        }
+        //ignore roku modules by default
+        if (config.includeFilters === undefined) {
+            config.includeFilters = [
+                '**/*.spec.bs',
+                '!**/BaseTestSuite.spec.bs',
+                '!**/roku_modules/**/*'];
+        }
 
-      return config
+        return config;
     }
 
     afterProgramCreate(program: Program) {
         if (!this.isFrameworkAdded) {
             this.fileFactory.addFrameworkFiles(program);
         }
-    }
-
-    afterScopeCreate() {
-    }
-
-    beforeFileParse(): void {
     }
 
     afterFileParse(file: (BrsFile | XmlFile)): void {
