@@ -15,6 +15,7 @@ namespace rooibos
     public paramTestIndex
     public isParamTest = false
     public isParamsValid = false
+    public expectedNumberOfParams = 0
 
     public result = invalid
 

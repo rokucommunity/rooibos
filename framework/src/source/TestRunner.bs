@@ -15,6 +15,9 @@ namespace rooibos
     public nodeContext = invalid
     public config = invalid
     public testSuites = []
+    private runtimeConfig = invalid
+    private stats = invalid
+    private top = invalid
 
     public function new(testScene, nodeContext)
       m.testScene = testScene
@@ -46,6 +49,7 @@ namespace rooibos
       suiteNames = m.runtimeConfig.getAllTestSuitesNames()
       includedSuites = []
       for each name in suiteNames
+        'bs:disable-next-line
         suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
         testSuite = invalid
         if suiteClass <> invalid
@@ -81,6 +85,7 @@ namespace rooibos
     end function
 
     public function runInNodeMode(nodeTestName)
+      'bs:disable-next-line
       suiteClass = m.getTestSuiteClassWithName(nodeTestName)
       testSuite = invalid
 

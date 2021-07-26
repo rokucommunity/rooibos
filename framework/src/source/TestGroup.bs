@@ -17,6 +17,14 @@ namespace rooibos
     isLegacy = false
     isIgnored = false
     stats = invalid
+    scene = invalid
+    lineNumber = 00
+    top = invalid
+    valid = false
+    hasFailures = false
+    isNodeTest = false
+    nodeName = invalid
+    testsData = invalid
     tests = []
 
     function new(testSuite, data)
@@ -35,6 +43,7 @@ namespace rooibos
       m.afterEachFunctionName = data.afterEachFunctionName
       m.lineNumber = data.lineNumber
 
+      'bs:disable-next-line
       m.global = testSuite.global
       m.top = testSuite.top
       m.scene = testSuite.scene
