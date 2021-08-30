@@ -21,12 +21,12 @@ namespace tests
     @it("called beforeEach and afterEach")
     function _()
 
-      assertResult = m.Fail("reason")
+      m.Fail("reason")
 
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
 
-      m.assertFalse(assertResult)
+
       m.assertTrue(isFail)
     end function
 

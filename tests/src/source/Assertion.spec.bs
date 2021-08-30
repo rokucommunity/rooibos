@@ -11,12 +11,12 @@ namespace tests
     @it("Fail")
     function _()
 
-      assertResult = m.Fail("reason")
+      m.Fail("reason")
 
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
 
-      m.assertFalse(assertResult)
+
       m.assertTrue(isFail)
     end function
 
@@ -29,11 +29,11 @@ namespace tests
     @params("test", false)
     function _(value, expectedAssertResult)
 
-      assertResult = m.assertTrue(value)
+      m.assertTrue(value)
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
 
-      m.assertEqual(assertResult, expectedAssertResult)
+
       m.assertEqual(isFail, not expectedAssertResult)
     end function
 
@@ -47,12 +47,12 @@ namespace tests
     @params("test", false)
     function _(value, expectedAssertResult)
 
-      assertResult = m.assertFalse(value)
+      m.assertFalse(value)
 
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
 
-      m.assertEqual(assertResult, expectedAssertResult)
+
       m.assertEqual(isFail, not expectedAssertResult)
     end function
 
@@ -79,12 +79,12 @@ namespace tests
     @params([{ "one": 1 }, { "two": 2 }], [{ "a": 1 }, { "a": 1 }, { "a": 1 }])
     function _(expectedAAs, items)
 
-      assertResult = m.assertArrayContainsAAs(items, expectedAAs)
+      m.assertArrayContainsAAs(items, expectedAAs)
 
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
 
-      m.assertFalse(assertResult)
+
       m.assertTrue(isFail)
     end function
 
@@ -99,12 +99,12 @@ namespace tests
     @params([{ "one": 1, "two": 2 }, { "one": 1 }, { "three": 3 }], [{ "one": 1 }, { "three": 3 }, { "two": 2, "one": 1 }])
     function _(expectedAAs, items)
 
-      assertResult = m.assertArrayContainsAAs(items, expectedAAs)
+      m.assertArrayContainsAAs(items, expectedAAs)
 
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
-      m.assertTrue(assertResult)
+
       m.assertFalse(isFail)
     end function
 
@@ -146,11 +146,11 @@ namespace tests
     @params([{ "test": 1 }, { "test": 1 }], "AssociativeArray")
     function _(values, typeName)
 
-      assertResult = m.assertArrayContainsOnlyValuesOfType(values, typeName)
+      m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
-      m.assertTrue(assertResult)
+
       m.assertFalse(isFail)
 
     end function
@@ -169,11 +169,11 @@ namespace tests
     @params([{ "test": 1 }, { "test": 1 }], "Array")
     function _(values, typeName)
 
-      assertResult = m.assertArrayContainsOnlyValuesOfType(values, typeName)
+      m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
 
-      m.assertFalse(assertResult)
+
       m.assertTrue(isFail)
 
 
@@ -193,11 +193,11 @@ namespace tests
     @params([invalid])
     function _(values)
 
-      assertResult = m.assertNotEmpty(values)
+      m.assertNotEmpty(values)
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
-      m.assertTrue(assertResult)
+
       m.assertFalse(isFail)
 
     end function
@@ -210,11 +210,11 @@ namespace tests
     @params("")
     function _(values)
 
-      assertResult = m.assertNotEmpty(values)
+      m.assertNotEmpty(values)
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
-      m.assertFalse(assertResult)
+
       m.assertTrue(isFail)
 
     end function
@@ -229,11 +229,11 @@ namespace tests
     @params("")
     function _(values)
 
-      assertResult = m.assertEmpty(values)
+      m.assertEmpty(values)
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
-      m.assertTrue(assertResult)
+
       m.assertFalse(isFail)
 
     end function
@@ -250,11 +250,11 @@ namespace tests
     @params([invalid])
     function _(values)
 
-      assertResult = m.assertEmpty(values)
+      m.assertEmpty(values)
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
-      m.assertFalse(assertResult)
+
       m.assertTrue(isFail)
 
     end function

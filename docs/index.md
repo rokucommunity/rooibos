@@ -269,6 +269,25 @@ Rooibos provids many assertions to test your code with:
 
 If an assertion fails, then the next assertions will not run.
 
+#### Special `__rooibosSkipFields` value
+
+If an aa has the `__rooibosSkipFields` value set to an associative array of fields, as follows:
+
+```
+myObj = {
+  id: "myId"
+  refToSomethingThatWillLoopForever: myOtherObjPointingToMyObj
+  __rooibosSkipFields: {
+    refToSomethingThatWillLoopForever: true
+  }
+}
+
+```
+
+then rooibos will skip comparing `myObj.refToSomethingThatWillLoopForever` and will skip it when printing that object as as string.
+
+This is useful in some scenarios, such as in maestro framework, where an object, might point to itself (i.e. m and top are the same, and the object has a reference to m.top)
+
 ### Async tests
 
 Rooibos runs in sync mode. Due to scenegraph limitations, we can't use observefield. We can workaround this though, using `assertAsyncField`

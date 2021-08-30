@@ -23,7 +23,6 @@ namespace tests
 
       result = Rooibos.Common.eqArray(values, values2)
       m.assertEqual(result, expected)
-
     end function
 
   end class
