@@ -1,0 +1,142 @@
+namespace tests
+
+  @suite
+  class InfiniteLoopingFixes extends Rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertEquals")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("should ignore __mocks on both sides")
+    function _()
+
+      a = {
+        __mocks: {
+          "id": "not"
+        }
+        id: "equal"
+      }
+
+      b = {
+        __mocks: {
+          "id": "equal"
+        }
+        id: "equal"
+      }
+      m.assertEqual(a, b)
+
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+
+      m.assertFalse(isFail)
+    end function
+
+    @it("should ignore __stubs on both sides")
+    function _()
+
+      a = {
+        __stubs: {
+          "id": "not"
+        }
+        id: "equal"
+      }
+
+      b = {
+        __stubs: {
+          "id": "equal"
+        }
+        id: "equal"
+      }
+      m.assertEqual(a, b)
+
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+
+      m.assertFalse(isFail)
+    end function
+
+    @it("should account for __rooibosSkipFields on both sides - one field")
+    function _()
+
+      a = {
+        top: {
+          "id": "not"
+        }
+        __rooibosSkipFields: { top: true }
+        id: "equal"
+      }
+
+      b = {
+        top: {
+          "id": "equal"
+        }
+        __rooibosSkipFields: { top: true }
+        id: "equal"
+      }
+      m.assertEqual(a, b)
+
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+
+      m.assertFalse(isFail)
+    end function
+
+    @it("should account for __rooibosSkipFields on both sides - two fields")
+    function _()
+
+      a = {
+        top: {
+          "id": "not"
+        }
+        top2: {
+          "id": "not2"
+        }
+        __rooibosSkipFields: { top: true, top2: true }
+        id: "equal"
+      }
+
+      b = {
+        top: {
+          "id": "equal"
+        }
+        top2: {
+          "id": "equal2"
+        }
+        __rooibosSkipFields: { top: true, top2: true }
+        id: "equal"
+      }
+      m.assertEqual(a, b)
+
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+
+      m.assertFalse(isFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asString")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("ignores special fields in output, and skipped fields")
+    function _()
+
+      a = {
+        top: {
+          "id": "not"
+        }
+        __mocks: {
+          "id": "not"
+        }
+        __stubs: {
+          "id": "not"
+        }
+        __rooibosSkipFields: { top: true }
+        id: "equal"
+      }
+
+      m.assertEqual(rooibos.common.asString(a), "{id:equal}")
+
+    end function
+
+  end class
+end namespace

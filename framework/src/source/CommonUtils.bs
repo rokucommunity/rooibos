@@ -305,7 +305,7 @@ namespace rooibos.Common
         isFirst = false
       end if
       for each key in input
-        if key <> "__mocks" and key <> "__stubs"
+        if rooibos.Common.canSafelyIterateAAKey(input, key)
           text = text + key + ":" + Rooibos.Common.asString(input[key])
         end if
       end for
@@ -322,7 +322,7 @@ namespace rooibos.Common
         end if
       end for
       if len(text) > maxLen
-        text = left(text, maxLen -3) + "..."
+        text = left(text, maxLen - 3) + "..."
       end if
       text = text + "]"
       return text
@@ -571,8 +571,8 @@ namespace rooibos.Common
   '  * @function
   '  * @instance
   '  * @description Compare two arbtrary values to eachother.
-  '  * @param {Dynamic} Vallue1 - first item to compare
-  '  * @param {Dynamic} Vallue2 - second item to compare
+  '  * @param {Dynamic} Value1 - first item to compare
+  '  * @param {Dynamic} Value2 - second item to compare
   '  * @returns {boolean} - True if values are equal or False in other case.
   '  */
   function eqValues(Value1, Value2) as dynamic
@@ -639,8 +639,8 @@ namespace rooibos.Common
   '  * @function
   '  * @instance
   '  * @description Compare to roAssociativeArray objects for equality.
-  '  * @param {Dynamic} Vallue1 - first associative array
-  '  * @param {Dynamic} Vallue2 - second associative array
+  '  * @param {Dynamic} Value1 - first associative array
+  '  * @param {Dynamic} Value2 - second associative array
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
   function eqAssocArray(Value1, Value2) as dynamic
@@ -651,10 +651,10 @@ namespace rooibos.Common
       return false
     else
       for each k in Value1
-        if k <> "__mocks" and k <> "__stubs" 'fix infinite loop/box crash when doing equals on an aa with a mock
-          if not Value2.DoesExist(k)
-            return false
-          else
+        if not Value2.DoesExist(k)
+          return false
+        else
+          if rooibos.common.canSafelyIterateAAKey(Value1, k) and rooibos.common.canSafelyIterateAAKey(Value2, k)
             v1 = Value1[k]
             v2 = Value2[k]
             if not Rooibos.Common.eqValues(v1, v2)
@@ -667,14 +667,24 @@ namespace rooibos.Common
     end if
   end function
 
+  function canSafelyIterateAAKey(aa, key) as boolean
+    if lcase(key) = "__rooibosskipfields" or key = "__mocks" or key = "__stubs" 'fix infinite loop/box crash when doing equals on an aa with a mock
+      return false
+    else if aa.__rooibosSkipFields <> invalid and aa.__rooibosSkipFields.doesExist(key)
+      return false
+    end if
+
+    return true
+  end function
+
   ' /**
   '  * @memberof module:CommonUtils
   '  * @name EqArray
   '  * @function
   '  * @instance
   '  * @description Compare to roArray objects for equality.
-  '  * @param {Dynamic} Vallue1 - first array
-  '  * @param {Dynamic} Vallue2 - second array
+  '  * @param {Dynamic} Value1 - first array
+  '  * @param {Dynamic} Value2 - second array
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
   function eqArray(Value1, Value2) as dynamic
