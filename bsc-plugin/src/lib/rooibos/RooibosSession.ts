@@ -57,7 +57,7 @@ export class RooibosSession {
         }
         if (!mainFunc) {
             diagnosticWarnNoMainFound(files[0]);
-            this._builder.program.addOrReplaceFile('source/rooibosMain.brs', `function main()
+            this._builder.program.setFile('source/rooibosMain.brs', `function main()
     Rooibos_init()
 end function`);
         }
@@ -138,7 +138,7 @@ end function`);
             let xmlText = this.getNodeTestXmlText(suite);
             let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
             this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-            let bsFile = program.getFileByPkgPath(bsPath);
+            let bsFile = program.getFile(bsPath);
             if (bsFile) {
                 (bsFile as BrsFile).parser.statements.push();
                 bsFile.needsTranspiled = true;
