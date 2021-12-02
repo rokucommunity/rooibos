@@ -298,7 +298,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('test full transpile', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -618,7 +618,7 @@ describe.skip('run a local project', () => {
             // {
             // project: '/home/george/hope/applicaster/zapp-roku-app/bsconfig-test.json'
             // project: '/home/george/hope/open-source/maestro/swerve-app/bsconfig-test.json'
-        // }
+            // }
         ).catch(e => {
             console.error(e);
         });

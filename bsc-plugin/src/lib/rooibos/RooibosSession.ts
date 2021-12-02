@@ -64,7 +64,7 @@ end function`);
     }
 
     public addTestRunnerMetadata() {
-        let runtimeConfig = this._builder.program.getFileByPkgPath('source/rooibos/RuntimeConfig.bs');
+        let runtimeConfig = this._builder.program.getFile('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
             let classStatement = ((runtimeConfig as BrsFile).ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
             this.updateRunTimeConfigFunction(classStatement);
