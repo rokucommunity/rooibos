@@ -20,7 +20,7 @@ export class TestBlock {
         return this.annotation.file;
     }
     public get pkgPath(): string {
-        return this.file.pkgPath;
+        return this.file.pkgPath.replace('pkg:/', '');
     }
 
     public get filePath(): string {
