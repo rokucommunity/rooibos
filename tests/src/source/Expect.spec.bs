@@ -39,18 +39,20 @@ namespace tests
     @it("mock count limit at least 25")
     function _()
 
-      interface = {}
+      instance = {}
 
       mockCountLimit = 25
       for i = 1 to mockCountLimit
         keyName = StrI(i).trim()
-        interface[keyName] = function(arg0) : return arg0 : end function
+        instance[keyName] = function(arg0)
+          return arg0
+        end function
 
         expectedArg = "a"
         expectedReturnValue = "b"
-        m.ExpectOnce(interface, keyName, [expectedArg], [expectedReturnValue])
+        m.expectOnce(instance, keyName, [expectedArg], [expectedReturnValue])
 
-        interface[keyName](expectedArg)
+        instance[keyName](expectedArg)
       end for
 
     end function
