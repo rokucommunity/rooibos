@@ -34,6 +34,7 @@ namespace rooibos
       m.printLine(0, "  Passed: " + Rooibos.Common.AsString(m.allStats.passedCount))
       m.printLine(0, "  Crashed: " + Rooibos.Common.AsString(m.allStats.crashedCount))
       m.printLine(0, "  Failed: " + Rooibos.Common.AsString(m.allStats.failedCount))
+      'bs:disable-next-line
       m.printLine(0, "  Ignored: " + Rooibos.Common.AsString(ignoredInfo.count))
       m.printLine(0, "  Time: " + Rooibos.Common.AsString(m.allStats.time) + "ms")
       m.printLine()
