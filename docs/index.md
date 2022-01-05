@@ -54,12 +54,46 @@ The advantages of this are:
 
 Rooibos will not work if you do not use the brighterscript compiler. I have no plans to support any other toolchains.
 
-### Installation
+## You MUST configure vscode ide to use your project's version of bsc compiler
+
+Either click the select brighterscript button in the bottom right, or add this setting to your `.vscode/settings.json` file:
+
+```
+"brightscript.bsdk": "node_modules/brighterscript"
+```
+
+## Installation
 <a name="easy-to-integrate"></a>
 
+### I do not have a project that uses the brighterscript transpiler
+
+You will need to setup a bsc project to use rooibos 4. Here is an [example project](https://github.com/georgejecook/rooibos-roku-sample) you can clone.
+
+The easiest thing to do is to clone that project and
+ - copy bsconfig.json
+ - merge the contents of the files in .vscode folder
+ - merge the contents of package.json into your project
+
+You can do the setup from scratch as followes:
+
+1. Ensure your project is set up for use with npm (`npm init`, and follow the steps)
+2. Install brighterscript: `npm install brighterscript --save-dev`
+3. Install rooibos roku: `npm install rooibos-roku --save-dev`
+4. Add a script to your package.json, e.g.
+```
+  "scripts": {
+    "build-tests": "npx bsc"
+  }
+```
+5. Add a bsconfig.json file. The easiest thing to do is copy the file from the [example project](https://github.com/georgejecook/rooibos-roku-sample)
+6. Setup a task to run `npm run build-tests`, in `.vscode/tasks.json`
+7. Setup a launch task to run the build-tests task, from the previous step, in `.vscode/launch.json`
+8. Create some tests
+
+### I already have a project using brighterscript
 1. ensure you have a bsconfig.json, as per: https://github.com/rokucommunity/brighterscript
-1. `npm install rooibos-roku --save-dev`
-1. Add the rooibos plugin to your `bsconfig.json` file as follows:
+2. `npm install rooibos-roku --save-dev`
+3. Add the rooibos plugin to your `bsconfig.json` file as follows:
 
 ```
   "plugins": [
