@@ -81,6 +81,7 @@ end function`);
             method.func.body.statements.push(new RawCodeStatement(`
     return {
       "failFast": ${this.config.failFast ? 'true' : 'false'}
+      "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
       "logLevel": ${this.config.logLevel ?? 0}
       "showOnlyFailures": ${this.config.showOnlyFailures ? 'true' : 'false'}
       "printTestTimes": ${this.config.printTestTimes ? 'true' : 'false'}
