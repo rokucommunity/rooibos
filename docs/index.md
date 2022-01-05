@@ -88,7 +88,22 @@ You can do the setup from scratch as followes:
 5. Add a bsconfig.json file. The easiest thing to do is copy the file from the [example project](https://github.com/georgejecook/rooibos-roku-sample)
 6. Setup a task to run `npm run build-tests`, in `.vscode/tasks.json`
 7. Setup a launch task to run the build-tests task, from the previous step, in `.vscode/launch.json`
-8. Create some tests
+8. Add the following line to your main method, in your main.brs file It should be placed before you initialize your scenegraph screens
+
+
+**(.brs)**
+	
+```
+  'bs:disable-next-line
+  if (type(Rooibos_init) = "Function") then Rooibos_init()
+```
+
+**(.bs)**
+```
+  'bs:disable-next-line
+  if (type(Rooibos.init) = "Function") then Rooibos.init()
+```
+9. Create some tests
 
 ### I already have a project using brighterscript
 1. ensure you have a bsconfig.json, as per: https://github.com/rokucommunity/brighterscript
@@ -100,6 +115,22 @@ You can do the setup from scratch as followes:
     "rooibos-roku"
   ]
 ```
+4. Add the following line to your main method, in your main.brs file It should be placed before you initialize your scenegraph screens
+
+
+**(.brs)**
+	
+```
+  'bs:disable-next-line
+  if (type(Rooibos_init) = "Function") then Rooibos_init()
+```
+
+**(.bs)**
+```
+  'bs:disable-next-line
+  if (type(Rooibos.init) = "Function") then Rooibos.init()
+```
+	
 
 Rooibos will automatically inject the necessary source files into your project, at build time, and inject the hooks to run.
 
