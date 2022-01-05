@@ -104,7 +104,9 @@ namespace rooibos
       '     Coverage.printLCovInfo()
       '   end if
       ' end if
-      m.sendHomeKeypress()
+      if m.config.sendHomeOnFinish <> false
+        m.sendHomeKeypress()
+      end if
     end function
 
     public function runInNodeMode(nodeTestName)

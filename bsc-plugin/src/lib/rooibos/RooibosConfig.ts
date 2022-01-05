@@ -19,4 +19,5 @@ export interface RooibosConfig {
     includeFilters?: string[];
     tags?: string[];
     catchCrashes?: boolean;
+    sendHomeOnFinish?: boolean;
 }
