@@ -25,6 +25,12 @@ Rooibos is an independent open-source project, maintained exclusively by volunte
 
 You might want to help! Get in touch via the slack group, or raise issues.
 
+## Sample project
+https://github.com/georgejecook/rooibos-roku-sample
+
+## Quick start
+https://github.com/georgejecook/rooibos/blob/master/docs/index.md#getting-started
+
 ## FAQ
 ### Is Rooibos ready for production use?
 
