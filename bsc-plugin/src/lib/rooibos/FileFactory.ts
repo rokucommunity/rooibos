@@ -72,11 +72,16 @@ export class FileFactory {
 ${scriptImports.join('\n')}
     <interface>
       <field id="rooibosTestResult" type="assocarray"/>
+      <field id="testText" type="string" alias="statusLabel.text" />
+      <field id="failedText" type="string" alias="failedLabel.text" />
+      <field id="statusColor" type="string" alias="statusBackground.color" />
+      <function name='Rooibos_CreateTestNode' />
     </interface>
+
     <children>
-      <LayoutGroup>
-        <Label text="Rooibos tests are running" />
-      </LayoutGroup>
+      <Rectangle id="statusBackground" color="#444444" width="1920" height="1080" />
+      <Label id="statusLabel" text='Rooibos is running tests' />
+      <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
     </children>
   </component>
    `;

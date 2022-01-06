@@ -50,6 +50,9 @@ export class RooibosPlugin {
         if (config.catchCrashes === undefined) {
             config.catchCrashes = true;
         }
+        if (config.sendHomeOnFinish === undefined) {
+            config.sendHomeOnFinish = true;
+        }
         if (config.failFast === undefined) {
             config.failFast = true;
         }

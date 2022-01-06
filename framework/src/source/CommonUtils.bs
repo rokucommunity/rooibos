@@ -46,10 +46,15 @@ namespace rooibos.Common
     mapFunction = invalid
     'bs:disable-next-line
     mapFunction = RBSFM_getFunctionsForFile(filename)
+    'bs:disable-next-line
     if mapFunction <> invalid
+      'bs:disable-next-line
       map = mapFunction()
+      'bs:disable-next-line
       if type(map) = "roAssociativeArray"
+        'bs:disable-next-line
         functionPointer = map[functionName]
+        'bs:disable-next-linenrb
         return functionPointer
       else
         return invalid
@@ -78,11 +83,17 @@ namespace rooibos.Common
       mapFunction = invalid
       'bs:disable-next-line
       mapFunction = RBSFM_getFunctionsForFile(filename)
+      'bs:disable-next-line
       if mapFunction <> invalid
+        'bs:disable-next-line
         map = mapFunction()
+        'bs:disable-next-line
         if type(map) = "roAssociativeArray"
+          'bs:disable-next-line
           functionPointer = map[functionName]
+          'bs:disable-next-line
           if functionPointer <> invalid
+            'bs:disable-next-line
             return functionPointer
           end if
         end if
@@ -586,17 +597,8 @@ namespace rooibos.Common
       return false
     end if
 
-    if val1Type = "roString" or val1Type = "String"
-      Value1 = Rooibos.Common.asString(Value1)
-    else
-      Value1 = box(Value1)
-    end if
-
-    if val2Type = "roString" or val2Type = "String"
-      Value2 = Rooibos.Common.asString(Value2)
-    else
-      Value2 = box(Value2)
-    end if
+    v1IsString = val1Type = "roString" or val1Type = "String"
+    v2IsString = val2Type = "roString" or val2Type = "String"
     'update types after boxing
     val1Type = type(Value1)
     val2Type = type(Value2)
@@ -604,12 +606,12 @@ namespace rooibos.Common
 
     'Upcast int to float, if other is float
     if val1Type = "roFloat" and val2Type = "roInt"
-      Value2 = box(Cdbl(Value2))
+      Value2 = cdbl(Value2)
     else if val2Type = "roFloat" and val1Type = "roInt"
-      Value1 = box(Cdbl(Value1))
+      Value1 = cdbl(Value1)
     end if
 
-    if val1Type <> val2Type
+    if val1Type <> val2Type and v1IsString <> v2IsString
       return false
     else
       valtype = val1Type

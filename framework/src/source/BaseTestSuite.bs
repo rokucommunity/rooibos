@@ -107,7 +107,6 @@ namespace rooibos
     function run()
       for each groupData in m.groupsData
         'bs:disable-next-line
-
         group = new TestGroup(m, groupData)
         ? ""
         ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
@@ -115,9 +114,12 @@ namespace rooibos
         ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
         ? ""
 
+        'bs:disable-next-line
         m.groups.push(group)
+        'bs:disable-next-line
         group.run()
 
+        'bs:disable-next-line
         m.stats.merge(group.stats)
 
         if m.stats.hasFailures and m.isFailingFast = true
@@ -366,7 +368,7 @@ namespace rooibos
         if value = invalid
           if msg = ""
             expr_as_string = Rooibos.Common.asString(value)
-            msg = expr_as_string + " = Invalid"
+            msg = "Expected value, got invalid"
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false

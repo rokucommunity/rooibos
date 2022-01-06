@@ -48,7 +48,12 @@ namespace rooibos
       timer.mark()
       suiteNames = m.runtimeConfig.getAllTestSuitesNames()
       includedSuites = []
+      isFailed = false
+      failedText = ""
+      i = 0
+      numSuites = suiteNames.count()
       for each name in suiteNames
+        i++
         'bs:disable-next-line
         suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
         testSuite = invalid
@@ -59,14 +64,32 @@ namespace rooibos
           testSuite.top = m.nodeContext.top
           testSuite.scene = m.nodeContext.global.testsScene
           testSuite.catchCrashes = m.config.catchCrashes
+          testSuite.scene.testText = `Running Suite ${i} of ${numSuites}: ${name}`
           m.runTestSuite(testSuite)
-          if m.stats.hasFailures = true and m.config.failFast = true
-            exit for
+          if m.stats.hasFailures = true
+            if not isFailed
+              isFailed = true
+              testSuite.scene.statusColor = "#DA3633"
+            end if
+            if m.config.failFast = true
+              exit for
+            end if
+          end if
+
+          if testSuite.stats.hasFailures
+            failedText = name + chr(10) + failedText
+            testSuite.scene.failedText = "Failed Suites: " + chr(10) + failedText
           end if
         else
           ? "ERROR! could not create test for suite : "; name
+          failedText = "COULD NOT CREATE suite " + name + chr(10) + failedText
+          testSuite.scene.failedText = "Failed Suites: " + chr(10) + failedText
         end if
       end for
+
+      if not isFailed
+        testSuite.scene.statusColor = "#238636"
+      end if
 
       m.stats.time = timer.totalMilliseconds()
 
@@ -81,7 +104,9 @@ namespace rooibos
       '     Coverage.printLCovInfo()
       '   end if
       ' end if
-      m.sendHomeKeypress()
+      if m.config.sendHomeOnFinish <> false
+        m.sendHomeKeypress()
+      end if
     end function
 
     public function runInNodeMode(nodeTestName)
