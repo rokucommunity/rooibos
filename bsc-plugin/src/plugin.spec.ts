@@ -322,7 +322,7 @@ describe('RooibosPlugin', () => {
             expect(getContents('rooibosMain.brs')).to.eql(trimLeading(`function main()
     Rooibos_init()
 end function`).trim());
-            let a = getContents('test.spec.brs');
+            let a = getContents('test.spec.brs').replace('open-source/bsc-1/rooibos', 'open-source/rooibos');
             let b = trimLeading(`function __ATest_builder()
             instance = __rooibos_BaseTestSuite_builder()
             instance.super0_new = instance.new
