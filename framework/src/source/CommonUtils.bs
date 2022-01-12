@@ -576,6 +576,33 @@ namespace rooibos.Common
   end function
 
 
+  function getSafeType(v)
+    t = type(v)
+    if t = "<uninitialized>" or t = ""
+      return invalid
+    else if t = "roString"
+      return "String"
+    else if t = "roInteger"
+      return "Integer"
+    else if t = "roBoolean"
+      return "Boolean"
+    else if t = "roBool"
+      return "Boolean"
+    else if t = "roInt"
+      return "Integer"
+    else if t = "roList"
+      return "List"
+    else if t = "roFloat"
+      return "Float"
+    else if t = "roDouble"
+      return "Double"
+    else if t = "roInvalid"
+      return "Invalid"
+    else
+      return t
+    end if
+  end function
+  
   ' /**
   '  * @memberof module:CommonUtils
   '  * @name EqValues
