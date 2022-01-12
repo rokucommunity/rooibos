@@ -93,6 +93,8 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
             let o = createToken(TokenKind.Override, 'override', target.range);
             let n = createIdentifier(name, target.range).name;
             let cms = new ClassMethodStatement(p, n, statement.func, o);
+            
+            this.astEditor.insertAtIndex(target.body, target.body.length - 1, cms);
             target.body.push(cms);
             return true;
         }

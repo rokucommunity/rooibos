@@ -49,6 +49,7 @@ export class TestSuiteBuilder {
 
                 if (annotation) {
                     if (annotation.annotationType === AnnotationType.TestSuite) {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                         this.addSuiteIfValid(file, annotation, cs, suites);
                     } else {
                         diagnosticWrongAnnotation(file, cs, 'Expected a TestSuite annotation, got: ' + annotation.annotationType);
@@ -58,8 +59,10 @@ export class TestSuiteBuilder {
             }
         } catch (e) {
             // console.log(e);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(file, e.message);
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this.session.sessionInfo.updateTestSuites(suites);
         return suites;
     }

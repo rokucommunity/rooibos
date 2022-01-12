@@ -51,18 +51,21 @@ export class TestGroup extends TestBlock {
         const transpileState = new BrsTranspileState(this.file);
         try {
             let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+            let parentIndex = 0;
             func.walk(createVisitor({
-                ExpressionStatement: (es) => {
+                ExpressionStatement: (es, parent) => {
                     let ce = es.expression as CallExpression;
                     if (isCallExpression(ce) && isDottedGetExpression(ce.callee)) {
                         let dge = ce.callee;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*))/i;
                         if (dge && assertRegex.test(dge.name.text)) {
+                            // this.astEditor.replaceProperty(es, 'transpile', => replace transpile function here - with array of strings as per return value);
                             return new RawCodeStatement(`
                             m.currentAssertLineNumber = ${ce.range.start.line}
                             ${ce.transpile(transpileState).join('')}
                             ${noEarlyExit ? '' : 'if m.currentResult.isFail then return invalid'}
     `, this.file, ce.range);
+                            parentIndex++;
                         }
                     }
                 }
@@ -71,6 +74,7 @@ export class TestGroup extends TestBlock {
             });
         } catch (e) {
             // console.log(e);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(this.testSuite.file, e.message);
         }
     }

@@ -1,74 +1,108 @@
-// import * as chai from 'chai';
-// import * as fs from 'fs-extra';
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
+import { expect } from 'chai';
+import PluginInterface from 'brighterscript/dist/PluginInterface';
+import * as fsExtra from 'fs-extra';
+import * as path from 'path';
+import { RooibosPlugin } from '../../plugin';
+import { standardizePath as s } from './Utils';
 
-// import { Program, ProgramBuilder } from 'brighterscript';
 
-// import { expect } from 'chai';
+import { trimLeading } from '../utils/testHelpers.spec';
 
-// import * as path from 'path';
+let tmpPath = s`${process.cwd()}/tmp`;
+let _rootDir = s`${tmpPath}/rootDir`;
+let _stagingFolderPath = s`${tmpPath}/staging`;
 
-// import { CodeCoverageProcessor } from './CodeCoverageProcessor';
-// import { ProcessorConfig } from './ProcessorConfig';
 
-// import File from './File';
+describe('RooibosPlugin', () => {
+    let program: Program;
+    let builder: ProgramBuilder;
+    let plugin: RooibosPlugin;
+    let options;
 
-// const chaiSubset = require('chai-subset');
+    function normalizePaths(s: string) {
+        return s.replace(/file:.*test.spec.bs/gim, 'FILE_PATH');
+    }
 
-// chai.use(chaiSubset);
-// let processor: CodeCoverageProcessor;
-// let sourcePath = 'src/test/stubProject';
-// let targetPath = 'build';
+    function getContents(filename: string) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        return trimLeading(fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString());
+    }
 
-// let bsConfig = require('/home/george/hope/open-source/rooibos/rooibos-roku-vsc-extension-plugin/src/test/stubProject/bsconfig.json'
-// );
-// function clearFiles() {
-//   fs.removeSync(targetPath);
-// }
+    describe.only('CodeCoverageProcessor', () => {
+        beforeEach(() => {
+            plugin = new RooibosPlugin();
+            options = {
+                rootDir: _rootDir,
+                stagingFolderPath: _stagingFolderPath,
+                rooibos: {
+                    isRecordingCodeCoverage: true
+                }
+            };
+            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(_rootDir);
+            fsExtra.ensureDirSync(tmpPath);
 
-// function copyFiles() {
-//   try {
-//     fs.copySync(sourcePath, targetPath);
-//   } catch (err) {
-//     console.error(err);
-//   }
-// }
+            builder = new ProgramBuilder();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            builder.options = util.normalizeAndResolveConfig(options);
+            builder.program = new Program(builder.options);
+            program = builder.program;
+            program.logger = builder.logger;
+            builder.plugins = new PluginInterface([plugin], builder.logger);
+            program.plugins = new PluginInterface([plugin], builder.logger);
+            program.createSourceScope(); //ensure source scope is created
+            plugin.beforeProgramCreate(builder);
 
-// describe('CodeCoverageProcessor tests', function() {
-//   beforeEach(() => {
-//     clearFiles();
-//     copyFiles();
-//     let _programBuilder = new ProgramBuilder();
-//     bsConfig.rootDir = path.resolve('src/test/stubProject/src');
 
-//     processor = new CodeCoverageProcessor(_programBuilder.program);
-//   });
+        });
+        afterEach(() => {
+            fsExtra.ensureDirSync(tmpPath);
+            fsExtra.emptyDirSync(tmpPath);
+            builder.dispose();
+            program.dispose();
+        });
 
-//   describe('Process files valid test', function() {
-//     it('tests processor runs', async () => {
-//       let f: File;
-//       await processor.processFile(f);
-//     });
-//     it('tests creates CodeCoverageSupport file', async () => {
-//       let f: File;
-//       await processor.processFile(f);
-//       let filePath = path.resolve(path.join(targetPath, 'source', 'CodeCoverageSupport.brs'));
-//       expect(fs.existsSync(filePath)).to.be.true;
-//     });
-//     it('tests creates coverage component', async () => {
-//       let f: File;
-//       await processor.processFile(f);
-//       let filePath = path.resolve(path.join(targetPath, 'components', 'CodeCoverage.xml'));
-//       expect(fs.existsSync(filePath)).to.be.true;
-//       filePath = path.resolve(path.join(targetPath, 'components', 'CodeCoverage.brs'));
-//       expect(fs.existsSync(filePath)).to.be.true;
-//     });
-//   });
+        describe('basic tests', () => {
 
-//   describe('specific file with lots of code use cases in it', function() {
-//     it('tests processor runs', async () => {
-//       let f: File;
-//       await processor.processFile(f);
-//       console.log('TODO - write tests - currently manually validating!!');
-//     });
-//   });
-// });
+            it('adds code coverage to a bs file', async () => {
+                program.addOrReplaceFile('source/code.bs', `
+                class BasicClass
+                    private field1
+                    public field2
+
+                    function a(a1, a2)
+                    c = 0
+                    text = ""
+                        for i = 0 to 10
+                            text = text + "hello"
+                            c++
+                            c += 1
+                            if c = 2
+                                ? "is true"
+                            end if
+
+                            if c = 3
+                                ? "free"
+                            else
+                                ? "not free"
+                            end if
+                        end for
+
+                    end function
+
+
+                end class
+            `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                let a = getContents('source/code.brs');
+                let b = ``;
+                expect(normalizePaths(a)).to.equal(normalizePaths(b));
+
+            });
+        });
+    });
+});

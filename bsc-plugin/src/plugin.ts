@@ -3,6 +3,7 @@ import type {
     BscFile,
     Program,
     ProgramBuilder,
+    TranspileObj,
     XmlFile
 } from 'brighterscript';
 
@@ -56,7 +57,7 @@ export class RooibosPlugin {
             config.showOnlyFailures = true;
         }
         if (config.isRecordingCodeCoverage === undefined) {
-            config.isRecordingCodeCoverage = true;
+            config.isRecordingCodeCoverage = false;
         }
         //ignore roku modules by default
         if (config.includeFilters === undefined) {
@@ -64,6 +65,13 @@ export class RooibosPlugin {
                 '**/*.spec.bs',
                 '!**/BaseTestSuite.spec.bs',
                 '!**/roku_modules/**/*'];
+        }
+
+        if (config.coverageExcludedFiles === undefined) {
+            config.coverageExcludedFiles = [
+                '**/*.spec.bs',
+                '**/roku_modules/**/*'
+            ];
         }
 
         return config;
@@ -84,10 +92,15 @@ export class RooibosPlugin {
         // console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
             if (this.session.processFile(file)) {
-                //
-            } else {
-                this.codeCoverageProcessor.addCodeCoverage(file);
             }
+        }
+    }
+
+    beforeFileTranspile (entry: TranspileObj) {
+        // console.log('afp', file.pkgPath)
+        let file = entry.file;
+        if (isBrsFile(file) && this.shouldAddCodeCoverageToFile(file)) {
+            this.codeCoverageProcessor.addCodeCoverage(file);
         }
     }
 
@@ -130,6 +143,21 @@ export class RooibosPlugin {
         } else {
             for (let filter of this.config.includeFilters) {
                 if (!minimatch(file.pathAbsolute, filter)) {
+                    return false;
+                }
+            }
+        }
+        // console.log('including ', file.pkgPath);
+        return true;
+    }
+    shouldAddCodeCoverageToFile(file: BscFile) {
+        if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
+            return false;
+        } else if (!this.config.coverageExcludedFiles) {
+            return true;
+        } else {
+            for (let filter of this.config.coverageExcludedFiles) {
+                if (minimatch(file.pathAbsolute, filter)) {
                     return false;
                 }
             }

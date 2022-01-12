@@ -28,6 +28,7 @@ describe('RooibosPlugin', () => {
         fsExtra.ensureDirSync(tmpPath);
 
         builder = new ProgramBuilder();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         builder.options = util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
         program = builder.program;
@@ -454,6 +455,7 @@ end function`).trim());
             fsExtra.ensureDirSync(tmpPath);
 
             builder = new ProgramBuilder();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             builder.options = util.normalizeAndResolveConfig(options);
             builder.program = new Program(builder.options);
             program = builder.program;
@@ -516,7 +518,7 @@ end function`).trim());
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
         });
-        it('inlcude and exclude tags', async () => {
+        it('include and exclude tags', async () => {
             plugin.session.sessionInfo.includeTags = ['one', 'two'];
             plugin.session.sessionInfo.excludeTags = ['exclude'];
             program.addOrReplaceFile('source/test.spec.bs', testSource);
