@@ -40,6 +40,8 @@ export class FileFactory {
             files.push({ src: path.resolve(path.join(this.sourcePath, `${fileName}.bs`)), dest: path.join(this.targetPath, `${fileName}.bs`) });
         }
         files.push({ src: path.resolve(path.join(this.sourcePath, `RooibosScene.xml`)), dest: path.join(this.targetCompsPath, `RooibosScene.xml`) });
+        files.push({ src: path.resolve(path.join(this.sourcePath, `CoverageComponent.xml`)), dest: path.join(this.targetCompsPath, `CoverageComponent.xml`) });
+        files.push({ src: path.resolve(path.join(this.sourcePath, `CoverageComponent.brs`)), dest: path.join(this.targetCompsPath, `CoverageComponent.brs`) });
         return files;
     }
 
@@ -86,6 +88,23 @@ ${scriptImports.join('\n')}
   </component>
    `;
         return contents;
+    }
+
+    public createCoverageComponent(coverageMap: any, filepathMap: Map<number, string>) {
+        //TODO - replace text with appropriate values
+        // let targetPath = path.resolve(this._program.options.rootDir);
+        // let file = new File(path.resolve(path.join(targetPath), 'components'), 'components', 'CodeCoverage.xml', '.xml');
+        // file.setFileContents(this.coverageComponentXmlTemplate);
+        //`Writing to ${file.fullPath}`);
+        // file.saveFileContents();
+
+        // file = new File(path.resolve(path.join(targetPath, 'components')), 'components', 'CodeCoverage.brs', '.brs');
+        // let template = this.coverageComponentBrsTemplate;
+        // template = template.replace(/\#EXPECTED_MAP\#/g, JSON.stringify(this.expectedCoverageMap));
+        // template = template.replace(/\#FILE_PATH_MAP\#/g, JSON.stringify(this.filePathMap));
+        // file.setFileContents(template);
+        //`Writing to ${file.fullPath}`);
+        // file.saveFileContents();
     }
 
     public isIgnoredFile(file: BrsFile | XmlFile): boolean {

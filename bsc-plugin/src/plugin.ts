@@ -36,7 +36,7 @@ export class RooibosPlugin {
         this.fileFactory = new FileFactory(this.config);
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
-            this.codeCoverageProcessor = new CodeCoverageProcessor(builder);
+            this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
         }
     }
     private getConfig(options: any) {
@@ -127,6 +127,7 @@ export class RooibosPlugin {
         this.session.addTestRunnerMetadata();
         this.session.addLaunchHook();
         this.session.createNodeFiles(this._builder.program);
+        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage);
     }
 
     beforeProgramValidate() {

@@ -26,5 +26,6 @@ export class RawCodeStatement extends Statement {
     }
     public walk(visitor: WalkVisitor, options: WalkOptions) {
         //nothing to walk
+        console.log('f');
     }
 }
