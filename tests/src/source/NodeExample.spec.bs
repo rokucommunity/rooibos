@@ -11,14 +11,14 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-     @describe("tests methods present on the node")
+    @describe("tests methods present on the node")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("HelloFromNode")
     function _()
       'bs:disable-next-line
       text = HelloFromNode("georgejecook", 12)
-      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      m.AssertEqual(text, "HELLO georgejecook" + " aged:" + stri(12))
     end function
 
     @it("HelloFromNode with params")

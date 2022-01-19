@@ -75,6 +75,7 @@ namespace rooibos
         m.lineNumber = data.lineNumber
         m.isNodeTest = data.isNodeTest
         m.nodeName = data.nodeName
+        m.generatedNodeName = data.generatedNodeName
         m.isFailingFast = false
         m.stats = new Stats()
       end if

@@ -111,11 +111,11 @@ namespace rooibos
 
     public function runInNodeMode(nodeTestName)
       'bs:disable-next-line
-      suiteClass = m.getTestSuiteClassWithName(nodeTestName)
+      suiteClass = m.runtimeConfig.getTestSuiteClassWithName(nodeTestName)
       testSuite = invalid
 
       if suiteClass <> invalid
-        testSuite = suiteClass(m.top)
+        testSuite = suiteClass()
       end if
 
       if testSuite <> invalid

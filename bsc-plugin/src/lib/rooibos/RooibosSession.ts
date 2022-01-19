@@ -123,9 +123,7 @@ end function`);
         let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
         if (method) {
             let text = `return [
-        ${this.sessionInfo.testSuitesToRun.filter((s) => !s.isNodeTest)
-        .map((s) => `"${s.name}"`).join('\n')
-}
+        ${this.sessionInfo.testSuitesToRun.map((s) => `"${s.name}"`).join('\n')}
       ]`;
             method.func.body.statements.push(new RawCodeStatement(text));
         }
