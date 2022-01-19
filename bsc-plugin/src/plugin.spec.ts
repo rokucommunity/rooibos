@@ -543,41 +543,28 @@ end function`).trim());
 
 });
 
-describe.skip('run a local project', () => {
+describe.only('run a local project', () => {
     it('sanity checks on parsing - only run this outside of ci', () => {
         let programBuilder = new ProgramBuilder();
         let swv = {
             'stagingFolderPath': 'build',
-            'rootDir': '/home/george/hope/open-source/maestro/swerve-app/src',
-            'files': [
-                'manifest',
-                'source/**/*.*',
-                'images/**/*.*',
-                'sounds/**/*.*',
-                'sounds/*.*',
-                'fonts/**/*.*',
-                'components/**/*.*'
-            ],
+            'rootDir': '/home/george/hope/open-source/rooibos/tests',
+            'files': ['manifest', 'source/**/*.*', 'components/**/*.*'],
             'autoImportComponentScript': true,
             'createPackage': false,
             'diagnosticFilters': [
                 {
-                    'src': '**/roku_modules/**/*.*'
-                },
-                {
-                    'src': '**/Whitelist.xml',
-                    'codes': [
-                        1067
-                    ]
-                },
-                {
-                    'src': 'components/maestro/generated/**/*.*'
-                },
-                1013,
-                {
-                    'src': '**/RALETrackerTask.*'
+                    'src': '**/roku_modules/**/*.*',
+                    'codes': [1107, 1009]
                 }
             ],
+            'rooibos': {
+                'showOnlyFailures': true,
+                'catchCrashes': true,
+                'lineWidth': 70,
+                'failFast': false,
+                'sendHomeOnFinish': false
+            },
             'maestro': {
                 'nodeFileDelay': 0,
                 'excludeFilters': [
@@ -594,18 +581,6 @@ describe.skip('run a local project', () => {
             'exclude': {
                 'id': '/home/george/hope/open-source/maestro/roku-log-bsc-plugin/dist/plugin.js'
             },
-            'rooibos': {
-                'isRecordingCodeCoverage': false,
-                'testsFilePattern': null,
-                'tags': [
-                    '!integration',
-                    '!deprecated',
-                    '!fixme'
-                ],
-                'showOnlyFailures': true,
-                'catchCrashes': true,
-                'lineWidth': 70
-            },
             'rokuLog': {
                 'strip': false,
                 'insertPkgPath': true
@@ -613,11 +588,11 @@ describe.skip('run a local project', () => {
         };
 
         programBuilder.run(
-            swv
-            // {
-            // project: '/home/george/hope/applicaster/zapp-roku-app/bsconfig-test.json'
-            // project: '/home/george/hope/open-source/maestro/swerve-app/bsconfig-test.json'
-        // }
+            // swv
+            {
+                project: '/home/george/hope/open-source/rooibos/tests/bsconfig.json'
+                // project: '/home/george/hope/open-source/maestro/swerve-app/bsconfig-test.json'
+            }
         ).catch(e => {
             console.error(e);
         });
