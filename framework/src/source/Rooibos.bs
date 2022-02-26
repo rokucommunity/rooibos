@@ -1,7 +1,6 @@
 namespace rooibos
   function init() as void
-    args = {}
-    if createObject("roAPPInfo").IsDev() <> true then
+    if createObject("roAPPInfo").IsDev() <> true
       ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
       return
     end if
@@ -25,11 +24,11 @@ namespace rooibos
 
     else
       ? "scene is ready; running tests now"
-      runner = new TestRunner(scene, m)
+      runner = new rooibos.TestRunner(scene, m)
       runner.Run()
     end if
 
-    while(true)
+    while true
       msg = wait(0, m.port)
       msgType = type(msg)
       if msgType = "roSGScreenEvent"
@@ -40,7 +39,7 @@ namespace rooibos
 
         if msg.getField() = "isReadyToStartTests" and msg.getData() = true
           ? "scene is ready; running tests now"
-          runner = new TestRunner(scene, m)
+          runner = new rooibos.TestRunner(scene, m)
           runner.Run()
         end if
       end if

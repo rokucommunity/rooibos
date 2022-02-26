@@ -47,7 +47,7 @@ namespace rooibos
       m.global = testSuite.global
       m.top = testSuite.top
       m.scene = testSuite.scene
-      m.stats = new Stats()
+      m.stats = new rooibos.Stats()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -59,7 +59,7 @@ namespace rooibos
 
       if isOk
         for each testData in m.testsData
-          test = new Test(m, testData)
+          test = new rooibos.Test(m, testData)
           m.tests.push(test)
 
           isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", test)
@@ -94,6 +94,7 @@ namespace rooibos
           return true
         catch error
           if test <> invalid
+            'bs:disable-next-line
             test.result.crash("function " + methodName + "crashed!", error)
           end if
         end try
@@ -102,6 +103,7 @@ namespace rooibos
         return true
       end if
 
+      'bs:disable-next-line
       return false
     end function
 

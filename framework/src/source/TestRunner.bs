@@ -28,8 +28,8 @@ namespace rooibos
 
       m.nodeContext = nodeContext
 
-      m.stats = new Stats()
-      m.runtimeConfig = new RuntimeConfig()
+      m.stats = new rooibos.Stats()
+      m.runtimeConfig = new rooibos.RuntimeConfig()
       m.config = m.runtimeConfig.getRuntimeConfig()
       'TODO - allow providing different reporters via config
       m.testReporter = new Rooibos.ConsoleTestReporter(m)
@@ -47,7 +47,6 @@ namespace rooibos
       timer = createObject("roTimespan")
       timer.mark()
       suiteNames = m.runtimeConfig.getAllTestSuitesNames()
-      includedSuites = []
       isFailed = false
       failedText = ""
       i = 0
@@ -87,7 +86,7 @@ namespace rooibos
         end if
       end for
 
-      if not isFailed
+      if not isFailed and testSuite <> invalid
         testSuite.scene.statusColor = "#238636"
       end if
 
@@ -128,7 +127,7 @@ namespace rooibos
         ? "[ERROR] could not create test suite " ; nodeTestName
       end if
 
-      ? "ERROR! executing node test " + nodeTestName + " was unsuccesful."
+      ? "ERROR! executing node test " + nodeTestName + " was unsuccessful."
 
       return invalid
     end function

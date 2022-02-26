@@ -5,7 +5,8 @@
     "dist/**/!(manifest)*"
   ],
   "devDependencies": {
-    "brighterscript": "^0.39.0",
+    "@rokucommunity/bslint": "^0.5.0",
+    "brighterscript": "^0.45.2",
     "ropm": "^0.5.0"
   },
   "repository": {
