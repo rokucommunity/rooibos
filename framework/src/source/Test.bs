@@ -38,8 +38,7 @@ namespace rooibos
         m.name = m.name + stri(m.paramTestIndex)
       end if
 
-      m.result = new TestResult(m)
-      return this
+      m.result = new rooibos.TestResult(m)
     end function
 
     function run()

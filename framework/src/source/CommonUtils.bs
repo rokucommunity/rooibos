@@ -41,8 +41,12 @@ namespace rooibos.Common
   '  * @returns {Function} - function pointer or invalid
   '  */
   function getFunction(filename, functionName) as object
-    if not Rooibos.Common.isNotEmptyString(functionName) then return invalid
-    if not Rooibos.Common.isNotEmptyString(filename) then return invalid
+    if not Rooibos.Common.isNotEmptyString(functionName)
+      return invalid
+    end if
+    if not Rooibos.Common.isNotEmptyString(filename)
+      return invalid
+    end if
     'bs:disable-next-line
     mapFunction = RBSFM_getFunctionsForFile(filename)
     'bs:disable-next-line
@@ -74,7 +78,9 @@ namespace rooibos.Common
   '  * @returns {Function} - function pointer or invalid
   '  */
   function getFunctionBruteForce(functionName) as object
-    if not Rooibos.Common.isNotEmptyString(functionName) then return invalid
+    if not Rooibos.Common.isNotEmptyString(functionName)
+      return invalid
+    end if
     'bs:disable-next-line
     filenames = RBSFM_getFilenames()
     for i = 0 to filenames.count() - 1
@@ -313,6 +319,7 @@ namespace rooibos.Common
       text = "{"
       if not isFirst
         text = text + ","
+        'bs:disable-next-line
         isFirst = false
       end if
       for each key in input
@@ -516,8 +523,6 @@ namespace rooibos.Common
         if Rooibos.Common.eqValues(compareValue, value)
           return i
         end if
-
-        item = array[i]
       next
     end if
     return -1
@@ -709,7 +714,9 @@ namespace rooibos.Common
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
   function eqArray(Value1, Value2) as dynamic
-    if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value2) then return false
+    if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value2)
+      return false
+    end if
 
     l1 = Value1.Count()
     l2 = Value2.Count()
@@ -720,7 +727,7 @@ namespace rooibos.Common
       for i = 0 to l1 - 1
         v1 = Value1[i]
         v2 = Value2[i]
-        if not Rooibos.Common.eqValues(v1, v2) then
+        if not Rooibos.Common.eqValues(v1, v2)
           return false
         end if
       end for

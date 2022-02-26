@@ -10,7 +10,7 @@ let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 
-import { trimLeading } from './lib/utils/testHelpers.spec';
+import * as trim from 'trim-whitespace';
 
 describe('RooibosPlugin', () => {
     let program: Program;
@@ -318,11 +318,11 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
 
-            expect(getContents('rooibosMain.brs')).to.eql(trimLeading(`function main()
+            expect(trim(getContents('rooibosMain.brs'))).to.eql(trim(`function main()
     Rooibos_init()
-end function`).trim());
-            let a = getContents('test.spec.brs');
-            let b = trimLeading(`function __ATest_builder()
+end function`));
+            let a = trim(getContents('test.spec.brs'));
+            let b = trim(`function __ATest_builder()
             instance = __rooibos_BaseTestSuite_builder()
             instance.super0_new = instance.new
             instance.new = sub()
@@ -417,9 +417,9 @@ end function`).trim());
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
 
-            expect(getContents('rooibosMain.brs')).to.eql(trimLeading(`function main()
+            expect(trim(getContents('rooibosMain.brs'))).to.eql(trim(`function main()
     Rooibos_init()
-end function`).trim());
+end function`));
         });
     });
 
@@ -626,5 +626,5 @@ describe.skip('run a local project', () => {
 });
 
 function getContents(filename: string) {
-    return trimLeading(fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString());
+    return trim(fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString());
 }

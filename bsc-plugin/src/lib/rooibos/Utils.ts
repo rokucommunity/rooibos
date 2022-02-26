@@ -1,5 +1,6 @@
 import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression } from 'brighterscript';
-import { BinaryExpression, Block, createIdentifier, createStringLiteral, createToken, isClassMethodStatement, Lexer, ParseMode, Parser, TokenKind, Range, IfStatement, ClassMethodStatement } from 'brighterscript';
+import { createVariableExpression } from 'brighterscript';
+import * as brighterscript from 'brighterscript';
 
 import * as rokuDeploy from 'roku-deploy';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
@@ -54,8 +55,8 @@ export function pad(pad: string, str: string, padLeft: number): string {
 }
 
 export function makeASTFunction(source: string): FunctionStatement | undefined {
-    let tokens = Lexer.scan(source).tokens;
-    let { statements } = Parser.parse(tokens, { mode: ParseMode.BrighterScript });
+    let tokens = brighterscript.Lexer.scan(source).tokens;
+    let { statements } = brighterscript.Parser.parse(tokens, { mode: brighterscript.ParseMode.BrighterScript });
     if (statements && statements.length > 0) {
         return statements[0] as FunctionStatement;
     }
@@ -67,7 +68,7 @@ export function getFunctionBody(source: string): Statement[] {
     return funcStatement ? funcStatement.func.body.statements : [];
 }
 
-export function changeFunctionBody(statement: ClassMethodStatement | FunctionStatement, source: Statement[] | string) {
+export function changeFunctionBody(statement: brighterscript.ClassMethodStatement | FunctionStatement, source: Statement[] | string) {
     let statements = statement.func.body.statements;
     statements.splice(0, statements.length);
     let newStatements = (typeof source === 'string') ? getFunctionBody(source) : source;
@@ -83,16 +84,16 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
   end function
   `;
 
-    let tokens = Lexer.scan(funcSource).tokens;
-    let { statements, diagnostics } = Parser.parse(tokens, { mode: ParseMode.BrighterScript });
+    let tokens = brighterscript.Lexer.scan(funcSource).tokens;
+    let { statements, diagnostics } = brighterscript.Parser.parse(tokens, { mode: brighterscript.ParseMode.BrighterScript });
     let error = '';
     if (statements && statements.length > 0) {
         let statement = statements[0] as FunctionStatement;
         if (statement.func.body.statements.length > 0) {
-            let p = createToken(TokenKind.Public, 'public', target.range);
-            let o = createToken(TokenKind.Override, 'override', target.range);
-            let n = createIdentifier(name, target.range).name;
-            let cms = new ClassMethodStatement(p, n, statement.func, o);
+            let p = brighterscript.createToken(brighterscript.TokenKind.Public, 'public', target.range);
+            let o = brighterscript.createToken(brighterscript.TokenKind.Override, 'override', target.range);
+            let n = brighterscript.createIdentifier(name, target.range);
+            let cms = new brighterscript.ClassMethodStatement(p, n, statement.func, o);
             target.body.push(cms);
             return true;
         }
@@ -105,7 +106,7 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
 
 export function changeClassMethodBody(target: ClassStatement, name: string, source: Statement[] | string): boolean {
     let method = target.methods.find((m) => m.name.text === name);
-    if (isClassMethodStatement(method)) {
+    if (brighterscript.isClassMethodStatement(method)) {
         changeFunctionBody(method, source);
         return true;
     }
@@ -116,31 +117,31 @@ export function sanitizeBsJsonString(text: string) {
     return `"${text ? text.replace(/"/g, '\'') : ''}"`;
 }
 
-export function createIfStatement(condition: Expression, statements: Statement[]): IfStatement {
-    let ifToken = createToken(TokenKind.If, 'if', Range.create(1, 1, 1, 999999));
-    let thenBranch = new Block(statements, Range.create(1, 1, 1, 1));
-    return new IfStatement({ if: ifToken, then: createToken(TokenKind.Then, '', Range.create(1, 1, 1, 999999)) }, condition, thenBranch);
+export function createIfStatement(condition: Expression, statements: Statement[]): brighterscript.IfStatement {
+    let ifToken = brighterscript.createToken(brighterscript.TokenKind.If, 'if', brighterscript.Range.create(1, 1, 1, 999999));
+    let thenBranch = new brighterscript.Block(statements, brighterscript.Range.create(1, 1, 1, 1));
+    return new brighterscript.IfStatement({ if: ifToken, then: brighterscript.createToken(brighterscript.TokenKind.Then, '', brighterscript.Range.create(1, 1, 1, 999999)) }, condition, thenBranch);
 }
 
-export function createVarExpression(varName: string, operator: TokenKind, value: string): BinaryExpression {
-    let variable = createIdentifier(varName, Range.create(1, 1, 1, 999999));
-    let v = createStringLiteral(value, Range.create(1, 1, 1, 999999));
+export function createVarExpression(varName: string, operator: brighterscript.TokenKind, value: string): brighterscript.BinaryExpression {
+    let variable = createVariableExpression(varName, brighterscript.Range.create(1, 1, 1, 999999));
+    let v = brighterscript.createStringLiteral(value, brighterscript.Range.create(1, 1, 1, 999999));
 
-    let t = createToken(operator, getTokenText(operator), Range.create(1, 1, 1, 999999));
-    return new BinaryExpression(variable, t, v);
+    let t = brighterscript.createToken(operator, getTokenText(operator), brighterscript.Range.create(1, 1, 1, 999999));
+    return new brighterscript.BinaryExpression(variable, t, v);
 }
 
-export function getTokenText(operator: TokenKind): string {
+export function getTokenText(operator: brighterscript.TokenKind): string {
     switch (operator) {
-        case TokenKind.Equal:
+        case brighterscript.TokenKind.Equal:
             return '=';
-        case TokenKind.Plus:
+        case brighterscript.TokenKind.Plus:
             return '+';
-        case TokenKind.Minus:
+        case brighterscript.TokenKind.Minus:
             return '-';
-        case TokenKind.Less:
+        case brighterscript.TokenKind.Less:
             return '<';
-        case TokenKind.Greater:
+        case brighterscript.TokenKind.Greater:
             return '>';
         default:
             return '';

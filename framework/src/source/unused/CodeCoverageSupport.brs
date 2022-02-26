@@ -24,8 +24,6 @@ function RBS_ReportCodeCoverage() as void
         resolvedPercent = (resolvedCount / expectedCount) * 100
         hitFiles.push({percent:resolvedPercent, text:filename + ": " +str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")"})
       else
-        resolvedCount = 0
-        resolvedPercent = 0
         missFiles.push(filename + ": MISS!")
       end if
     end if

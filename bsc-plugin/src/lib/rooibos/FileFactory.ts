@@ -32,6 +32,7 @@ export class FileFactory {
     public sourcePath = path.join(__dirname, '../framework');
     private targetPath = 'source/rooibos/';
     private targetCompsPath = 'components/rooibos/';
+    public addedFrameworkFiles = [];
 
     public getFrameworkFiles(): FileObj[] {
         let files: FileObj[] = [];
@@ -44,19 +45,20 @@ export class FileFactory {
     }
 
     public addFrameworkFiles(program: Program) {
+        this.addedFrameworkFiles = [];
         for (let fileName of this.frameworkFileNames) {
             let sourcePath = path.resolve(path.join(this.sourcePath, `${fileName}.bs`));
             let fileContents = fs.readFileSync(sourcePath, 'utf8');
             let destPath = path.join(this.targetPath, `${fileName}.bs`);
             let entry = { src: sourcePath, dest: destPath };
 
-            program.addOrReplaceFile(entry, fileContents);
+            this.addedFrameworkFiles.push(program.setFile(entry, fileContents));
         }
 
         let sourcePath = path.resolve(path.join(this.sourcePath, `RooibosScene.xml`));
         let destPath = path.join(this.targetCompsPath, `RooibosScene.xml`);
         let entry = { src: sourcePath, dest: destPath };
-        program.addOrReplaceFile(entry, this.createTestXML('TestsScene', 'Scene'));
+        this.addedFrameworkFiles.push(program.setFile(entry, this.createTestXML('TestsScene', 'Scene')));
     }
 
     public createTestXML(name: string, baseName: string, useBs = true): string {
@@ -99,7 +101,9 @@ ${scriptImports.join('\n')}
 
     public addFile(program, projectPath: string, contents: string) {
         try {
-            return program.addOrReplaceFile({ src: path.resolve(projectPath), dest: projectPath }, contents);
+            const file = program.setFile({ src: path.resolve(projectPath), dest: projectPath }, contents);
+            this.addedFrameworkFiles.push(file);
+            return file;
         } catch (error) {
             console.error(`Error adding framework file: ${projectPath} : ${error.message}`);
         }

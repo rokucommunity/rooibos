@@ -105,14 +105,14 @@ namespace rooibos
       if test.isParamTest <> true
         messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
         m.printLine(0, messageLine + test.result.getStatusText() + timeText)
-        m.printLine(0, " | " + insettext + "  |--Test : " + testLocationText)
+        m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
       else if test.paramTestIndex = 0
         name = test.name
         if len(name) > 1 and right(name, 1) = "0"
           name = left(name, len(name) - 1)
         end if
         m.printLine(0, " " + testChar + " |--" + name + " : ")
-        m.printLine(0, " | " + insettext + "  |--Test : " + testLocationText)
+        m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
       end if
 
       locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine
@@ -134,28 +134,28 @@ namespace rooibos
       end if
 
       if test.result.isCrash
-        m.printLine(0, " | " + insettext + "  |--Crashed at: " + locationText)
-        m.printStackTrace(insettext, test.result.error)
+        m.printLine(0, " | " + insetText + "  |--Crashed at: " + locationText)
+        m.printStackTrace(insetText, test.result.error)
         m.printLine(0, " | ")
       else if test.result.isFail
-        m.printLine(0, " | " + insettext + "  |--Failed at: " + locationText)
+        m.printLine(0, " | " + insetText + "  |--Failed at: " + locationText)
         if test.isParamTest = true
-          m.printLine(0, " | " + insettext + "  |--Param Line: " + StrI(test.paramLineNumber - 1).trim())
+          m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(test.paramLineNumber - 1).trim())
         end if
-        m.printLine(0, " | " + insettext + "  |--Error Message: " + test.result.message)
+        m.printLine(0, " | " + insetText + "  |--Error Message: " + test.result.message)
         m.printLine(0, " | ")
       end if
     end function
 
-    function printStackTrace(insettext, error)
-      m.printLine(0, " | " + insettext + "  |")
-      m.printLine(0, " | " + insettext + "  |--Message: " + error.message)
-      m.printLine(0, " | " + insettext + "  |--Stack trace: ")
+    function printStackTrace(insetText, error)
+      m.printLine(0, " | " + insetText + "  |")
+      m.printLine(0, " | " + insetText + "  |--Message: " + error.message)
+      m.printLine(0, " | " + insetText + "  |--Stack trace: ")
 
       for i = error.backTrace.count() - 1 to 0 step -1
         e = error.backTrace[i]
         if e.filename.instr("pkg:/source/rooibos") = -1
-          m.printLine(0, " | " + insettext + "    " + e.filename + "(" + stri(e.line_number).trim() + ")")
+          m.printLine(0, " | " + insetText + "    " + e.filename + "(" + stri(e.line_number).trim() + ")")
         end if
       end for
     end function

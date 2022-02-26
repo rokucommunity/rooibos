@@ -1,12 +1,12 @@
-import type {
-    BrsFile,
-    BscFile,
+import type { BscFile,
+    CompilerPlugin,
     Program,
-    ProgramBuilder,
+    ProgramBuilder } from 'brighterscript';
+import {
+    BrsFile,
+    isBrsFile,
     XmlFile
 } from 'brighterscript';
-
-import { isBrsFile } from 'brighterscript/dist/astUtils';
 
 import { RooibosSession } from './lib/rooibos/RooibosSession';
 
@@ -17,7 +17,7 @@ import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 
 import * as minimatch from 'minimatch';
 
-export class RooibosPlugin {
+export class RooibosPlugin implements CompilerPlugin {
 
     name: 'rooibosPlugin';
     public session: RooibosSession;
@@ -75,8 +75,13 @@ export class RooibosPlugin {
         }
     }
 
-    afterFileParse(file: (BrsFile | XmlFile)): void {
+    afterFileParse(file: BscFile): void {
         // console.log('afp', file.pkgPath);
+        if (file.pathAbsolute.includes('/rooibos/bsc-plugin/dist/framework')) {
+            // eslint-disable-next-line @typescript-eslint/dot-notation
+            file['diagnostics'] = [];
+            return;
+        }
         if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
             return;
         }
@@ -116,11 +121,15 @@ export class RooibosPlugin {
         this.session.createNodeFiles(this._builder.program);
     }
 
-    beforeProgramValidate() {
+    afterProgramValidate() {
         // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
             testSuite.validate();
+        }
+        for (let file of this.fileFactory.addedFrameworkFiles) {
+            // eslint-disable-next-line @typescript-eslint/dot-notation
+            file['diagnostics'] = [];
         }
     }
 

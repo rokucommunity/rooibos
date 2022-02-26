@@ -5,21 +5,21 @@ namespace rooibos
     public config = invalid
     public allStats = invalid
 
-    function new(testRunner)
+    function new(testRunner as dynamic)
       m.testRunner = testRunner
       m.config = testRunner.config
       m.allStats = testRunner.stats
     end function
 
-    function reportResults(allStats)
+    function reportResults(allStats as dynamic)
       'override me
     end function
 
-    function testLogInfo(text)
+    function testLogInfo(text as string)
       'override me
     end function
 
-    function testLogError(text)
+    function testLogError(text as string)
       'override me
     end function
 
