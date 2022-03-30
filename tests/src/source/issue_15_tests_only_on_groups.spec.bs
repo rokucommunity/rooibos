@@ -1,7 +1,7 @@
 namespace tests
   'ADD '@Only ON NEXT LINE TO TEST
   @suite()
-  class OnlyOnGroups extends Rooibos.BaseTestSuite
+  class OnlyOnGroups extends rooibos.BaseTestSuite
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests one")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

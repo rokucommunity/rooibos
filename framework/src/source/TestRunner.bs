@@ -51,6 +51,7 @@ namespace rooibos
       failedText = ""
       i = 0
       numSuites = suiteNames.count()
+      testSuite = invalid
       for each name in suiteNames
         i++
         'bs:disable-next-line
@@ -88,6 +89,10 @@ namespace rooibos
 
       if not isFailed and testSuite <> invalid
         testSuite.scene.statusColor = "#238636"
+      end if
+
+      if testSuite = invalid
+        m.nodeContext.global.testsScene.failedText = "No tests were found"
       end if
 
       m.stats.time = timer.totalMilliseconds()

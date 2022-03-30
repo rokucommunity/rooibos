@@ -1,7 +1,7 @@
 namespace tests
 
   @suite
-  class InfiniteLoopingFixes extends Rooibos.BaseTestSuite
+  class InfiniteLoopingFixes extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("AssertEquals")

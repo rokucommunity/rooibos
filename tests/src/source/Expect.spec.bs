@@ -3,7 +3,7 @@ namespace tests
 
   @noEarlyExit
   @suite
-  class ExpectTests extends Rooibos.BaseTestSuite
+  class ExpectTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("expectonce bug")
