@@ -2,7 +2,7 @@ namespace tests
 
   @noEarlyExit
   @suite
-  class BasicTests extends Rooibos.BaseTestSuite
+  class BasicTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("equals fix for stubbed aas")
@@ -178,9 +178,27 @@ namespace tests
       m.assertTrue(isFail)
 
       m.assertEqual(msg, "[one, two, three] != [2one, 2two, 2three]")
-
-
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("expectCallFunc")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("supports expectCallFunc syntax")
+    function _()
+      node = { "id" : "node" }
+
+      a = 1
+      b = 2
+      value = { "id" : "value" }
+
+      m.expectCallFuncOnce(node, "getValue", [a, b], value)
+
+      result = node@.getValue(a, b)
+
+      m.assertEqual(result, value)
+    end function
+
 
   end class
 end namespace

@@ -4,7 +4,7 @@ namespace tests
   @Ignore("only unignore to test compiler works - remove REMOVE_THIS to test")
   @noEarlyExit
   @suite
-  class DuplicateGroupNames extends Rooibos.BaseTestSuite
+  class DuplicateGroupNames extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests before each and after each are running")

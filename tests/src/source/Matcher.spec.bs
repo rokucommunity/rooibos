@@ -2,7 +2,7 @@ namespace tests
 
   @noEarlyExit
   @suite
-  class MatcherTests extends Rooibos.BaseTestSuite
+  class MatcherTests extends rooibos.BaseTestSuite
 
     protected override function beforeEach()
       'make a mock class
