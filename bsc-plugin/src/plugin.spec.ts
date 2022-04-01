@@ -612,6 +612,144 @@ end function`));
             });
         });
 
+
+        describe('stubCall transpilation', () => {
+            it('correctly transpiles call funcs', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        m.stubCall(m.thing@.getFunction())
+                        m.stubCall(m.thing@.getFunction(), "return")
+                        m.stubCall(m.thing@.getFunction("a", "b"))
+                        m.stubCall(m.thing@.getFunction("a", "b"), "return")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                let contents = getTestFunctionContents();
+                expect(contents).to.eql(trim(`= function()
+                m._stubCall(m.thing, "callFunc")
+                m._stubCall(m.thing, "callFunc", "return")
+                m._stubCall(m.thing, "callFunc")
+                m._stubCall(m.thing, "callFunc", "return")
+                `));
+
+            });
+            it('correctly transpiles func pointers', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        m.stubCall(m.thing.getFunctionField)
+                        m.stubCall(m.thing.getFunctionField, "return")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                let contents = getTestFunctionContents();
+                expect(contents).to.eql(trim(`= function()
+                m._stubCall(m.thing, "getFunctionField")
+                m._stubCall(m.thing, "getFunctionField", "return")
+                `));
+
+            });
+            it('correctly transpiles func pointers - simple', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        item = {id:"item"}
+                        m.stubCall(item.getFunctionField)
+                        m.stubCall(item.getFunctionField, "return")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                let contents = getTestFunctionContents();
+                expect(contents).to.eql(trim(`= function()
+                item = {
+                id: "item"
+                }
+                m._stubCall(item, "getFunctionField")
+                m._stubCall(item, "getFunctionField", "return")
+                `));
+
+            });
+            it('correctly transpiles function invocations', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        m.stubCall(m.thing.getFunction())
+                        m.stubCall(m.thing.getFunction(), "return")
+                        m.stubCall(m.thing.getFunction("arg1", "arg2"))
+                        m.stubCall(m.thing.getFunction("arg1", "arg2"), "return")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                let contents = getTestFunctionContents();
+                expect(contents).to.eql(trim(`= function()
+                m._stubCall(m.thing, "getFunction")
+                m._stubCall(m.thing, "getFunction", "return")
+                m._stubCall(m.thing, "getFunction")
+                m._stubCall(m.thing, "getFunction", "return")
+                `));
+            });
+
+            it('correctly transpiles function invocations - simple object', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        item = {id: "item"}
+                        m.stubCall(item.getFunction())
+                        m.stubCall(item.getFunction(), "return")
+                        m.stubCall(item.getFunction("arg1", "arg2"))
+                        m.stubCall(item.getFunction("arg1", "arg2"), "return")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                let contents = getTestFunctionContents();
+                expect(contents).to.eql(trim(`= function()
+                item = {
+                id: "item"
+                }
+                m._stubCall(item, "getFunction")
+                m._stubCall(item, "getFunction", "return")
+                m._stubCall(item, "getFunction")
+                m._stubCall(item, "getFunction", "return")
+                `));
+            });
+        });
+
         describe('expectNotCalled transpilation', () => {
 
             it('correctly transpiles call funcs', async () => {
@@ -676,7 +814,7 @@ end function`));
                 expect(contents).to.eql(trim(`= function()
 
                 m.currentAssertLineNumber = 6
-                m._expectNotCalled(m.thing, "getFunctionField", invalid)
+                m._expectNotCalled(m.thing, "getFunctionField")
                 if m.currentResult.isFail then return invalid
 
                 `));

@@ -29,6 +29,7 @@ namespace tests
       m.assertFalse(isFail)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("expectonce bug")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -79,82 +80,6 @@ namespace tests
       end for
 
     end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectCalled regular functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("simple")
-    function _()
-      item = { "id": "node" }
-      m.expectCalled(item.getText(), "test")
-      m.assertEqual(item.getText(), "test")
-    end function
-
-    @it("expected param")
-    function _()
-      item = { "id": "node" }
-      m.expectCalled(item.getText("expected"), "test")
-      m.assertEqual(item.getText("expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("not matching on param")
-    function _()
-      item = { "id": "node" }
-      m.expectCalled(item.getText("expected"), "test")
-
-      m.assertEqual(item.getText("not expected"), "test")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectCalled function pointers")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("supports function pointer - therefore ignoring the params")
-    function _()
-      item = { "id": "node" }
-      m.expectCalled(item.getText, "test")
-
-      m.assertEqual(item.getText("any text"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @only
-    @describe("expectCalled callFunc functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("simple")
-    function _()
-      item = { "id": "node" }
-      m.expectCalled(item@.getText(), "test")
-      m.assertEqual(item@.getText(), "test")
-    end function
-
-    @it("expected param")
-    function _()
-      item = { "id": "node" }
-      m.expectCalled(item@.getText("expected"), "test")
-      m.assertEqual(item@.getText("expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("not matching on param")
-    function _()
-      item = { "id": "node" }
-      m.expectCalled(item@.getText("expected"), "test")
-
-      m.assertEqual(item@.getText("not expected"), "test")
-
-      m.assertRunningTestIsFailed()
-    end function
-
   end class
 
 end namespace

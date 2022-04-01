@@ -1617,6 +1617,22 @@ namespace rooibos
       return false
     end function
 
+    function stubCall(invocation as dynamic, returnValue = invalid as dynamic) as object
+      'mock function body - the plugin replaces this
+      return invalid
+    end function
+
+    function _stubCall(target, methodName, returnValue = invalid as dynamic) as object
+      try
+        return m.stub(target, methodName, returnValue, true)
+      catch error
+        'bs:disable-next-line
+        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        return false
+      end try
+      return false
+    end function
+
     function expectNotCalled(invocation as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid
