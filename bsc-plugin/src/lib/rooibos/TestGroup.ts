@@ -61,6 +61,7 @@ export class TestGroup extends TestBlock {
                         if (dge && assertRegex.test(dge.name.text)) {
                             if (dge.name.text === 'stubCall') {
                                 this.modifyModernRooibosExpectCallExpression(callExpression);
+                                return expressionStatement;
 
                             } else {
 
@@ -117,8 +118,9 @@ export class TestGroup extends TestBlock {
             let functionName = arg0.methodName.text;
             callExpression.args.shift();
             if (isNotCalled || isStubCall) {
-                const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName)], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
-                callExpression.args.unshift(expectedArgs);
+                //TODO in future we can improve is notCalled to know which callFunc function it is
+                // const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName)], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                // callExpression.args.unshift(expectedArgs);
             } else {
                 const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName), ...arg0.args], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 callExpression.args.unshift(expectedArgs);

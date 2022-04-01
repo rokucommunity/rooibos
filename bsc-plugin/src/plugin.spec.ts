@@ -795,6 +795,37 @@ end function`));
                 `));
 
             });
+            it.only('correctly transpiles call funcs on simple objects', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        m.expectNotCalled(thing@.getFunction())
+                        m.expectNotCalled(thing@.getFunction("arg1", "arg2"))
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                let contents = getTestFunctionContents();
+                expect(contents).to.eql(trim(`= function()
+
+                m.currentAssertLineNumber = 6
+                m._expectNotCalled(thing, "callFunc")
+                if m.currentResult.isFail then return invalid
+
+
+                m.currentAssertLineNumber = 7
+                m._expectNotCalled(thing, "callFunc")
+                if m.currentResult.isFail then return invalid
+
+                `));
+
+            });
             it('correctly transpiles func pointers', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite

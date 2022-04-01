@@ -1,6 +1,5 @@
 
 namespace tests
-  @only
   @suite
   class NewExpectSyntaxTests extends rooibos.BaseTestSuite
 
@@ -15,6 +14,7 @@ namespace tests
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
       m.cleanMocks()
+      m.cleanSTubs()
       m.assertTrue(isFail)
     end function
 
@@ -25,6 +25,7 @@ namespace tests
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
       m.cleanMocks()
+      m.cleanSTubs()
       m.assertFalse(isFail)
     end function
 
@@ -150,6 +151,16 @@ namespace tests
     @describe("stubCall callFunc functions")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @it("not matching on param")
+    function _()
+      item = { "id": "node" }
+      m.stubCall(item@.getText("expected"), "test")
+
+      m.assertEqual(item@.getText("not expected"), "test")
+
+      m.assertRunningTestIsPassed()
+    end function
+
     @it("simple")
     function _()
       item = { "id": "node" }
@@ -162,17 +173,6 @@ namespace tests
       item = { "id": "node" }
       m.stubCall(item@.getText("expected"), "test")
       m.assertEqual(item@.getText("expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @only
-    @it("not matching on param")
-    function _()
-      item = { "id": "node" }
-      m.stubCall(item@.getText("expected"), "test")
-
-      m.assertEqual(item@.getText("not expected"), "test")
 
       m.assertRunningTestIsPassed()
     end function
@@ -230,7 +230,7 @@ namespace tests
     function _()
       item = { "id": "node" }
       m.expectNotCalled(item@.getText())
-      item.getText()
+      item@.getText()
 
       m.assertRunningTestIsFailed()
     end function
@@ -239,7 +239,7 @@ namespace tests
     function _()
       item = { "id": "node" }
       m.expectNotCalled(item@.getText())
-      item.getText("expected")
+      item@.getText("expected")
 
       m.assertRunningTestIsFailed()
     end function
@@ -248,7 +248,7 @@ namespace tests
     function _()
       item = { "id": "node" }
       m.expectNotCalled(item@.getText("expected"))
-      item.getText("not expected")
+      item@.getText("not expected")
 
       m.assertRunningTestIsFailed()
     end function
