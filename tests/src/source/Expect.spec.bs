@@ -6,6 +6,30 @@ namespace tests
   class ExpectTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+  Helper
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function assertRunningTestIsFailed()
+      m.isAutoAssertingMocks = false
+      m.assertMocks()
+
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.cleanMocks()
+      m.assertTrue(isFail)
+    end function
+
+    private function assertRunningTestIsPassed()
+      m.isAutoAssertingMocks = false
+      m.assertMocks()
+
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.cleanMocks()
+      m.assertFalse(isFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("expectonce bug")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

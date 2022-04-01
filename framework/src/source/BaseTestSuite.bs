@@ -1576,8 +1576,9 @@ namespace rooibos
       end if
       m.__stubId++
 
-      if m.__stubId > 5
-        ? "ERROR ONLY 6 STUBS PER TEST ARE SUPPORTED!!"
+      if m.__stubId > 25
+        ? "ERROR ONLY 25 MOCKS PER TEST ARE SUPPORTED!! you're on # " ; m.__mockId
+        ? " Method was " ; methodName
         return invalid
       end if
 
@@ -1591,9 +1592,10 @@ namespace rooibos
         target[methodName] = m["StubCallback" + id]
         target.__stubs = m.stubs
 
-        if not isMethodPresent
-          ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
-        end if
+        ' FIXME: add a log setting for this - and add better detection so that stubs know that they are colliding/don't exist/have correct sigs
+        ' if not isMethodPresent
+        '   ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
+        ' end if
       else
         ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName
       end if
@@ -1601,24 +1603,14 @@ namespace rooibos
       return fake
     end function
 
-    ' /**
-    '  * @memberof module:BaseTestSuite
-    '  * @name expectOnce
-    '  * @function
-    '  * @instance
-    '  * @description Creates a stub to replace a real method with, which the framework will track. If it was invoked the wrong number of times, or with wrong arguments, it will result in test failure
-    '  * @param {Dynamic} target - object on which the method to be stubbed is found
-    '  * @param {Dynamic} methodName - name of method to stub
-    '  * @param {Dynamic} [expectedArgs=invalid] - array containing the arguments we expect the method to be invoked with
-    '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
-    '  * @param {boolean} [allowNonExistingMethods=false] - if true, then rooibos will only warn if the method did not exist prior to faking
-    '  * @returns {Object} - mock that was wired into the real method
-    '  */
-    function expectCallFuncOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
+    function expectCalled(invocation as dynamic, returnValue = invalid as dynamic) as object
+      'mock function body - the plugin replaces this
+      return invalid
+    end function
+
+    function _expectCalled(target, methodName, expectedArgs = invalid, returnValue = invalid as dynamic) as object
       try
-        args = [methodName]
-        args.append(expectedArgs)
-        return m.mock(target, "callFunc", 1, expectedArgs, returnValue, allowNonExistingMethods)
+        return m.mock(target, methodName, 1, expectedArgs, returnValue, true)
       catch error
         'bs:disable-next-line
         m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
@@ -1626,6 +1618,39 @@ namespace rooibos
       end try
       return false
     end function
+
+    function stubCall(invocation as dynamic, returnValue = invalid as dynamic) as object
+      'mock function body - the plugin replaces this
+      return invalid
+    end function
+
+    function _stubCall(target, methodName, returnValue = invalid as dynamic) as object
+      try
+        return m.stub(target, methodName, returnValue, true)
+      catch error
+        'bs:disable-next-line
+        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        return false
+      end try
+      return false
+    end function
+
+    function expectNotCalled(invocation as dynamic) as object
+      'mock function body - the plugin replaces this
+      return invalid
+    end function
+
+    function _expectNotCalled(target, methodName) as object
+      try
+        return m.mock(target, methodName, 0, invalid, invalid, true)
+      catch error
+        'bs:disable-next-line
+        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        return false
+      end try
+      return false
+    end function
+
 
     ' /**
     '  * @memberof module:BaseTestSuite
@@ -2087,6 +2112,127 @@ namespace rooibos
       fake = m.__Stubs["5"]
       return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
     end function
+
+    function stubCallback6(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["6"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback7(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["7"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback8(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["8"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback9(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["9"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback10(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["10"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback11(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["11"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback12(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["12"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback13(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["13"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback14(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["14"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback15(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["15"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback16(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["16"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback17(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["17"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback18(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["18"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback19(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["19"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback20(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["20"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback21(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["21"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback22(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["22"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback23(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["23"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback24(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["24"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
+    function stubCallback25(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
+      'bs:disable-next-line
+      fake = m.__Stubs["25"]
+      return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
+    end function
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Fake Mock callback functions - this is required to get scope
