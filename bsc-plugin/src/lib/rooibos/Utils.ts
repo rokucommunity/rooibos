@@ -69,6 +69,7 @@ export function getFunctionBody(source: string): Statement[] {
 }
 
 export function changeFunctionBody(statement: brighterscript.ClassMethodStatement | FunctionStatement, source: Statement[] | string) {
+    //BRON_AST_EDIT_HERE
     let statements = statement.func.body.statements;
     statements.splice(0, statements.length);
     let newStatements = (typeof source === 'string') ? getFunctionBody(source) : source;
@@ -78,6 +79,7 @@ export function changeFunctionBody(statement: brighterscript.ClassMethodStatemen
 }
 
 export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string): boolean {
+    //BRON_AST_EDIT_HERE
     let funcSource = `
   function ${name}()
     ${source}
@@ -105,6 +107,7 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
 }
 
 export function changeClassMethodBody(target: ClassStatement, name: string, source: Statement[] | string): boolean {
+    //BRON_AST_EDIT_HERE
     let method = target.methods.find((m) => m.name.text === name);
     if (brighterscript.isClassMethodStatement(method)) {
         changeFunctionBody(method, source);

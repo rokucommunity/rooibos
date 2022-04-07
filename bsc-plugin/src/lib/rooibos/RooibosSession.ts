@@ -45,6 +45,7 @@ export class RooibosSession {
 
     public addLaunchHook() {
         let mainFunc = null;
+        //BRON_AST_EDIT_HERE
         let files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
             mainFunc = (file as BrsFile).parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
@@ -66,6 +67,7 @@ end function`);
     public addTestRunnerMetadata() {
         let runtimeConfig = this._builder.program.getFileByPkgPath('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
+            //BRON_AST_EDIT_HERE
             let classStatement = ((runtimeConfig as BrsFile).ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
             this.updateRunTimeConfigFunction(classStatement);
             this.updateVersionTextFunction(classStatement);
@@ -94,6 +96,7 @@ end function`);
     }
 
     public updateVersionTextFunction(classStatement: ClassStatement) {
+        //BRON_AST_EDIT_HERE
         let method = classStatement.methods.find((m) => m.name.text === 'getVersionText');
         if (method) {
             method.func.body.statements.push(new RawCodeStatement(`return "${pkg.version}"`));
@@ -101,6 +104,7 @@ end function`);
     }
 
     public updateClassLookupFunction(classStatement: ClassStatement) {
+        //BRON_AST_EDIT_HERE
         let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
         if (method) {
             let text = `
@@ -120,6 +124,7 @@ end function`);
     }
 
     public updateGetAllTestSuitesNames(classStatement: ClassStatement) {
+        //BRON_AST_EDIT_HERE
         let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
         if (method) {
             let text = `return [
@@ -130,7 +135,7 @@ end function`);
     }
 
     public createNodeFiles(program: Program) {
-
+//BRON_AST_EDIT_HERE
         let p = path.join('components', 'rooibos', 'generated');
 
         for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
@@ -170,6 +175,7 @@ end function`);
   ]}
   `;
 
+            //BRON_AST_EDIT_HERE
             method.func.body.statements.push(new RawCodeStatement(text));
         }
     }

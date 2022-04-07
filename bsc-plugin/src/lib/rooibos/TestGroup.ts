@@ -91,6 +91,7 @@ export class TestGroup extends TestBlock {
         let isStubCall = false;
         if (isDottedGetExpression(callExpression.callee)) {
             const nameText = callExpression.callee.name.text;
+            //BRON_AST_EDIT_HERE
             callExpression.callee.name.text = `_${nameText}`;
             isNotCalled = nameText === 'expectNotCalled';
             isStubCall = nameText === 'stubCall';
@@ -99,32 +100,40 @@ export class TestGroup extends TestBlock {
         let arg0 = callExpression.args[0];
         if (brighterscript.isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
             let functionName = arg0.callee.name.text;
+            //BRON_AST_EDIT_HERE
             callExpression.args.shift();
             if (!isNotCalled && !isStubCall) {
+                //BRON_AST_EDIT_HERE
                 const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 callExpression.args.unshift(expectedArgs);
             }
+            //BRON_AST_EDIT_HERE
             callExpression.args.unshift(createStringLiteral(functionName));
             callExpression.args.unshift(arg0.callee.obj);
         } else if (brighterscript.isDottedGetExpression(arg0)) {
             let functionName = arg0.name.text;
+            //BRON_AST_EDIT_HERE
             arg0 = callExpression.args.shift() as DottedGetExpression;
             if (!isNotCalled && !isStubCall) {
                 callExpression.args.unshift(createInvalidLiteral());
             }
+            //BRON_AST_EDIT_HERE
             callExpression.args.unshift(createStringLiteral(functionName));
             callExpression.args.unshift((arg0 as DottedGetExpression).obj);
         } else if (brighterscript.isCallfuncExpression(arg0)) {
             let functionName = arg0.methodName.text;
+            //BRON_AST_EDIT_HERE
             callExpression.args.shift();
             if (isNotCalled || isStubCall) {
                 //TODO in future we can improve is notCalled to know which callFunc function it is
                 // const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName)], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 // callExpression.args.unshift(expectedArgs);
             } else {
+                //BRON_AST_EDIT_HERE
                 const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName), ...arg0.args], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 callExpression.args.unshift(expectedArgs);
             }
+            //BRON_AST_EDIT_HERE
             callExpression.args.unshift(createStringLiteral('callFunc'));
             callExpression.args.unshift(arg0.callee);
         }

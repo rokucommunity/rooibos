@@ -90,11 +90,13 @@ export class TestSuite extends TestBlock {
 
     public addDataFunctions() {
         if (this.isIncluded) {
+            //BRON_AST_EDIT_HERE
             addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`);
         }
     }
 
     public removeCode() {
+        //BRON_AST_EDIT_HERE
         this.classStatement.fields = [];
         this.classStatement.methods = [];
         this.classStatement.body = [];
