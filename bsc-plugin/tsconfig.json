@@ -10,11 +10,26 @@
     "preserveConstEnums": true,
     "allowJs": true,
     "target": "ES2017",
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
   },
   "allowSyntheticDefaultImports": true,
-  "lib": ["es2017", "es2019.array", "esnext", "dom"],
+  "lib": [
+    "es2017",
+    "es2019.array",
+    "esnext",
+    "dom"
+  ],
   "outDir": "./dist",
-  "exclude": ["node_modules/**/*"],
-  "include": ["./src/**/*"]
+  "exclude": [
+    "node_modules/**/*"
+  ],
+  "include": [
+    "./src/**/*"
+  ],
+  "ts-node": {
+    "transpileOnly": true
+  }
 }
