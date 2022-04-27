@@ -1,6 +1,5 @@
-import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
+import { DiagnosticSeverity, Program, ProgramBuilder, util, standardizePath as s } from 'brighterscript';
 import { expect } from 'chai';
-import { standardizePath as s } from './lib/rooibos/Utils';
 import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';

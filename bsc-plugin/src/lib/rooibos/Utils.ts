@@ -1,8 +1,6 @@
 import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression } from 'brighterscript';
 import { createVariableExpression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
-
-import * as rokuDeploy from 'roku-deploy';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 
 export function spliceString(str: string, index: number, count: number, add: string): string {
@@ -146,36 +144,4 @@ export function getTokenText(operator: brighterscript.TokenKind): string {
         default:
             return '';
     }
-}
-
-/**
- * A tagged template literal function for standardizing the path. This has to be defined as standalone function since it's a tagged template literal function,
- * we can't use `object.tag` syntax.
- */
-export function standardizePath(stringParts, ...expressions: any[]) {
-    let result = [];
-    for (let i = 0; i < stringParts.length; i++) {
-        result.push(stringParts[i], expressions[i]);
-    }
-    return driveLetterToLower(
-        rokuDeploy.standardizePath(
-            result.join('')
-        )
-    );
-}
-
-function driveLetterToLower(fullPath: string) {
-    if (fullPath) {
-        let firstCharCode = fullPath.charCodeAt(0);
-        if (
-            //is upper case A-Z
-            firstCharCode >= 65 && firstCharCode <= 90 &&
-            //next char is colon
-            fullPath[1] === ':'
-        ) {
-            fullPath = fullPath[0].toLowerCase() + fullPath.substring(1);
-        }
-    }
-    return fullPath;
-
 }
