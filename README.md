@@ -11,6 +11,7 @@ Simple, mocha-and junit inspired, flexible, fun Brightscript test framework for 
 [![build](https://img.shields.io/github/workflow/status/georgejecook/rooibos/build.svg?logo=github)](https://github.com/georgejecook/rooibos/actions?query=workflow%3Abuild)
 [![GitHub](https://img.shields.io/github/release/georgejecook/rooibos.svg?style=flat-square)](https://github.com/georgejecook/rooibos/releases)
 [![NPM Version](https://badge.fury.io/js/rooibos-roku.svg?style=flat)](https://npmjs.org/package/rooibos-roku)
+[![Coverage Status](https://coveralls.io/repos/github/georgejecook/rooibos/badge.svg?branch=master)](https://coveralls.io/github/georgejecook/rooibos?branch=master)
 
 ## Links
  - **[Documentation](https://github.com/georgejecook/rooibos/blob/master/docs/index.md)**

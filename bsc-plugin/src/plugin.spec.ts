@@ -1,16 +1,14 @@
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
-import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
+import { DiagnosticSeverity, Program, ProgramBuilder, util, standardizePath as s } from 'brighterscript';
 import { expect } from 'chai';
-import { standardizePath as s } from './lib/rooibos/Utils';
 import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
+import * as trim from 'trim-whitespace';
+import undent from 'undent';
 let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
-
-import * as trim from 'trim-whitespace';
 
 describe('RooibosPlugin', () => {
     let program: Program;
@@ -36,9 +34,8 @@ describe('RooibosPlugin', () => {
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate(builder);
         plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
-
-
     });
+
     afterEach(() => {
         fsExtra.ensureDirSync(tmpPath);
         fsExtra.emptyDirSync(tmpPath);
@@ -47,7 +44,6 @@ describe('RooibosPlugin', () => {
     });
 
     describe('basic tests', () => {
-
         it('does not find tests with no annotations', () => {
             program.setFile('source/test.spec.bs', `
                 class notATest
@@ -57,6 +53,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('finds a basic suite', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -73,6 +70,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
+
         it('finds a suite name, only', () => {
             program.setFile('source/test.spec.bs', `
                 @only
@@ -93,6 +91,7 @@ describe('RooibosPlugin', () => {
             expect(suite.name).to.equal('named');
             expect(suite.isSolo).to.be.true;
         });
+
         it('ignores a suite', () => {
             program.setFile('source/test.spec.bs', `
                 @ignore
@@ -110,6 +109,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('ignores a group', () => {
             program.setFile('source/test.spec.bs', `
             @suite
@@ -128,6 +128,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.groupsCount).to.equal(0);
             expect(plugin.session.sessionInfo.testsCount).to.equal(0);
         });
+
         it('ignores a test', () => {
             program.setFile('source/test.spec.bs', `
             @suite
@@ -146,6 +147,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(0);
         });
+
         it('multiple groups', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -174,6 +176,7 @@ describe('RooibosPlugin', () => {
             let suite = plugin.session.sessionInfo.testSuitesToRun[0];
             expect(suite.getTestGroups()[0].testCases).to.have.length(1);
         });
+
         it('duplicate test name', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -200,6 +203,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('empty test group', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -211,6 +215,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('multiple test group annotations - same name', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -226,6 +231,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('params test with negative numbers', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -244,6 +250,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
+
         it('updates test name to match name of annotation', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -261,6 +268,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
+
         it('updates test name to match name of annotation - with params', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -280,6 +288,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
+
         it('multiple test group annotations - different name', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -318,82 +327,89 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
 
-            expect(trim(getContents('rooibosMain.brs'))).to.eql(trim(`function main()
-    Rooibos_init()
-end function`));
-            let a = trim(getContents('test.spec.brs'));
-            let b = trim(`function __ATest_builder()
-            instance = __rooibos_BaseTestSuite_builder()
-            instance.super0_new = instance.new
-            instance.new = sub()
-            m.super0_new()
-            end sub
-            instance.groupA_is_test1 = function()
-            end function
-            instance.super0_getTestSuiteData = instance.getTestSuiteData
-            instance.getTestSuiteData = function()
-            return {
-            name: "ATest",
-            isSolo: false,
-            noCatch: false,
-            isIgnored: false,
-            pkgPath: "source/test.spec.bs",
-            filePath: "/home/george/hope/open-source/rooibos/bsc-plugin/tmp/rootDir/source/test.spec.bs",
-            lineNumber: 3,
-            valid: true,
-            hasFailures: false,
-            hasSoloTests: false,
-            hasIgnoredTests: false,
-            hasSoloGroups: false,
-            setupFunctionName: "",
-            tearDownFunctionName: "",
-            beforeEachFunctionName: "",
-            afterEachFunctionName: "",
-            isNodeTest: false,
-            nodeName: "",
-            generatedNodeName: "ATest",
-            testGroups: [
-            {
-            name: "groupA",
-            isSolo: false,
-            isIgnored: false,
-            filename: "source/test.spec.bs",
-            lineNumber: "3",
-            setupFunctionName: "",
-            tearDownFunctionName: "",
-            beforeEachFunctionName: "",
-            afterEachFunctionName: "",
-            testCases: [
-            {
-            isSolo: false,
-            noCatch: false,
-            funcName: "groupA_is_test1",
-            isIgnored: false,
-            isParamTest: false,
-            name: "is test1",
-            lineNumber: 7,
-            paramLineNumber: 0,
-            assertIndex: 0,
-            assertLineNumberMap: {},
-            rawParams: invalid,
-            paramTestIndex: 0,
-            expectedNumberOfParams: 0,
-            isParamsValid: true
-            }
-            ]
-            }
-            ]
-            }
-            end function
-            return instance
-            end function
-            function ATest()
-            instance = __ATest_builder()
-            instance.new()
-            return instance
-            end function`);
-            expect(a).to.eql(b);
+            expect(
+                getContents('rooibosMain.brs')
+            ).to.eql(undent`
+                function main()
+                    Rooibos_init()
+                end function
+            `);
+            expect(
+                getContents('test.spec.brs')
+            ).to.eql(undent`
+                function __ATest_builder()
+                    instance = __rooibos_BaseTestSuite_builder()
+                    instance.super0_new = instance.new
+                    instance.new = sub()
+                        m.super0_new()
+                    end sub
+                    instance.groupA_is_test1 = function()
+                    end function
+                    instance.super0_getTestSuiteData = instance.getTestSuiteData
+                    instance.getTestSuiteData = function()
+                        return {
+                            name: "ATest",
+                            isSolo: false,
+                            noCatch: false,
+                            isIgnored: false,
+                            pkgPath: "${s`source/test.spec.bs`}",
+                            filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}",
+                            lineNumber: 3,
+                            valid: true,
+                            hasFailures: false,
+                            hasSoloTests: false,
+                            hasIgnoredTests: false,
+                            hasSoloGroups: false,
+                            setupFunctionName: "",
+                            tearDownFunctionName: "",
+                            beforeEachFunctionName: "",
+                            afterEachFunctionName: "",
+                            isNodeTest: false,
+                            nodeName: "",
+                            generatedNodeName: "ATest",
+                            testGroups: [
+                                {
+                                    name: "groupA",
+                                    isSolo: false,
+                                    isIgnored: false,
+                                    filename: "${s`source/test.spec.bs`}",
+                                    lineNumber: "3",
+                                    setupFunctionName: "",
+                                    tearDownFunctionName: "",
+                                    beforeEachFunctionName: "",
+                                    afterEachFunctionName: "",
+                                    testCases: [
+                                        {
+                                            isSolo: false,
+                                            noCatch: false,
+                                            funcName: "groupA_is_test1",
+                                            isIgnored: false,
+                                            isParamTest: false,
+                                            name: "is test1",
+                                            lineNumber: 7,
+                                            paramLineNumber: 0,
+                                            assertIndex: 0,
+                                            assertLineNumberMap: {},
+                                            rawParams: invalid,
+                                            paramTestIndex: 0,
+                                            expectedNumberOfParams: 0,
+                                            isParamsValid: true
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    end function
+                    return instance
+                end function
+                function ATest()
+                    instance = __ATest_builder()
+                    instance.new()
+                    return instance
+                end function
+            `);
         });
+
         it('test full transpile with complex params', async () => {
             plugin.afterProgramCreate(program);
             // program.validate();
@@ -417,9 +433,13 @@ end function`));
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
 
-            expect(trim(getContents('rooibosMain.brs'))).to.eql(trim(`function main()
-    Rooibos_init()
-end function`));
+            expect(
+                getContents('rooibosMain.brs')
+            ).to.eql(undent`
+                function main()
+                    Rooibos_init()
+                end function
+            `);
         });
 
         describe('expectCalled transpilation', () => {
@@ -441,43 +461,42 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-
-                m.currentAssertLineNumber = 6
-                m._expectCalled(m.thing, "callFunc", [
-                "getFunction"
-                ])
-                if m.currentResult.isFail then return invalid
-
-
-                m.currentAssertLineNumber = 7
-                m._expectCalled(m.thing, "callFunc", [
-                "getFunction"
-                ], "return")
-                if m.currentResult.isFail then return invalid
+                expect(
+                    getTestFunctionContents(true)
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectCalled(m.thing, "callFunc", [
+                    "getFunction"
+                    ])
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 8
-                m._expectCalled(m.thing, "callFunc", [
-                "getFunction",
-                "a",
-                "b"
-                ])
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 7
+                    m._expectCalled(m.thing, "callFunc", [
+                    "getFunction"
+                    ], "return")
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 9
-                m._expectCalled(m.thing, "callFunc", [
-                "getFunction",
-                "a",
-                "b"
-                ], "return")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(m.thing, "callFunc", [
+                    "getFunction",
+                    "a",
+                    "b"
+                    ])
+                    if m.currentResult.isFail then return invalid
 
-                `));
 
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(m.thing, "callFunc", [
+                    "getFunction",
+                    "a",
+                    "b"
+                    ], "return")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
+
             it('correctly transpiles func pointers', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -494,21 +513,20 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectCalled(m.thing, "getFunctionField", invalid)
+                    if m.currentResult.isFail then return invalid
 
-                m.currentAssertLineNumber = 6
-                m._expectCalled(m.thing, "getFunctionField", invalid)
-                if m.currentResult.isFail then return invalid
 
-
-                m.currentAssertLineNumber = 7
-                m._expectCalled(m.thing, "getFunctionField", invalid, "return")
-                if m.currentResult.isFail then return invalid
-
-                `));
-
+                    m.currentAssertLineNumber = 7
+                    m._expectCalled(m.thing, "getFunctionField", invalid, "return")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
+
             it('correctly transpiles function invocations', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -527,35 +545,34 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-
-                m.currentAssertLineNumber = 6
-                m._expectCalled(m.thing, "getFunction", [])
-                if m.currentResult.isFail then return invalid
-
-
-                m.currentAssertLineNumber = 7
-                m._expectCalled(m.thing, "getFunction", [], "return")
-                if m.currentResult.isFail then return invalid
+                expect(
+                    getTestFunctionContents(true)
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectCalled(m.thing, "getFunction", [])
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 8
-                m._expectCalled(m.thing, "getFunction", [
-                "arg1",
-                "arg2"
-                ])
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 7
+                    m._expectCalled(m.thing, "getFunction", [], "return")
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 9
-                m._expectCalled(m.thing, "getFunction", [
-                "arg1",
-                "arg2"
-                ], "return")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(m.thing, "getFunction", [
+                    "arg1",
+                    "arg2"
+                    ])
+                    if m.currentResult.isFail then return invalid
 
-                `));
+
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(m.thing, "getFunction", [
+                    "arg1",
+                    "arg2"
+                    ], "return")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
@@ -577,41 +594,40 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-                item = {
-                id: "item"
-                }
+                expect(
+                    getTestFunctionContents(true)
+                ).to.eql(undent`
+                    item = {
+                    id: "item"
+                    }
 
-                m.currentAssertLineNumber = 7
-                m._expectCalled(item, "getFunction", [])
-                if m.currentResult.isFail then return invalid
-
-
-                m.currentAssertLineNumber = 8
-                m._expectCalled(item, "getFunction", [], "return")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 7
+                    m._expectCalled(item, "getFunction", [])
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 9
-                m._expectCalled(item, "getFunction", [
-                "arg1",
-                "arg2"
-                ])
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(item, "getFunction", [], "return")
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 10
-                m._expectCalled(item, "getFunction", [
-                "arg1",
-                "arg2"
-                ], "return")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(item, "getFunction", [
+                    "arg1",
+                    "arg2"
+                    ])
+                    if m.currentResult.isFail then return invalid
 
-                `));
+
+                    m.currentAssertLineNumber = 10
+                    m._expectCalled(item, "getFunction", [
+                    "arg1",
+                    "arg2"
+                    ], "return")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
         });
-
 
         describe('stubCall transpilation', () => {
             it('correctly transpiles call funcs', async () => {
@@ -621,10 +637,10 @@ end function`));
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.stubCall(m.thing@.getFunction())
-                        m.stubCall(m.thing@.getFunction(), "return")
-                        m.stubCall(m.thing@.getFunction("a", "b"))
-                        m.stubCall(m.thing@.getFunction("a", "b"), "return")
+                            m.stubCall(m.thing@.getFunction())
+                            m.stubCall(m.thing@.getFunction(), "return")
+                            m.stubCall(m.thing@.getFunction("a", "b"))
+                            m.stubCall(m.thing@.getFunction("a", "b"), "return")
                         end function
                     end class
                 `);
@@ -632,15 +648,16 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-                m._stubCall(m.thing, "callFunc")
-                m._stubCall(m.thing, "callFunc", "return")
-                m._stubCall(m.thing, "callFunc")
-                m._stubCall(m.thing, "callFunc", "return")
-                `));
-
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m._stubCall(m.thing, "callFunc")
+                    m._stubCall(m.thing, "callFunc", "return")
+                    m._stubCall(m.thing, "callFunc")
+                    m._stubCall(m.thing, "callFunc", "return")
+                `);
             });
+
             it('correctly transpiles func pointers', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -657,13 +674,14 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-                m._stubCall(m.thing, "getFunctionField")
-                m._stubCall(m.thing, "getFunctionField", "return")
-                `));
-
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m._stubCall(m.thing, "getFunctionField")
+                    m._stubCall(m.thing, "getFunctionField", "return")
+                `);
             });
+
             it('correctly transpiles func pointers - simple', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -681,16 +699,17 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-                item = {
-                id: "item"
-                }
-                m._stubCall(item, "getFunctionField")
-                m._stubCall(item, "getFunctionField", "return")
-                `));
-
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    item = {
+                        id: "item"
+                    }
+                    m._stubCall(item, "getFunctionField")
+                    m._stubCall(item, "getFunctionField", "return")
+                `);
             });
+
             it('correctly transpiles function invocations', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -709,13 +728,14 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-                m._stubCall(m.thing, "getFunction")
-                m._stubCall(m.thing, "getFunction", "return")
-                m._stubCall(m.thing, "getFunction")
-                m._stubCall(m.thing, "getFunction", "return")
-                `));
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m._stubCall(m.thing, "getFunction")
+                    m._stubCall(m.thing, "getFunction", "return")
+                    m._stubCall(m.thing, "getFunction")
+                    m._stubCall(m.thing, "getFunction", "return")
+                `);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
@@ -737,21 +757,21 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-                item = {
-                id: "item"
-                }
-                m._stubCall(item, "getFunction")
-                m._stubCall(item, "getFunction", "return")
-                m._stubCall(item, "getFunction")
-                m._stubCall(item, "getFunction", "return")
-                `));
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    item = {
+                        id: "item"
+                    }
+                    m._stubCall(item, "getFunction")
+                    m._stubCall(item, "getFunction", "return")
+                    m._stubCall(item, "getFunction")
+                    m._stubCall(item, "getFunction", "return")
+                `);
             });
         });
 
         describe('expectNotCalled transpilation', () => {
-
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -770,32 +790,31 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-
-                m.currentAssertLineNumber = 6
-                m._expectNotCalled(m.thing, "callFunc")
-                if m.currentResult.isFail then return invalid
-
-
-                m.currentAssertLineNumber = 7
-                m._expectNotCalled(m.thing, "callFunc", "return")
-                if m.currentResult.isFail then return invalid
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectNotCalled(m.thing, "callFunc")
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 8
-                m._expectNotCalled(m.thing, "callFunc")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 7
+                    m._expectNotCalled(m.thing, "callFunc", "return")
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 9
-                m._expectNotCalled(m.thing, "callFunc", "return")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 8
+                    m._expectNotCalled(m.thing, "callFunc")
+                    if m.currentResult.isFail then return invalid
 
-                `));
 
+                    m.currentAssertLineNumber = 9
+                    m._expectNotCalled(m.thing, "callFunc", "return")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
-            it.only('correctly transpiles call funcs on simple objects', async () => {
+
+            it('correctly transpiles callfuncs on simple objects', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
                     class ATest
@@ -811,21 +830,20 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectNotCalled(thing, "callFunc")
+                    if m.currentResult.isFail then return invalid
 
-                m.currentAssertLineNumber = 6
-                m._expectNotCalled(thing, "callFunc")
-                if m.currentResult.isFail then return invalid
 
-
-                m.currentAssertLineNumber = 7
-                m._expectNotCalled(thing, "callFunc")
-                if m.currentResult.isFail then return invalid
-
-                `));
-
+                    m.currentAssertLineNumber = 7
+                    m._expectNotCalled(thing, "callFunc")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
+
             it('correctly transpiles func pointers', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -841,16 +859,15 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-
-                m.currentAssertLineNumber = 6
-                m._expectNotCalled(m.thing, "getFunctionField")
-                if m.currentResult.isFail then return invalid
-
-                `));
-
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectNotCalled(m.thing, "getFunctionField")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
+
             it('correctly transpiles function invocations', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -869,29 +886,28 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-
-                m.currentAssertLineNumber = 6
-                m._expectNotCalled(m.thing, "getFunction")
-                if m.currentResult.isFail then return invalid
-
-
-                m.currentAssertLineNumber = 7
-                m._expectNotCalled(m.thing, "getFunction", "return")
-                if m.currentResult.isFail then return invalid
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectNotCalled(m.thing, "getFunction")
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 8
-                m._expectNotCalled(m.thing, "getFunction")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 7
+                    m._expectNotCalled(m.thing, "getFunction", "return")
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 9
-                m._expectNotCalled(m.thing, "getFunction", "return")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 8
+                    m._expectNotCalled(m.thing, "getFunction")
+                    if m.currentResult.isFail then return invalid
 
-                `));
+
+                    m.currentAssertLineNumber = 9
+                    m._expectNotCalled(m.thing, "getFunction", "return")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
@@ -911,22 +927,22 @@ end function`));
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                let contents = getTestFunctionContents();
-                expect(contents).to.eql(trim(`= function()
-                item = {
-                id: "item"
-                }
+                expect(
+                    getTestFunctionContents(true)
+                ).to.eql(undent`
+                    item = {
+                    id: "item"
+                    }
 
-                m.currentAssertLineNumber = 7
-                m._expectNotCalled(item, "getFunction")
-                if m.currentResult.isFail then return invalid
+                    m.currentAssertLineNumber = 7
+                    m._expectNotCalled(item, "getFunction")
+                    if m.currentResult.isFail then return invalid
 
 
-                m.currentAssertLineNumber = 8
-                m._expectNotCalled(item, "getFunction")
-                if m.currentResult.isFail then return invalid
-
-                `));
+                    m.currentAssertLineNumber = 8
+                    m._expectNotCalled(item, "getFunction")
+                    if m.currentResult.isFail then return invalid
+                `);
             });
         });
 
@@ -972,12 +988,14 @@ end function`));
                 plugin.afterProgramCreate(program);
                 // program.validate();
             });
+
             afterEach(() => {
                 fsExtra.ensureDirSync(tmpPath);
                 fsExtra.emptyDirSync(tmpPath);
                 builder.dispose();
                 program.dispose();
             });
+
             it('tag one', async () => {
                 plugin.session.sessionInfo.includeTags = ['one'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -990,6 +1008,7 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
                 expect(plugin.session.sessionInfo.testSuitesToRun[1].name).to.equal('b');
             });
+
             it('tag two', async () => {
                 plugin.session.sessionInfo.includeTags = ['two'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -1001,6 +1020,7 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
             });
+
             it('tag three', async () => {
                 plugin.session.sessionInfo.includeTags = ['three'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -1012,6 +1032,7 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
             });
+
             it('tag exclude', async () => {
                 plugin.session.sessionInfo.excludeTags = ['exclude'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -1023,6 +1044,7 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
             });
+
             it('include and exclude tags', async () => {
                 plugin.session.sessionInfo.includeTags = ['one', 'two'];
                 plugin.session.sessionInfo.excludeTags = ['exclude'];
@@ -1034,6 +1056,7 @@ end function`));
                 expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
             });
+
             it('Need all tags', async () => {
                 plugin.session.sessionInfo.includeTags = ['one', 'two'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -1046,8 +1069,6 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
             });
         });
-
-
     });
 
     describe.skip('run a local project', () => {
@@ -1109,10 +1130,19 @@ end function`));
 });
 
 function getContents(filename: string) {
-    return trim(fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString());
+    return undent(
+        fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString()
+    );
 }
 
-function getTestFunctionContents() {
-    let contentsRegex = /\= function\(\)([\S\s]*|.*)(?=end function)/gim;
-    return trim(getContents('test.spec.brs').match(contentsRegex)[0].split('end function')[0]);
+function getTestFunctionContents(trimEveryLine = false) {
+    const contents = getContents('test.spec.brs');
+    const [, body] = /\= function\(\)([\S\s]*|.*)(?=end function)/gim.exec(contents);
+    let result = undent(
+        body.split('end function')[0]
+    );
+    if (trimEveryLine) {
+        result = trim(result);
+    }
+    return result;
 }
