@@ -58,6 +58,7 @@
         "lint": "eslint \"src/**\"",
         "build": "npm run compile && cp -r ../framework/src/source ./dist/lib/framework",
         "test": "nyc mocha",
+        "test:nocover": "mocha",
         "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
         "publish-npm": "npm run test && npm publish",
         "publish-npm:beta": "npm run test && npm publish --tag=beta",
@@ -113,7 +114,6 @@
             "source-map-support/register",
             "ts-node/register"
         ],
-        "timeout": 0,
         "watchExtensions": [
             "ts"
         ]

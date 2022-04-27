@@ -22,7 +22,7 @@
         {
             "label": "test",
             "type": "shell",
-            "command": "npm run test",
+            "command": "npm run test:nocover",
             "group": {
                 "kind": "test",
                 "isDefault": true
