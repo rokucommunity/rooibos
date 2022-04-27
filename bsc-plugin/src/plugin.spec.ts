@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
 import { expect } from 'chai';
 import { standardizePath as s } from './lib/rooibos/Utils';
@@ -36,9 +35,8 @@ describe('RooibosPlugin', () => {
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate(builder);
         plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
-
-
     });
+
     afterEach(() => {
         fsExtra.ensureDirSync(tmpPath);
         fsExtra.emptyDirSync(tmpPath);
@@ -47,7 +45,6 @@ describe('RooibosPlugin', () => {
     });
 
     describe('basic tests', () => {
-
         it('does not find tests with no annotations', () => {
             program.setFile('source/test.spec.bs', `
                 class notATest
@@ -57,6 +54,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('finds a basic suite', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -73,6 +71,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
+
         it('finds a suite name, only', () => {
             program.setFile('source/test.spec.bs', `
                 @only
@@ -93,6 +92,7 @@ describe('RooibosPlugin', () => {
             expect(suite.name).to.equal('named');
             expect(suite.isSolo).to.be.true;
         });
+
         it('ignores a suite', () => {
             program.setFile('source/test.spec.bs', `
                 @ignore
@@ -110,6 +110,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('ignores a group', () => {
             program.setFile('source/test.spec.bs', `
             @suite
@@ -128,6 +129,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.groupsCount).to.equal(0);
             expect(plugin.session.sessionInfo.testsCount).to.equal(0);
         });
+
         it('ignores a test', () => {
             program.setFile('source/test.spec.bs', `
             @suite
@@ -146,6 +148,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(0);
         });
+
         it('multiple groups', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -174,6 +177,7 @@ describe('RooibosPlugin', () => {
             let suite = plugin.session.sessionInfo.testSuitesToRun[0];
             expect(suite.getTestGroups()[0].testCases).to.have.length(1);
         });
+
         it('duplicate test name', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -200,6 +204,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('empty test group', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -211,6 +216,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('multiple test group annotations - same name', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -226,6 +232,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
+
         it('params test with negative numbers', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -244,6 +251,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
+
         it('updates test name to match name of annotation', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -261,6 +269,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
+
         it('updates test name to match name of annotation - with params', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -280,6 +289,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
+
         it('multiple test group annotations - different name', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -337,8 +347,8 @@ end function`));
             isSolo: false,
             noCatch: false,
             isIgnored: false,
-            pkgPath: "source/test.spec.bs",
-            filePath: "/home/george/hope/open-source/rooibos/bsc-plugin/tmp/rootDir/source/test.spec.bs",
+            pkgPath: "${s`source/test.spec.bs`}",
+            filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}",
             lineNumber: 3,
             valid: true,
             hasFailures: false,
@@ -357,7 +367,7 @@ end function`));
             name: "groupA",
             isSolo: false,
             isIgnored: false,
-            filename: "source/test.spec.bs",
+            filename: "${s`source/test.spec.bs`}",
             lineNumber: "3",
             setupFunctionName: "",
             tearDownFunctionName: "",
@@ -394,6 +404,7 @@ end function`));
             end function`);
             expect(a).to.eql(b);
         });
+
         it('test full transpile with complex params', async () => {
             plugin.afterProgramCreate(program);
             // program.validate();
@@ -476,8 +487,8 @@ end function`));
                 if m.currentResult.isFail then return invalid
 
                 `));
-
             });
+
             it('correctly transpiles func pointers', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -507,8 +518,8 @@ end function`));
                 if m.currentResult.isFail then return invalid
 
                 `));
-
             });
+
             it('correctly transpiles function invocations', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -612,7 +623,6 @@ end function`));
             });
         });
 
-
         describe('stubCall transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
@@ -639,8 +649,8 @@ end function`));
                 m._stubCall(m.thing, "callFunc")
                 m._stubCall(m.thing, "callFunc", "return")
                 `));
-
             });
+
             it('correctly transpiles func pointers', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -662,8 +672,8 @@ end function`));
                 m._stubCall(m.thing, "getFunctionField")
                 m._stubCall(m.thing, "getFunctionField", "return")
                 `));
-
             });
+
             it('correctly transpiles func pointers - simple', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -689,8 +699,8 @@ end function`));
                 m._stubCall(item, "getFunctionField")
                 m._stubCall(item, "getFunctionField", "return")
                 `));
-
             });
+
             it('correctly transpiles function invocations', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -751,7 +761,6 @@ end function`));
         });
 
         describe('expectNotCalled transpilation', () => {
-
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -793,9 +802,9 @@ end function`));
                 if m.currentResult.isFail then return invalid
 
                 `));
-
             });
-            it.only('correctly transpiles call funcs on simple objects', async () => {
+
+            it('correctly transpiles callfuncs on simple objects', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
                     class ATest
@@ -824,8 +833,8 @@ end function`));
                 if m.currentResult.isFail then return invalid
 
                 `));
-
             });
+
             it('correctly transpiles func pointers', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -849,8 +858,8 @@ end function`));
                 if m.currentResult.isFail then return invalid
 
                 `));
-
             });
+
             it('correctly transpiles function invocations', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -972,12 +981,14 @@ end function`));
                 plugin.afterProgramCreate(program);
                 // program.validate();
             });
+
             afterEach(() => {
                 fsExtra.ensureDirSync(tmpPath);
                 fsExtra.emptyDirSync(tmpPath);
                 builder.dispose();
                 program.dispose();
             });
+
             it('tag one', async () => {
                 plugin.session.sessionInfo.includeTags = ['one'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -990,6 +1001,7 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
                 expect(plugin.session.sessionInfo.testSuitesToRun[1].name).to.equal('b');
             });
+
             it('tag two', async () => {
                 plugin.session.sessionInfo.includeTags = ['two'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -1001,6 +1013,7 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
             });
+
             it('tag three', async () => {
                 plugin.session.sessionInfo.includeTags = ['three'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -1012,6 +1025,7 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
             });
+
             it('tag exclude', async () => {
                 plugin.session.sessionInfo.excludeTags = ['exclude'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -1023,6 +1037,7 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
             });
+
             it('include and exclude tags', async () => {
                 plugin.session.sessionInfo.includeTags = ['one', 'two'];
                 plugin.session.sessionInfo.excludeTags = ['exclude'];
@@ -1034,6 +1049,7 @@ end function`));
                 expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
             });
+
             it('Need all tags', async () => {
                 plugin.session.sessionInfo.includeTags = ['one', 'two'];
                 program.setFile('source/test.spec.bs', testSource);
@@ -1046,8 +1062,6 @@ end function`));
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
             });
         });
-
-
     });
 
     describe.skip('run a local project', () => {

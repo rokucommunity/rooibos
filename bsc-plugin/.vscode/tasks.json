@@ -1,5 +1,5 @@
 {
-    "version": "0.2.0",
+    "version": "2.0.0",
     "tasks": [
         {
             "type": "shell",
@@ -17,6 +17,15 @@
                 "env": {
                     "TS_NODE_TRANSPILE_ONLY": "true"
                 }
+            }
+        },
+        {
+            "label": "test",
+            "type": "shell",
+            "command": "npm run test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
             }
         }
     ]
