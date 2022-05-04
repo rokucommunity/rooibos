@@ -1,4 +1,5 @@
-import { DiagnosticSeverity, Program, ProgramBuilder, util, standardizePath as s, BrsFile, FunctionStatement, PrintStatement } from 'brighterscript';
+import type { BrsFile, FunctionStatement } from 'brighterscript';
+import { DiagnosticSeverity, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
