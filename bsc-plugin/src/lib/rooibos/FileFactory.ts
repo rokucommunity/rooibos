@@ -51,7 +51,7 @@ export class FileFactory {
             let fileContents = fs.readFileSync(sourcePath, 'utf8');
             let destPath = path.join(this.targetPath, `${fileName}.bs`);
             let entry = { src: sourcePath, dest: destPath };
-//BRON_AST_EDIT_HERE
+            //BRON_AST_EDIT_HERE
             this.addedFrameworkFiles.push(program.setFile(entry, fileContents));
         }
 

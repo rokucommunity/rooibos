@@ -1,8 +1,7 @@
 import * as path from 'path';
-
-import type { BrsFile, ClassStatement, NamespaceStatement, Program, ProgramBuilder } from 'brighterscript';
-import { ParseMode } from 'brighterscript';
-
+import type { BrsFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder } from 'brighterscript';
+import { isBrsFile, ParseMode } from 'brighterscript';
+import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
@@ -43,24 +42,35 @@ export class RooibosSession {
         return testSuites.length > 0;
     }
 
-    public addLaunchHook() {
-        let mainFunc = null;
-        //BRON_AST_EDIT_HERE
-        let files = this._builder.program.getScopeByName('source').getOwnFiles();
+    private rooibosMain: BrsFile;
+
+    public addLaunchHook(editor: AstEditor) {
+        let mainFunction: FunctionStatement;
+        const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
-            mainFunc = (file as BrsFile).parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
-            if (mainFunc) {
-                mainFunc.func.body.statements.splice(0, 0, new RawCodeStatement(`
-  Rooibos_init()
-        `));
-                break;
+            if (isBrsFile(file)) {
+                const mainFunc = file.parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
+                if (mainFunc) {
+                    mainFunction = mainFunc;
+                    break;
+                }
             }
         }
-        if (!mainFunc) {
+        if (mainFunction) {
+            editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init()`));
+        } else {
             diagnosticWarnNoMainFound(files[0]);
-            this._builder.program.addOrReplaceFile('source/rooibosMain.brs', `function main()
-    Rooibos_init()
-end function`);
+            this.rooibosMain = this._builder.program.setFile('source/rooibosMain.brs', `function main()\n    Rooibos_init()\nend function`);
+        }
+    }
+
+    /**
+     * Should only be called in afterProgramTranspile to remove the rooibosMain file IF it exists
+     */
+    public removeRooibosMain() {
+        if (this.rooibosMain) {
+            this._builder.program.removeFile('source/rooibosMain.brs');
+            this.rooibosMain = undefined;
         }
     }
 
@@ -135,7 +145,7 @@ end function`);
     }
 
     public createNodeFiles(program: Program) {
-//BRON_AST_EDIT_HERE
+        //BRON_AST_EDIT_HERE
         let p = path.join('components', 'rooibos', 'generated');
 
         for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {

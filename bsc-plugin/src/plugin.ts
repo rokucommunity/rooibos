@@ -1,20 +1,18 @@
-import type { BscFile,
+import type {
+    BscFile,
     CompilerPlugin,
     Program,
-    ProgramBuilder } from 'brighterscript';
-import {
-    BrsFile,
-    isBrsFile,
-    XmlFile
+    ProgramBuilder,
+    TranspileObj,
+    AstEditor
 } from 'brighterscript';
-
+import {
+    isBrsFile
+} from 'brighterscript';
 import { RooibosSession } from './lib/rooibos/RooibosSession';
-
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
-
-
 import * as minimatch from 'minimatch';
 
 export class RooibosPlugin implements CompilerPlugin {
@@ -117,8 +115,15 @@ export class RooibosPlugin implements CompilerPlugin {
         }
 
         this.session.addTestRunnerMetadata();
-        this.session.addLaunchHook();
         this.session.createNodeFiles(this._builder.program);
+    }
+
+    beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.addLaunchHook(editor);
+    }
+
+    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.removeRooibosMain();
     }
 
     afterProgramValidate() {
@@ -147,7 +152,3 @@ export class RooibosPlugin implements CompilerPlugin {
         return true;
     }
 }
-
-export default () => {
-    return new RooibosPlugin();
-};
