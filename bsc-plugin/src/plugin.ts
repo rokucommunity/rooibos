@@ -21,7 +21,6 @@ export class RooibosPlugin implements CompilerPlugin {
     public session: RooibosSession;
     public codeCoverageProcessor: CodeCoverageProcessor;
     public fileFactory: FileFactory;
-    public isFrameworkAdded = false;
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
 
@@ -68,9 +67,7 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     afterProgramCreate(program: Program) {
-        if (!this.isFrameworkAdded) {
-            this.fileFactory.addFrameworkFiles(program);
-        }
+        this.fileFactory.addFrameworkFiles(program);
     }
 
     afterFileParse(file: BscFile): void {
