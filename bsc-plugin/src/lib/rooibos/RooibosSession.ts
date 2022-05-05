@@ -75,7 +75,7 @@ export class RooibosSession {
     }
 
     public addTestRunnerMetadata() {
-        let runtimeConfig = this._builder.program.getFileByPkgPath('source/rooibos/RuntimeConfig.bs');
+        let runtimeConfig = this._builder.program.getFile('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
             //BRON_AST_EDIT_HERE
             let classStatement = ((runtimeConfig as BrsFile).ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
@@ -152,7 +152,7 @@ export class RooibosSession {
             let xmlText = this.getNodeTestXmlText(suite);
             let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
             this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-            let bsFile = program.getFileByPkgPath(bsPath);
+            let bsFile = program.getFile(bsPath);
             if (bsFile) {
                 (bsFile as BrsFile).parser.statements.push();
                 bsFile.needsTranspiled = true;
