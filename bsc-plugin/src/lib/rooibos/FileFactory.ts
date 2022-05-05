@@ -38,9 +38,15 @@ export class FileFactory {
         let files: FileObj[] = [];
 
         for (let fileName of this.frameworkFileNames) {
-            files.push({ src: path.resolve(path.join(this.sourcePath, `${fileName}.bs`)), dest: path.join(this.targetPath, `${fileName}.bs`) });
+            files.push({
+                src: path.resolve(path.join(this.sourcePath, `${fileName}.bs`)),
+                dest: path.join(this.targetPath, `${fileName}.bs`)
+            });
         }
-        files.push({ src: path.resolve(path.join(this.sourcePath, `RooibosScene.xml`)), dest: path.join(this.targetCompsPath, `RooibosScene.xml`) });
+        files.push({
+            src: path.resolve(path.join(this.sourcePath, `RooibosScene.xml`)),
+            dest: path.join(this.targetCompsPath, `RooibosScene.xml`)
+        });
         return files;
     }
 
@@ -52,14 +58,18 @@ export class FileFactory {
             let destPath = path.join(this.targetPath, `${fileName}.bs`);
             let entry = { src: sourcePath, dest: destPath };
             //BRON_AST_EDIT_HERE
-            this.addedFrameworkFiles.push(program.setFile(entry, fileContents));
+            this.addedFrameworkFiles.push(
+                program.setFile(entry, fileContents)
+            );
         }
 
         let sourcePath = path.resolve(path.join(this.sourcePath, `RooibosScene.xml`));
         let destPath = path.join(this.targetCompsPath, `RooibosScene.xml`);
         let entry = { src: sourcePath, dest: destPath };
         //BRON_AST_EDIT_HERE
-        this.addedFrameworkFiles.push(program.setFile(entry, this.createTestXML('TestsScene', 'Scene')));
+        this.addedFrameworkFiles.push(
+            program.setFile(entry, this.createTestXML('TestsScene', 'Scene'))
+        );
     }
 
     public createTestXML(name: string, baseName: string, useBs = true): string {
@@ -69,25 +79,23 @@ export class FileFactory {
         }
 
         let contents = `<?xml version="1.0" encoding="UTF-8" ?>
-  <component
-      name="${name}"
-      extends="${baseName}">
-${scriptImports.join('\n')}
-    <interface>
-      <field id="rooibosTestResult" type="assocarray"/>
-      <field id="testText" type="string" alias="statusLabel.text" />
-      <field id="failedText" type="string" alias="failedLabel.text" />
-      <field id="statusColor" type="string" alias="statusBackground.color" />
-      <function name='Rooibos_CreateTestNode' />
-    </interface>
+            <component name="${name}" extends="${baseName}">
+                ${scriptImports.join('\n')}
+                <interface>
+                    <field id="rooibosTestResult" type="assocarray"/>
+                    <field id="testText" type="string" alias="statusLabel.text" />
+                    <field id="failedText" type="string" alias="failedLabel.text" />
+                    <field id="statusColor" type="string" alias="statusBackground.color" />
+                    <function name='Rooibos_CreateTestNode' />
+                </interface>
 
-    <children>
-      <Rectangle id="statusBackground" color="#444444" width="1920" height="1080" />
-      <Label id="statusLabel" text='Rooibos is running tests' />
-      <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
-    </children>
-  </component>
-   `;
+                <children>
+                    <Rectangle id="statusBackground" color="#444444" width="1920" height="1080" />
+                    <Label id="statusLabel" text='Rooibos is running tests' />
+                    <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
+                </children>
+            </component>
+        `;
         return contents;
     }
 
@@ -102,7 +110,10 @@ ${scriptImports.join('\n')}
 
     public addFile(program, projectPath: string, contents: string) {
         try {
-            const file = program.setFile({ src: path.resolve(projectPath), dest: projectPath }, contents);
+            const file = program.setFile({
+                src: path.resolve(projectPath),
+                dest: projectPath
+            }, contents);
             this.addedFrameworkFiles.push(file);
             return file;
         } catch (error) {
