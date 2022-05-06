@@ -74,7 +74,7 @@ export class RooibosSession {
         }
     }
 
-    public addTestRunnerMetadata() {
+    public addTestRunnerMetadata(editor: AstEditor) {
         let runtimeConfig = this._builder.program.getFile('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
             //BRON_AST_EDIT_HERE
@@ -90,18 +90,21 @@ export class RooibosSession {
     public updateRunTimeConfigFunction(classStatement: ClassStatement) {
         let method = classStatement.methods.find((m) => m.name.text === 'getRuntimeConfig');
         if (method) {
-            method.func.body.statements.push(new RawCodeStatement(`
-    return {
-      "failFast": ${this.config.failFast ? 'true' : 'false'}
-      "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
-      "logLevel": ${this.config.logLevel ?? 0}
-      "showOnlyFailures": ${this.config.showOnlyFailures ? 'true' : 'false'}
-      "printTestTimes": ${this.config.printTestTimes ? 'true' : 'false'}
-      "lineWidth": ${this.config.lineWidth || 60}
-      "printLcov": ${this.config.printLcov ? 'true' : 'false'}
-      "port": "${this.config.port || 'invalid'}"
-      "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
-    }`));
+            method.func.body.statements.push(
+                new RawCodeStatement(`
+                    return {
+                        "failFast": ${this.config.failFast ? 'true' : 'false'}
+                        "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
+                        "logLevel": ${this.config.logLevel ?? 0}
+                        "showOnlyFailures": ${this.config.showOnlyFailures ? 'true' : 'false'}
+                        "printTestTimes": ${this.config.printTestTimes ? 'true' : 'false'}
+                        "lineWidth": ${this.config.lineWidth || 60}
+                        "printLcov": ${this.config.printLcov ? 'true' : 'false'}
+                        "port": "${this.config.port || 'invalid'}"
+                        "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
+                    }`
+                )
+            );
         }
     }
 
@@ -167,23 +170,26 @@ export class RooibosSession {
     }
 
     private getNodeTestBsBody(testSuite: TestSuite): string {
-        return `import "pkg:/${testSuite.file.pkgPath}"
-    function init()
-      nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
-      m.top.rooibosTestResult = nodeRunner.runInNodeMode("${testSuite.name}")
-    end function
-    `;
+        return `
+            import "pkg:/${testSuite.file.pkgPath}"
+            function init()
+                nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
+                m.top.rooibosTestResult = nodeRunner.runInNodeMode("${testSuite.name}")
+            end function
+        `;
     }
 
     public createIgnoredTestsInfoFunction(cs: ClassStatement) {
         let method = cs.methods.find((m) => m.name.text === 'getIgnoredTestInfo');
         if (method) {
-            let text = `return {
-          "count": ${this.sessionInfo.ignoredCount}
-          "items":[
-        ${this.sessionInfo.ignoredTestNames.map((name) => `"${name}",`).join('\n')}
-  ]}
-  `;
+            let text = `
+                return {
+                    "count": ${this.sessionInfo.ignoredCount}
+                    "items":[
+                        ${this.sessionInfo.ignoredTestNames.map((name) => `"${name}",`).join('\n')}
+                    ]
+                }
+            `;
 
             //BRON_AST_EDIT_HERE
             method.func.body.statements.push(new RawCodeStatement(text));

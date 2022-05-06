@@ -111,11 +111,11 @@ export class RooibosPlugin implements CompilerPlugin {
             testSuite.removeCode();
         }
 
-        this.session.addTestRunnerMetadata();
         this.session.createNodeFiles(this._builder.program);
     }
 
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.addTestRunnerMetadata(editor);
         this.session.addLaunchHook(editor);
     }
 
