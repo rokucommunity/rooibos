@@ -57,7 +57,6 @@ export class FileFactory {
             let fileContents = fs.readFileSync(sourcePath, 'utf8');
             let destPath = path.join(this.targetPath, `${fileName}.bs`);
             let entry = { src: sourcePath, dest: destPath };
-            //BRON_AST_EDIT_HERE
             this.addedFrameworkFiles.push(
                 program.setFile(entry, fileContents)
             );
@@ -66,7 +65,6 @@ export class FileFactory {
         let sourcePath = path.resolve(path.join(this.sourcePath, `RooibosScene.xml`));
         let destPath = path.join(this.targetCompsPath, `RooibosScene.xml`);
         let entry = { src: sourcePath, dest: destPath };
-        //BRON_AST_EDIT_HERE
         this.addedFrameworkFiles.push(
             program.setFile(entry, this.createTestXML('TestsScene', 'Scene'))
         );
