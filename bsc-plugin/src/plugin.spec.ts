@@ -348,51 +348,51 @@ describe('RooibosPlugin', () => {
                     instance.super0_getTestSuiteData = instance.getTestSuiteData
                     instance.getTestSuiteData = function()
                         return {
-                            name: "ATest",
-                            isSolo: false,
-                            noCatch: false,
-                            isIgnored: false,
-                            pkgPath: "${s`source/test.spec.bs`}",
-                            filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}",
-                            lineNumber: 3,
-                            valid: true,
-                            hasFailures: false,
-                            hasSoloTests: false,
-                            hasIgnoredTests: false,
-                            hasSoloGroups: false,
-                            setupFunctionName: "",
-                            tearDownFunctionName: "",
-                            beforeEachFunctionName: "",
-                            afterEachFunctionName: "",
-                            isNodeTest: false,
-                            nodeName: "",
-                            generatedNodeName: "ATest",
+                            name: "ATest"
+                            isSolo: false
+                            noCatch: false
+                            isIgnored: false
+                            pkgPath: "${s`source/test.spec.bs`}"
+                            filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
+                            lineNumber: 3
+                            valid: true
+                            hasFailures: false
+                            hasSoloTests: false
+                            hasIgnoredTests: false
+                            hasSoloGroups: false
+                            setupFunctionName: ""
+                            tearDownFunctionName: ""
+                            beforeEachFunctionName: ""
+                            afterEachFunctionName: ""
+                            isNodeTest: false
+                            nodeName: ""
+                            generatedNodeName: "ATest"
                             testGroups: [
                                 {
-                                    name: "groupA",
-                                    isSolo: false,
-                                    isIgnored: false,
-                                    filename: "${s`source/test.spec.bs`}",
-                                    lineNumber: "3",
-                                    setupFunctionName: "",
-                                    tearDownFunctionName: "",
-                                    beforeEachFunctionName: "",
-                                    afterEachFunctionName: "",
+                                    name: "groupA"
+                                    isSolo: false
+                                    isIgnored: false
+                                    filename: "${s`source/test.spec.bs`}"
+                                    lineNumber: "3"
+                                    setupFunctionName: ""
+                                    tearDownFunctionName: ""
+                                    beforeEachFunctionName: ""
+                                    afterEachFunctionName: ""
                                     testCases: [
                                         {
-                                            isSolo: false,
-                                            noCatch: false,
-                                            funcName: "groupA_is_test1",
-                                            isIgnored: false,
-                                            isParamTest: false,
-                                            name: "is test1",
-                                            lineNumber: 7,
-                                            paramLineNumber: 0,
-                                            assertIndex: 0,
-                                            assertLineNumberMap: {},
-                                            rawParams: invalid,
-                                            paramTestIndex: 0,
-                                            expectedNumberOfParams: 0,
+                                            isSolo: false
+                                            noCatch: false
+                                            funcName: "groupA_is_test1"
+                                            isIgnored: false
+                                            isParamTest: false
+                                            name: "is test1"
+                                            lineNumber: 7
+                                            paramLineNumber: 0
+                                            assertIndex: 0
+                                            assertLineNumberMap: {}
+                                            rawParams: invalid
+                                            paramTestIndex: 0
+                                            expectedNumberOfParams: 0
                                             isParamsValid: true
                                         }
                                     ]
@@ -480,8 +480,8 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "callFunc", [
-                    "getFunction",
-                    "a",
+                    "getFunction"
+                    "a"
                     "b"
                     ])
                     if m.currentResult.isFail then return invalid
@@ -489,8 +489,8 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "callFunc", [
-                    "getFunction",
-                    "a",
+                    "getFunction"
+                    "a"
                     "b"
                     ], "return")
                     if m.currentResult.isFail then return invalid
@@ -560,7 +560,7 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", [
-                    "arg1",
+                    "arg1"
                     "arg2"
                     ])
                     if m.currentResult.isFail then return invalid
@@ -568,7 +568,7 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", [
-                    "arg1",
+                    "arg1"
                     "arg2"
                     ], "return")
                     if m.currentResult.isFail then return invalid
@@ -613,7 +613,7 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 9
                     m._expectCalled(item, "getFunction", [
-                    "arg1",
+                    "arg1"
                     "arg2"
                     ])
                     if m.currentResult.isFail then return invalid
@@ -621,7 +621,7 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 10
                     m._expectCalled(item, "getFunction", [
-                    "arg1",
+                    "arg1"
                     "arg2"
                     ], "return")
                     if m.currentResult.isFail then return invalid

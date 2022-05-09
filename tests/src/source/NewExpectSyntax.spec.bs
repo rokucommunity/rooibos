@@ -1,5 +1,6 @@
 
 namespace tests
+  @only
   @suite
   class NewExpectSyntaxTests extends rooibos.BaseTestSuite
 
