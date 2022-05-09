@@ -66,11 +66,27 @@ namespace tests
     @it("supports function pointer - therefore ignoring the params")
     function _()
       item = { "id": "node" }
-      m.expectCalled(item.getText, "test")
 
-      m.assertEqual(item.getText("any text"), "test")
+      'don't care about the args
+      m.expectCalled(item.getText, "some return value I want")
 
-      m.assertRunningTestIsPassed()
+      'I expect this arg only
+      m.expectCalled(item.getText("expected"), "some return value I want")
+
+      'callfunc with no args
+      m.expectCalled(item@.getText())
+      m.expectCalled(item@.getText("expected"))
+      m.expectCalled(item@.getText("expected"), "some return value I want")
+
+
+      'don't expect this to be called
+      m.expectNotCalled(item.getText())
+
+      item@.getText()
+
+      m.assertEqual(item.getText("any text"), "some return value I want")
+
+      m.assertRunningTestIsFailed()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -281,6 +297,27 @@ namespace tests
 
       m.assertRunningTestIsFailed()
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("mocks with exceptions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("throws exceptions")
+    function _()
+      thing = { "id": "thing" }
+
+      error = {message: "error"}
+      m.expectCalled(thing.thrownAnError())
+      m.expectLastCallToThrowError(error)
+
+      try
+        thing.thrownAnError()
+      catch error
+        m.assertEqual(error.message, "error")
+      end try
+
+    end function
+
 
   end class
 
