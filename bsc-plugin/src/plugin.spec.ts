@@ -1,4 +1,4 @@
-import type { BrsFile, FunctionStatement } from 'brighterscript';
+import type { BrsFile, ClassStatement, FunctionStatement } from 'brighterscript';
 import { DiagnosticSeverity, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
@@ -35,6 +35,7 @@ describe('RooibosPlugin', () => {
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate(builder);
         plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
+        plugin.afterProgramCreate(program);
     });
 
     afterEach(() => {
@@ -1094,6 +1095,116 @@ describe('RooibosPlugin', () => {
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
             });
+        });
+    });
+
+    describe('addTestRunnerMetadata', () => {
+        it('does not permanently modify the AST', async () => {
+            program.setFile('source/test.spec.bs', `
+                @suite
+                class ATest
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        item = {id: "item"}
+                        m.expectNotCalled(item.getFunction())
+                        m.expectNotCalled(item.getFunction())
+                    end function
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+
+            function findMethod(methodName: string) {
+                const file = program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
+                let classStatement = file.parser.references.classStatementLookup.get('rooibos.runtimeconfig');
+                const method = classStatement.methods.find(x => x.name.text.toLowerCase() === methodName.toLowerCase());
+                return method;
+            }
+
+            //the methods should be empty by default
+            expect(findMethod('getVersionText').func.body.statements).to.be.empty;
+            expect(findMethod('getRuntimeConfig').func.body.statements).to.be.empty;
+            expect(findMethod('getTestSuiteClassWithName').func.body.statements).to.be.empty;
+            expect(findMethod('getAllTestSuitesNames').func.body.statements).to.be.empty;
+            expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
+
+            await builder.transpile();
+            expect(
+                getTestFunctionContents(true)
+            ).to.eql(undent`
+                item = {
+                id: "item"
+                }
+
+                m.currentAssertLineNumber = 7
+                m._expectNotCalled(item, "getFunction")
+                if m.currentResult.isFail then return invalid
+
+
+                m.currentAssertLineNumber = 8
+                m._expectNotCalled(item, "getFunction")
+                if m.currentResult.isFail then return invalid
+            `);
+
+            expect(
+                getContents('rooibos/RuntimeConfig.brs')
+            ).to.eql(undent`
+                function __rooibos_RuntimeConfig_builder()
+                    instance = {}
+                    instance.new = sub()
+                    end sub
+                    instance.getVersionText = function()
+                        return "4.7.0"
+                    end function
+                    instance.getRuntimeConfig = function()
+                        return {
+                            "failFast": false
+                            "sendHomeOnFinish": false
+                            "logLevel": 0
+                            "showOnlyFailures": false
+                            "printTestTimes": false
+                            "lineWidth": 60
+                            "printLcov": false
+                            "port": "invalid"
+                            "catchCrashes": false
+                        }
+                    end function
+                    instance.getTestSuiteClassWithName = function(name)
+                        if false
+                            ? "noop"
+                        else if name = "ATest"
+                            return ATest
+                        end if
+                    end function
+                    instance.getAllTestSuitesNames = function()
+                        return [
+                            "ATest"
+                        ]
+                    end function
+                    instance.getIgnoredTestInfo = function()
+                        return {
+                            "count": 0
+                            "items":[
+
+                            ]
+                        }
+                    end function
+                    return instance
+                end function
+                function rooibos_RuntimeConfig()
+                    instance = __rooibos_RuntimeConfig_builder()
+                    instance.new()
+                    return instance
+                end function
+            `);
+
+            //the methods should be empty again after transpile has finished
+            expect(findMethod('getVersionText').func.body.statements).to.be.empty;
+            expect(findMethod('getRuntimeConfig').func.body.statements).to.be.empty;
+            expect(findMethod('getTestSuiteClassWithName').func.body.statements).to.be.empty;
+            expect(findMethod('getAllTestSuitesNames').func.body.statements).to.be.empty;
+            expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
         });
     });
 
