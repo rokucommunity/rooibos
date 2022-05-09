@@ -1603,6 +1603,15 @@ namespace rooibos
       return fake
     end function
 
+    function expectLastCallToThrowError(error as dynamic)
+      try
+        mock = m.mocks[m.__mockId.toStr()]
+        mock.toThrow(error)
+      catch error
+        m.log.error("could not add throw to last call", error)
+      end try
+    end function
+
     function expectCalled(invocation as dynamic, returnValue = invalid as dynamic, thrownError = invalid as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid
