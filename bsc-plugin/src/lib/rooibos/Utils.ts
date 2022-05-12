@@ -1,7 +1,8 @@
-import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression } from 'brighterscript';
+import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression, AstEditor } from 'brighterscript';
 import { createVariableExpression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
+import { SourceNode } from 'source-map';
 
 export function spliceString(str: string, index: number, count: number, add: string): string {
     // We cannot pass negative indexes directly to the 2nd slicing operation.
@@ -74,6 +75,22 @@ export function changeFunctionBody(statement: brighterscript.ClassMethodStatemen
     for (let newStatement of newStatements) {
         statements.push(newStatement);
     }
+}
+
+export function overrideAstTranspile(editor: AstEditor, node: Expression | Statement, value: string) {
+    editor.setProperty(node, 'transpile', function transpile(this: Expression | Statement, state) {
+        //indent every line with the current transpile indent level (except the first line, because that's pre-indented by bsc)
+        let source = value.replace(/\r?\n/g, (match, newline) => {
+            return state.newline + state.indent();
+        });
+
+        return [new SourceNode(
+            this.range.start.line + 1,
+            this.range.start.character,
+            state.srcPath,
+            source
+        )];
+    });
 }
 
 export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string): boolean {

@@ -1,5 +1,5 @@
-import type { BrsFile, ClassStatement, FunctionStatement } from 'brighterscript';
-import { DiagnosticSeverity, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
+import type { BrsFile, CallExpression, ClassMethodStatement, ClassStatement, ExpressionStatement, FunctionStatement } from 'brighterscript';
+import { DiagnosticSeverity, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
@@ -872,13 +872,13 @@ describe('RooibosPlugin', () => {
             });
 
             it('correctly transpiles func pointers', async () => {
-                program.setFile('source/test.spec.bs', `
+                const file = program.setFile<BrsFile>('source/test.spec.bs', `
                     @suite
                     class ATest
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.expectNotCalled(m.thing.getFunctionField)
+                            m.expectNotCalled(m.thing.getFunctionField)
                         end function
                     end class
                 `);
@@ -893,6 +893,13 @@ describe('RooibosPlugin', () => {
                     m._expectNotCalled(m.thing, "getFunctionField")
                     if m.currentResult.isFail then return invalid
                 `);
+                //verify original code does not remain modified after the transpile cycle
+                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
+                const call = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
+                const arg0 = call.args[0] as DottedGetExpression;
+                expect(call.args).to.be.lengthOf(1);
+                expect(arg0).to.be.instanceof(DottedGetExpression);
+                expect(arg0.name.text).to.eql('getFunctionField');
             });
 
             it('correctly transpiles function invocations', async () => {

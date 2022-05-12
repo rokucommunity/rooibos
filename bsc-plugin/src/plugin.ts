@@ -91,8 +91,11 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    beforePublish() {
-        // console.log('bp');
+    beforePublish() { }
+
+    beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.addTestRunnerMetadata(editor);
+        this.session.addLaunchHook(editor);
         for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
@@ -102,7 +105,7 @@ export class RooibosPlugin implements CompilerPlugin {
             testSuite.addDataFunctions();
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit);
+                    group.modifyAssertions(testCase, noEarlyExit, editor);
                 }
             }
         }
@@ -112,11 +115,6 @@ export class RooibosPlugin implements CompilerPlugin {
         }
 
         this.session.createNodeFiles(this._builder.program);
-    }
-
-    beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.addTestRunnerMetadata(editor);
-        this.session.addLaunchHook(editor);
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {

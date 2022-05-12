@@ -78,7 +78,6 @@ export class RooibosSession {
     public addTestRunnerMetadata(editor: AstEditor) {
         let runtimeConfig = this._builder.program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
-            //BRON_AST_EDIT_HERE
             let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
             this.updateRunTimeConfigFunction(classStatement, editor);
             this.updateVersionTextFunction(classStatement, editor);
