@@ -1,5 +1,5 @@
 import type { BrsFile, CallExpression, ClassMethodStatement, ClassStatement, ExpressionStatement, FunctionStatement } from 'brighterscript';
-import { DiagnosticSeverity, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
+import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
@@ -843,14 +843,14 @@ describe('RooibosPlugin', () => {
             });
 
             it('correctly transpiles callfuncs on simple objects', async () => {
-                program.setFile('source/test.spec.bs', `
+                const file = program.setFile<BrsFile>('source/test.spec.bs', `
                     @suite
                     class ATest
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.expectNotCalled(thing@.getFunction())
-                        m.expectNotCalled(thing@.getFunction("arg1", "arg2"))
+                            m.expectNotCalled(thing@.getFunction())
+                            m.expectNotCalled(thing@.getFunction("arg1", "arg2"))
                         end function
                     end class
                 `);
@@ -870,6 +870,19 @@ describe('RooibosPlugin', () => {
                     m._expectNotCalled(thing, "callFunc")
                     if m.currentResult.isFail then return invalid
                 `);
+                //verify original code does not remain modified after the transpile cycle
+                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
+
+                const call1 = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
+                expect(call1.args).to.be.lengthOf(1);
+                expect(call1.args[0]).to.be.instanceof(CallfuncExpression);
+                expect((call1.args[0] as CallfuncExpression).methodName.text).to.eql('getFunction');
+
+                const call2 = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
+                expect(call2.args).to.be.lengthOf(1);
+                expect(call2.args[0]).to.be.instanceof(CallfuncExpression);
+                expect((call2.args[0] as CallfuncExpression).methodName.text).to.eql('getFunction');
+
             });
 
             it('correctly transpiles func pointers', async () => {

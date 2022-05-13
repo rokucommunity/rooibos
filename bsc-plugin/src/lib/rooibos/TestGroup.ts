@@ -119,20 +119,18 @@ export class TestGroup extends TestBlock {
             editor.addToArray(callExpression.args, 0, (arg0 as DottedGetExpression).obj);
         } else if (brighterscript.isCallfuncExpression(arg0)) {
             let functionName = arg0.methodName.text;
-            //BRON_AST_EDIT_HERE
-            callExpression.args.shift();
+            editor.removeFromArray(callExpression.args, 0);
             if (isNotCalled || isStubCall) {
                 //TODO in future we can improve is notCalled to know which callFunc function it is
                 // const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName)], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
-                // callExpression.args.unshift(expectedArgs);
+                // editor.addToArray(callExpression.args, 0, expectedArgs);
             } else {
-                //BRON_AST_EDIT_HERE
                 const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName), ...arg0.args], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
-                callExpression.args.unshift(expectedArgs);
+                editor.addToArray(callExpression.args, 0, expectedArgs);
             }
             //BRON_AST_EDIT_HERE
-            callExpression.args.unshift(createStringLiteral('callFunc'));
-            callExpression.args.unshift(arg0.callee);
+            editor.addToArray(callExpression.args, 0, createStringLiteral('callFunc'));
+            editor.addToArray(callExpression.args, 0, arg0.callee);
         }
     }
 
