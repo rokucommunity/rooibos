@@ -10,6 +10,7 @@ import undent from 'undent';
 let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
+const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
 
 describe('RooibosPlugin', () => {
     let program: Program;
@@ -1162,7 +1163,7 @@ describe('RooibosPlugin', () => {
                     instance.new = sub()
                     end sub
                     instance.getVersionText = function()
-                        return "4.7.0"
+                        return "${version}"
                     end function
                     instance.getRuntimeConfig = function()
                         return {
