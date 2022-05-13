@@ -1603,14 +1603,26 @@ namespace rooibos
       return fake
     end function
 
-    function expectCalled(invocation as dynamic, returnValue = invalid as dynamic) as object
+    function expectLastCallToThrowError(error as dynamic)
+      try
+        mock = m.mocks[m.__mockId.toStr()]
+        mock.toThrow(error)
+      catch error
+        m.log.error("could not add throw to last call", error)
+      end try
+    end function
+
+    function expectCalled(invocation as dynamic, returnValue = invalid as dynamic, thrownError = invalid as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid
     end function
 
-    function _expectCalled(target, methodName, expectedArgs = invalid, returnValue = invalid as dynamic) as object
+    function _expectCalled(target, methodName, expectedArgs = invalid, returnValue = invalid as dynamic, thrownError = invalid as dynamic) as object
       try
-        return m.mock(target, methodName, 1, expectedArgs, returnValue, true)
+        mock = m.mock(target, methodName, 1, expectedArgs, returnValue, true)
+        if thrownError <> invalid
+          mock.toThrow(thrownError)
+        end if
       catch error
         'bs:disable-next-line
         m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
@@ -1884,9 +1896,11 @@ namespace rooibos
           expectedArgsValues.push(defaultValue)
         end if
       end for
+      'todo - make into a class
       fake = {
         id: id,
         target: target,
+        errorToThrow: invalid,
         methodName: methodName,
         returnValue: returnValue,
         lineNumbers: lineNumbers,
@@ -1911,6 +1925,9 @@ namespace rooibos
           'bs:disable-next-line
           m.invocations++
 
+          if m.errorToThrow <> invalid
+            throw m.errorToThrow
+          end if
           'bs:disable-next-line
           if type(m.returnValue) = "roAssociativeArray" and m.returnValue.doesExist("multiResult")
             'bs:disable-next-line
@@ -1934,6 +1951,9 @@ namespace rooibos
             'bs:disable-next-line
             return m.returnValue
           end if
+        end function
+        toThrow: function(error)
+          m.errorToThrow = error
         end function
       }
       return fake
