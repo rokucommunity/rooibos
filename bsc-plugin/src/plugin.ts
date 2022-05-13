@@ -147,3 +147,7 @@ export class RooibosPlugin implements CompilerPlugin {
         return true;
     }
 }
+
+export default () => {
+    return new RooibosPlugin();
+};
