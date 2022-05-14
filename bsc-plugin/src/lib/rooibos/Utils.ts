@@ -1,57 +1,7 @@
 import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression, AstEditor } from 'brighterscript';
-import { createVariableExpression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import { SourceNode } from 'source-map';
-
-export function spliceString(str: string, index: number, count: number, add: string): string {
-    // We cannot pass negative indexes directly to the 2nd slicing operation.
-    if (index < 0) {
-        index = str.length + index;
-        if (index < 0) {
-            index = 0;
-        }
-    }
-
-    return str.slice(0, index) + (add || '') + str.slice(index + count);
-}
-
-export function getRegexMatchesValues(input, regex, groupIndex): any[] {
-    let values = [];
-    let matches: any[];
-    // eslint-disable-next-line
-    while (matches = regex.exec(input)) {
-        values.push(matches[groupIndex]);
-    }
-    return values;
-}
-export function getRegexMatchValue(input, regex, groupIndex): string {
-    let matches: any[];
-    // eslint-disable-next-line
-    while (matches = regex.exec(input)) {
-        if (matches.length > groupIndex) {
-            return matches[groupIndex];
-        }
-    }
-    return null;
-}
-
-export function addSetItems(setA, setB) {
-    for (const elem of setB) {
-        setA.add(elem);
-    }
-}
-
-export function pad(pad: string, str: string, padLeft: number): string {
-    if (typeof str === 'undefined') {
-        return pad;
-    }
-    if (padLeft) {
-        return (pad + str).slice(-pad.length);
-    } else {
-        return (str + pad).substring(0, pad.length);
-    }
-}
 
 export function overrideAstTranspile(editor: AstEditor, node: Expression | Statement, value: string) {
     editor.setProperty(node, 'transpile', function transpile(this: Expression | Statement, state) {
@@ -101,35 +51,4 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
 
 export function sanitizeBsJsonString(text: string) {
     return `"${text ? text.replace(/"/g, '\'') : ''}"`;
-}
-
-export function createIfStatement(condition: Expression, statements: Statement[]): brighterscript.IfStatement {
-    let ifToken = brighterscript.createToken(brighterscript.TokenKind.If, 'if', brighterscript.Range.create(1, 1, 1, 999999));
-    let thenBranch = new brighterscript.Block(statements, brighterscript.Range.create(1, 1, 1, 1));
-    return new brighterscript.IfStatement({ if: ifToken, then: brighterscript.createToken(brighterscript.TokenKind.Then, '', brighterscript.Range.create(1, 1, 1, 999999)) }, condition, thenBranch);
-}
-
-export function createVarExpression(varName: string, operator: brighterscript.TokenKind, value: string): brighterscript.BinaryExpression {
-    let variable = createVariableExpression(varName, brighterscript.Range.create(1, 1, 1, 999999));
-    let v = brighterscript.createStringLiteral(value, brighterscript.Range.create(1, 1, 1, 999999));
-
-    let t = brighterscript.createToken(operator, getTokenText(operator), brighterscript.Range.create(1, 1, 1, 999999));
-    return new brighterscript.BinaryExpression(variable, t, v);
-}
-
-export function getTokenText(operator: brighterscript.TokenKind): string {
-    switch (operator) {
-        case brighterscript.TokenKind.Equal:
-            return '=';
-        case brighterscript.TokenKind.Plus:
-            return '+';
-        case brighterscript.TokenKind.Minus:
-            return '-';
-        case brighterscript.TokenKind.Less:
-            return '<';
-        case brighterscript.TokenKind.Greater:
-            return '>';
-        default:
-            return '';
-    }
 }
