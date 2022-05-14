@@ -128,7 +128,6 @@ export class TestGroup extends TestBlock {
                 const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName), ...arg0.args], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 editor.addToArray(callExpression.args, 0, expectedArgs);
             }
-            //BRON_AST_EDIT_HERE
             editor.addToArray(callExpression.args, 0, createStringLiteral('callFunc'));
             editor.addToArray(callExpression.args, 0, arg0.callee);
         }
