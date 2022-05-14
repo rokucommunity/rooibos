@@ -93,16 +93,14 @@ export function overrideAstTranspile(editor: AstEditor, node: Expression | State
     });
 }
 
-export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string): boolean {
-    //BRON_AST_EDIT_HERE
-    let funcSource = `
-  function ${name}()
-    ${source}
-  end function
-  `;
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
+    let functionSource = `
+        function ${name}()
+            ${source}
+        end function
+    `;
 
-    let tokens = brighterscript.Lexer.scan(funcSource).tokens;
-    let { statements, diagnostics } = brighterscript.Parser.parse(tokens, { mode: brighterscript.ParseMode.BrighterScript });
+    let { statements, diagnostics } = brighterscript.Parser.parse(functionSource, { mode: brighterscript.ParseMode.BrighterScript });
     let error = '';
     if (statements && statements.length > 0) {
         let statement = statements[0] as FunctionStatement;
@@ -110,14 +108,18 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
             let p = brighterscript.createToken(brighterscript.TokenKind.Public, 'public', target.range);
             let o = brighterscript.createToken(brighterscript.TokenKind.Override, 'override', target.range);
             let n = brighterscript.createIdentifier(name, target.range);
-            let cms = new brighterscript.ClassMethodStatement(p, n, statement.func, o);
-            target.body.push(cms);
+            let method = new brighterscript.ClassMethodStatement(p, n, statement.func, o);
+            //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
+            //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
+            // eslint-disable-next-line @typescript-eslint/dot-notation
+            target['ensureConstructorFunctionExists']?.();
+            editor.addToArray(target.body, target.body.length, method);
             return true;
         }
 
     }
     error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
-    diagnosticCorruptTestProduced(file, annotation, error, funcSource);
+    diagnosticCorruptTestProduced(file, annotation, error, functionSource);
     return false;
 }
 

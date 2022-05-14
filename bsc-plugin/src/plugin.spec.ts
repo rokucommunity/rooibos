@@ -311,7 +311,7 @@ describe('RooibosPlugin', () => {
         it('test full transpile', async () => {
             plugin.afterProgramCreate(program);
             // program.validate();
-            program.setFile('source/test.spec.bs', `
+            const file = program.setFile<BrsFile>('source/test.spec.bs', `
                 @suite
                 class ATest extends rooibos.BaseTestSuite
                     @describe("groupA")
@@ -411,6 +411,12 @@ describe('RooibosPlugin', () => {
                     return instance
                 end function
             `);
+
+            //verify the AST was restored after transpile
+            const cls = file.ast.statements[0] as ClassStatement;
+            expect(cls.body.find((x: ClassMethodStatement) => {
+                return x.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            })).not.to.exist;
         });
 
         it('test full transpile with complex params', async () => {
