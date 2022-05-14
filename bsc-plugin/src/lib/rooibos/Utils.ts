@@ -53,30 +53,6 @@ export function pad(pad: string, str: string, padLeft: number): string {
     }
 }
 
-export function makeASTFunction(source: string): FunctionStatement | undefined {
-    let tokens = brighterscript.Lexer.scan(source).tokens;
-    let { statements } = brighterscript.Parser.parse(tokens, { mode: brighterscript.ParseMode.BrighterScript });
-    if (statements && statements.length > 0) {
-        return statements[0] as FunctionStatement;
-    }
-    return undefined;
-}
-
-export function getFunctionBody(source: string): Statement[] {
-    let funcStatement = makeASTFunction(source);
-    return funcStatement ? funcStatement.func.body.statements : [];
-}
-
-export function changeFunctionBody(statement: brighterscript.ClassMethodStatement | FunctionStatement, source: Statement[] | string) {
-    //BRON_AST_EDIT_HERE
-    let statements = statement.func.body.statements;
-    statements.splice(0, statements.length);
-    let newStatements = (typeof source === 'string') ? getFunctionBody(source) : source;
-    for (let newStatement of newStatements) {
-        statements.push(newStatement);
-    }
-}
-
 export function overrideAstTranspile(editor: AstEditor, node: Expression | Statement, value: string) {
     editor.setProperty(node, 'transpile', function transpile(this: Expression | Statement, state) {
         //indent every line with the current transpile indent level (except the first line, because that's pre-indented by bsc)
@@ -120,16 +96,6 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
     }
     error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
     diagnosticCorruptTestProduced(file, annotation, error, functionSource);
-    return false;
-}
-
-export function changeClassMethodBody(target: ClassStatement, name: string, source: Statement[] | string): boolean {
-    //BRON_AST_EDIT_HERE
-    let method = target.methods.find((m) => m.name.text === name);
-    if (brighterscript.isClassMethodStatement(method)) {
-        changeFunctionBody(method, source);
-        return true;
-    }
     return false;
 }
 
