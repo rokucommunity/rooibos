@@ -94,14 +94,6 @@ export class TestSuite extends TestBlock {
         }
     }
 
-    public removeCode() {
-        //BRON_AST_EDIT_HERE
-        this.classStatement.fields = [];
-        this.classStatement.methods = [];
-        this.classStatement.body = [];
-        this.classStatement.memberMap = {};
-    }
-
     public getTestGroups(): TestGroup[] {
         return [...this.testGroups.values()];
     }

@@ -110,10 +110,6 @@ export class RooibosPlugin implements CompilerPlugin {
             }
         }
 
-        for (let testSuite of [...this.session.sessionInfo.allTestSuites.values()].filter((ts) => !ts.isIncluded)) {
-            testSuite.removeCode();
-        }
-
         this.session.createNodeFiles(this._builder.program);
     }
 
