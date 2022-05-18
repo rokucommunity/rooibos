@@ -34,22 +34,6 @@ export class FileFactory {
     private targetCompsPath = 'components/rooibos/';
     public addedFrameworkFiles = [];
 
-    public getFrameworkFiles(): FileObj[] {
-        let files: FileObj[] = [];
-
-        for (let fileName of this.frameworkFileNames) {
-            files.push({
-                src: path.resolve(path.join(this.sourcePath, `${fileName}.bs`)),
-                dest: path.join(this.targetPath, `${fileName}.bs`)
-            });
-        }
-        files.push({
-            src: path.resolve(path.join(this.sourcePath, `RooibosScene.xml`)),
-            dest: path.join(this.targetCompsPath, `RooibosScene.xml`)
-        });
-        return files;
-    }
-
     public addFrameworkFiles(program: Program) {
         this.addedFrameworkFiles = [];
         for (let fileName of this.frameworkFileNames) {
