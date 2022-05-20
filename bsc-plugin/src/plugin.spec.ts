@@ -1125,49 +1125,31 @@ describe('RooibosPlugin', () => {
         });
     });
 
-    describe.only('addTestRunnerMetadata', () => {
+    describe('addTestRunnerMetadata', () => {
         it('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
-                namespace tests
-                    @suite
-                    class ATest1
-                        @describe("groupA")
-                        @it("test1")
-                        function _()
-                            item = {id: "item"}
-                            m.expectNotCalled(item.getFunction())
-                            m.expectNotCalled(item.getFunction())
-                        end function
-                    end class
-                end namespace
+                @suite
+                class ATest1
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        item = {id: "item"}
+                        m.expectNotCalled(item.getFunction())
+                        m.expectNotCalled(item.getFunction())
+                    end function
+                end class
             `);
-            program.setFile('source/test.spec.bs', `
-                namespace tests
-                    @suite
-                    class ATest2
-                        @describe("groupA")
-                        @it("test1")
-                        function _()
-                            item = {id: "item"}
-                            m.expectNotCalled(item.getFunction())
-                            m.expectNotCalled(item.getFunction())
-                        end function
-                    end class
-                end namespace
-            `);
-            program.setFile('source/test.spec.bs', `
-                namespace tests
-                    @suite
-                    class ATest3
-                        @describe("groupA")
-                        @it("test1")
-                        function _()
-                            item = {id: "item"}
-                            m.expectNotCalled(item.getFunction())
-                            m.expectNotCalled(item.getFunction())
-                        end function
-                    end class
-                end namespace
+            program.setFile('source/test2.spec.bs', `
+                @suite
+                class ATest2
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        item = {id: "item"}
+                        m.expectNotCalled(item.getFunction())
+                        m.expectNotCalled(item.getFunction())
+                    end function
+                end class
             `);
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
@@ -1232,20 +1214,22 @@ describe('RooibosPlugin', () => {
                     instance.getTestSuiteClassWithName = function(name)
                         if false
                             ? "noop"
-                        else if name = "ATest"
-                            return ATest
+                        else if name = "ATest1"
+                            return ATest1
+                        else if name = "ATest2"
+                            return ATest2
                         end if
                     end function
                     instance.getAllTestSuitesNames = function()
                         return [
-                            "ATest"
+                            "ATest1"
+                            "ATest2"
                         ]
                     end function
                     instance.getIgnoredTestInfo = function()
                         return {
                             "count": 0
-                            "items":[
-
+                            "items": [
                             ]
                         }
                     end function

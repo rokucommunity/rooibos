@@ -125,40 +125,27 @@ export class RooibosSession {
     public updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
         if (method) {
-            let v = new RawCodeStatement(undent`
-            if false
-                ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
-            else if name = "${suite.name}"
-                return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('\n')}
-            end if
-        `);
-            editor.addToArray(
-                method.func.body.statements,
-                method.func.body.statements.length,
-                new RawCodeStatement(undent`
-                    if false
-                        ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
-                    else if name = "${suite.name}"
-                        return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('\n')}
-                    end if
-                `)
-            );
+            editor.arrayPush(method.func.body.statements, new RawCodeStatement(undent`
+                if false
+                    ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
+                else if name = "${suite.name}"
+                    return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('')}
+                end if
+            `));
         }
-        let a = 'here';
     }
 
     public updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
         if (method) {
-            editor.addToArray(
-                method.func.body.statements,
-                method.func.body.statements.length,
-                new RawCodeStatement(undent`
-                    return [
-                        ${this.sessionInfo.testSuitesToRun.map((s) => `"${s.name}"`).join('\n')}
-                    ]
-                `)
-            );
+            let code = [
+
+            ]
+            editor.arrayPush(method.func.body.statements, new RawCodeStatement([
+                'return [',
+                ...this.sessionInfo.testSuitesToRun.map((s) => `    "${s.name}"`),
+                ']'
+            ].join('\n')));
         }
     }
 
@@ -175,10 +162,10 @@ export class RooibosSession {
                 bsFile.needsTranspiled = true;
             }
             let brsFile = this.fileFactory.addFile(program, bsPath, undent`
-                import "pkg:/${suite.file.pkgPath}"
-                function init()
-                    nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
-                    m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
+            import "pkg:/${suite.file.pkgPath}"
+            function init()
+            nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
+            m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
                 end function
             `);
             brsFile.parser.invalidateReferences();
@@ -192,18 +179,14 @@ export class RooibosSession {
     public createIgnoredTestsInfoFunction(cs: ClassStatement, editor: AstEditor) {
         let method = cs.methods.find((m) => m.name.text === 'getIgnoredTestInfo');
         if (method) {
-            editor.addToArray(
-                method.func.body.statements,
-                method.func.body.statements.length,
-                new RawCodeStatement(undent`
-                    return {
-                        "count": ${this.sessionInfo.ignoredCount}
-                        "items":[
-                            ${this.sessionInfo.ignoredTestNames.map((name) => `"${name}",`).join('\n')}
-                        ]
-                    }
-                `)
-            );
+            editor.arrayPush(method.func.body.statements, new RawCodeStatement([
+                'return {',
+                `    "count": ${this.sessionInfo.ignoredCount}`,
+                `    "items": [`,
+                ...this.sessionInfo.ignoredTestNames.map((name) => `        "${name}"`),
+                `    ]`,
+                `}`
+            ].join('\n')));
         }
     }
 }
