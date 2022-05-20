@@ -1,14 +1,24 @@
-import type { BrsFile, FileObj, Program, XmlFile } from 'brighterscript';
-
+import type { BrsFile, Program, XmlFile } from 'brighterscript';
+import { standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
 
 export class FileFactory {
 
-    constructor(options: any) {
-        if (options.frameworkSourcePath) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            this.sourcePath = options.frameworkSourcePath;
+    constructor(
+        private options?: {
+            frameworkSourcePath?: string;
+        }
+    ) {
+        this.options = this.options ?? {};
+        if (!this.options.frameworkSourcePath) {
+            if (__filename.endsWith('.ts')) {
+                //load the files directly from their source location. (i.e. the plugin is running as a typescript file from within ts-node)
+                this.options.frameworkSourcePath = s`${__dirname}/../../framework/src/source`;
+            } else {
+                //load the framework files from the dist folder (i.e. the plugin is running as a node_module)
+                this.options.frameworkSourcePath = s`${__dirname}/../framework`;
+            }
         }
     }
 
@@ -29,7 +39,6 @@ export class FileFactory {
         'Utils'
     ];
 
-    public sourcePath = path.join(__dirname, '../framework');
     private targetPath = 'source/rooibos/';
     private targetCompsPath = 'components/rooibos/';
     public addedFrameworkFiles = [];
@@ -37,7 +46,7 @@ export class FileFactory {
     public addFrameworkFiles(program: Program) {
         this.addedFrameworkFiles = [];
         for (let fileName of this.frameworkFileNames) {
-            let sourcePath = path.resolve(path.join(this.sourcePath, `${fileName}.bs`));
+            let sourcePath = path.resolve(path.join(this.options.frameworkSourcePath, `${fileName}.bs`));
             let fileContents = fs.readFileSync(sourcePath, 'utf8');
             let destPath = path.join(this.targetPath, `${fileName}.bs`);
             let entry = { src: sourcePath, dest: destPath };
@@ -46,9 +55,10 @@ export class FileFactory {
             );
         }
 
-        let sourcePath = path.resolve(path.join(this.sourcePath, `RooibosScene.xml`));
-        let destPath = path.join(this.targetCompsPath, `RooibosScene.xml`);
-        let entry = { src: sourcePath, dest: destPath };
+        let entry = {
+            src: s`${this.options.frameworkSourcePath}/RooibosScene.xml`,
+            dest: s`${this.targetCompsPath}/RooibosScene.xml`
+        };
         this.addedFrameworkFiles.push(
             program.setFile(entry, this.createTestXML('TestsScene', 'Scene'))
         );

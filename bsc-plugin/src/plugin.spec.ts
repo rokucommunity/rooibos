@@ -35,7 +35,7 @@ describe('RooibosPlugin', () => {
         program.plugins = new PluginInterface([plugin], builder.logger);
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate(builder);
-        plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
+        plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
         plugin.afterProgramCreate(program);
     });
 
@@ -1038,7 +1038,7 @@ describe('RooibosPlugin', () => {
                 program.plugins = new PluginInterface([plugin], builder.logger);
                 program.createSourceScope(); //ensure source scope is created
                 plugin.beforeProgramCreate(builder);
-                plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
+                plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
                 plugin.afterProgramCreate(program);
                 // program.validate();
             });

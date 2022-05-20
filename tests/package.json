@@ -9,7 +9,8 @@
     "source-map": "^0.7.3"
   },
   "devDependencies": {
-    "brighterscript": "^0.50.0"
+    "brighterscript": "^0.50.1",
+    "ts-node": "^10.7.0"
   },
   "repository": {
     "type": "git",
