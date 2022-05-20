@@ -10,6 +10,7 @@ import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
 import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound } from '../utils/Diagnostics';
 import undent from 'undent';
+import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 
 // eslint-disable-next-line
 const pkg = require('../../../package.json');
@@ -124,6 +125,13 @@ export class RooibosSession {
     public updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
         if (method) {
+            let v = new RawCodeStatement(undent`
+            if false
+                ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
+            else if name = "${suite.name}"
+                return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('\n')}
+            end if
+        `);
             editor.addToArray(
                 method.func.body.statements,
                 method.func.body.statements.length,
@@ -131,11 +139,12 @@ export class RooibosSession {
                     if false
                         ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
                     else if name = "${suite.name}"
-                        return ${suite.classStatement.getName(ParseMode.BrightScript)}`)}
+                        return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('\n')}
                     end if
                 `)
             );
         }
+        let a = 'here';
     }
 
     public updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
