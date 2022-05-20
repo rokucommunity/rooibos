@@ -17,7 +17,7 @@ import * as minimatch from 'minimatch';
 
 export class RooibosPlugin implements CompilerPlugin {
 
-    name: 'rooibosPlugin';
+    public name = 'rooibosPlugin';
     public session: RooibosSession;
     public codeCoverageProcessor: CodeCoverageProcessor;
     public fileFactory: FileFactory;
