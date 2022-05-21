@@ -39,6 +39,6 @@
     "rootDir": "src"
   },
   "scripts": {
-    "build": "npx bsc"
+    "build": "bsc"
   }
 }
