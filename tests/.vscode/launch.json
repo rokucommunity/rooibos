@@ -7,7 +7,7 @@
       "request": "launch",
       "consoleOutput": "full",
       "internalConsoleOptions": "neverOpen",
-      "preLaunchTask": "build-tests",
+      "preLaunchTask": "build-tests-watch",
       "envFile": "${workspaceFolder}/.vscode/.env",
       "host": "${env:ROKU_DEV_TARGET}",
       "password": "${env:ROKU_DEVPASSWORD}",

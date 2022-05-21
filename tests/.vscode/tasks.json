@@ -18,6 +18,25 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "build-tests-watch",
+      "type": "shell",
+      "isBackground": true,
+      "command": "npm run watch",
+      "problemMatcher":["$bsc-watch-silent"],
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }
