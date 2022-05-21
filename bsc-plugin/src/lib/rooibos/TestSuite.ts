@@ -1,4 +1,4 @@
-import type { BrsFile, ClassStatement } from 'brighterscript';
+import type { AstEditor, BrsFile, ClassStatement } from 'brighterscript';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
 
@@ -88,17 +88,10 @@ export class TestSuite extends TestBlock {
         this.isValid = true;
     }
 
-    public addDataFunctions() {
+    public addDataFunctions(editor: AstEditor) {
         if (this.isIncluded) {
-            addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`);
+            addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`, editor);
         }
-    }
-
-    public removeCode() {
-        this.classStatement.fields = [];
-        this.classStatement.methods = [];
-        this.classStatement.body = [];
-        this.classStatement.memberMap = {};
     }
 
     public getTestGroups(): TestGroup[] {

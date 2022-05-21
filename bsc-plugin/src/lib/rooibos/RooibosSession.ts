@@ -1,8 +1,7 @@
 import * as path from 'path';
-
-import type { BrsFile, ClassStatement, NamespaceStatement, Program, ProgramBuilder } from 'brighterscript';
-import { ParseMode } from 'brighterscript';
-
+import type { BrsFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder } from 'brighterscript';
+import { isBrsFile, ParseMode } from 'brighterscript';
+import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
@@ -10,6 +9,8 @@ import { RawCodeStatement } from './RawCodeStatement';
 import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
 import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound } from '../utils/Diagnostics';
+import undent from 'undent';
+import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 
 // eslint-disable-next-line
 const pkg = require('../../../package.json');
@@ -43,106 +44,127 @@ export class RooibosSession {
         return testSuites.length > 0;
     }
 
-    public addLaunchHook() {
-        let mainFunc = null;
-        let files = this._builder.program.getScopeByName('source').getOwnFiles();
+    private rooibosMain: BrsFile;
+
+    public addLaunchHook(editor: AstEditor) {
+        let mainFunction: FunctionStatement;
+        const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
-            mainFunc = (file as BrsFile).parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
-            if (mainFunc) {
-                mainFunc.func.body.statements.splice(0, 0, new RawCodeStatement(`
-  Rooibos_init()
-        `));
-                break;
+            if (isBrsFile(file)) {
+                const mainFunc = file.parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
+                if (mainFunc) {
+                    mainFunction = mainFunc;
+                    break;
+                }
             }
         }
-        if (!mainFunc) {
+        if (mainFunction) {
+            editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init()`));
+        } else {
             diagnosticWarnNoMainFound(files[0]);
-            this._builder.program.addOrReplaceFile('source/rooibosMain.brs', `function main()
-    Rooibos_init()
-end function`);
+            this.rooibosMain = this._builder.program.setFile('source/rooibosMain.brs', `function main()\n    Rooibos_init()\nend function`);
         }
     }
 
-    public addTestRunnerMetadata() {
-        let runtimeConfig = this._builder.program.getFileByPkgPath('source/rooibos/RuntimeConfig.bs');
+    /**
+     * Should only be called in afterProgramTranspile to remove the rooibosMain file IF it exists
+     */
+    public removeRooibosMain() {
+        if (this.rooibosMain) {
+            this._builder.program.removeFile('source/rooibosMain.brs');
+            this.rooibosMain = undefined;
+        }
+    }
+
+    public addTestRunnerMetadata(editor: AstEditor) {
+        let runtimeConfig = this._builder.program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
-            let classStatement = ((runtimeConfig as BrsFile).ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
-            this.updateRunTimeConfigFunction(classStatement);
-            this.updateVersionTextFunction(classStatement);
-            this.updateClassLookupFunction(classStatement);
-            this.updateGetAllTestSuitesNames(classStatement);
-            this.createIgnoredTestsInfoFunction(classStatement);
+            let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
+            this.updateRunTimeConfigFunction(classStatement, editor);
+            this.updateVersionTextFunction(classStatement, editor);
+            this.updateClassLookupFunction(classStatement, editor);
+            this.updateGetAllTestSuitesNames(classStatement, editor);
+            this.createIgnoredTestsInfoFunction(classStatement, editor);
         }
     }
 
-    public updateRunTimeConfigFunction(classStatement: ClassStatement) {
+    public updateRunTimeConfigFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getRuntimeConfig');
         if (method) {
-            method.func.body.statements.push(new RawCodeStatement(`
-    return {
-      "failFast": ${this.config.failFast ? 'true' : 'false'}
-      "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
-      "logLevel": ${this.config.logLevel ?? 0}
-      "showOnlyFailures": ${this.config.showOnlyFailures ? 'true' : 'false'}
-      "printTestTimes": ${this.config.printTestTimes ? 'true' : 'false'}
-      "lineWidth": ${this.config.lineWidth || 60}
-      "printLcov": ${this.config.printLcov ? 'true' : 'false'}
-      "port": "${this.config.port || 'invalid'}"
-      "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
-    }`));
+            editor.addToArray(
+                method.func.body.statements,
+                method.func.body.statements.length,
+                new RawCodeStatement(undent`
+                    return {
+                        "failFast": ${this.config.failFast ? 'true' : 'false'}
+                        "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
+                        "logLevel": ${this.config.logLevel ?? 0}
+                        "showOnlyFailures": ${this.config.showOnlyFailures ? 'true' : 'false'}
+                        "printTestTimes": ${this.config.printTestTimes ? 'true' : 'false'}
+                        "lineWidth": ${this.config.lineWidth || 60}
+                        "printLcov": ${this.config.printLcov ? 'true' : 'false'}
+                        "port": "${this.config.port || 'invalid'}"
+                        "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
+                    }`
+                )
+            );
         }
     }
 
-    public updateVersionTextFunction(classStatement: ClassStatement) {
+    public updateVersionTextFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getVersionText');
         if (method) {
-            method.func.body.statements.push(new RawCodeStatement(`return "${pkg.version}"`));
+            editor.addToArray(
+                method.func.body.statements,
+                method.func.body.statements.length,
+                new RawCodeStatement(`return "${pkg.version}"`)
+            );
         }
     }
 
-    public updateClassLookupFunction(classStatement: ClassStatement) {
+    public updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
         if (method) {
-            let text = `
-      if false
-        ? "noop"
-      `;
-            for (let suite of this.sessionInfo.testSuitesToRun) {
-                text += `
-        else if name = "${suite.name}"
-          return ${suite.classStatement.getName(ParseMode.BrightScript)}
-        `;
-            }
-            text += `
-      end if`;
-            method.func.body.statements.push(new RawCodeStatement(text));
+            editor.arrayPush(method.func.body.statements, new RawCodeStatement(undent`
+                if false
+                    ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
+                else if name = "${suite.name}"
+                    return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('')}
+                end if
+            `));
         }
     }
 
-    public updateGetAllTestSuitesNames(classStatement: ClassStatement) {
+    public updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
         if (method) {
-            let text = `return [
-        ${this.sessionInfo.testSuitesToRun.map((s) => `"${s.name}"`).join('\n')}
-      ]`;
-            method.func.body.statements.push(new RawCodeStatement(text));
+            editor.arrayPush(method.func.body.statements, new RawCodeStatement([
+                'return [',
+                ...this.sessionInfo.testSuitesToRun.map((s) => `    "${s.name}"`),
+                ']'
+            ].join('\n')));
         }
     }
 
     public createNodeFiles(program: Program) {
-
         let p = path.join('components', 'rooibos', 'generated');
 
         for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
             let xmlText = this.getNodeTestXmlText(suite);
             let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
             this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-            let bsFile = program.getFileByPkgPath(bsPath);
+            let bsFile = program.getFile(bsPath);
             if (bsFile) {
                 (bsFile as BrsFile).parser.statements.push();
                 bsFile.needsTranspiled = true;
             }
-            let brsFile = this.fileFactory.addFile(program, bsPath, this.getNodeTestBsBody(suite));
+            let brsFile = this.fileFactory.addFile(program, bsPath, undent`
+            import "pkg:/${suite.file.pkgPath}"
+            function init()
+            nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
+            m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
+                end function
+            `);
             brsFile.parser.invalidateReferences();
         }
     }
@@ -151,26 +173,17 @@ end function`);
         return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName);
     }
 
-    private getNodeTestBsBody(testSuite: TestSuite): string {
-        return `import "pkg:/${testSuite.file.pkgPath}"
-    function init()
-      nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
-      m.top.rooibosTestResult = nodeRunner.runInNodeMode("${testSuite.name}")
-    end function
-    `;
-    }
-
-    public createIgnoredTestsInfoFunction(cs: ClassStatement) {
+    public createIgnoredTestsInfoFunction(cs: ClassStatement, editor: AstEditor) {
         let method = cs.methods.find((m) => m.name.text === 'getIgnoredTestInfo');
         if (method) {
-            let text = `return {
-          "count": ${this.sessionInfo.ignoredCount}
-          "items":[
-        ${this.sessionInfo.ignoredTestNames.map((name) => `"${name}",`).join('\n')}
-  ]}
-  `;
-
-            method.func.body.statements.push(new RawCodeStatement(text));
+            editor.arrayPush(method.func.body.statements, new RawCodeStatement([
+                'return {',
+                `    "count": ${this.sessionInfo.ignoredCount}`,
+                `    "items": [`,
+                ...this.sessionInfo.ignoredTestNames.map((name) => `        "${name}"`),
+                `    ]`,
+                `}`
+            ].join('\n')));
         }
     }
 }

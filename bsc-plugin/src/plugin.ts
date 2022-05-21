@@ -1,29 +1,26 @@
-import type { BscFile,
+import type {
+    BscFile,
     CompilerPlugin,
     Program,
-    ProgramBuilder } from 'brighterscript';
-import {
-    BrsFile,
-    isBrsFile,
-    XmlFile
+    ProgramBuilder,
+    TranspileObj,
+    AstEditor
 } from 'brighterscript';
-
+import {
+    isBrsFile
+} from 'brighterscript';
 import { RooibosSession } from './lib/rooibos/RooibosSession';
-
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
-
-
 import * as minimatch from 'minimatch';
 
 export class RooibosPlugin implements CompilerPlugin {
 
-    name: 'rooibosPlugin';
+    public name = 'rooibosPlugin';
     public session: RooibosSession;
     public codeCoverageProcessor: CodeCoverageProcessor;
     public fileFactory: FileFactory;
-    public isFrameworkAdded = false;
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
 
@@ -70,9 +67,7 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     afterProgramCreate(program: Program) {
-        if (!this.isFrameworkAdded) {
-            this.fileFactory.addFrameworkFiles(program);
-        }
+        this.fileFactory.addFrameworkFiles(program);
     }
 
     afterFileParse(file: BscFile): void {
@@ -96,29 +91,30 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    beforePublish() {
-        // console.log('bp');
+    beforePublish() { }
+
+    beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.addTestRunnerMetadata(editor);
+        this.session.addLaunchHook(editor);
         for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
                 console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
             }
 
-            testSuite.addDataFunctions();
+            testSuite.addDataFunctions(editor);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit);
+                    group.modifyAssertions(testCase, noEarlyExit, editor);
                 }
             }
         }
 
-        for (let testSuite of [...this.session.sessionInfo.allTestSuites.values()].filter((ts) => !ts.isIncluded)) {
-            testSuite.removeCode();
-        }
-
-        this.session.addTestRunnerMetadata();
-        this.session.addLaunchHook();
         this.session.createNodeFiles(this._builder.program);
+    }
+
+    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.removeRooibosMain();
     }
 
     afterProgramValidate() {

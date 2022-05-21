@@ -26,7 +26,7 @@ describe('TestSuiteBuilder tests ', () => {
 
     beforeEach(() => {
         program = new Program({});
-        fileFactory = new FileFactory({});
+        fileFactory = new FileFactory();
         programBuilder = new ProgramBuilder();
         session = new RooibosSession(programBuilder, fileFactory);
         testSuiteBuilder = new TestSuiteBuilder(session);

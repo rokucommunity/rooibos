@@ -1,16 +1,28 @@
 {
   "rootDir": "src",
-  "files": ["manifest", "source/**/*.*", "components/**/*.*"],
+  "files": [
+    "manifest",
+    "source/**/*.*",
+    "components/**/*.*"
+  ],
   "autoImportComponentScript": true,
   "createPackage": false,
   "stagingFolderPath": "build",
   "diagnosticFilters": [
     {
       "src": "**/roku_modules/**/*.*",
-      "codes": [1107, 1009]
+      "codes": [
+        1107,
+        1009
+      ]
     }
   ],
-  "plugins": ["../bsc-plugin/dist/plugin.js"],
+  "plugins": [
+    "../bsc-plugin/src/plugin.ts"
+  ],
+  "require": [
+    "ts-node/register"
+  ],
   "rooibos": {
     "showOnlyFailures": true,
     "catchCrashes": true,
