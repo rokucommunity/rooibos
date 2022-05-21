@@ -68,6 +68,7 @@ export class SessionInfo {
      * to include it in the final json payload
      */
     public updateInfo() {
+        this.resetCounts();
         for (let testSuite of [...this.testSuites.values()]) {
             if (this.isExcludedByTag(testSuite, false)) {
                 testSuite.isIncluded = false;
@@ -167,6 +168,31 @@ export class SessionInfo {
             }
         }
         return false;
+    }
+
+    private resetCounts() {
+
+        this.hasSoloTests = false;
+        this.hasSoloGroups = false;
+        this.hasSoloSuites = false;
+
+        for (let testSuite of [...this.testSuites.values()]) {
+
+            if (testSuite.isValid && !this.isExcludedByTag(testSuite, false)) {
+                if (testSuite.isSolo) {
+                    this.hasSoloSuites = !this.hasSoloGroups && !this.hasSoloTests;
+                }
+                if (testSuite.hasSoloGroups) {
+                    this.hasSoloGroups = !this.hasSoloTests;
+                }
+                if (testSuite.hasSoloTests) {
+                    this.hasSoloTests = true;
+                    this.hasSoloGroups = false;
+                    this.hasSoloSuites = false;
+                }
+            }
+        }
+        this.suitesCount = this.testSuites.size;
     }
 }
 
