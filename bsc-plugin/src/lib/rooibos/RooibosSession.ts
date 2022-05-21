@@ -138,9 +138,6 @@ export class RooibosSession {
     public updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
         if (method) {
-            let code = [
-
-            ]
             editor.arrayPush(method.func.body.statements, new RawCodeStatement([
                 'return [',
                 ...this.sessionInfo.testSuitesToRun.map((s) => `    "${s.name}"`),
