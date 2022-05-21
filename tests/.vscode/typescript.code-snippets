@@ -1,0 +1,154 @@
+{
+  //-----------------------------------------------------------------------------------------------
+  // templates
+  //-----------------------------------------------------------------------------------------------
+
+  //RTA TEST
+  "template_rta_test": {
+    "prefix": "templatertatest",
+    "description": "",
+    "body": [
+      "import { device, ecp, odc, utils } from 'roku-test-automation';",
+      "import { clearRegistry, deployApp, waitForApplicationLoad } from './utils';",
+      "import * as chai from 'chai';",
+      "const expect = chai.expect;",
+      "",
+      "describe('${1:name}', () => {",
+      "    before(async () => {",
+      "        await deployApp();",
+      "    });",
+      "    $0",
+      "});"
+    ]
+  },
+
+  //-----------------------------------------------------------------------------------------------
+  //RTA (automated testing)
+  //-----------------------------------------------------------------------------------------------
+
+  "rta_back": {
+    "prefix": "rtaback",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.BACK);", "$0"]
+  },
+
+  "rta_backspace": {
+    "prefix": "rtabackspace",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.BACKSPACE);", "$0"]
+  },
+
+  "rta_down": {
+    "prefix": "rtadown",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.DOWN);", "$0"]
+  },
+
+  "rta_enter": {
+    "prefix": "rtaenter",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.ENTER);", "$0"]
+  },
+
+  "rta_forward": {
+    "prefix": "rtaforward",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.FORWARD);", "$0"]
+  },
+
+  "rta_home": {
+    "prefix": "rtahome",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.HOME);", "$0"]
+  },
+
+  "rta_left": {
+    "prefix": "rtaleft",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.LEFT);", "$0"]
+  },
+
+  "rta_ok": {
+    "prefix": "rtaok",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.OK);", "$0"]
+  },
+
+  "rta_options": {
+    "prefix": "rtaoptions",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.OPTIONS);", "$0"]
+  },
+
+  "rta_play": {
+    "prefix": "rtaplay",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.PLAY);", "$0"]
+  },
+
+  "rta_replay": {
+    "prefix": "rtareplay",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.REPLAY);", "$0"]
+  },
+
+  "rta_rewind": {
+    "prefix": "rtarewind",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.REWIND);", "$0"]
+  },
+
+  "rta_right": {
+    "prefix": "rtaright",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.RIGHT);", "$0"]
+  },
+
+  "rta_search": {
+    "prefix": "rtasearch",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.SEARCH);", "$0"]
+  },
+
+  "rta_up": {
+    "prefix": "rtaup",
+    "description": "",
+    "body": ["await keyPress(ecp.Key.UP);", "$0"]
+  },
+  "rta_sendText": {
+    "prefix": "rtast",
+    "description": "",
+    "body": ["await ecp.sendText('$1');", "$0"]
+  },
+
+  "rta_getfocusednode": {
+    "prefix": "rtagfn",
+    "description": "",
+    "body": ["await getFocusedNode()$0"]
+  },
+  "rta_observeGlobalField": {
+    "prefix": "rtaogf",
+    "description": "",
+    "body": ["await observeGlobalField('${1:path}');", "$0"]
+  },
+  "rta_observeSceneField": {
+    "prefix": "rtaosf",
+    "description": "",
+    "body": ["await observeSceneField('${1:path}');", "$0"]
+  },
+  "rta_getGlobalValue": {
+    "prefix": "rtaggv",
+    "description": "",
+    "body": ["await getGlobalValue('${1:path}')$0"]
+  },
+  "rta_getSceneValue": {
+    "prefix": "rtagsv",
+    "description": "",
+    "body": ["await getSceneValue('${1:path}')$0"]
+  },
+  "rta_wait": {
+    "prefix": "rtaw",
+    "description": "",
+    "body": ["await waitFor(${1:500}, $2{''});", "$0"]
+  }
+}
