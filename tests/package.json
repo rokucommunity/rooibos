@@ -2,15 +2,13 @@
   "name": "rooibos-tests",
   "version": "4.1.0",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - tests",
-  "directories": {
-    "doc": "docs"
-  },
-  "dependencies": {
-    "source-map": "^0.7.3"
+  "scripts": {
+    "build": "bsc"
   },
   "devDependencies": {
     "brighterscript": "^0.50.1",
-    "ts-node": "^10.7.0"
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.4"
   },
   "repository": {
     "type": "git",
@@ -27,18 +25,5 @@
   "bugs": {
     "url": "https://github.com/georgejecook/rooibos/issues"
   },
-  "homepage": "https://github.com/georgejecook/rooibos#readme",
-  "ts-node": {
-    "transpileOnly": true,
-    "compileOptions": {
-      "incremental": true,
-      "allowJs": false
-    }
-  },
-  "ropm": {
-    "rootDir": "src"
-  },
-  "scripts": {
-    "build": "bsc"
-  }
+  "homepage": "https://github.com/georgejecook/rooibos#readme"
 }
