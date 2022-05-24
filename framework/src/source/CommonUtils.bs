@@ -305,7 +305,11 @@ namespace rooibos.Common
   '  */
   function asString(input, includeType = false) as string
     if Rooibos.Common.isValid(input) = false
-      return "Invalid"
+      if includeType
+        return """" + input + """"
+      else
+        return input
+      end if
     else if Rooibos.Common.isString(input)
       return """" + input + """"
     else if Rooibos.Common.isInteger(input) or Rooibos.Common.isLongInteger(input) or Rooibos.Common.isBoolean(input)
