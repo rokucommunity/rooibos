@@ -1134,10 +1134,10 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        className = Rooibos.Common.asString(value.__classname)
+        className = `${value.__classname}`
         if className <> typeStr
           if msg = ""
-            msg = "Expected class: " + typeStr + ", got " + className
+            msg = `Expected class: ${typeStr} got ${className}`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
