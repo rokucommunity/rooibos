@@ -900,7 +900,7 @@ namespace rooibos
           end if
         else if Rooibos.Common.isString(item)
           if Rooibos.Common.asString(item) <> ""
-            msg = "Input value is not empty."
+            msg = "String is not empty, contains: " + Rooibos.Common.asString(item, true)
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
