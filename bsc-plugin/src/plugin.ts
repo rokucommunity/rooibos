@@ -4,7 +4,9 @@ import type {
     Program,
     ProgramBuilder,
     TranspileObj,
-    AstEditor
+    AstEditor,
+    BeforeFileTranspileEvent,
+    PluginHandler
 } from 'brighterscript';
 import {
     isBrsFile
@@ -96,17 +98,24 @@ export class RooibosPlugin implements CompilerPlugin {
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addTestRunnerMetadata(editor);
         this.session.addLaunchHook(editor);
-        for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
+    }
+
+    beforeFileTranspile(event: BeforeFileTranspileEvent) {
+        let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
+        if (testSuite) {
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
                 console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
             }
 
-            testSuite.addDataFunctions(editor);
+            testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit, editor);
+                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any);
                 }
+            }
+            if (testSuite.isNodeTest) {
+                this.session.createNodeFile(event.program, testSuite);
             }
         }
 

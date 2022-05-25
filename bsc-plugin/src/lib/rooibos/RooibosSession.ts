@@ -147,26 +147,31 @@ export class RooibosSession {
     }
 
     public createNodeFiles(program: Program) {
-        let p = path.join('components', 'rooibos', 'generated');
 
         for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
-            let xmlText = this.getNodeTestXmlText(suite);
-            let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
-            this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-            let bsFile = program.getFile(bsPath);
-            if (bsFile) {
-                (bsFile as BrsFile).parser.statements.push();
-                bsFile.needsTranspiled = true;
-            }
-            let brsFile = this.fileFactory.addFile(program, bsPath, undent`
-            import "pkg:/${suite.file.pkgPath}"
-            function init()
-            nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
-            m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
-                end function
-            `);
-            brsFile.parser.invalidateReferences();
+            this.createNodeFile(program, suite);
         }
+    }
+
+    createNodeFile(program: Program, suite: TestSuite) {
+        let p = path.join('components', 'rooibos', 'generated');
+
+        let xmlText = this.getNodeTestXmlText(suite);
+        let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
+        this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
+        let bsFile = program.getFile(bsPath);
+        if (bsFile) {
+            (bsFile as BrsFile).parser.statements.push();
+            bsFile.needsTranspiled = true;
+        }
+        let brsFile = this.fileFactory.addFile(program, bsPath, undent`
+        import "pkg:/${suite.file.pkgPath}"
+        function init()
+        nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
+        m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
+            end function
+        `);
+        brsFile.parser.invalidateReferences();
     }
 
     private getNodeTestXmlText(suite: TestSuite) {

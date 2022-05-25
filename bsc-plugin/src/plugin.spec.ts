@@ -31,8 +31,7 @@ describe('RooibosPlugin', () => {
         builder.options = util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
         program = builder.program;
-        builder.plugins = new PluginInterface([plugin], builder.logger);
-        program.plugins = new PluginInterface([plugin], builder.logger);
+        program.plugins.add(plugin);
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate(builder);
         plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
@@ -609,6 +608,41 @@ describe('RooibosPlugin', () => {
                 `);
             });
 
+            it('correctly transpiles enums in assertions', async () => {
+                program.setFile('source/test.spec.bs', `
+                    namespace lib
+                        enum myEnum
+                            value = "value"
+                        end enum
+                    end namespace
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                            b = { someValue: lib.myEnum.value}
+                            m.assertEqual(a, { someValue: lib.myEnum.value})
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                // expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                expect(
+                    getTestFunctionContents(true)
+                ).to.eql(undent`
+                    b = {
+                    someValue: "value"
+                    }
+
+                    m.currentAssertLineNumber = 12
+                    m.assertEqual(a, {
+                    someValue: "value"
+                    })
+                    if m.currentResult.isFail then return invalid`);
+            });
+
             it('correctly transpiles function invocations - simple object', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1034,8 +1068,9 @@ describe('RooibosPlugin', () => {
                 builder.options = util.normalizeAndResolveConfig(options);
                 builder.program = new Program(builder.options);
                 program = builder.program;
-                builder.plugins = new PluginInterface([plugin], builder.logger);
-                program.plugins = new PluginInterface([plugin], builder.logger);
+                builder.program = new Program(builder.options);
+                program = builder.program;
+                program.plugins.add(plugin);
                 program.createSourceScope(); //ensure source scope is created
                 plugin.beforeProgramCreate(builder);
                 plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
