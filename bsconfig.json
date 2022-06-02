@@ -16,5 +16,8 @@
         1009
       ]
     }
+  ],
+  "plugins": [
+    "@rokucommunity/bslint"
   ]
 }

@@ -2,7 +2,7 @@ namespace tests
 
   @noEarlyExit
   @suite
-  class BasicTests extends Rooibos.BaseTestSuite
+  class BasicTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("equals fix for stubbed aas")
@@ -54,6 +54,7 @@ namespace tests
     @describe("assertAsyncField")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @ignore("takes ages")
     @it("times out")
     function _()
       item = { "id": "item" }
@@ -178,8 +179,35 @@ namespace tests
       m.assertTrue(isFail)
 
       m.assertEqual(msg, "[one, two, three] != [2one, 2two, 2three]")
+    end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("assertLike")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @it("does not fail on like values")
+    @params({ id: 10 }, { id: 10.0 })
+    @params([10], [10.0])
+    @params(10, 10.0)
+    function _(value1, value2)
+      m.assertLike(value1, value2)
+    end function
+
+    @it("does fail on really unalike values")
+    @params(10, invalid)
+    @params(invalid, 10)
+    @params(invalid, "invalid")
+    @params(false, "false")
+    @params(true, "true")
+    @params(10, "10.0")
+    @params({ id: "10" }, { id: 10 })
+    @params({ id: "10" }, { id: 10.0 })
+    function _(value1, value2)
+      m.assertLike(value1, value2)
+      isFail = m.currentResult.isFail
+      msg = m.currentResult.getMessage()
+      m.currentResult.Reset()
+      m.assertTrue(isFail)
     end function
 
   end class

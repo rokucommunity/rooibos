@@ -94,7 +94,7 @@ export class RooibosAnnotation {
         let noCatch = false;
         let noEarlyExit = false;
         let nodeName = null;
-        let tags = [];
+        let tags = [] as string[];
         if (statement.annotations?.length) {
             let describeAnnotations = statement.annotations.filter((a) => getAnnotationType(a.name) === AnnotationType.Describe);
             if (describeAnnotations.length > 1) {

@@ -1,30 +1,28 @@
 import type {
-    BrsFile,
     BscFile,
+    CompilerPlugin,
     Program,
     ProgramBuilder,
     TranspileObj,
-    XmlFile
+    AstEditor,
+    BeforeFileTranspileEvent,
+    PluginHandler
 } from 'brighterscript';
-
-import { isBrsFile } from 'brighterscript/dist/astUtils';
-
+import {
+    isBrsFile
+} from 'brighterscript';
 import { RooibosSession } from './lib/rooibos/RooibosSession';
-
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
-
-
 import * as minimatch from 'minimatch';
 
-export class RooibosPlugin {
+export class RooibosPlugin implements CompilerPlugin {
 
-    name: 'rooibosPlugin';
+    public name = 'rooibosPlugin';
     public session: RooibosSession;
     public codeCoverageProcessor: CodeCoverageProcessor;
     public fileFactory: FileFactory;
-    public isFrameworkAdded = false;
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
 
@@ -78,13 +76,16 @@ export class RooibosPlugin {
     }
 
     afterProgramCreate(program: Program) {
-        if (!this.isFrameworkAdded) {
-            this.fileFactory.addFrameworkFiles(program);
-        }
+        this.fileFactory.addFrameworkFiles(program);
     }
 
-    afterFileParse(file: (BrsFile | XmlFile)): void {
+    afterFileParse(file: BscFile): void {
         // console.log('afp', file.pkgPath);
+        if (file.pathAbsolute.includes('/rooibos/bsc-plugin/dist/framework')) {
+            // eslint-disable-next-line @typescript-eslint/dot-notation
+            file['diagnostics'] = [];
+            return;
+        }
         if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
             return;
         }
@@ -96,45 +97,46 @@ export class RooibosPlugin {
         }
     }
 
-    beforeFileTranspile (entry: TranspileObj) {
-        // console.log('afp', file.pkgPath)
-        let file = entry.file;
-        if (isBrsFile(file) && this.shouldAddCodeCoverageToFile(file)) {
-            this.codeCoverageProcessor.addCodeCoverage(file);
-        }
-    }
+    beforePublish() { }
 
-    beforePublish() {
-        // console.log('bp');
-        for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
+    beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.addTestRunnerMetadata(editor);
+        this.session.addLaunchHook(editor);
+    beforeFileTranspile(event: BeforeFileTranspileEvent) {
+        let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
+        if (testSuite) {
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
                 console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
             }
 
-            testSuite.addDataFunctions();
+            testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit);
+                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any);
                 }
+            }
+            if (testSuite.isNodeTest) {
+                this.session.createNodeFile(event.program, testSuite);
             }
         }
 
-        for (let testSuite of [...this.session.sessionInfo.allTestSuites.values()].filter((ts) => !ts.isIncluded)) {
-            testSuite.removeCode();
-        }
-
-        this.session.addTestRunnerMetadata();
-        this.session.addLaunchHook();
         this.session.createNodeFiles(this._builder.program);
-        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage);
     }
 
-    beforeProgramValidate() {
+    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.removeRooibosMain();
+    }
+
+    afterProgramValidate() {
         // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
             testSuite.validate();
+        }
+        for (let file of this.fileFactory.addedFrameworkFiles) {
+            // eslint-disable-next-line @typescript-eslint/dot-notation
+            file['diagnostics'] = [];
         }
     }
 

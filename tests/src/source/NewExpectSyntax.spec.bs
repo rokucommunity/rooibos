@@ -1,0 +1,324 @@
+
+namespace tests
+  @suite
+  class NewExpectSyntaxTests extends rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+  Helper
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function assertRunningTestIsFailed()
+      m.isAutoAssertingMocks = false
+      m.assertMocks()
+
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.cleanMocks()
+      m.cleanSTubs()
+      m.assertTrue(isFail)
+    end function
+
+    private function assertRunningTestIsPassed()
+      m.isAutoAssertingMocks = false
+      m.assertMocks()
+
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.cleanMocks()
+      m.cleanSTubs()
+      m.assertFalse(isFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("expectCalled regular functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple")
+    function _()
+      item = { "id": "node" }
+      m.expectCalled(item.getText(), "test")
+      m.assertEqual(item.getText(), "test")
+    end function
+
+    @it("expected param")
+    function _()
+      item = { "id": "node" }
+      m.expectCalled(item.getText("expected"), "test")
+      m.assertEqual(item.getText("expected"), "test")
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("not matching on param")
+    function _()
+      item = { "id": "node" }
+      m.expectCalled(item.getText("expected"), "test")
+
+      m.assertEqual(item.getText("not expected"), "test")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("expectCalled function pointers")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("supports function pointer - therefore ignoring the params")
+    function _()
+      item = { "id": "node" }
+
+      'don't care about the args
+      m.expectCalled(item.getText, "some return value I want")
+
+      'I expect this arg only
+      m.expectCalled(item.getText("expected"), "some return value I want")
+
+      'callfunc with no args
+      m.expectCalled(item@.getText())
+      m.expectCalled(item@.getText("expected"))
+      m.expectCalled(item@.getText("expected"), "some return value I want")
+
+
+      'don't expect this to be called
+      m.expectNotCalled(item.getText())
+
+      item@.getText()
+
+      m.assertEqual(item.getText("any text"), "some return value I want")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("expectCalled callFunc functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple")
+    function _()
+      item = { "id": "node" }
+      m.expectCalled(item@.getText(), "test")
+      m.assertEqual(item@.getText(), "test")
+    end function
+
+    @it("expected param")
+    function _()
+      item = { "id": "node" }
+      m.expectCalled(item@.getText("expected"), "test")
+      m.assertEqual(item@.getText("expected"), "test")
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("not matching on param")
+    function _()
+      item = { "id": "node" }
+      m.expectCalled(item@.getText("expected"), "test")
+
+      m.assertEqual(item@.getText("not expected"), "test")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall regular functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("simple")
+    function _()
+      item = { "id": "node" }
+      m.stubCall(item.getText(), "test")
+      m.assertEqual(item.getText(), "test")
+    end function
+
+    @it("expected param")
+    function _()
+      item = { "id": "node" }
+      m.stubCall(item.getText("expected"), "test")
+      m.assertEqual(item.getText("expected"), "test")
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("not matching on param")
+    function _()
+      item = { "id": "node" }
+      m.stubCall(item.getText("expected"), "test")
+
+      m.assertEqual(item.getText("not expected"), "test")
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall function pointers")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("supports function pointer - therefore ignoring the params")
+    function _()
+      item = { "id": "node" }
+      m.stubCall(item.getText, "test")
+
+      m.assertEqual(item.getText("any text"), "test")
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall callFunc functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("not matching on param")
+    function _()
+      item = { "id": "node" }
+      m.stubCall(item@.getText("expected"), "test")
+
+      m.assertEqual(item@.getText("not expected"), "test")
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("simple")
+    function _()
+      item = { "id": "node" }
+      m.stubCall(item@.getText(), "test")
+      m.assertEqual(item@.getText(), "test")
+    end function
+
+    @it("expected param")
+    function _()
+      item = { "id": "node" }
+      m.stubCall(item@.getText("expected"), "test")
+      m.assertEqual(item@.getText("expected"), "test")
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("expectNotCalled")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes when not called")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item.getText())
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("fails when called")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item.getText())
+      item.getText()
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    @it("fails when called, with params")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item.getText())
+      item.getText("expected")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    @it("fails when called, with params on expect too")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item.getText("expected"))
+      item.getText("not expected")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("expectNotCalled - with callfunc")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes when not called")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item@.getText())
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("fails when called")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item@.getText())
+      item@.getText()
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    @it("fails when called, with params")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item@.getText())
+      item@.getText("expected")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    @it("fails when called, with params on expect too")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item@.getText("expected"))
+      item@.getText("not expected")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("expectNotCalled - function pointers")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes when not called")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item.getText)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("fails when called")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item.getText)
+      item.getText()
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    @it("fails when called, with params")
+    function _()
+      item = { "id": "node" }
+      m.expectNotCalled(item.getText)
+      item.getText("expected")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("mocks with exceptions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("throws exceptions")
+    function _()
+      thing = { "id": "thing" }
+
+      error = {message: "error"}
+      m.expectCalled(thing.thrownAnError())
+      m.expectLastCallToThrowError(error)
+
+      try
+        thing.thrownAnError()
+      catch error
+        m.assertEqual(error.message, "error")
+      end try
+
+    end function
+
+
+  end class
+
+end namespace

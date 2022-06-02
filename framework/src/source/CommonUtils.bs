@@ -41,8 +41,12 @@ namespace rooibos.Common
   '  * @returns {Function} - function pointer or invalid
   '  */
   function getFunction(filename, functionName) as object
-    if not Rooibos.Common.isNotEmptyString(functionName) then return invalid
-    if not Rooibos.Common.isNotEmptyString(filename) then return invalid
+    if not Rooibos.Common.isNotEmptyString(functionName)
+      return invalid
+    end if
+    if not Rooibos.Common.isNotEmptyString(filename)
+      return invalid
+    end if
     'bs:disable-next-line
     mapFunction = RBSFM_getFunctionsForFile(filename)
     'bs:disable-next-line
@@ -74,7 +78,9 @@ namespace rooibos.Common
   '  * @returns {Function} - function pointer or invalid
   '  */
   function getFunctionBruteForce(functionName) as object
-    if not Rooibos.Common.isNotEmptyString(functionName) then return invalid
+    if not Rooibos.Common.isNotEmptyString(functionName)
+      return invalid
+    end if
     'bs:disable-next-line
     filenames = RBSFM_getFilenames()
     for i = 0 to filenames.count() - 1
@@ -297,15 +303,27 @@ namespace rooibos.Common
   '  * @param {Dynamic} input - value to check
   '  * @returns {String} - converted string
   '  */
-  function asString(input) as string
+  function asString(input, includeType = false) as string
     if Rooibos.Common.isValid(input) = false
-      return "Invalid"
+      return "INVALID"
     else if Rooibos.Common.isString(input)
-      return input
+      if includeType
+        return """" + input + """"
+      else
+        return input
+      end if
     else if Rooibos.Common.isInteger(input) or Rooibos.Common.isLongInteger(input) or Rooibos.Common.isBoolean(input)
-      return input.ToStr()
+      if includeType
+        return input.ToStr() + " (" + Rooibos.Common.getSafeType(input) + ")"
+      else
+        return input.ToStr()
+      end if
     else if Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input)
-      return Str(input).Trim()
+      if includeType
+        return Str(input).Trim() + " (" + Rooibos.Common.getSafeType(input) + ")"
+      else
+        return Str(input).Trim()
+      end if
     else if type(input) = "roSGNode"
       return "Node(" + input.subType() + ")"
     else if type(input) = "roAssociativeArray"
@@ -313,11 +331,12 @@ namespace rooibos.Common
       text = "{"
       if not isFirst
         text = text + ","
+        'bs:disable-next-line
         isFirst = false
       end if
       for each key in input
         if rooibos.Common.canSafelyIterateAAKey(input, key)
-          text = text + key + ":" + Rooibos.Common.asString(input[key])
+          text = text + key + ":" + Rooibos.Common.asString(input[key], includeType)
         end if
       end for
       text = text + "}"
@@ -328,7 +347,7 @@ namespace rooibos.Common
       maxLen = 500
       for each v in input
         if len(text) < maxLen
-          text += join + rooibos.Common.asString(v)
+          text += join + rooibos.Common.asString(v, includeType)
           join = ", "
         end if
       end for
@@ -338,7 +357,7 @@ namespace rooibos.Common
       text = text + "]"
       return text
     else if Rooibos.Common.isFunction(input)
-      return input.toStr()
+      return input.toStr() + "(function)"
     else
       return ""
     end if
@@ -516,8 +535,6 @@ namespace rooibos.Common
         if Rooibos.Common.eqValues(compareValue, value)
           return i
         end if
-
-        item = array[i]
       next
     end if
     return -1
@@ -576,6 +593,32 @@ namespace rooibos.Common
   end function
 
 
+  function getSafeType(v)
+    t = type(v)
+    if t = "<uninitialized>" or t = ""
+      return invalid
+    else if t = "roString"
+      return "String"
+    else if t = "roInteger"
+      return "Integer"
+    else if t = "roBoolean"
+      return "Boolean"
+    else if t = "roBool"
+      return "Boolean"
+    else if t = "roInt"
+      return "Integer"
+    else if t = "roList"
+      return "List"
+    else if t = "roFloat"
+      return "Float"
+    else if t = "roDouble"
+      return "Double"
+    else if t = "roInvalid"
+      return "Invalid"
+    else
+      return t
+    end if
+  end function
   ' /**
   '  * @memberof module:CommonUtils
   '  * @name EqValues
@@ -586,40 +629,33 @@ namespace rooibos.Common
   '  * @param {Dynamic} Value2 - second item to compare
   '  * @returns {boolean} - True if values are equal or False in other case.
   '  */
-  function eqValues(Value1, Value2) as dynamic
+  function eqValues(Value1, Value2, fuzzy = false) as dynamic
     ' Workaraund for bug with string boxing, and box everything else
-    val1Type = type(Value1)
-    val2Type = type(Value2)
-    if val1Type = "<uninitialized>" or val2Type = "<uninitialized>" or val1Type = "" or val2Type = ""
+    val1Type = Rooibos.Common.getSafeType(Value1)
+    val2Type = Rooibos.Common.getSafeType(Value2)
+    if val1Type = invalid or val2Type = invalid
       ? "ERROR!!!! - undefined value passed"
       return false
     end if
 
-    v1IsString = val1Type = "roString" or val1Type = "String"
-    v2IsString = val2Type = "roString" or val2Type = "String"
-    'update types after boxing
-    val1Type = type(Value1)
-    val2Type = type(Value2)
-
-
     'Upcast int to float, if other is float
-    if val1Type = "roFloat" and val2Type = "roInt"
+    if val1Type = "Float" and val2Type = "Integer"
       Value2 = cdbl(Value2)
-    else if val2Type = "roFloat" and val1Type = "roInt"
+    else if val2Type = "Float" and val1Type = "Integer"
       Value1 = cdbl(Value1)
     end if
 
-    if val1Type <> val2Type and v1IsString <> v2IsString
+    if val1Type <> val2Type and fuzzy <> true
       return false
     else
       valtype = val1Type
 
-      if valtype = "roList"
-        return Rooibos.Common.eqArray(Value1, Value2)
+      if val1Type = "List"
+        return Rooibos.Common.eqArray(Value1, Value2, fuzzy)
       else if valtype = "roAssociativeArray"
-        return Rooibos.Common.eqAssocArray(Value1, Value2)
+        return Rooibos.Common.eqAssocArray(Value1, Value2, fuzzy)
       else if valtype = "roArray"
-        return Rooibos.Common.eqArray(Value1, Value2)
+        return Rooibos.Common.eqArray(Value1, Value2, fuzzy)
       else if valtype = "roSGNode"
         if val2Type <> "roSGNode"
           return false
@@ -627,13 +663,36 @@ namespace rooibos.Common
           return Value1.isSameNode(Value2)
         end if
       else
-        'If you crashed on this line, then you're trying to compare
-        '2 things which can't be compared - check what value1 and value2
-        'are in your debug log
-        return Value1 = Value2
+        if fuzzy = true
+          return Rooibos.Common.asString(Value1) = Rooibos.Common.asString(Value2)
+        else
+          'If you crashed on this line, then you're trying to compare
+          '2 things which can't be compared - check what value1 and value2
+          'are in your debug log
+          return Value1 = Value2
+        end if
       end if
     end if
   end function
+
+  function eqTypes(Value1, Value2) as dynamic
+    val1Type = Rooibos.Common.getSafeType(Value1)
+    val2Type = Rooibos.Common.getSafeType(Value2)
+    if val1Type = invalid or val2Type = invalid
+      ? "ERROR!!!! - undefined value passed"
+      return false
+    end if
+
+    'Upcast int to float, if other is float
+    if val1Type = "Float" and val2Type = "Integer"
+      Value2 = cdbl(Value2)
+    else if val2Type = "Float" and val1Type = "Integer"
+      Value1 = cdbl(Value1)
+    end if
+
+    return val1Type <> val2Type
+  end function
+
 
   ' /**
   '  * @memberof module:CommonUtils
@@ -645,7 +704,7 @@ namespace rooibos.Common
   '  * @param {Dynamic} Value2 - second associative array
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
-  function eqAssocArray(Value1, Value2) as dynamic
+  function eqAssocArray(Value1, Value2, fuzzy = false) as dynamic
     l1 = Value1.Count()
     l2 = Value2.Count()
 
@@ -659,7 +718,7 @@ namespace rooibos.Common
           if rooibos.common.canSafelyIterateAAKey(Value1, k) and rooibos.common.canSafelyIterateAAKey(Value2, k)
             v1 = Value1[k]
             v2 = Value2[k]
-            if not Rooibos.Common.eqValues(v1, v2)
+            if not Rooibos.Common.eqValues(v1, v2, fuzzy)
               return false
             end if
           end if
@@ -689,8 +748,10 @@ namespace rooibos.Common
   '  * @param {Dynamic} Value2 - second array
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
-  function eqArray(Value1, Value2) as dynamic
-    if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value2) then return false
+  function eqArray(Value1, Value2, fuzzy = false) as dynamic
+    if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value2)
+      return false
+    end if
 
     l1 = Value1.Count()
     l2 = Value2.Count()
@@ -701,7 +762,7 @@ namespace rooibos.Common
       for i = 0 to l1 - 1
         v1 = Value1[i]
         v2 = Value2[i]
-        if not Rooibos.Common.eqValues(v1, v2) then
+        if not Rooibos.Common.eqValues(v1, v2, fuzzy)
           return false
         end if
       end for
