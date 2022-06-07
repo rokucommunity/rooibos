@@ -498,21 +498,21 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents(true)
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
-                    m._expectCalled(m.thing, "callFunc", [
+                    m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                     "getFunction"
                     ])
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 7
-                    m._expectCalled(m.thing, "callFunc", [
+                    m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                     "getFunction"
                     ], "return")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 8
-                    m._expectCalled(m.thing, "callFunc", [
+                    m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                     "getFunction"
                     "a"
                     "b"
@@ -521,7 +521,7 @@ describe('RooibosPlugin', () => {
 
 
                     m.currentAssertLineNumber = 9
-                    m._expectCalled(m.thing, "callFunc", [
+                    m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                     "getFunction"
                     "a"
                     "b"
@@ -550,12 +550,12 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
-                    m._expectCalled(m.thing, "getFunctionField", invalid)
+                    m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid)
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 7
-                    m._expectCalled(m.thing, "getFunctionField", invalid, "return")
+                    m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid, "return")
                     if m.currentResult.isFail then return invalid
                 `);
             });
@@ -582,17 +582,17 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents(true)
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
-                    m._expectCalled(m.thing, "getFunction", [])
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 7
-                    m._expectCalled(m.thing, "getFunction", [], "return")
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 8
-                    m._expectCalled(m.thing, "getFunction", [
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [
                     "arg1"
                     "arg2"
                     ])
@@ -600,7 +600,7 @@ describe('RooibosPlugin', () => {
 
 
                     m.currentAssertLineNumber = 9
-                    m._expectCalled(m.thing, "getFunction", [
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [
                     "arg1"
                     "arg2"
                     ], "return")
@@ -670,17 +670,17 @@ describe('RooibosPlugin', () => {
                     }
 
                     m.currentAssertLineNumber = 7
-                    m._expectCalled(item, "getFunction", [])
+                    m._expectCalled(item, "getFunction", item, "item", [])
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 8
-                    m._expectCalled(item, "getFunction", [], "return")
+                    m._expectCalled(item, "getFunction", item, "item", [], "return")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 9
-                    m._expectCalled(item, "getFunction", [
+                    m._expectCalled(item, "getFunction", item, "item", [
                     "arg1"
                     "arg2"
                     ])
@@ -688,7 +688,7 @@ describe('RooibosPlugin', () => {
 
 
                     m.currentAssertLineNumber = 10
-                    m._expectCalled(item, "getFunction", [
+                    m._expectCalled(item, "getFunction", item, "item", [
                     "arg1"
                     "arg2"
                     ], "return")
@@ -719,10 +719,10 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m._stubCall(m.thing, "callFunc")
-                    m._stubCall(m.thing, "callFunc", "return")
-                    m._stubCall(m.thing, "callFunc")
-                    m._stubCall(m.thing, "callFunc", "return")
+                    m._stubCall(m.thing, "callFunc", m, "m.thing")
+                    m._stubCall(m.thing, "callFunc", m, "m.thing", "return")
+                    m._stubCall(m.thing, "callFunc", m, "m.thing")
+                    m._stubCall(m.thing, "callFunc", m, "m.thing", "return")
                 `);
             });
 
@@ -745,8 +745,8 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m._stubCall(m.thing, "getFunctionField")
-                    m._stubCall(m.thing, "getFunctionField", "return")
+                    m._stubCall(m.thing, "getFunctionField", m, "m.thing")
+                    m._stubCall(m.thing, "getFunctionField", m, "m.thing", "return")
                 `);
             });
 
@@ -773,8 +773,8 @@ describe('RooibosPlugin', () => {
                     item = {
                         id: "item"
                     }
-                    m._stubCall(item, "getFunctionField")
-                    m._stubCall(item, "getFunctionField", "return")
+                    m._stubCall(item, "getFunctionField", item, "item")
+                    m._stubCall(item, "getFunctionField", item, "item", "return")
                 `);
             });
 
@@ -799,10 +799,10 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m._stubCall(m.thing, "getFunction")
-                    m._stubCall(m.thing, "getFunction", "return")
-                    m._stubCall(m.thing, "getFunction")
-                    m._stubCall(m.thing, "getFunction", "return")
+                    m._stubCall(m.thing, "getFunction", m, "m.thing")
+                    m._stubCall(m.thing, "getFunction", m, "m.thing", "return")
+                    m._stubCall(m.thing, "getFunction", m, "m.thing")
+                    m._stubCall(m.thing, "getFunction", m, "m.thing", "return")
                 `);
             });
 
@@ -831,10 +831,10 @@ describe('RooibosPlugin', () => {
                     item = {
                         id: "item"
                     }
-                    m._stubCall(item, "getFunction")
-                    m._stubCall(item, "getFunction", "return")
-                    m._stubCall(item, "getFunction")
-                    m._stubCall(item, "getFunction", "return")
+                    m._stubCall(item, "getFunction", item, "item")
+                    m._stubCall(item, "getFunction", item, "item", "return")
+                    m._stubCall(item, "getFunction", item, "item")
+                    m._stubCall(item, "getFunction", item, "item", "return")
                 `);
             });
         });
@@ -862,22 +862,22 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
-                    m._expectNotCalled(m.thing, "callFunc")
+                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 7
-                    m._expectNotCalled(m.thing, "callFunc", "return")
+                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 8
-                    m._expectNotCalled(m.thing, "callFunc")
+                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 9
-                    m._expectNotCalled(m.thing, "callFunc", "return")
+                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
                     if m.currentResult.isFail then return invalid
                 `);
             });
@@ -902,12 +902,12 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
-                    m._expectNotCalled(thing, "callFunc")
+                    m._expectNotCalled(thing, "callFunc", thing, "thing")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 7
-                    m._expectNotCalled(thing, "callFunc")
+                    m._expectNotCalled(thing, "callFunc", thing, "thing")
                     if m.currentResult.isFail then return invalid
                 `);
                 //verify original code does not remain modified after the transpile cycle
@@ -944,7 +944,7 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
-                    m._expectNotCalled(m.thing, "getFunctionField")
+                    m._expectNotCalled(m.thing, "getFunctionField", m, "m.thing")
                     if m.currentResult.isFail then return invalid
                 `);
                 //verify original code does not remain modified after the transpile cycle
@@ -978,22 +978,22 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
-                    m._expectNotCalled(m.thing, "getFunction")
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 7
-                    m._expectNotCalled(m.thing, "getFunction", "return")
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 8
-                    m._expectNotCalled(m.thing, "getFunction")
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 9
-                    m._expectNotCalled(m.thing, "getFunction", "return")
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
                     if m.currentResult.isFail then return invalid
                 `);
             });
@@ -1023,12 +1023,12 @@ describe('RooibosPlugin', () => {
                     }
 
                     m.currentAssertLineNumber = 7
-                    m._expectNotCalled(item, "getFunction")
+                    m._expectNotCalled(item, "getFunction", item, "item")
                     if m.currentResult.isFail then return invalid
 
 
                     m.currentAssertLineNumber = 8
-                    m._expectNotCalled(item, "getFunction")
+                    m._expectNotCalled(item, "getFunction", item, "item")
                     if m.currentResult.isFail then return invalid
                 `);
             });
@@ -1213,12 +1213,12 @@ describe('RooibosPlugin', () => {
                 }
 
                 m.currentAssertLineNumber = 7
-                m._expectNotCalled(item, "getFunction")
+                m._expectNotCalled(item, "getFunction", item, "item")
                 if m.currentResult.isFail then return invalid
 
 
                 m.currentAssertLineNumber = 8
-                m._expectNotCalled(item, "getFunction")
+                m._expectNotCalled(item, "getFunction", item, "item")
                 if m.currentResult.isFail then return invalid
             `);
 

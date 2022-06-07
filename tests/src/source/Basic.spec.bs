@@ -178,7 +178,7 @@ namespace tests
       m.currentResult.Reset()
       m.assertTrue(isFail)
 
-      m.assertEqual(msg, "[one, two, three] != [2one, 2two, 2three]")
+      m.assertEqual(msg, `["one", "two", "three"] != ["2one", "2two", "2three"]`)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -1,5 +1,5 @@
-import type { AstEditor, CallExpression, DottedGetExpression } from 'brighterscript';
-import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind } from 'brighterscript';
+import type { AstEditor, CallExpression, DottedGetExpression, Expression } from 'brighterscript';
+import { isCallExpression, isCallfuncExpression, isIndexedGetExpression, ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isLiteralExpression, isVariableExpression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
@@ -101,20 +101,26 @@ export class TestGroup extends TestBlock {
         let arg0 = callExpression.args[0];
         if (brighterscript.isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
             let functionName = arg0.callee.name.text;
+            let fullPath = this.getStringPathFromDottedGet(arg0.callee.obj as DottedGetExpression);
             editor.removeFromArray(callExpression.args, 0);
             if (!isNotCalled && !isStubCall) {
                 const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 editor.addToArray(callExpression.args, 0, expectedArgs);
             }
+            editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
+            editor.addToArray(callExpression.args, 0, this.getRootObjectFromDottedGet(arg0.callee));
             editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
             editor.addToArray(callExpression.args, 0, arg0.callee.obj);
         } else if (brighterscript.isDottedGetExpression(arg0)) {
             let functionName = arg0.name.text;
+            let fullPath = this.getStringPathFromDottedGet(arg0.obj as DottedGetExpression);
             arg0 = callExpression.args[0] as DottedGetExpression;
             editor.removeFromArray(callExpression.args, 0);
             if (!isNotCalled && !isStubCall) {
                 editor.addToArray(callExpression.args, 0, createInvalidLiteral());
             }
+            editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
+            editor.addToArray(callExpression.args, 0, this.getRootObjectFromDottedGet(arg0 as DottedGetExpression));
             editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
             editor.addToArray(callExpression.args, 0, (arg0 as DottedGetExpression).obj);
         } else if (brighterscript.isCallfuncExpression(arg0)) {
@@ -128,6 +134,9 @@ export class TestGroup extends TestBlock {
                 const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName), ...arg0.args], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 editor.addToArray(callExpression.args, 0, expectedArgs);
             }
+            let fullPath = this.getStringPathFromDottedGet(arg0.callee as DottedGetExpression);
+            editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
+            editor.addToArray(callExpression.args, 0, this.getRootObjectFromDottedGet(arg0.callee as DottedGetExpression));
             editor.addToArray(callExpression.args, 0, createStringLiteral('callFunc'));
             editor.addToArray(callExpression.args, 0, arg0.callee);
         }
@@ -149,6 +158,58 @@ export class TestGroup extends TestBlock {
                 afterEachFunctionName: "${this.afterEachFunctionName || ''}"
                 testCases: [${testCaseText.join(',\n')}]
             }`;
+    }
+
+    private getStringPathFromDottedGet(value: DottedGetExpression) {
+        let parts = [this.getPathValuePartAsString(value)];
+        let root;
+        root = value.obj;
+        while (root) {
+            if (isCallExpression(root) || isCallfuncExpression(root)) {
+                return undefined;
+            }
+            parts.push(`${this.getPathValuePartAsString(root)}`);
+            root = root.obj;
+        }
+        let joinedParts = parts.reverse().join('.');
+        return joinedParts === '' ? undefined : createStringLiteral(joinedParts);
+    }
+
+
+    private getPathValuePartAsString(expr: Expression) {
+        if (isCallExpression(expr) || isCallfuncExpression(expr)) {
+            return undefined;
+        }
+        if (isVariableExpression(expr)) {
+            return expr.name.text;
+        }
+        if (!expr) {
+            return undefined;
+        }
+        if (isDottedGetExpression(expr)) {
+            return expr.name.text;
+        } else if (isIndexedGetExpression(expr)) {
+            if (isLiteralExpression(expr.index)) {
+                return `${expr.index.token.text.replace(/^"/, '').replace(/"$/, '')}`;
+            } else if (isVariableExpression(expr.index)) {
+                return `${expr.index.name.text}`;
+            }
+        }
+    }
+
+    private getRootObjectFromDottedGet(value: DottedGetExpression) {
+        let root;
+        if (isDottedGetExpression(value) || isIndexedGetExpression(value)) {
+
+            root = value.obj;
+            while (root.obj) {
+                root = root.obj;
+            }
+        } else {
+            root = value;
+        }
+
+        return root;
     }
 
 }
