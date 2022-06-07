@@ -8,5 +8,8 @@
     "titleBar.activeBackground": "#1D445B",
     "titleBar.activeForeground": "#F7FBFD"
   },
-  "brightscript.bsdk": "embedded"
+  "brightscript.bsdk": "embedded",
+  "cSpell.words": [
+    "stubbable"
+  ]
 }

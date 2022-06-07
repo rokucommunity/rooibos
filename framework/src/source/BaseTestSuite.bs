@@ -1612,23 +1612,22 @@ namespace rooibos
       end try
     end function
 
-    function expectCalled(invocation as dynamic, returnValue = invalid as dynamic, thrownError = invalid as dynamic) as object
+    function expectCalled(invocation as dynamic, returnValue = invalid as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid
     end function
 
-    function _expectCalled(target, methodName, expectedArgs = invalid, returnValue = invalid as dynamic, thrownError = invalid as dynamic) as object
+    function _expectCalled(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic, expectedArgs = invalid, returnValue = invalid as dynamic) as object
       try
-        mock = m.mock(target, methodName, 1, expectedArgs, returnValue, true)
-        if thrownError <> invalid
-          mock.toThrow(thrownError)
+        if fullPath <> invalid
+          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
         end if
+        return m.mock(target, methodName, 1, expectedArgs, returnValue, true)
       catch error
         'bs:disable-next-line
         m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
-        return false
       end try
-      return false
+      return invalid
     end function
 
     function stubCall(invocation as dynamic, returnValue = invalid as dynamic) as object
@@ -1636,8 +1635,11 @@ namespace rooibos
       return invalid
     end function
 
-    function _stubCall(target, methodName, returnValue = invalid as dynamic) as object
+    function _stubCall(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic, returnValue = invalid as dynamic) as object
       try
+        if fullPath <> invalid
+          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
+        end if
         return m.stub(target, methodName, returnValue, true)
       catch error
         'bs:disable-next-line
@@ -1652,8 +1654,11 @@ namespace rooibos
       return invalid
     end function
 
-    function _expectNotCalled(target, methodName) as object
+    function _expectNotCalled(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic) as object
       try
+        if fullPath <> invalid
+          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
+        end if
         return m.mock(target, methodName, 0, invalid, invalid, true)
       catch error
         'bs:disable-next-line

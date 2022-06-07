@@ -645,7 +645,7 @@ namespace rooibos.Common
       Value1 = cdbl(Value1)
     end if
 
-    if val1Type <> val2Type and fuzzy <> true
+    if val1Type <> val2Type and (fuzzy <> true or val1Type = "String" or val2Type = "String")
       return false
     else
       valtype = val1Type
@@ -791,5 +791,53 @@ namespace rooibos.Common
     end if
     return text
   end function
+
+  function makePathStubbable(content as dynamic, path as string)
+    part = invalid
+
+    if path <> invalid
+      parts = path.split(".")
+      numParts = parts.count()
+      i = 0
+
+      contentName = parts[i]
+      i++
+      if type(content) <> "roAssociativeArray"
+        content = {id: contentName}
+      end if
+      part = content
+      while i < numParts and part <> invalid
+        isIndexNumber = parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i])
+        if isIndexNumber
+          index = parts[i].toInt()
+        else
+          index = parts[i]
+        end if
+
+        if rooibos.Common.isArray(part) and isIndexNumber
+          nextPart = part[index]
+        else if type(part) = "roAssociativeArray" and not isIndexNumber
+          nextPart = part[index]
+        else
+          nextPart = invalid
+        end if
+
+        if nextPart = invalid or type(nextPart) <>  "roAssociativeArray"
+          if (not isIndexNumber and type(part) = "roAssociativeArray") or (isIndexNumber and (rooibos.Common.isArray(part)))
+            nextPart = { id: index }
+            part[index] = nextPart
+          else
+            'index type mismatch, gonna have to bail
+            return content
+          end if
+        end if
+        part = nextPart
+        i++
+      end while
+
+    end if
+    return part
+  end function
+
 
 end namespace
