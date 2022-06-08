@@ -1619,7 +1619,7 @@ namespace rooibos
 
     function _expectCalled(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic, expectedArgs = invalid, returnValue = invalid as dynamic) as object
       try
-        if fullPath <> invalid
+        if type(target) <> "roAssociativeArray" and fullPath <> invalid
           target = rooibos.Common.makePathStubbable(rootObject, fullPath)
         end if
         return m.mock(target, methodName, 1, expectedArgs, returnValue, true)
@@ -1637,7 +1637,7 @@ namespace rooibos
 
     function _stubCall(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic, returnValue = invalid as dynamic) as object
       try
-        if fullPath <> invalid
+        if type(target) <> "roAssociativeArray" and fullPath <> invalid
           target = rooibos.Common.makePathStubbable(rootObject, fullPath)
         end if
         return m.stub(target, methodName, returnValue, true)
@@ -1656,7 +1656,7 @@ namespace rooibos
 
     function _expectNotCalled(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic) as object
       try
-        if fullPath <> invalid
+        if type(target) <> "roAssociativeArray" and fullPath <> invalid
           target = rooibos.Common.makePathStubbable(rootObject, fullPath)
         end if
         return m.mock(target, methodName, 0, invalid, invalid, true)
