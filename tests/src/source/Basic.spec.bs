@@ -119,6 +119,18 @@ namespace tests
       m.assertFalse(isFail)
     end function
 
+    @it("passes If Is correct Class as reference")
+    function _()
+      m.assertClass({
+        __classname: "rooibos.BaseTestSuite"
+      }, rooibos.BaseTestSuite)
+      isFail = m.currentResult.isFail
+
+      m.currentResult.Reset()
+
+      m.assertFalse(isFail)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("assertAAContainsSubset")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

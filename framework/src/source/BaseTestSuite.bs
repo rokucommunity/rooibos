@@ -1126,7 +1126,7 @@ namespace rooibos
         return false
       end if
       if rooibos.Common.isFunction(func)
-        func = value.toStr().mid(10).replace("_", ".")
+        func = func.toStr().mid(10).replace("_", ".")
       end if
       try
         if not Rooibos.Common.isAssociativeArray(value)
@@ -1137,8 +1137,8 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        className = `${value.__classname}`
-        if className <> func
+        className = lCase(`${value.__classname}`)
+        if className <> lCase(func)
           if msg = ""
             msg = `Expected class: ${func} got ${className}`
           end if
