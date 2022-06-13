@@ -1121,23 +1121,26 @@ namespace rooibos
 
     end function
 
-    function assertClass(value, typeStr, msg = "") as dynamic
+    function assertClass(value, func, msg = "") as dynamic
       if m.currentResult.isFail
         return false
+      end if
+      if rooibos.Common.isFunction(func)
+        func = value.toStr().mid(10).replace("_", ".")
       end if
       try
         if not Rooibos.Common.isAssociativeArray(value)
           if msg = ""
             expr_as_string = Rooibos.Common.asString(value)
-            msg = expr_as_string + " was not an aa, so could not match Class " + typeStr
+            msg = expr_as_string + " was not an aa, so could not match Class " + func
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
         className = `${value.__classname}`
-        if className <> typeStr
+        if className <> func
           if msg = ""
-            msg = `Expected class: ${typeStr} got ${className}`
+            msg = `Expected class: ${func} got ${className}`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
