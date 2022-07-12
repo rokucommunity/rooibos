@@ -31,8 +31,18 @@ namespace rooibos
       m.stats = new rooibos.Stats()
       m.runtimeConfig = new rooibos.RuntimeConfig()
       m.config = m.runtimeConfig.getRuntimeConfig()
-      'TODO - allow providing different reporters via config
-      m.testReporter = new Rooibos.ConsoleTestReporter(m)
+
+      Reporter = {
+        "JUnitTestReporter": Rooibos.JUnitTestReporter
+        "ConsoleTestReporter": Rooibos.ConsoleTestReporter
+      }[m.config.reporter]
+
+      if reporter <> invalid
+        m.testReporter = new Reporter(m)
+      else
+        m.testReporter = new Rooibos.ConsoleTestReporter(m)
+      end if
+
     end function
 
     ' /**
