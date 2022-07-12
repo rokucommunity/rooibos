@@ -32,13 +32,8 @@ namespace rooibos
       m.runtimeConfig = new rooibos.RuntimeConfig()
       m.config = m.runtimeConfig.getRuntimeConfig()
 
-      Reporter = {
-        "JUnitTestReporter": Rooibos.JUnitTestReporter
-        "ConsoleTestReporter": Rooibos.ConsoleTestReporter
-      }[m.config.reporter]
-
-      if reporter <> invalid
-        m.testReporter = new Reporter(m)
+      if m.config.reporter = "JUnitTestReporter"
+        m.testReporter = new Rooibos.JUnitTestReporter(m)
       else
         m.testReporter = new Rooibos.ConsoleTestReporter(m)
       end if

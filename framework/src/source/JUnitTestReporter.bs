@@ -38,7 +38,7 @@ namespace rooibos
         end for
       end if
 
-      print `<?xml version="1.0" encoding="UTF-8"?>` + root.GenXML(false)
+      ? `<?xml version="1.0" encoding="UTF-8"?>` + root.GenXML(false)
     end function
 
     function generateGroupXML(testGroup, suite)
@@ -81,13 +81,13 @@ namespace rooibos
       end for
     end function
 
-    function getStackTrace(error) string
+    function getStackTrace(error) as string
       output = ""
 
       for i = error.backTrace.count() - 1 to 0 step -1
         e = error.backTrace[i]
         if e.filename.instr("pkg:/source/rooibos") = -1
-          output = output + e.filename + "(" + stri(e.line_number).trim() + ")")
+          output = output + e.filename + "(" + stri(e.line_number).trim() + ")"
         end if
       end for
 
