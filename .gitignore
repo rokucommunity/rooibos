@@ -52,3 +52,5 @@ package-lock.json
 !.vscode
 .vscode/.env
 dist/
+
+.history

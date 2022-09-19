@@ -1,0 +1,35 @@
+{
+  "menu": {
+    "item": "{{#levelRepeat}}  {{/levelRepeat}}* [{{{title}}}]({{{link}}})\n",
+    "category": "{{#levelRepeat}}  {{/levelRepeat}}* {{#link}}[{{{title}}}]({{{link}}}){{/link}}{{^link}}{{{title}}}{{/link}}\n{{{subitems}}}",
+    "category-1": "{{{subitems}}}\n"
+  },
+  "rules": {
+    "exclude": [
+      "Home.md"
+    ],
+    "order": [
+      "Creating-test-suites.md",
+      "Writing-tests.md",
+      "Understanding-test-output.md",
+      "Controlling-which-tests-run.md",
+      "Mocks-and-stubs.md",
+      "Mocks-and-stubs:-fakes.md",
+      "Mocks-and-stubs:-stubs.md",
+      "Mocks-and-stubs:-mocks.md",
+      "API-reference.md",
+      "Assertion-reference.md",
+      "Integrating-with-your-CI.md",
+      "Backward-compatibility.md",
+      "Advanced-Setup.md",
+      "Working-with-tests.md",
+      "Code-coverage.md",
+      "vsCodeSnippets.md"
+    ]
+  },
+  "separator": ":-",
+  "linkTemplate": "./%s",
+  "menuFile": "_Sidebar.md",
+  "multilang": false,
+  "menuOnly": true
+}

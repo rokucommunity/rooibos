@@ -17,7 +17,7 @@ Simple, mocha-and junit inspired, flexible, fun Brightscript test framework for 
  - **[Documentation](https://github.com/georgejecook/rooibos/blob/master/docs/index.md)**
  - **[API Documentation](https://georgejecook.github.io/rooibos)**
  - **[CHANGELOG](CHANGELOG.md)**
- - **[VSCode snippets](docs/vsCodeSnippets.md)**
+ - **[VSCode snippets](/docs/vsCodeSnippets.md)**
  - [Roku Developers slack](https://join.slack.com/t/rokudevelopers/shared_invite/zt-4vw7rg6v-NH46oY7hTktpRIBM_zGvwA)
 
 ## Development
