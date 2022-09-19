@@ -5,9 +5,9 @@ In other cases, it may simply be impractical to execute code as part of our test
 
 In all of these cases, you can use Rooibos's mocks and stubs in place of real method calls.
 
-#### [Fakes](../docs/Mocks-and-stubs:-fakes.md)
-#### [Stubs](./docs/Mocks-and-stubs:-stubs.md)
-#### [Mocks](./docs/Mocks-and-stubs:-mocks.md)
+#### [Fakes](/docs/Mocks-and-stubs%3A-fakes.md)
+#### [Stubs](/docs/Mocks-and-stubs%3A-stubs.md)
+#### [Mocks](/docs/Mocks-and-stubs%3A-mocks.md)
 
 
 
