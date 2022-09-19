@@ -14,7 +14,7 @@ Simple, mocha-and junit inspired, flexible, fun Brightscript test framework for 
 [![Coverage Status](https://coveralls.io/repos/github/georgejecook/rooibos/badge.svg?branch=master)](https://coveralls.io/github/georgejecook/rooibos?branch=master)
 
 ## Links
- - **[Documentation](https://github.com/georgejecook/rooibos/blob/master/docs/index.md)**
+ - **[Documentation](/docs/index.md)**
  - **[API Documentation](https://georgejecook.github.io/rooibos)**
  - **[CHANGELOG](CHANGELOG.md)**
  - **[VSCode snippets](/docs/vsCodeSnippets.md)**

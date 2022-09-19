@@ -1,21 +1,21 @@
 <a name="generate-code-coverage"></a>
 
-**THIS FEATURE IS NOT YET AVAILBALE - I WILL REENABLE THIS IN ROOIBOS 4.2** : If you want it sooner, I can tell you how to implement it - it's a cpl hours of work, I don't have time for right now.
+**THIS FEATURE IS NOT YET AVAILABLE - I WILL REENABLE THIS IN ROOIBOS 4.2** : If you want it sooner, I can tell you how to implement it - it's a cpl hours of work, I don't have time for right now.
 
 
 Rooibos can measure and report the test coverage your unit tests are producing.
 
-### Code coverage recording is desctructive!
+### Code coverage recording is destructive!
 
 #### WARNING - DO NOT run code coverage against your source folder!
 
 Recording coverage means modifying your sources! you should only run the coverage on a project path pointing to a build folder _not_ your source.
 
-These files should be cleaned and recopied _every time you run coverage_ or you will get compile errors/other undetermined behaviour.
+These files should be cleaned and recopied _every time you run coverage_ or you will get compile errors/other undetermined behavior.
 
 #### WARNING - Running code coverage is slower and may crash your device
 
-Running a code coverage report is a lot slower than a standard test, due to conitnual probing of your source. Only run coverage when needed. Also - be aware it will crash very tight loops, like inside of a while waiting on a port, which will in fact crash and hard reset your device.
+Running a code coverage report is a lot slower than a standard test, due to continual probing of your source. Only run coverage when needed. Also - be aware it will crash very tight loops, like inside of a while waiting on a port, which will in fact crash and hard reset your device.
 
 ### Recording coverage
 To record coverage, set the `sourceFilePattern` to a glob matching (including and excluding) the files that should be included in your coverage report, and set the `isRecordingCodeCoverage` flag to true. Be careful to not include your test specs!!
