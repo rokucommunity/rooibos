@@ -124,7 +124,7 @@ export class RooibosPlugin implements CompilerPlugin {
         this.session.removeRooibosMain();
     }
 
-    afterProgramValidate() {
+    afterProgramValidate(program: Program) {
         // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {

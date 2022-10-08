@@ -803,26 +803,26 @@ namespace rooibos.Common
       contentName = parts[i]
       i++
       if type(content) <> "roAssociativeArray"
-        content = {id: contentName}
+        content = { id: contentName }
       end if
       part = content
       while i < numParts and part <> invalid
         isIndexNumber = parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i])
+        index = invalid
         if isIndexNumber
           index = parts[i].toInt()
         else
           index = parts[i]
         end if
 
+        nextPart = invalid
         if rooibos.Common.isArray(part) and isIndexNumber
           nextPart = part[index]
         else if type(part) = "roAssociativeArray" and not isIndexNumber
           nextPart = part[index]
-        else
-          nextPart = invalid
         end if
 
-        if nextPart = invalid or type(nextPart) <>  "roAssociativeArray"
+        if nextPart = invalid or type(nextPart) <> "roAssociativeArray"
           if (not isIndexNumber and type(part) = "roAssociativeArray") or (isIndexNumber and (rooibos.Common.isArray(part)))
             nextPart = { id: index }
             part[index] = nextPart
