@@ -93,8 +93,6 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    beforePublish() { }
-
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addTestRunnerMetadata(editor);
         this.session.addLaunchHook(editor);
