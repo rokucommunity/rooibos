@@ -118,8 +118,6 @@ export class RooibosPlugin implements CompilerPlugin {
                 this.session.createNodeFile(event.program, testSuite);
             }
         }
-
-        this.session.createNodeFiles(this._builder.program);
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
