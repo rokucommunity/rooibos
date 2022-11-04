@@ -1874,10 +1874,10 @@ namespace rooibos
       expectedArgsValues = []
       lineNumber = m.currentAssertLineNumber
       hasArgs = Rooibos.Common.isArray(expectedArgs)
+      defaultValue = m.ignoreValue
       if hasArgs
         defaultValue = m.invalidValue
       else
-        defaultValue = m.ignoreValue
         expectedArgs = []
       end if
       lineNumbers = [lineNumber]

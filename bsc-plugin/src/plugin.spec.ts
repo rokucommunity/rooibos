@@ -2,7 +2,6 @@ import type { BrsFile, CallExpression, ClassMethodStatement, ClassStatement, Exp
 import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
-import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import * as trim from 'trim-whitespace';
@@ -621,7 +620,7 @@ describe('RooibosPlugin', () => {
                         @it("test1")
                         function _()
                             b = { someValue: lib.myEnum.value}
-                            m.assertEqual(a, { someValue: lib.myEnum.value})
+                            m.assertEqual(b, { someValue: lib.myEnum.value})
                         end function
                     end class
                 `);
@@ -637,7 +636,7 @@ describe('RooibosPlugin', () => {
                     }
 
                     m.currentAssertLineNumber = 12
-                    m.assertEqual(a, {
+                    m.assertEqual(b, {
                     someValue: "value"
                     })
                     if m.currentResult.isFail then return invalid`);
@@ -889,6 +888,7 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
+                            thing = {}
                             m.expectNotCalled(thing@.getFunction())
                             m.expectNotCalled(thing@.getFunction("arg1", "arg2"))
                         end function
@@ -901,24 +901,26 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    thing = {}
+
+                    m.currentAssertLineNumber = 7
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
                     if m.currentResult.isFail then return invalid
 
 
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
                     if m.currentResult.isFail then return invalid
                 `);
                 //verify original code does not remain modified after the transpile cycle
                 const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
 
-                const call1 = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
+                const call1 = (testMethod.func.body.statements[1] as ExpressionStatement).expression as CallExpression;
                 expect(call1.args).to.be.lengthOf(1);
                 expect(call1.args[0]).to.be.instanceof(CallfuncExpression);
                 expect((call1.args[0] as CallfuncExpression).methodName.text).to.eql('getFunction');
 
-                const call2 = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
+                const call2 = (testMethod.func.body.statements[2] as ExpressionStatement).expression as CallExpression;
                 expect(call2.args).to.be.lengthOf(1);
                 expect(call2.args[0]).to.be.instanceof(CallfuncExpression);
                 expect((call2.args[0] as CallfuncExpression).methodName.text).to.eql('getFunction');

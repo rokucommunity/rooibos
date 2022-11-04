@@ -4,6 +4,7 @@ namespace rooibos
     private lineWidth = 60
 
     function new(testRunner)
+      'bs:disable-next-line
       super(testRunner)
       if m.config.lineWidth <> invalid
         m.lineWidth = m.config.lineWidth
@@ -48,7 +49,7 @@ namespace rooibos
         m.printLine()
         m.printLine()
       end if
-
+      overrallResult = ""
       if m.allStats.hasFailures
         overrallResult = "Fail"
       else
@@ -82,6 +83,7 @@ namespace rooibos
       testLocationLine = StrI(test.lineNumber).trim()
 
       locationLine = invalid
+      testChar = ""
       if test.result.isCrash
         testChar = "|"
         locationLine = StrI(test.lineNumber).trim()
@@ -95,10 +97,9 @@ namespace rooibos
 
       testLocationText = "file://" + test.testSuite.filePath.trim() + ":" + testLocationLine
 
+      timeText = ""
       if m.config.printTestTimes = true
         timeText = " (" + stri(test.result.time).trim() + "ms)"
-      else
-        timeText = ""
       end if
 
       insetText = ""
@@ -119,6 +120,7 @@ namespace rooibos
       if test.isParamTest = true
         insetText = "  "
 
+        rawParams = invalid
         if type(test.rawParams) = "roAssociativeArray"
           rawParams = {}
           for each key in test.rawParams
