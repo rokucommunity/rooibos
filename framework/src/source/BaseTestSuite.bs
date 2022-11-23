@@ -1976,7 +1976,9 @@ namespace rooibos
           "multiInvoke": [currentExpectedArgsArgs]
         }
       end if
-      fake.expectedArgs.multiInvoke.push(otherFake.expectedArgs)
+      for i = 1 to otherFake.expectedInvocations
+        fake.expectedArgs.multiInvoke.push(otherFake.expectedArgs)
+      end for
 
       'add on the expected return values
       if type(fake.returnValue) <> "roAssociativeArray" or not fake.returnValue.doesExist("multiResult")
@@ -1985,9 +1987,11 @@ namespace rooibos
           "multiResult": [currentReturnValue]
         }
       end if
-      fake.returnValue.multiResult.push(otherFake.returnValue)
+      for i = 1 to otherFake.expectedInvocations
+        fake.returnValue.multiResult.push(otherFake.returnValue)
+      end for
       fake.lineNumbers.push(lineNumber)
-      fake.expectedInvocations++
+      fake.expectedInvocations += otherFake.expectedInvocations
     end function
     ' /**
     '  * @memberof module:BaseTestSuite
