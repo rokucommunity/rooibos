@@ -54,6 +54,8 @@ The advantages of this are:
 
 Rooibos will not work if you do not use the brighterscript compiler. I have no plans to support any other toolchains.
 
+Rooibos currently requires brighterscript version 0.52.3 - please use only this version. We are working to resolve this issue, so it works with current versions of brighterscript and will have a solution for this limitation, shortly.
+
 ## You MUST configure vscode ide to use your project's version of bsc compiler
 
 Either click the select brighterscript button in the bottom right, or add this setting to your `.vscode/settings.json` file:
@@ -103,7 +105,7 @@ You can do the setup from scratch as followes:
 
 Rooibos will automatically inject the necessary source files into your project, at build time, and inject the hooks to run.
 
-Note - you will likely use a seprate `bsconfig.json` file for your tests, e.g. `bsconfig-test.json`, which will be used by your CI/testing vscode launch target.
+Note - you will likely use a separate `bsconfig.json` file for your tests, e.g. `bsconfig-test.json`, which will be used by your CI/testing vscode launch target.
 
 #### Delaying start so you can set things up - CURRENTLY UNSUPPORTED
 

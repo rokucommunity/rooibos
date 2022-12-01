@@ -120,6 +120,11 @@ namespace rooibos
 
       if suiteClass <> invalid
         testSuite = suiteClass()
+        testSuite.global = m.nodeContext.global
+        testSuite.node = m.nodeContext
+        testSuite.top = m.nodeContext.top
+        testSuite.scene = m.nodeContext.global.testsScene
+        testSuite.catchCrashes = m.config.catchCrashes
       end if
 
       if testSuite <> invalid

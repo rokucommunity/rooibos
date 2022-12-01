@@ -25,5 +25,65 @@ namespace tests
       m.assertEqual(result, expected)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("makePathStubbable")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("makes a simple path stubbable")
+    function _()
+      manager = invalid
+
+      newManager = Rooibos.Common.makePathStubbable(manager, "manager")
+
+      m.assertEqual(newManager, { id: "manager" })
+    end function
+
+    @it("makes a simple node stubbable")
+    function _()
+      manager = createObject("roSGnode", "ContentNode")
+
+      newManager = Rooibos.Common.makePathStubbable(manager, "manager")
+
+      m.assertEqual(newManager, { id: "manager" })
+    end function
+
+    @it("makes a path on an existing object stubbable")
+    function _()
+      manager = { id: "man" }
+
+      newManager = Rooibos.Common.makePathStubbable(manager, "manager.item.data")
+
+      m.assertEqual(newManager, {
+        id: "man"
+        item: {
+          id: "item"
+          data: {
+            id: "data"
+          }
+        }
+      })
+    end function
+
+    @it("makes a path including an aa on an existing object stubbable")
+    function _()
+      manager = {
+        id: "man"
+        item: {
+          data: createObject("roSGnode", "ContentNode")
+        }
+      }
+
+      newManager = Rooibos.Common.makePathStubbable(manager, "manager.item.data")
+
+      m.assertEqual(newManager, {
+        id: "man"
+        item: {
+          data: {
+            id: "data"
+          }
+        }
+      })
+    end function
+
   end class
 end namespace

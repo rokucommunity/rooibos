@@ -1121,23 +1121,26 @@ namespace rooibos
 
     end function
 
-    function assertClass(value, typeStr, msg = "") as dynamic
+    function assertClass(value, func, msg = "") as dynamic
       if m.currentResult.isFail
         return false
+      end if
+      if rooibos.Common.isFunction(func)
+        func = func.toStr().mid(10).replace("_", ".")
       end if
       try
         if not Rooibos.Common.isAssociativeArray(value)
           if msg = ""
             expr_as_string = Rooibos.Common.asString(value)
-            msg = expr_as_string + " was not an aa, so could not match Class " + typeStr
+            msg = expr_as_string + " was not an aa, so could not match Class " + func
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        className = `${value.__classname}`
-        if className <> typeStr
+        className = lCase(`${value.__classname}`)
+        if className <> lCase(func)
           if msg = ""
-            msg = `Expected class: ${typeStr} got ${className}`
+            msg = `Expected class: ${func} got ${className}`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
@@ -1612,23 +1615,22 @@ namespace rooibos
       end try
     end function
 
-    function expectCalled(invocation as dynamic, returnValue = invalid as dynamic, thrownError = invalid as dynamic) as object
+    function expectCalled(invocation as dynamic, returnValue = invalid as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid
     end function
 
-    function _expectCalled(target, methodName, expectedArgs = invalid, returnValue = invalid as dynamic, thrownError = invalid as dynamic) as object
+    function _expectCalled(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic, expectedArgs = invalid, returnValue = invalid as dynamic) as object
       try
-        mock = m.mock(target, methodName, 1, expectedArgs, returnValue, true)
-        if thrownError <> invalid
-          mock.toThrow(thrownError)
+        if type(target) <> "roAssociativeArray" and fullPath <> invalid
+          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
         end if
+        return m.mock(target, methodName, 1, expectedArgs, returnValue, true)
       catch error
         'bs:disable-next-line
         m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
-        return false
       end try
-      return false
+      return invalid
     end function
 
     function stubCall(invocation as dynamic, returnValue = invalid as dynamic) as object
@@ -1636,8 +1638,11 @@ namespace rooibos
       return invalid
     end function
 
-    function _stubCall(target, methodName, returnValue = invalid as dynamic) as object
+    function _stubCall(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic, returnValue = invalid as dynamic) as object
       try
+        if type(target) <> "roAssociativeArray" and fullPath <> invalid
+          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
+        end if
         return m.stub(target, methodName, returnValue, true)
       catch error
         'bs:disable-next-line
@@ -1652,8 +1657,11 @@ namespace rooibos
       return invalid
     end function
 
-    function _expectNotCalled(target, methodName) as object
+    function _expectNotCalled(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic) as object
       try
+        if type(target) <> "roAssociativeArray" and fullPath <> invalid
+          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
+        end if
         return m.mock(target, methodName, 0, invalid, invalid, true)
       catch error
         'bs:disable-next-line
@@ -1866,10 +1874,10 @@ namespace rooibos
       expectedArgsValues = []
       lineNumber = m.currentAssertLineNumber
       hasArgs = Rooibos.Common.isArray(expectedArgs)
+      defaultValue = m.ignoreValue
       if hasArgs
         defaultValue = m.invalidValue
       else
-        defaultValue = m.ignoreValue
         expectedArgs = []
       end if
       lineNumbers = [lineNumber]

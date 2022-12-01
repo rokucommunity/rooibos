@@ -97,8 +97,6 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    beforePublish() { }
-
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addTestRunnerMetadata(editor);
         this.session.addLaunchHook(editor);
@@ -120,15 +118,13 @@ export class RooibosPlugin implements CompilerPlugin {
                 this.session.createNodeFile(event.program, testSuite);
             }
         }
-
-        this.session.createNodeFiles(this._builder.program);
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.removeRooibosMain();
     }
 
-    afterProgramValidate() {
+    afterProgramValidate(program: Program) {
         // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
