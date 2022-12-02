@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/no-confusing-void-expression */
-import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
+import { DiagnosticSeverity, Program, ProgramBuilder, util, standardizePath as s } from 'brighterscript';
 import { expect } from 'chai';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import { RooibosPlugin } from '../../plugin';
-import { standardizePath as s } from './Utils';
-
-
-import { trimLeading } from '../utils/testHelpers.spec';
 
 let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 
+function trimLeading(text: string) {
+    return text.split('\n').map((line) => line.trimStart()).join('\n');
+}
 
 describe('RooibosPlugin', () => {
     let program: Program;

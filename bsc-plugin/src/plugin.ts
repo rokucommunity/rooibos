@@ -100,6 +100,8 @@ export class RooibosPlugin implements CompilerPlugin {
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addTestRunnerMetadata(editor);
         this.session.addLaunchHook(editor);
+    }
+
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
         let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
         if (testSuite) {
