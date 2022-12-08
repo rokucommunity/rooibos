@@ -120,6 +120,11 @@ export class RooibosPlugin implements CompilerPlugin {
                 this.session.createNodeFile(event.program, testSuite);
             }
         }
+
+        if (isBrsFile(event.file) && this.shouldAddCodeCoverageToFile(event.file)) {
+            const codeCoverageProcessor = new CodeCoverageProcessor(this._builder, this.fileFactory);
+            codeCoverageProcessor.addCodeCoverage(event.file);
+        }
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
