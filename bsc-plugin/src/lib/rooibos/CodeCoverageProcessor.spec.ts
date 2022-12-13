@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/no-confusing-void-expression */
-import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
+import { Program, ProgramBuilder, util, standardizePath as s } from 'brighterscript';
 import { expect } from 'chai';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
-import * as path from 'path';
 import { RooibosPlugin } from '../../plugin';
-import { standardizePath as s } from './Utils';
-
-
-import { trimLeading } from '../utils/testHelpers.spec';
 
 let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 
+function trimLeading(text: string) {
+    return text.split('\n').map((line) => line.trimStart()).join('\n');
+}
 
 describe('RooibosPlugin', () => {
     let program: Program;
@@ -21,16 +19,12 @@ describe('RooibosPlugin', () => {
     let plugin: RooibosPlugin;
     let options;
 
-    function normalizePaths(s: string) {
-        return s.replace(/file:.*test.spec.bs/gim, 'FILE_PATH');
-    }
-
     function getContents(filename: string) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         return trimLeading(fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString());
     }
 
-    describe.only('CodeCoverageProcessor', () => {
+    describe('CodeCoverageProcessor', () => {
         beforeEach(() => {
             plugin = new RooibosPlugin();
             options = {
@@ -38,7 +32,8 @@ describe('RooibosPlugin', () => {
                 stagingFolderPath: _stagingFolderPath,
                 rooibos: {
                     isRecordingCodeCoverage: true
-                }
+                },
+                allowBrighterScriptInBrightScript: true
             };
             fsExtra.ensureDirSync(_stagingFolderPath);
             fsExtra.ensureDirSync(_rootDir);
@@ -66,41 +61,10 @@ describe('RooibosPlugin', () => {
 
         describe('basic brs tests', () => {
 
-            //This test is failing - need to ask Bron why the updated ast isn't persisted.
-            it.skip('adds code coverage to a brs file', async () => {
-                program.addOrReplaceFile('source/code.brs', `
-                function new(a1, a2)
-                c = 0
-                text = ""
-                    for i = 0 to 10
-                        text = text + "hello"
-                        c++
-                        c += 1
-                        if c = 2
-                            ? "is true"
-                        end if
-
-                        if c = 3
-                            ? "free"
-                        else
-                            ? "not free"
-                        end if
-                    end for
-                end function
-            `);
-                program.validate();
-                expect(program.getDiagnostics()).to.be.empty;
-                await builder.transpile();
-                let a = getContents('source/code.brs');
-                let b = ``;
-                expect(normalizePaths(a)).to.equal(normalizePaths(b));
-
-            });
-        });
-        describe('basic bs tests', () => {
-
-            it('adds code coverage to a bs file', async () => {
-                program.addOrReplaceFile('source/code.bs', `
+            // This test fails unless `allowBrighterScriptInBrightScript` is set to true when setting up the program
+            // in `beforeEach`. This is because the compiler normally skips processing .brs files and copies them as-is.
+            it('adds code coverage to a brs file', async () => {
+                program.setFile('source/code.brs', `
                 function new(a1, a2)
                 c = 0
                 text = ""
@@ -141,12 +105,12 @@ c++
 
 RBS_CC_1_reportLine(7, 1)
 c += 1
-if RBS_CC_1_reportLine(8, 3) And c = 2 then
+if RBS_CC_1_reportLine(8, 3) and c = 2
 
 RBS_CC_1_reportLine(9, 1)
 ? "is true"
 end if
-if RBS_CC_1_reportLine(12, 3) And c = 3 then
+if RBS_CC_1_reportLine(12, 3) and c = 3
 
 RBS_CC_1_reportLine(13, 1)
 ? "free"
@@ -157,7 +121,116 @@ RBS_CC_1_reportLine(15, 1)
 ? "not free"
 end if
 end for
-end function`;
+end function
+
+function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+if m.global = invalid
+'? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+return true
+else
+if m._rbs_ccn = invalid
+'? "Coverage maps are not created - creating now"
+if m.global._rbs_ccn = invalid
+'? "Coverage maps are not created - creating now"
+m.global.addFields({
+"_rbs_ccn": createObject("roSGNode", "CodeCoverage")
+})
+end if
+m._rbs_ccn = m.global._rbs_ccn
+end if
+end if
+
+m._rbs_ccn.entry = {"f":"1", "l":stri(lineNumber), "r":reportType}
+return true
+end function
+`;
+                expect(a).to.equal(b);
+
+            });
+        });
+        describe('basic bs tests', () => {
+
+            it('adds code coverage to a bs file', async () => {
+                program.setFile('source/code.bs', `
+                function new(a1, a2)
+                c = 0
+                text = ""
+                    for i = 0 to 10
+                        text = text + "hello"
+                        c++
+                        c += 1
+                        if c = 2
+                            ? "is true"
+                        end if
+
+                        if c = 3
+                            ? "free"
+                        else
+                            ? "not free"
+                        end if
+                    end for
+                end function
+            `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                let a = getContents('source/code.brs');
+                let b = `function new(a1, a2)
+
+RBS_CC_1_reportLine(2, 1)
+c = 0
+
+RBS_CC_1_reportLine(3, 1)
+text = ""
+RBS_CC_1_reportLine(4, 1): for i = 0 to 10
+
+RBS_CC_1_reportLine(5, 1)
+text = text + "hello"
+
+RBS_CC_1_reportLine(6, 1)
+c++
+
+RBS_CC_1_reportLine(7, 1)
+c += 1
+if RBS_CC_1_reportLine(8, 3) and c = 2
+
+RBS_CC_1_reportLine(9, 1)
+? "is true"
+end if
+if RBS_CC_1_reportLine(12, 3) and c = 3
+
+RBS_CC_1_reportLine(13, 1)
+? "free"
+else
+RBS_CC_1_reportLine(14, 3)
+
+RBS_CC_1_reportLine(15, 1)
+? "not free"
+end if
+end for
+end function
+
+function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+if m.global = invalid
+'? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+return true
+else
+if m._rbs_ccn = invalid
+'? "Coverage maps are not created - creating now"
+if m.global._rbs_ccn = invalid
+'? "Coverage maps are not created - creating now"
+m.global.addFields({
+"_rbs_ccn": createObject("roSGNode", "CodeCoverage")
+})
+end if
+m._rbs_ccn = m.global._rbs_ccn
+end if
+end if
+
+m._rbs_ccn.entry = {"f":"1", "l":stri(lineNumber), "r":reportType}
+return true
+end function
+`;
                 expect(a).to.equal(b);
 
             });
@@ -166,7 +239,7 @@ end function`;
         describe('basic tests', () => {
 
             it('adds code coverage to a bs file', async () => {
-                program.addOrReplaceFile('source/code.bs', `
+                program.setFile('source/code.bs', `
                 class BasicClass
                     private field1
                     public field2
@@ -219,12 +292,12 @@ c++
 
 RBS_CC_1_reportLine(11, 1)
 c += 1
-if RBS_CC_1_reportLine(12, 3) And c = 2 then
+if RBS_CC_1_reportLine(12, 3) and c = 2
 
 RBS_CC_1_reportLine(13, 1)
 ? "is true"
 end if
-if RBS_CC_1_reportLine(16, 3) And c = 3 then
+if RBS_CC_1_reportLine(16, 3) and c = 3
 
 RBS_CC_1_reportLine(17, 1)
 ? "free"
@@ -242,7 +315,29 @@ function BasicClass(a1, a2)
 instance = __BasicClass_builder()
 instance.new(a1, a2)
 return instance
-end function`;
+end function
+
+function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+if m.global = invalid
+'? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+return true
+else
+if m._rbs_ccn = invalid
+'? "Coverage maps are not created - creating now"
+if m.global._rbs_ccn = invalid
+'? "Coverage maps are not created - creating now"
+m.global.addFields({
+"_rbs_ccn": createObject("roSGNode", "CodeCoverage")
+})
+end if
+m._rbs_ccn = m.global._rbs_ccn
+end if
+end if
+
+m._rbs_ccn.entry = {"f":"1", "l":stri(lineNumber), "r":reportType}
+return true
+end function
+`;
                 expect(a).to.equal(b);
             });
         });

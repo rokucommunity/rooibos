@@ -8,9 +8,8 @@ import { RawCodeStatement } from './RawCodeStatement';
 import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { Range } from 'vscode-languageserver-types';
-import { createVarExpression, getTokenText } from './Utils';
 import { RawCodeExpression } from './RawCodeExpression';
-import { FileFactory } from './FileFactory';
+import type { FileFactory } from './FileFactory';
 
 export enum CodeCoverageLineType {
     noCode = 0,
@@ -46,6 +45,8 @@ end function
 
     constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
         this.config = (builder.options as any).rooibos as RooibosConfig || {};
+        this.expectedCoverageMap = {};
+        this.filePathMap = {};
         this.fileId = 0;
         try {
         } catch (e) {
@@ -55,7 +56,7 @@ end function
 
     private config: RooibosConfig;
     private fileId: number;
-    private filePathMap: Map<number, string>;
+    private filePathMap: any;
     private expectedCoverageMap: any;
     private executableLines: Map<number, Statement>;
     private transpileState: BrsTranspileState;
