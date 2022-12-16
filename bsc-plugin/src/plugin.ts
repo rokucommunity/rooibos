@@ -32,6 +32,7 @@ export class RooibosPlugin implements CompilerPlugin {
         this.config = this.getConfig((builder.options as any).rooibos || {});
 
         this.fileFactory = new FileFactory(this.config);
+        this.codeCoverageProcessor = new CodeCoverageProcessor(this._builder, this.fileFactory);
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
@@ -122,8 +123,7 @@ export class RooibosPlugin implements CompilerPlugin {
         }
 
         if (isBrsFile(event.file) && this.shouldAddCodeCoverageToFile(event.file)) {
-            const codeCoverageProcessor = new CodeCoverageProcessor(this._builder, this.fileFactory);
-            codeCoverageProcessor.addCodeCoverage(event.file);
+            this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
         }
     }
 
