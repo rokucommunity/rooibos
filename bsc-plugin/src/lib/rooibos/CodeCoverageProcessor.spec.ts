@@ -31,7 +31,10 @@ describe('RooibosPlugin', () => {
                 rootDir: _rootDir,
                 stagingFolderPath: _stagingFolderPath,
                 rooibos: {
-                    isRecordingCodeCoverage: true
+                    isRecordingCodeCoverage: true,
+                    coverageExcludedFiles: [
+                        '**/*.coverageExcluded.bs'
+                    ]
                 },
                 allowBrighterScriptInBrightScript: true
             };
@@ -369,6 +372,34 @@ end function
 
                 expect(a).to.equal(b);
             });
+        });
+
+        it('excludes files from coverage', async () => {
+            const source = `sub foo()
+        x = function(y)
+            if (true) then
+                return 1
+            end if
+            return 0
+        end function
+    end sub`;
+
+            program.setFile('source/code.coverageExcluded.bs', source);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            await builder.transpile();
+
+            let a = getContents('source/code.coverageExcluded.brs');
+            let b = `sub foo()
+x = function(y)
+if (true) then
+return 1
+end if
+return 0
+end function
+end sub`;
+
+            expect(a).to.equal(b);
         });
     });
 });
