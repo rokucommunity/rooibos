@@ -4,6 +4,54 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export class FileFactory {
+    private coverageComponentXmlTemplate = `<?xml version="1.0" encoding="UTF-8"?>
+<component name="CodeCoverage"
+            extends="ContentNode"
+>
+    <script type="text/brightscript" uri="CodeCoverage.brs" />
+    <interface>
+        <field id="entry" type="assocarray" />
+        <field id="save" type="boolean" />
+        <field id="expectedMap" type="assocarray" />
+        <field id="resolvedMap" type="assocarray" />
+        <field id="filePathMap" type="assocarray" />
+    </interface>
+</component>`;
+    private coverageComponentBrsTemplate = `function init()
+m.resolvedMap = {}
+m.top.observeField("entry", "onEntryChange")
+m.top.observeField("save", "onSave")
+
+end function
+
+function setExpectedMap()
+m.top.expectedMap = "#EXPECTED_MAP#"
+end function
+
+function setFilePathMap()
+m.top.filePathMap = "#FILE_PATH_MAP#"
+end function
+
+function onEntryChange()
+entry = m.top.entry
+if entry <> invalid
+    lineMap = m.resolvedMap[entry.f]
+
+    if lineMap = invalid
+    lineMap = {}
+    end if
+    lineMap[entry.l] = entry.r
+
+    m.resolvedMap[entry.f] = lineMap
+end if
+end function
+
+function onSave()
+? "saving data"
+m.top.resolvedMap = m.resolvedMap
+setExpectedMap()
+setFilePathMap()
+end function`;
 
     constructor(
         private options?: {
@@ -91,21 +139,13 @@ export class FileFactory {
         return contents;
     }
 
-    public createCoverageComponent(coverageMap: any, filepathMap: Map<number, string>) {
-        //TODO - replace text with appropriate values
-        // let targetPath = path.resolve(this._program.options.rootDir);
-        // let file = new File(path.resolve(path.join(targetPath), 'components'), 'components', 'CodeCoverage.xml', '.xml');
-        // file.setFileContents(this.coverageComponentXmlTemplate);
-        //`Writing to ${file.fullPath}`);
-        // file.saveFileContents();
+    public createCoverageComponent(program: any, coverageMap: any, filepathMap: Map<number, string>) {
+        let template = this.coverageComponentBrsTemplate;
+        template = template.replace(/\#EXPECTED_MAP\#/g, JSON.stringify(coverageMap ?? {}));
+        template = template.replace(/\#FILE_PATH_MAP\#/g, JSON.stringify(filepathMap ?? {}));
 
-        // file = new File(path.resolve(path.join(targetPath, 'components')), 'components', 'CodeCoverage.brs', '.brs');
-        // let template = this.coverageComponentBrsTemplate;
-        // template = template.replace(/\#EXPECTED_MAP\#/g, JSON.stringify(this.expectedCoverageMap));
-        // template = template.replace(/\#FILE_PATH_MAP\#/g, JSON.stringify(this.filePathMap));
-        // file.setFileContents(template);
-        //`Writing to ${file.fullPath}`);
-        // file.saveFileContents();
+        this.addFile(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
+        this.addFile(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
     }
 
     public isIgnoredFile(file: BrsFile | XmlFile): boolean {

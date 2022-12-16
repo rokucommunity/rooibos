@@ -53,9 +53,9 @@ describe('RooibosPlugin', () => {
             program.createSourceScope(); //ensure source scope is created
             plugin.beforeProgramCreate(builder);
 
-
         });
         afterEach(() => {
+            plugin.afterProgramCreate(program);
             fsExtra.ensureDirSync(tmpPath);
             fsExtra.emptyDirSync(tmpPath);
             builder.dispose();

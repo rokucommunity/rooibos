@@ -32,7 +32,6 @@ export class RooibosPlugin implements CompilerPlugin {
         this.config = this.getConfig((builder.options as any).rooibos || {});
 
         this.fileFactory = new FileFactory(this.config);
-        this.codeCoverageProcessor = new CodeCoverageProcessor(this._builder, this.fileFactory);
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
@@ -128,6 +127,8 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        // TODO: Files are added (program.setFile()) works but files don't appear on staging folder
+        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
         this.session.removeRooibosMain();
     }
 

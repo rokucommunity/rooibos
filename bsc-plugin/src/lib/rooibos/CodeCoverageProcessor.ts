@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, ExpressionStatement, ProgramBuilder, Statement } from 'brighterscript';
+import type { BrsFile, Editor, ExpressionStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
 import { Parser, isIfStatement, Position, WalkMode, createVisitor } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
-import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { Range } from 'vscode-languageserver-types';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -48,6 +47,7 @@ end function
         this.expectedCoverageMap = {};
         this.filePathMap = {};
         this.fileId = 0;
+        this.fileFactory = fileFactory;
         try {
         } catch (e) {
             console.log('Error:', e.stack);
@@ -65,11 +65,9 @@ end function
     private processedStatements: Set<Statement>;
     private astEditor: Editor;
 
-    public generateMetadata(isUsingCoverage: boolean) {
+    public generateMetadata(isUsingCoverage: boolean, program: Program) {
         if (isUsingCoverage) {
-            this.fileFactory.createCoverageComponent(this.coverageMap, this.filePathMap);
-        } else {
-            this.fileFactory.createCoverageComponent(undefined, undefined);
+            this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap);
         }
     }
 
@@ -172,7 +170,7 @@ end function
         this.coverageMap.set(lineNumber, coverageType);
         const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
         this.astEditor.arraySplice(owner, key, 0, parsed);
-        // store the ds in a set to avoid handling again after inserting statement above
+        // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
     }
 
@@ -184,8 +182,6 @@ end function
     private addStatement(statement: Statement, lineNumber?: number) {
         if (!this.executableLines.has(lineNumber)) {
             this.executableLines.set(lineNumber, statement);
-        } else {
-            console.debug(`line was already registered`);
         }
     }
 
