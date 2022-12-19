@@ -2,56 +2,13 @@ import type { BrsFile, Program, XmlFile } from 'brighterscript';
 import { standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as fse from 'fs-extra';
+
+const frameworkSrc = path.resolve(__dirname, '../../../../framework/src/source');
 
 export class FileFactory {
-    private coverageComponentXmlTemplate = `<?xml version="1.0" encoding="UTF-8"?>
-<component name="CodeCoverage"
-            extends="ContentNode"
->
-    <script type="text/brightscript" uri="CodeCoverage.brs" />
-    <interface>
-        <field id="entry" type="assocarray" />
-        <field id="save" type="boolean" />
-        <field id="expectedMap" type="assocarray" />
-        <field id="resolvedMap" type="assocarray" />
-        <field id="filePathMap" type="assocarray" />
-    </interface>
-</component>`;
-    private coverageComponentBrsTemplate = `function init()
-m.resolvedMap = {}
-m.top.observeField("entry", "onEntryChange")
-m.top.observeField("save", "onSave")
-
-end function
-
-function setExpectedMap()
-m.top.expectedMap = "#EXPECTED_MAP#"
-end function
-
-function setFilePathMap()
-m.top.filePathMap = "#FILE_PATH_MAP#"
-end function
-
-function onEntryChange()
-entry = m.top.entry
-if entry <> invalid
-    lineMap = m.resolvedMap[entry.f]
-
-    if lineMap = invalid
-    lineMap = {}
-    end if
-    lineMap[entry.l] = entry.r
-
-    m.resolvedMap[entry.f] = lineMap
-end if
-end function
-
-function onSave()
-? "saving data"
-m.top.resolvedMap = m.resolvedMap
-setExpectedMap()
-setFilePathMap()
-end function`;
+    private coverageComponentXmlTemplate = fs.readFileSync(path.join(frameworkSrc, 'CodeCoverage.xml'), 'utf8');
+    private coverageComponentBrsTemplate = fs.readFileSync(path.join(frameworkSrc, 'CodeCoverage.brs'), 'utf8');
 
     constructor(
         private options?: {
@@ -139,13 +96,13 @@ end function`;
         return contents;
     }
 
-    public createCoverageComponent(program: any, coverageMap: any, filepathMap: Map<number, string>) {
+    public createCoverageComponent(program: Program, coverageMap: any, filepathMap: Map<number, string>) {
         let template = this.coverageComponentBrsTemplate;
         template = template.replace(/\#EXPECTED_MAP\#/g, JSON.stringify(coverageMap ?? {}));
         template = template.replace(/\#FILE_PATH_MAP\#/g, JSON.stringify(filepathMap ?? {}));
 
-        this.addFile(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
-        this.addFile(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
+        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
+        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
     }
 
     public isIgnoredFile(file: BrsFile | XmlFile): boolean {
@@ -170,4 +127,14 @@ end function`;
         }
     }
 
+    public addFileToRootDir(program: Program, filePath: string, contents: string) {
+        try {
+            fse.outputFileSync(
+                path.join(program.options.stagingFolderPath ?? program.options.stagingDir ?? program.options.sourceRoot, filePath),
+                contents
+            );
+        } catch (error) {
+            console.error(`Error adding framework file: ${path} : ${error.message}`);
+        }
+    }
 }
