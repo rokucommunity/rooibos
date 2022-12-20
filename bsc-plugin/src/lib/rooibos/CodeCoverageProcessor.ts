@@ -30,6 +30,7 @@ export class CodeCoverageProcessor {
 
     public addCodeCoverage(file: BrsFile) {
         //not yet supported
+        // eslint-disable-next-line no-constant-binary-expression
         if (false && this._config.isRecordingCodeCoverage) {
             this._processFile();
         }
