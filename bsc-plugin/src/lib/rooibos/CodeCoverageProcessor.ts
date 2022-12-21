@@ -72,9 +72,10 @@ end function
     }
 
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {
-        //not yet supported
-        this.transpileState = new BrsTranspileState(file);
-        this._processFile(file, astEditor);
+        if (this.config.isRecordingCodeCoverage) {
+            this.transpileState = new BrsTranspileState(file);
+            this._processFile(file, astEditor);
+        }
     }
 
     public _processFile(file: BrsFile, astEditor: Editor) {
