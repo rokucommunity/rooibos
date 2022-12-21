@@ -122,12 +122,13 @@ export class RooibosPlugin implements CompilerPlugin {
         }
 
         if (isBrsFile(event.file) && this.shouldAddCodeCoverageToFile(event.file)) {
-            const codeCoverageProcessor = new CodeCoverageProcessor(this._builder, this.fileFactory);
-            codeCoverageProcessor.addCodeCoverage(event.file);
+            this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
         }
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        // TODO: Files are added (program.setFile()) works but files don't appear on staging folder
+        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
         this.session.removeRooibosMain();
     }
 

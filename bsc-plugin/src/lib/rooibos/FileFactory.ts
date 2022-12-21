@@ -2,8 +2,13 @@ import type { BrsFile, Program, XmlFile } from 'brighterscript';
 import { standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as fse from 'fs-extra';
+
+const frameworkSrc = path.resolve(__dirname, '../../../../framework/src/source');
 
 export class FileFactory {
+    private coverageComponentXmlTemplate = fs.readFileSync(path.join(frameworkSrc, 'CodeCoverage.xml'), 'utf8');
+    private coverageComponentBrsTemplate = fs.readFileSync(path.join(frameworkSrc, 'CodeCoverage.brs'), 'utf8');
 
     constructor(
         private options?: {
@@ -91,21 +96,13 @@ export class FileFactory {
         return contents;
     }
 
-    public createCoverageComponent(coverageMap: any, filepathMap: Map<number, string>) {
-        //TODO - replace text with appropriate values
-        // let targetPath = path.resolve(this._program.options.rootDir);
-        // let file = new File(path.resolve(path.join(targetPath), 'components'), 'components', 'CodeCoverage.xml', '.xml');
-        // file.setFileContents(this.coverageComponentXmlTemplate);
-        //`Writing to ${file.fullPath}`);
-        // file.saveFileContents();
+    public createCoverageComponent(program: Program, coverageMap: any, filepathMap: Map<number, string>) {
+        let template = this.coverageComponentBrsTemplate;
+        template = template.replace(/\#EXPECTED_MAP\#/g, JSON.stringify(coverageMap ?? {}));
+        template = template.replace(/\#FILE_PATH_MAP\#/g, JSON.stringify(filepathMap ?? {}));
 
-        // file = new File(path.resolve(path.join(targetPath, 'components')), 'components', 'CodeCoverage.brs', '.brs');
-        // let template = this.coverageComponentBrsTemplate;
-        // template = template.replace(/\#EXPECTED_MAP\#/g, JSON.stringify(this.expectedCoverageMap));
-        // template = template.replace(/\#FILE_PATH_MAP\#/g, JSON.stringify(this.filePathMap));
-        // file.setFileContents(template);
-        //`Writing to ${file.fullPath}`);
-        // file.saveFileContents();
+        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
+        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
     }
 
     public isIgnoredFile(file: BrsFile | XmlFile): boolean {
@@ -130,4 +127,14 @@ export class FileFactory {
         }
     }
 
+    public addFileToRootDir(program: Program, filePath: string, contents: string) {
+        try {
+            fse.outputFileSync(
+                path.join(program.options.stagingFolderPath ?? program.options.stagingDir ?? program.options.sourceRoot, filePath),
+                contents
+            );
+        } catch (error) {
+            console.error(`Error adding framework file: ${path} : ${error.message}`);
+        }
+    }
 }
