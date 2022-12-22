@@ -83,7 +83,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return;
         }
 
-        // console.log('processing ', file.pkgPath);
+        console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
             if (this.session.processFile(file)) {
                 //
@@ -95,7 +95,11 @@ export class RooibosPlugin implements CompilerPlugin {
 
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addTestRunnerMetadata(editor);
-        this.session.addLaunchHook(editor);
+        this.session.addLaunchHookToExistingMain(editor);
+    }
+
+    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.addLaunchHookFileIfNotPresent();
     }
 
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
@@ -116,10 +120,6 @@ export class RooibosPlugin implements CompilerPlugin {
                 this.session.createNodeFile(event.program, testSuite);
             }
         }
-    }
-
-    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.removeRooibosMain();
     }
 
     afterProgramValidate(program: Program) {
