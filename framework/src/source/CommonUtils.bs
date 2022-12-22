@@ -570,12 +570,22 @@ namespace rooibos.Common
   '  */
   function findElementIndexInNode(node, value) as integer
     if type(node) = "roSGNode"
-      for i = 0 to node.getChildCount() - 1
-        compareValue = node.getChild(i)
-        if type(compareValue) = "roSGNode" and compareValue.isSameNode(value)
-          return i
-        end if
-      next
+      if node.isSubtype("mc_Node")
+        'it's a special maestro node
+        for i = 0 to node.length
+          compareValue = node@.getChild(i)
+          if type(compareValue) = "roSGNode" and compareValue.isSameNode(value)
+            return i
+          end if
+        end for
+      else
+        for i = 0 to node.getChildCount() - 1
+          compareValue = node.getChild(i)
+          if type(compareValue) = "roSGNode" and compareValue.isSameNode(value)
+            return i
+          end if
+        end for
+      end if
     end if
     return -1
   end function

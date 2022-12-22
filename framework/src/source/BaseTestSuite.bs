@@ -1176,8 +1176,9 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if node.getChildCount() <> count
-            msg = "node items count <> " + Rooibos.Common.asString(count) + ". Received " + Rooibos.Common.asString(node.getChildCount())
+          childCount = node.isSubtype("mc_Node") ? node.length : node.getChildCount()
+          if childCount <> count
+            msg = "node items count <> " + Rooibos.Common.asString(count) + ". Received " + Rooibos.Common.asString(childCount)
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -1212,7 +1213,8 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if node.getChildCount() = count
+          childCount = node.isSubtype("mc_Node") ? node.length : node.getChildCount()
+          if childCount = count
             msg = "node items count = " + Rooibos.Common.asString(count) + "."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
@@ -1247,7 +1249,8 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if node.getChildCount() > 0
+          childCount = node.isSubtype("mc_Node") ? node.length : node.getChildCount()
+          if childCount > 0
             msg = "node is not empty."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
@@ -1350,10 +1353,13 @@ namespace rooibos
             msg = "Node doesn't have the '" + Rooibos.Common.asString(value, true) + "' value."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
-          else if node.getChildCount() <> 1
-            msg = "Node Contains speicified value; but other values as well"
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
+          else
+            childCount = node.isSubtype("mc_Node") ? node.length : node.getChildCount()
+            if childCount <> 1
+              msg = "Node Contains specified value; but other values as well"
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
+            end if
           end if
         else
           msg = "Input value is not an Node."
