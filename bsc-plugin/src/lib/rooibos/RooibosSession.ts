@@ -1,5 +1,6 @@
 import * as path from 'path';
 import type { BrsFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder } from 'brighterscript';
+import { util } from 'brighterscript';
 import { isBrsFile, ParseMode } from 'brighterscript';
 import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
@@ -11,6 +12,7 @@ import type { TestSuite } from './TestSuite';
 import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound } from '../utils/Diagnostics';
 import undent from 'undent';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
+import * as fsExtra from 'fs-extra';
 
 // eslint-disable-next-line
 const pkg = require('../../../package.json');
@@ -44,9 +46,7 @@ export class RooibosSession {
         return testSuites.length > 0;
     }
 
-    private rooibosMain: BrsFile;
-
-    public addLaunchHook(editor: AstEditor) {
+    public addLaunchHookToExistingMain(editor: AstEditor) {
         let mainFunction: FunctionStatement;
         const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
@@ -60,19 +60,24 @@ export class RooibosSession {
         }
         if (mainFunction) {
             editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init()`));
-        } else {
-            diagnosticWarnNoMainFound(files[0]);
-            this.rooibosMain = this._builder.program.setFile('source/rooibosMain.brs', `function main()\n    Rooibos_init()\nend function`);
         }
     }
-
-    /**
-     * Should only be called in afterProgramTranspile to remove the rooibosMain file IF it exists
-     */
-    public removeRooibosMain() {
-        if (this.rooibosMain) {
-            this._builder.program.removeFile('source/rooibosMain.brs');
-            this.rooibosMain = undefined;
+    public addLaunchHookFileIfNotPresent() {
+        let mainFunction: FunctionStatement;
+        const files = this._builder.program.getScopeByName('source').getOwnFiles();
+        for (let file of files) {
+            if (isBrsFile(file)) {
+                const mainFunc = file.parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
+                if (mainFunc) {
+                    mainFunction = mainFunc;
+                    break;
+                }
+            }
+        }
+        if (!mainFunction) {
+            diagnosticWarnNoMainFound(files[0]);
+            const filePath = path.join(this._builder.options.stagingDir, 'source/rooibosMain.brs');
+            fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init()\nend function`);
         }
     }
 

@@ -20,7 +20,8 @@ describe('RooibosPlugin', () => {
         plugin = new RooibosPlugin();
         options = {
             rootDir: _rootDir,
-            stagingFolderPath: _stagingFolderPath
+            stagingFolderPath: _stagingFolderPath,
+            stagingDir: _stagingFolderPath
         };
         fsExtra.ensureDirSync(_stagingFolderPath);
         fsExtra.ensureDirSync(_rootDir);
@@ -574,9 +575,57 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.validate();
-                expect(program.getDiagnostics()).to.be.empty;
-                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
+                expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                expect(
+                    getTestFunctionContents(true)
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
+                    if m.currentResult.isFail then return invalid
+
+
+                    m.currentAssertLineNumber = 7
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
+                    if m.currentResult.isFail then return invalid
+
+
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [
+                    "arg1"
+                    "arg2"
+                    ])
+                    if m.currentResult.isFail then return invalid
+
+
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [
+                    "arg1"
+                    "arg2"
+                    ], "return")
+                    if m.currentResult.isFail then return invalid
+                `);
+            });
+            it('does not break when validating again after a transpile', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        m.expectCalled(m.thing.getFunction())
+                        m.expectCalled(m.thing.getFunction(), "return")
+                        m.expectCalled(m.thing.getFunction("arg1", "arg2"))
+                        m.expectCalled(m.thing.getFunction("arg1", "arg2"), "return")
+                        end function
+                    end class
+                `);
+                program.validate();
+                await builder.transpile();
+                program.validate();
+                expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(
                     getTestFunctionContents(true)
                 ).to.eql(undent`
