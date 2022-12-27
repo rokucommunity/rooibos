@@ -84,6 +84,7 @@ export class TestGroup extends TestBlock {
             });
         } catch (e) {
             // console.log(e);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(this.testSuite.file, e.message);
         }
     }

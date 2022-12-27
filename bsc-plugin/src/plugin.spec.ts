@@ -28,6 +28,7 @@ describe('RooibosPlugin', () => {
         fsExtra.ensureDirSync(tmpPath);
 
         builder = new ProgramBuilder();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         builder.options = util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
         program = builder.program;
