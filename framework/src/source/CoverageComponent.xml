@@ -2,7 +2,7 @@
 <component name="Rooibos_CodeCoverage"
            extends="ContentNode"
 >
-    <script type="text/brightscript" uri="CodeCoverage.brs" />
+    <script type="text/brightscript" uri="CoverageComponent.bs" />
     <interface>
         <field id="entry" type="assocarray" />
         <field id="save" type="boolean" />

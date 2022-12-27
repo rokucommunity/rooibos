@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, ProgramBuilder, Statement } from 'brighterscript';
-import { isIfStatement, Position, WalkMode, createVisitor } from 'brighterscript';
+import type { BrsFile, Editor, ExpressionStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
+import { Parser, isIfStatement, Position, WalkMode, createVisitor } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
-import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { Range } from 'vscode-languageserver-types';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -48,6 +47,7 @@ end function
         this.expectedCoverageMap = {};
         this.filePathMap = {};
         this.fileId = 0;
+        this.fileFactory = fileFactory;
         try {
         } catch (e) {
             console.log('Error:', e.stack);
@@ -62,32 +62,35 @@ end function
     private transpileState: BrsTranspileState;
     private coverageMap: Map<number, number>;
     private fileFactory: FileFactory;
+    private processedStatements: Set<Statement>;
+    private astEditor: Editor;
 
-    public generateMetadata(isUsingCoverage: boolean) {
+    public generateMetadata(isUsingCoverage: boolean, program: Program) {
         if (isUsingCoverage) {
-            this.fileFactory.createCoverageComponent(this.coverageMap, this.filePathMap);
-        } else {
-            this.fileFactory.createCoverageComponent(undefined, undefined);
+            this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap);
         }
     }
 
-    public addCodeCoverage(file: BrsFile) {
-        //not yet supported
-        this.transpileState = new BrsTranspileState(file);
-        this._processFile(file);
+    public addCodeCoverage(file: BrsFile, astEditor: Editor) {
+        if (this.config.isRecordingCodeCoverage) {
+            this.transpileState = new BrsTranspileState(file);
+            this._processFile(file, astEditor);
+        }
     }
 
-    public _processFile(file: BrsFile) {
+    public _processFile(file: BrsFile, astEditor: Editor) {
         this.fileId++;
         this.coverageMap = new Map<number, number>();
         this.executableLines = new Map<number, Statement>();
+        this.processedStatements = new Set<Statement>();
+        this.astEditor = astEditor;
 
         file.ast.walk(createVisitor({
-            ForStatement: (ds) => {
+            ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
                 ds.forToken.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: for`;
             },
-            IfStatement: (ds) => {
+            IfStatement: (ds, parent, owner, key) => {
                 let ifStatement = ds;
                 while (isIfStatement(ifStatement)) {
                     this.addStatement(ds);
@@ -102,54 +105,54 @@ end function
                     blockStatements.splice(0, 0, coverageStatement);
                 }
             },
-            GotoStatement: (ds) => {
+            GotoStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                return this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
 
             },
-            WhileStatement: (ds) => {
+            WhileStatement: (ds, parent, owner, key) => {
                 ds.tokens.while.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: while`;
             },
-            ReturnStatement: (ds) => {
+            ReturnStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                return this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
             },
-            ForEachStatement: (ds) => {
+            ForEachStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
                 ds.tokens.forEach.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: for each`;
             },
-            ExitWhileStatement: (ds) => {
+            ExitWhileStatement: (ds, parent, owner, key) => {
 
             },
-            PrintStatement: (ds) => {
+            PrintStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                return this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
             },
-            DottedSetStatement: (ds) => {
+            DottedSetStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                return this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
 
             },
-            IndexedSetStatement: (ds) => {
+            IndexedSetStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                return this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
 
             },
-            IncrementStatement: (ds) => {
+            IncrementStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                return this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
 
             },
-            AssignmentStatement: (ds, parent) => {
+            AssignmentStatement: (ds, parent, owner, key) => {
                 if (!brighterscript.isForStatement(parent)) {
                     this.addStatement(ds);
-                    return this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code);
+                    this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
                 }
 
             },
-            ExpressionStatement: (ds) => {
+            ExpressionStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                return this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
             }
         }), { walkMode: WalkMode.visitAllRecursive });
 
@@ -159,12 +162,17 @@ end function
         this.addBrsAPIText(file);
     }
 
-    private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType) {
+    private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
+        if (this.processedStatements.has(statement)) {
+            return;
+        }
+
         const lineNumber = statement.range.start.line;
         this.coverageMap.set(lineNumber, coverageType);
-        return new RawCodeStatement(`
-        ${this.getFuncCallText(lineNumber, coverageType)}
-        ${statement.transpile(this.transpileState).join('')}`, this.transpileState.file, statement.range);
+        const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
+        this.astEditor.arraySplice(owner, key, 0, parsed);
+        // store the statement in a set to avoid handling again after inserting statement above
+        this.processedStatements.add(statement);
     }
 
     public addBrsAPIText(file: BrsFile) {
@@ -175,8 +183,6 @@ end function
     private addStatement(statement: Statement, lineNumber?: number) {
         if (!this.executableLines.has(lineNumber)) {
             this.executableLines.set(lineNumber, statement);
-        } else {
-            console.debug(`line was already registered`);
         }
     }
 

@@ -31,7 +31,10 @@ describe('RooibosPlugin', () => {
                 rootDir: _rootDir,
                 stagingFolderPath: _stagingFolderPath,
                 rooibos: {
-                    isRecordingCodeCoverage: true
+                    isRecordingCodeCoverage: true,
+                    coverageExcludedFiles: [
+                        '**/*.coverageExcluded.bs'
+                    ]
                 },
                 allowBrighterScriptInBrightScript: true
             };
@@ -45,14 +48,14 @@ describe('RooibosPlugin', () => {
             builder.program = new Program(builder.options);
             program = builder.program;
             program.logger = builder.logger;
-            builder.plugins = new PluginInterface([plugin], builder.logger);
-            program.plugins = new PluginInterface([plugin], builder.logger);
+            builder.plugins = new PluginInterface([plugin], { logger: builder.logger });
+            program.plugins = new PluginInterface([plugin], { logger: builder.logger });
             program.createSourceScope(); //ensure source scope is created
             plugin.beforeProgramCreate(builder);
 
-
         });
         afterEach(() => {
+            plugin.afterProgramCreate(program);
             fsExtra.ensureDirSync(tmpPath);
             fsExtra.emptyDirSync(tmpPath);
             builder.dispose();
@@ -89,34 +92,26 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = `function new(a1, a2)
-
 RBS_CC_1_reportLine(2, 1)
 c = 0
-
 RBS_CC_1_reportLine(3, 1)
 text = ""
 RBS_CC_1_reportLine(4, 1): for i = 0 to 10
-
 RBS_CC_1_reportLine(5, 1)
 text = text + "hello"
-
 RBS_CC_1_reportLine(6, 1)
 c++
-
 RBS_CC_1_reportLine(7, 1)
 c += 1
 if RBS_CC_1_reportLine(8, 3) and c = 2
-
 RBS_CC_1_reportLine(9, 1)
 ? "is true"
 end if
 if RBS_CC_1_reportLine(12, 3) and c = 3
-
 RBS_CC_1_reportLine(13, 1)
 ? "free"
 else
 RBS_CC_1_reportLine(14, 3)
-
 RBS_CC_1_reportLine(15, 1)
 ? "not free"
 end if
@@ -176,34 +171,26 @@ end function
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = `function new(a1, a2)
-
 RBS_CC_1_reportLine(2, 1)
 c = 0
-
 RBS_CC_1_reportLine(3, 1)
 text = ""
 RBS_CC_1_reportLine(4, 1): for i = 0 to 10
-
 RBS_CC_1_reportLine(5, 1)
 text = text + "hello"
-
 RBS_CC_1_reportLine(6, 1)
 c++
-
 RBS_CC_1_reportLine(7, 1)
 c += 1
 if RBS_CC_1_reportLine(8, 3) and c = 2
-
 RBS_CC_1_reportLine(9, 1)
 ? "is true"
 end if
 if RBS_CC_1_reportLine(12, 3) and c = 3
-
 RBS_CC_1_reportLine(13, 1)
 ? "free"
 else
 RBS_CC_1_reportLine(14, 3)
-
 RBS_CC_1_reportLine(15, 1)
 ? "not free"
 end if
@@ -276,34 +263,26 @@ instance = {}
 instance.new = function(a1, a2)
 m.field1 = invalid
 m.field2 = invalid
-
 RBS_CC_1_reportLine(6, 1)
 c = 0
-
 RBS_CC_1_reportLine(7, 1)
 text = ""
 RBS_CC_1_reportLine(8, 1): for i = 0 to 10
-
 RBS_CC_1_reportLine(9, 1)
 text = text + "hello"
-
 RBS_CC_1_reportLine(10, 1)
 c++
-
 RBS_CC_1_reportLine(11, 1)
 c += 1
 if RBS_CC_1_reportLine(12, 3) and c = 2
-
 RBS_CC_1_reportLine(13, 1)
 ? "is true"
 end if
 if RBS_CC_1_reportLine(16, 3) and c = 3
-
 RBS_CC_1_reportLine(17, 1)
 ? "free"
 else
 RBS_CC_1_reportLine(18, 3)
-
 RBS_CC_1_reportLine(19, 1)
 ? "not free"
 end if
@@ -340,6 +319,87 @@ end function
 `;
                 expect(a).to.equal(b);
             });
+
+            it('correctly transpiles some statements', async () => {
+                const source = `sub foo()
+    x = function(y)
+        if (true) then
+            return 1
+        end if
+        return 0
+    end function
+end sub`;
+
+                program.setFile('source/code.bs', source);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                let a = getContents('source/code.brs');
+                let b = `sub foo()
+RBS_CC_1_reportLine(1, 1)
+x = function(y)
+if RBS_CC_1_reportLine(2, 3) and (true) then
+RBS_CC_1_reportLine(3, 1)
+return 1
+end if
+RBS_CC_1_reportLine(5, 1)
+return 0
+end function
+end sub
+
+function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+if m.global = invalid
+'? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+return true
+else
+if m._rbs_ccn = invalid
+'? "Coverage maps are not created - creating now"
+if m.global._rbs_ccn = invalid
+'? "Coverage maps are not created - creating now"
+m.global.addFields({
+"_rbs_ccn": createObject("roSGNode", "CodeCoverage")
+})
+end if
+m._rbs_ccn = m.global._rbs_ccn
+end if
+end if
+
+m._rbs_ccn.entry = {"f":"1", "l":stri(lineNumber), "r":reportType}
+return true
+end function
+`;
+
+                expect(a).to.equal(b);
+            });
+        });
+
+        it('excludes files from coverage', async () => {
+            const source = `sub foo()
+        x = function(y)
+            if (true) then
+                return 1
+            end if
+            return 0
+        end function
+    end sub`;
+
+            program.setFile('source/code.coverageExcluded.bs', source);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            await builder.transpile();
+
+            let a = getContents('source/code.coverageExcluded.brs');
+            let b = `sub foo()
+x = function(y)
+if (true) then
+return 1
+end if
+return 0
+end function
+end sub`;
+
+            expect(a).to.equal(b);
         });
     });
 });
