@@ -44,8 +44,8 @@ namespace rooibos
     '  */
     public function run()
 
-      timer = createObject("roTimespan")
-      timer.mark()
+      rooibosTimer = createObject("roTimespan")
+      rooibosTimer.mark()
       suiteNames = m.runtimeConfig.getAllTestSuitesNames()
       isFailed = false
       failedText = ""
@@ -95,7 +95,7 @@ namespace rooibos
         m.nodeContext.global.testsScene.failedText = "No tests were found"
       end if
 
-      m.stats.time = timer.totalMilliseconds()
+      m.stats.time = rooibosTimer.totalMilliseconds()
 
       m.testReporter.reportResults(m.stats)
 
