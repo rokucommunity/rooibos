@@ -110,6 +110,7 @@ export class RooibosSession {
                         "printLcov": ${this.config.printLcov ? 'true' : 'false'}
                         "port": "${this.config.port || 'invalid'}"
                         "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
+                        "keepAppOpen": ${this.config.keepAppOpen ? 'true' : 'false'}
                     }`
                 )
             );
