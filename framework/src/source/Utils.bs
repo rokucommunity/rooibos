@@ -19,7 +19,7 @@ namespace rooibos.utils
     end function
 
     function isSubType(name)
-      return m._subType
+      return false
     end function
 
     function createObject(nodeType)
