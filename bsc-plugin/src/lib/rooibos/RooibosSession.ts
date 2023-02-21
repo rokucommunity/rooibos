@@ -76,7 +76,7 @@ export class RooibosSession {
         }
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files[0]);
-            const filePath = path.join(this._builder.options.stagingDir, 'source/rooibosMain.brs');
+            const filePath = path.join(this._builder.options.stagingDir ?? this._builder.options.stagingFolderPath, 'source/rooibosMain.brs');
             fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init()\nend function`);
         }
     }
