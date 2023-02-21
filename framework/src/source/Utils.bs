@@ -18,6 +18,10 @@ namespace rooibos.utils
       return m._subType
     end function
 
+    function isSubType(name)
+      return false
+    end function
+
     function createObject(nodeType)
       node = new rooibos.utils.MockNode("", nodeType)
       m.createdNodes.push(node)

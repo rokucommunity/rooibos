@@ -9,7 +9,7 @@ import { TestSuiteBuilder } from './TestSuiteBuilder';
 import { RawCodeStatement } from './RawCodeStatement';
 import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
-import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound } from '../utils/Diagnostics';
+import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoStagingDir } from '../utils/Diagnostics';
 import undent from 'undent';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import * as fsExtra from 'fs-extra';
@@ -76,8 +76,14 @@ export class RooibosSession {
         }
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files[0]);
-            const filePath = path.join(this._builder.options.stagingDir, 'source/rooibosMain.brs');
-            fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init()\nend function`);
+            if (!this._builder.options.stagingDir && !this._builder.options.stagingFolderPath) {
+                console.error('this plugin requires that stagingDir or the deprecated stagingFolderPath bsconfig option is set');
+                diagnosticNoStagingDir(files[0]);
+            } else {
+                const filePath = path.join(this._builder.options.stagingDir ?? this._builder.options.stagingFolderPath, 'source/rooibosMain.brs');
+                fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init()\nend function`);
+
+            }
         }
     }
 
