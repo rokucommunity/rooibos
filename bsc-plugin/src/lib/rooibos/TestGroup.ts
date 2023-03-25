@@ -1,5 +1,19 @@
-import type { AstEditor, CallExpression, DottedGetExpression, Expression } from 'brighterscript';
-import { isCallExpression, isCallfuncExpression, isIndexedGetExpression, ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isLiteralExpression, isVariableExpression } from 'brighterscript';
+import {
+    type AstEditor,
+    type CallExpression,
+    type DottedGetExpression,
+    type Expression,
+    isCallExpression,
+    isCallfuncExpression,
+    isIndexedGetExpression,
+    ArrayLiteralExpression,
+    createInvalidLiteral,
+    createStringLiteral,
+    createToken,
+    isDottedGetExpression,
+    TokenKind,
+    isLiteralExpression,
+    isVariableExpression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
@@ -7,8 +21,9 @@ import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { RooibosAnnotation } from './Annotation';
 import { RawCodeStatement } from './RawCodeStatement';
 import type { TestCase } from './TestCase';
-import type { TestSuite } from './TestSuite';
-import { TestBlock } from './TestSuite';
+import {
+    type TestSuite,
+    TestBlock } from './TestSuite';
 import { overrideAstTranspile, sanitizeBsJsonString } from './Utils';
 import undent from 'undent';
 
