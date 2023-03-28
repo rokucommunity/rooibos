@@ -8,7 +8,7 @@ Simple, mocha and junit inspired, flexible, and fun Brightscript test framework 
   <img src="images/exampleImage.png" alt="Mocha test framework" />
 </p>
 
-[![build](https://img.shields.io/github/actions/workflow/status/georgejecook/rooibos/build.yml?branch=master)](https://github.com/georgejecook/rooibos/actions/workflows/build.yml)
+[![build](https://img.shields.io/github/actions/workflow/status/georgejecook/rooibos/build.yml?logo=github&branch=master)](https://github.com/georgejecook/rooibos/actions/workflows/build.yml)
 [![GitHub](https://img.shields.io/github/release/georgejecook/rooibos.svg?style=flat-square)](https://github.com/georgejecook/rooibos/releases)
 [![NPM Version](https://badge.fury.io/js/rooibos-roku.svg?style=flat)](https://npmjs.org/package/rooibos-roku)
 [![Coverage Status](https://coveralls.io/repos/github/georgejecook/rooibos/badge.svg?branch=master)](https://coveralls.io/github/georgejecook/rooibos?branch=master)
