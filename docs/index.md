@@ -54,8 +54,6 @@ The advantages of this are:
 
 Rooibos will not work if you do not use the brighterscript compiler. I have no plans to support any other toolchains.
 
-Rooibos currently requires brighterscript version 0.52.3 - please use only this version. We are working to resolve this issue, so it works with current versions of brighterscript and will have a solution for this limitation, shortly.
-
 ## You MUST configure vscode ide to use your project's version of bsc compiler
 
 Either click the select brighterscript button in the bottom right, or add this setting to your `.vscode/settings.json` file:
