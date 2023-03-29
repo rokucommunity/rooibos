@@ -29,11 +29,11 @@ You might want to help! Get in touch via the [slack group](https://join.slack.co
 
 ## Sample project
 
-<https://github.com/georgejecook/rooibos-roku-sample>
+https://github.com/georgejecook/rooibos-roku-sample
 
 ## Quick start
 
-<https://github.com/georgejecook/rooibos/blob/master/docs/index.md#getting-started>
+https://github.com/georgejecook/rooibos/blob/master/docs/index.md#getting-started
 
 ## FAQ
 
