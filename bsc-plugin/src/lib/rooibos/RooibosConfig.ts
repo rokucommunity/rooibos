@@ -21,6 +21,7 @@ export interface RooibosConfig {
     catchCrashes?: boolean;
     sendHomeOnFinish?: boolean;
     keepAppOpen?: boolean;
+
     /**
      * The path to the folder where the rooibos framework roku files reside.
      * @default `dist/lib/framework`

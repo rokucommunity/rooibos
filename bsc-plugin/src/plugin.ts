@@ -86,7 +86,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return;
         }
 
-        console.log('processing ', file.pkgPath);
+        // console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
             if (this.session.processFile(file)) {
                 //

@@ -61,6 +61,7 @@ export class AnnotationParams {
     }
 }
 export class RooibosAnnotation {
+
     /**
      * Represents a group of comments which contain tags such as @only, @suite, @describe, @it etc
      * @param statement block of comments that contain annotations to apply to the next statement
