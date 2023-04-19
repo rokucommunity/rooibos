@@ -140,6 +140,7 @@ The following options are supported:
 - lineWidth?: number - width of test output lines in columns
 - catchCrashes? : boolean - if true, then any crashes will report CRASH statement, and note halt test execuction - very useful for running a whole suite
 - sendHomeOnFinish? : boolean - if true, then the app will exit upon finish. The default is true. Useful to set to false for local test suites.
+- keepAppOpen? : boolean - when true, the app will remain open upon test completion. The default is true. Set false to return execution to Main.
 - testsFilePattern?: string - the pattern to use to find tests, this is a glob, the default is "**/*.spec.bs"
 - tags?: string[] - the tags listed here control what is run - you can use !tagname to indicated any tests/suites that are skipped, all other tags are ANDed. This is very useful for having a bsconfig to run, say tests including long, and slow integration tests, or just running a certain subset of your suite.
 

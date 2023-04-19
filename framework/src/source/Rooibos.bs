@@ -26,6 +26,11 @@ namespace rooibos
       ? "scene is ready; running tests now"
       runner = new rooibos.TestRunner(scene, m)
       runner.Run()
+
+      if runner.config.keepAppOpen = false
+        ? "keepAppOpen is false; exiting Rooibos"
+        return
+      end if
     end if
 
     while true

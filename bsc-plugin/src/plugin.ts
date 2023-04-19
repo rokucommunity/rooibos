@@ -57,6 +57,9 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.isRecordingCodeCoverage === undefined) {
             config.isRecordingCodeCoverage = true;
         }
+        if (config.keepAppOpen === undefined) {
+            config.keepAppOpen = true;
+        }
         //ignore roku modules by default
         if (config.includeFilters === undefined) {
             config.includeFilters = [

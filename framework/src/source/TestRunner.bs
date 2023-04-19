@@ -99,6 +99,12 @@ namespace rooibos
 
       m.testReporter.reportResults(m.stats)
 
+      rooibosResult = {
+        stats: m.stats
+        testSuites: m.testSuites
+      }
+      m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
+
       'code coverage is not enabled in rooibos 4.0.0 - will get added again in future
       ' if Rooibos.Common.isFunction(RBS_reportCodeCoverage)
       '   'bs:disable-next-line

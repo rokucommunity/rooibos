@@ -1295,6 +1295,7 @@ describe('RooibosPlugin', () => {
                             "printLcov": false
                             "port": "invalid"
                             "catchCrashes": false
+                            "keepAppOpen": true
                         }
                     end function
                     instance.getTestSuiteClassWithName = function(name)
@@ -1357,7 +1358,8 @@ describe('RooibosPlugin', () => {
                     'catchCrashes': true,
                     'lineWidth': 70,
                     'failFast': false,
-                    'sendHomeOnFinish': false
+                    'sendHomeOnFinish': false,
+                    'keepAppOpen': true
                 },
                 'maestro': {
                     'nodeFileDelay': 0,

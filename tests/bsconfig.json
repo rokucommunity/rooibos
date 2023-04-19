@@ -28,7 +28,8 @@
     "catchCrashes": true,
     "lineWidth": 70,
     "failFast": false,
-    "sendHomeOnFinish": false
+    "sendHomeOnFinish": false,
+    "keepAppOpen": true
   },
   "sourceMap": true
 }
