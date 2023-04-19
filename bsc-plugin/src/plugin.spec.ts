@@ -1359,7 +1359,7 @@ describe('RooibosPlugin', () => {
                     'lineWidth': 70,
                     'failFast': false,
                     'sendHomeOnFinish': false,
-                    'keepAppOpen': false
+                    'keepAppOpen': true
                 },
                 'maestro': {
                     'nodeFileDelay': 0,
