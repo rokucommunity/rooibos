@@ -2484,6 +2484,17 @@ namespace rooibos
       wait(delay, port)
     end function
 
+    function setAsync(isAsync as boolean)
+      ? "Setting current test to async " isAsync
+      m.top.rooibosTestIsAsync = isAsync
+    end function
+
+    function done()
+      ? "ASYNC TEST IS DONE "
+      m.top.rooibosSuiteFinished = true
+      m.top.rooibosTestFinished = true
+    end function
+
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)
       try
         if m.currentResult.isFail

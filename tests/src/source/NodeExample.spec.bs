@@ -1,6 +1,4 @@
 namespace tests
-  @tags("fixme")
-  @ignore("not working")
   @SGNode("NodeExample")
   @suite
   class NodeExampleTests extends rooibos.BaseTestSuite
@@ -21,10 +19,11 @@ namespace tests
       'bs:disable-next-line
       text = HelloFromNode("georgejecook", 12)
       m.AssertEqual(text, "HELLO georgejecook" + " aged:" + stri(12))
+      m.done()
     end function
 
     @it("HelloFromNode with params")
-    @params("jon", 40)
+    @onlyparams("jon", 40)
     @params("ringo", 23)
     @params("ringo", 50)
     @params("ringo", 24)
@@ -34,6 +33,15 @@ namespace tests
       'bs:disable-next-line
       text = HelloFromNode(name, age)
       m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
+      m.timer = createObject("roSGNode", "Timer")
+      m.timer.duration = 2
+      m.timer.observeFieldScoped("fire", "OnTimer")
+      m.timer.control = "start"
     end function
   end class
 end namespace
+
+function OnTimer()
+  ? " TIMER IS FIRED"
+  m.testSuite.done()
+end function

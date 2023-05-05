@@ -131,6 +131,13 @@ namespace rooibos
         testSuite.top = m.nodeContext.top
         testSuite.scene = m.nodeContext.global.testsScene
         testSuite.catchCrashes = m.config.catchCrashes
+        m.nodeContext.testSuite = testSuite
+        m.nodeContext.top.addFields({
+          "rooibosSuiteFinished": 0
+          "rooibosTestFinished": 0
+          "rooibosTestIsAsync": false
+        })
+
       end if
 
       if testSuite <> invalid
@@ -164,14 +171,43 @@ namespace rooibos
       end if
     end function
 
+    private function waitForField(target, fieldName, delay = 500, maxAttempts = 10)
+      attempts = 0
+      if target = invalid
+        return false
+      end if
+
+      initialValue = target[fieldName]
+      while target[fieldName] = initialValue
+        port = CreateObject("roMessagePort")
+        wait(delay, port)
+        attempts++
+        if attempts = maxAttempts
+          return false
+        end if
+        ? "waiting for signal field '" ; fieldName "' - " ; attempts " VALUE " target[fieldName]
+      end while
+
+      return true
+    end function
+
+    function wait(delay = 1)
+      port = CreateObject("roMessagePort")
+      wait(delay, port)
+    end function
+
     private function runNodeTest(testSuite) as void
       if testSuite.generatedNodeName <> ""
         ? " +++++RUNNING NODE TEST"
         ? " node type is " ; testSuite.generatedNodeName
 
         node = m.testScene.createChild(testSuite.generatedNodeName)
+        'wait on the field
 
         if type(node) = "roSGNode"
+          if node.rooibosSuiteFinished = false
+            m.waitForField(node, "rooibosSuiteFinished")
+          end if
           nodeResults = node.rooibosTestResult
           if nodeResults <> invalid
             testSuite.stats = nodeResults.stats
