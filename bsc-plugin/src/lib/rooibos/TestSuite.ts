@@ -34,6 +34,9 @@ export class TestBlock {
     public get isSolo(): boolean {
         return this.annotation.isSolo;
     }
+    public get isAsync(): boolean {
+        return this.annotation.isAsync;
+    }
 
     public get isIgnored(): boolean {
         return this.annotation.isIgnore;

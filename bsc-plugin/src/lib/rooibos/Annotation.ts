@@ -16,6 +16,7 @@ export enum AnnotationType {
     Params = 'params',
     IgnoreParams = 'ignoreparams',
     SoloParams = 'onlyparams',
+    Async = 'async',
     Tags = 'tags',
     NoCatch = 'nocatch',
     NoEarlyExit = 'noearlyexit'
@@ -35,6 +36,7 @@ let annotationLookup = {
     params: AnnotationType.Params,
     ignoreparams: AnnotationType.IgnoreParams,
     onlyparams: AnnotationType.SoloParams,
+    async: AnnotationType.Async,
     tags: AnnotationType.Tags,
     nocatch: AnnotationType.NoCatch,
     noearlyexit: AnnotationType.NoEarlyExit
@@ -55,12 +57,13 @@ export class AnnotationParams {
         public isIgnore = false,
         public isSolo = false,
         public noCatch = false,
-        public noearlyexit = false
+        public noEarlyexit = false
     ) {
 
     }
 }
 export class RooibosAnnotation {
+    isAsync: boolean;
 
     /**
      * Represents a group of comments which contain tags such as @only, @suite, @describe, @it etc
@@ -91,6 +94,7 @@ export class RooibosAnnotation {
         let blockAnnotation: RooibosAnnotation;
         let testAnnotation: RooibosAnnotation;
         let isSolo = false;
+        let async = false;
         let isIgnore = false;
         let noCatch = false;
         let noEarlyExit = false;
@@ -108,6 +112,9 @@ export class RooibosAnnotation {
                 switch (annotationType) {
                     case AnnotationType.NoEarlyExit:
                         noEarlyExit = true;
+                        break;
+                    case AnnotationType.Async:
+                        async = true;
                         break;
                     case AnnotationType.NoCatch:
                         noCatch = true;
@@ -144,6 +151,7 @@ export class RooibosAnnotation {
                             diagnosticNoTestNameDefined(file, annotation);
                         }
                         let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
+                        newAnnotation.isAsync = async;
                         if (testAnnotation) {
                             diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
                         } else {
