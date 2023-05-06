@@ -94,6 +94,58 @@ describe('RooibosPlugin', () => {
             expect(suite.isSolo).to.be.true;
         });
 
+        it('finds a @async', () => {
+            program.setFile('source/test.spec.bs', `
+                @async
+                @suite()
+                class ATest
+                    @describe("groupA")
+
+                    @async
+                    @it("is test1")
+                    function Test()
+                    end function
+
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            let suite = plugin.session.sessionInfo.testSuitesToRun[0];
+            expect(suite.name).to.equal('named');
+            expect(suite.isAsync).to.be.true;
+            expect(suite.asyncTimeout).to.equal(60000);
+            let test = suite.testGroups.get('groupA').testCases.get('is test1');
+            expect(test.isAsync).to.be.true;
+            expect(test.asyncTimeout).to.equal(2000);
+        });
+
+        it.only('finds a @async and applies timeout override', () => {
+            program.setFile('source/test.spec.bs', `
+            @async(1)
+            @suite("named")
+                class ATest
+                @describe("groupA")
+
+                    @async(2)
+                    @it("is test1")
+                    function Test()
+                    end function
+
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            let suite = plugin.session.sessionInfo.testSuitesToRun[0];
+            expect(suite.name).to.equal('named');
+            expect(suite.isAsync).to.be.true;
+            expect(suite.asyncTimeout).to.equal(1);
+            let test = suite.testGroups.get('groupA').testCases.get('is test1');
+            expect(test.isAsync).to.be.true;
+            expect(test.asyncTimeout).to.equal(2);
+        });
+
         it('ignores a suite', () => {
             program.setFile('source/test.spec.bs', `
                 @ignore

@@ -146,7 +146,7 @@ namespace rooibos
       end for
     end function
 
-    function runASync()
+    function runAsync()
       ' ? "running groups async"
 
       m.groups = []
@@ -226,7 +226,7 @@ namespace rooibos
     end function
 
     private function setTestTimer(duration)
-    ? " SETTING TIMER FOR " duration
+      ' ? " SETTING TIMER FOR " duration
       if m.testTimer = invalid
         m.testTimer = createObject("roSGNode", "Timer")
       end if
@@ -234,9 +234,10 @@ namespace rooibos
         m.testTimer.unobserveFieldScoped("fire")
         m.testTimer.control = "stop"
       else
+        m.currentTimeout = duration
         m.testTimer.observeFieldScoped("fire", "rooibos_onTestTimer")
 
-        m.testTimer.duration = duration / 1000
+        m.testTimer.duration = duration / 1000.0
         m.testTimer.control = "start"
       end if
     end function
@@ -298,7 +299,7 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
-      m.currentResult.fail("Async test execution exceeded " + m.asyncTimeout.toStr() + "ms")
+      m.currentResult.fail("Async test execution exceeded " + m.currentTimeout.toStr() + "ms")
       return false
     end function
 
@@ -2609,7 +2610,12 @@ namespace rooibos
 
     function done()
       ' ? "Async test is complete"
-      m.top.rooibosTestFinished = true
+      if m.isDoneCalled = false
+        m.isDoneCalled = true
+        m.top.rooibosTestFinished = true
+      else
+        ? "WARNING - extra done call after test is done ! Did you properly clean up your observers?"
+      end if
     end function
 
     function testSuiteDone()
@@ -2676,7 +2682,7 @@ namespace rooibos
   end function
 
   function onTestTimer()
-    ? "++++++++ TEST TIMED OUT"
+    ' ? "++++++++ TEST TIMED OUT"
     m.testRunner.currentTestSuite.failBecauseOfTimeOut()
   end function
 end namespace

@@ -7,6 +7,7 @@ export class TestCase {
         this.annotation = annotation;
         this.isSolo = isSolo;
         this.isAsync = annotation.isAsync;
+        this.asyncTimeout = annotation.asyncTimeout;
         this.funcName = funcName;
         this.isIgnored = isIgnored;
         this.name = name;

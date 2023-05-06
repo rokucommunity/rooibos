@@ -102,7 +102,7 @@ namespace rooibos
     end function
 
 
-    function runASync()
+    function runAsync()
       isOk = m.runSuiteFunction(m.setupFunctionName, "setup")
       if isOk
         m.testRunner.currentGroup = m
@@ -119,29 +119,38 @@ namespace rooibos
     end function
 
     private function runNextAsync()
-      ? "Getting next async test"
+      ' ? "Getting next async test"
       m.currentTestIndex++
       m.currentTest = m.tests[m.currentTestIndex]
+      m.testSuite.isDoneCalled = false
       if m.currentTest = invalid
-        ? " all tests are finished"
+        ' ? " all tests are finished"
         'finished
         m.finishAsyncTests()
       else
         m.testRunner.top.rooibosTestFinished = false
         isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
         if isOk
-          m.testRunner.top.observeFieldScoped("rooibosTestFinished", "rooibos_onTestComplete")
-
           'TODO - set a timeout here
           test = m.currentTest
-          m.testSuite.setTestTimer(test.asyncTimeout)
-          m.testSuite.runTest(test)
-
-          if test.result.isFail
-            ? "Test failed before any async code could be executed"
-            m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
+          if test.Async <> true
+            ? "Executing test synchronously"
+            m.testSuite.runTest(test)
             m.testRunner.top.rooibosTestFinished = true
             m.onAsyncTestComplete()
+          else
+            m.testRunner.top.observeFieldScoped("rooibosTestFinished", "rooibos_onTestComplete")
+            if test.isAsync = true
+              m.testSuite.setTestTimer(test.asyncTimeout)
+            end if
+            m.testSuite.runTest(test)
+
+            if test.result.isFail
+              ? "Test failed before any async code could be executed"
+              m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
+              m.testRunner.top.rooibosTestFinished = true
+              m.onAsyncTestComplete()
+            end if
           end if
 
         else
@@ -153,7 +162,7 @@ namespace rooibos
     end function
 
     private function onAsyncTestComplete()
-      ? "++ CURRENT TEST COMPLETED"
+      ' ? "++ CURRENT TEST COMPLETED"
       m.runSuiteFunction(m.afterEachFunctionName, "afterEach", m.currentTest)
 
       m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
@@ -174,7 +183,7 @@ namespace rooibos
       m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
       m.testSuite.setTestTimer(0)
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
-      ? " indicating test suite is done"
+      ' ? " indicating test suite is done"
       ' m.testRunner.top.addFields({ asyncRooibosTestResult: {
       '     stats: m.stats
       '     tests: m.tests
@@ -210,7 +219,7 @@ namespace rooibos
   end class
 
   function onTestComplete()
-    ? "++++++++ THE TEST COMPLETED"
+    ' ? "++++++++ THE TEST COMPLETED"
     m.testRunner.currentGroup.onAsyncTestComplete()
   end function
 end namespace

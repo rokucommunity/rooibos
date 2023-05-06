@@ -146,19 +146,21 @@ export class RooibosAnnotation {
                         const groupName = annotation.getArguments()[0] as string;
                         blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch, noEarlyExit);
                         blockAnnotation.isAsync = async;
-                        blockAnnotation.asyncTimeout = asyncTimeout == -1 ? 60000 : asyncTimeout;
+                        blockAnnotation.asyncTimeout = asyncTimeout === -1 ? 60000 : asyncTimeout;
                         nodeName = null;
                         isSolo = false;
                         isIgnore = false;
+                        async = false;
+                        asyncTimeout = -1;
                         break;
-                        case AnnotationType.It:
-                            const testName = annotation.getArguments()[0] as string;
-                            if (!testName || testName.trim() === '') {
-                                diagnosticNoTestNameDefined(file, annotation);
-                            }
-                            let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
-                            newAnnotation.isAsync = async;
-                            newAnnotation.asyncTimeout = asyncTimeout == -1 ? 2000 : asyncTimeout;
+                    case AnnotationType.It:
+                        const testName = annotation.getArguments()[0] as string;
+                        if (!testName || testName.trim() === '') {
+                            diagnosticNoTestNameDefined(file, annotation);
+                        }
+                        let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
+                        newAnnotation.isAsync = async;
+                        newAnnotation.asyncTimeout = asyncTimeout === -1 ? 2000 : asyncTimeout;
                         if (testAnnotation) {
                             diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
                         } else {
@@ -166,6 +168,8 @@ export class RooibosAnnotation {
                         }
                         isSolo = false;
                         isIgnore = false;
+                        async = false;
+                        asyncTimeout = -1;
                         break;
                     case AnnotationType.Params:
                     case AnnotationType.SoloParams:

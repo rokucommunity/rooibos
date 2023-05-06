@@ -6,7 +6,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 </h3>
 
 
-## FEATURES
+## FEATrueS
  - [Easy to integrate](#easy-to-integrate)
  - [Simple, annotation-based, syntax for writing tests](#simple-syntax-for-writing-tests)
  - [No need for special file names, or method names](#no-need-for-special-file-or-method-names)
@@ -114,7 +114,7 @@ If you need to do some setup, like load some data from a service, before startin
 
  NOTE: this is not yet supported in rooibos 4! I will add it again soon.
 
-### Configuring Rooibos's runtime behaviour
+### Configuring Rooibos's runtime behavior
 
 Rooibos's configuration is controlled via the configuration passed into the `bsconfig.json` via flags on the `rooibos` json blob
 
@@ -138,7 +138,7 @@ The following options are supported:
 - showOnlyFailures?: boolean - if true, then only failed tests are shown; but everything is show if no failures occurred
 - printTestTimes?: boolean - if true then the time each test took is output
 - lineWidth?: number - width of test output lines in columns
-- catchCrashes? : boolean - if true, then any crashes will report CRASH statement, and note halt test execuction - very useful for running a whole suite
+- catchCrashes? : boolean - if true, then any crashes will report CRASH statement, and note halt test execution - very useful for running a whole suite
 - sendHomeOnFinish? : boolean - if true, then the app will exit upon finish. The default is true. Useful to set to false for local test suites.
 - keepAppOpen? : boolean - when true, the app will remain open upon test completion. The default is true. Set false to return execution to Main.
 - testsFilePattern?: string - the pattern to use to find tests, this is a glob, the default is "**/*.spec.bs"
@@ -147,7 +147,7 @@ The following options are supported:
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
 
-Rooibos has a hiearchy of tests as follows:
+Rooibos has a hierarchy of tests as follows:
 
  - Suite
 	 - Describe block
@@ -162,7 +162,7 @@ Test suites are defined by:
 
 No special file naming is required. I recommend you call your files `thing.spec.bs` <a name="no-need-for-special-file-or-method-names"></a>
 
-Please note that rooibos tests are _brighterscript_ only. You can test regular brs files; but all your tests must be brightersript files.
+Please note that rooibos tests are _brighterscript_ only. You can test regular brs files; but all your tests must be brighterscript files.
 
 ### Some advice
 
@@ -186,7 +186,7 @@ namespace tests
     function _()
       m.assertNotInvalid(m.node)
       Tests.doSomethingInNodeScope(true)
-      m.assertInvalid(m._isNodeScopeVarSet)
+      m.assertIonvalid(m._isNodeScopeVarSet)
       m.assertTrue(m.node._isNodeScopeVarSet)
     end function
 
@@ -199,7 +199,7 @@ end namespace
 
 1. The `++++++++++++`'s around the `@describe` declaration are not required; but I find it makes the file much easier to read, and recommend it (or something similar, such as `'*****` as a best practice.
 2. If you do not provide names for the `@suite` it will use the class name
-3. The function name is not required. Rooibos will rename your function to whatever your describe group is (so you can easily navigate in the ide), and as such, the function name cann be anything you like. I like calling all tests functions `_`. Don't worry - the plugin will rename it before you get any duplicate function errors!
+3. The function name is not required. Rooibos will rename your function to whatever your describe group is (so you can easily navigate in the ide), and as such, the function name can be anything you like. I like calling all tests functions `_`. Don't worry - the plugin will rename it before you get any duplicate function errors!
 
 ### Rooibos annotations
 <a name="simple-syntax-for-writing-tests"></a>
@@ -218,24 +218,25 @@ Some annotations act as modifiers. In these cases, they will affect some other a
 
 The following annotations are supported.
 
-| Annotation                  | Description                                                                                                                                                                                                                                                                                                     | Data                                                                                              |
-|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| @suite                  | Indicates a file is a test suite. Required.                                                                                                                                                                                                                                                                               | Name of the test suite. Used in test output                                                       |
-| @SGNode                  | Indicates that a test will run in a node. Rooibos plugin will automatically generate the test node and inject all the test code                                                                                                                                                                                                                                                                            | Name of the component to extend to run tests                                                     |
-| @setup                      | Run once when the suite, or describe group is executed <a name="common-tdd-methods"></a>.                                                                                                                                                                                                                                          |                                                                                                   |
-| @tearDown                   | Run once when the suite or describe group is finished                                                                                                                                                                                                                                                                             |                                                                                                   |
-| @beforeEach                 | Run before each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                            |                                                                                                   |
-| @afterEach                  | Run after each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                             |                                                                                                   |
-| @describe                         | Indicates a group of tests. Groupings improve readability. A group might denote various tests for a given method, or even an aspect of functionality                                                                                                                                                            | Name of the describe group, which is used in the test output                                            |
-| @it                       | Indicates a test. Must directly precede a function definition                                                                                                                                                                                                                                             | The name of the test acse, which will be reported in the test output                              |
-| @only                       | Precedes a Suite, Describe group, or it test, to indicate that _only that item_ should be executed. This can be used to rapidly filter out tests. Only other `@only` items will be run.                                                                                                                          |                                                                                                   |
-| @ignore                     | Precedes a suite, Describe group or it test, to indicate that that item should be ignored. If an `@ignore` tag is found before an item, then it will not be executed as part of the test run                                                                                                                      |                                                                                                   |
-| @params[p1,p2,...,p6]       | Indicates a Paremeterized test. Must come _after_ a `@it` annotation. Can accept up to 6 arguments, which are comma separated. When using paremeterized tests, the test function signature _must_ accept the same number of arguments, and each of params statemens, must also have the same number of params | Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function |
-| @ignoreParams[p1,p2,...,p6] | A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run.                                                                                                                                                                                                         | As per `@params`                                                                                  |
-| @onlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                               | As per `@params`                                                                                  |
-| @tags("one","two"..."n")   | Allows indicating the tags to apply to the group,test or suite. This is a really effective way to categorise your test suite. These tags can be used to filter tests in your rooibos bsconfig options.| List of tag names to apply                                                                                  |
-| @noatch  | If present, will not catch errors for the test or suite it is placed on. This is handy when developing, and you want to debug the exact line on which an error occurred. | none|
-| @noearlyexit  | If present, will not exit a test on an assertion failure, which prevents crashes/skwewed results. This annotation is mainly used for testing, such as testing rooibos framework itself. It is recommend that you _do not_ use this annotation. | none|
+| Annotation                  | Description                                                                                                                                                                                                                                                                                                   | Data                                                                                              |
+|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| @suite                      | Indicates a file is a test suite. Required.                                                                                                                                                                                                                                                                   | Name of the test suite. Used in test output                                                       |
+| @SGNode                     | Indicates that a test will run in a node. Rooibos plugin will automatically generate the test node and inject all the test code                                                                                                                                                                               | Name of the component to extend to run tests                                                      |
+| @setup                      | Run once when the suite, or describe group is executed <a name="common-tdd-methods"></a>.                                                                                                                                                                                                                     |                                                                                                   |
+| @tearDown                   | Run once when the suite or describe group is finished                                                                                                                                                                                                                                                         |                                                                                                   |
+| @beforeEach                 | Run before each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                              |                                                                                                   |
+| @afterEach                  | Run after each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                               |                                                                                                   |
+| @describe                   | Indicates a group of tests. Groupings improve readability. A group might denote various tests for a given method, or even an aspect of functionality                                                                                                                                                          | Name of the describe group, which is used in the test output                                      |
+| @it                         | Indicates a test. Must directly precede a function definition                                                                                                                                                                                                                                                 | The name of the test acse, which will be reported in the test output                              |
+| @only                       | Precedes a Suite, Describe group, or it test, to indicate that _only that item_ should be executed. This can be used to rapidly filter out tests. Only other `@only` items will be run.                                                                                                                       |                                                                                                   |
+| @ignore                     | Precedes a suite, Describe group or it test, to indicate that that item should be ignored. If an `@ignore` tag is found before an item, then it will not be executed as part of the test run                                                                                                                  |                                                                                                   |
+| @params[p1,p2,...,p6]       | Indicates a Parameterized test. Must come _after_ a `@it` annotation. Can accept up to 6 arguments, which are comma separated. When using parameterized tests, the test function signatrue _must_ accept the same number of arguments, and each of params statemens, must also have the same number of params | Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function |
+| @ignoreParams[p1,p2,...,p6] | A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run.                                                                                                                                                                                                       | As per `@params`                                                                                  |
+| @onlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                             | As per `@params`                                                                                  |
+| @tags("one","two"..."n")    | Allows indicating the tags to apply to the group,test or suite. This is a really effective way to categorise your test suite. These tags can be used to filter tests in your rooibos bsconfig options.                                                                                                        | List of tag names to apply                                                                        |
+| @noatch                     | If present, will not catch errors for the test or suite it is placed on. This is handy when developing, and you want to debug the exact line on which an error occurred.                                                                                                                                      | none                                                                                              |
+| @noearlyexit                | If present, will not exit a test on an assertion failure, which prevents crashes/skewed results. This annotation is mainly used for testing, such as testing rooibos framework itself. It is recommend that you _do not_ use this annotation.                                                                 | none                                                                                              |
+| @async                      | If present, on a test suite or test case (e.g. @it) indicates that the test will execute asynchronously. This will allow you to use observeField in your tests. The only argument is timeout in ms  e.g. @async(2000). Default time out is 2000ms for a test, and 6000 for a test suite                       | max time in ms                                                                                    |
 
 
 
@@ -274,7 +275,7 @@ Rooibos provids many assertions to test your code with:
  - assertEqual
  - assertLike
  - assertNotEqual
- - assertInvalid
+ - assertIonvalid
  - assertNotInvalid
  - assertAAHasKey
  - assertAANotHasKey
@@ -337,7 +338,7 @@ This assert allows you to wait on a field set on a task, or some other async man
 
 the framework will then check if the output field has changed, every 500 ms for 10 tries
 
-You can control the timeout behaviour by passing delay and maxAttempts, as follows:
+You can control the timeout behavior by passing delay and maxAttempts, as follows:
 
 ```
   '2 second time out, 3 tries
@@ -396,7 +397,7 @@ namespace Tests
     function _()
       item = m.alternateDS.GetDataItemWithIndex(12)
 
-      m.assertInvalid(item)
+      m.assertIonvalid(item)
     end function
 
 
@@ -415,9 +416,9 @@ Note that in the example above, each of the tests in the `tests alternate data` 
 #### BeforeEach and AfterEach Scoping
 BeforeEach and AfterEach, can also be scoped to an describe group. If the annotations appear _after_ an `@describe(" group annotation, then they will only apply to that group. If the annotations appear _before the first describe group annotation_ then they will be applied to all groups, _which do not have BeforeEach and AfterEach group-level-annotations_")
 
-### Paremeterized tests
+### Parameterized tests
 <a name="parameterized-testing"></a>
-Many times, we want to test a broad range of values. Writing identical tests with different values is tedious and unneccessary, using Rooibos's `@params` mechanism
+Many times, we want to test a broad range of values. Writing identical tests with different values is tedious and unnecessary, using Rooibos's `@params` mechanism
 
 You can run the same test several times, by adding one or more `@params(...)` annotations after the test annotation and before the method declaration, as follows:
 
@@ -433,7 +434,7 @@ function _(value, expectedassertResult)
 ...
 ```
 
-In this case, the test will be run once for each of the `@params` annotations. Note that the method signature takes parameters which correspond to the arguments in the params arrays. Rooibos will give you a build time error, and diagnostic in the ide if you screw this up to save you scratching your head later.
+In this case, the test will be run once for each of the `@params` annotations. Note that the method signatrue takes parameters which correspond to the arguments in the params arrays. Rooibos will give you a build time error, and diagnostic in the ide if you screw this up to save you scratching your head later.
 
 This makes it easy for us to pass in values to our tests, and expected output values, e.g.
 
@@ -453,9 +454,9 @@ function _(dayOfMonth, hour, minute, expectedDayIndex, expectedShowIndex)
 end function
 ```
 
-Paremeterized tests accept any valid json. However, the number of top level items in the params array must match the amount of arguments for your test method. If they don't the test will fail.
+Parameterized tests accept any valid json. However, the number of top level items in the params array must match the amount of arguments for your test method. If they don't the test will fail.
 
-#### Advanced paramter directives
+#### Advanced parameter directives
 
 ##### #RBSNode
 
@@ -473,7 +474,7 @@ end function
 
 #### Parameterized test output
 
-The output from paremeterized tests shows the test name, and all of param configurations that were executed, making it easy to ascertain which param config results in a failure
+The output from parameterized tests shows the test name, and all of param configurations that were executed, making it easy to ascertain which param config results in a failure
 
 ![Simple test output](images/paramTest.png)
 
@@ -482,10 +483,10 @@ If you have a couple of failing param tests, it can assist debugging to ignore t
 
 Rooibos 0.2.0, will include an `@onlyParams` annotation for further convenience.
 
-#### Paremeterized tests and other annotations
+#### Parameterized tests and other annotations
 If a test case has a `@only` or `@ignore` annotation, the _params_ will execute in accordance with their parent test case.
 
-### Node specficic asserts
+### Node specific asserts
 <a name="node-specific-assertions"></a>
 Rooibos adds some node specifc asserts, which are fully described in the   [assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html). These are:
 
@@ -503,7 +504,7 @@ Rooibos adds some node specifc asserts, which are fully described in the   [asse
 The full list of asserts can be found in the documentation  - [assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html)
 
 ## Understanding test output
-Rooibos reports test output in an easy to read hiearhchical manner.
+Rooibos reports test output in an easy to read hierarchical manner.
 
 <a name="readable-test-output"></a>
 Each test suite has it's own tree structure in the output, and in turn has branches for each group, then each test that was run.
@@ -541,7 +542,7 @@ You can give a reason for ignoring a test, as part of the annotation's data. e.g
 function Simpl_Datastore_alternate_failures()
 	item = m.alternateDS.GetDataItemWithIndex(12)
 
-	m.assertInvalid(item)
+	m.assertIonvalid(item)
 end function
 ```
 
@@ -550,12 +551,12 @@ The log reporter will indicate which tests are ignored, if you have log verbosit
 ### Only annotation
 If you place `@only` above a test suite, describe group, or test case, it will run that test in solo mode. In solo mode, execution is limited to those suites, groups or test cases, which also have a `@only' annotation.
 
-A good working practice is to put a `@only` annotaiton on the suite for the class you are working on, then the group, then the individual test. You can tehn simply remove the annotation from the test when you have finished, and run the tests again, to see if you caused regression in any of the group's tests, then remove from the group and run the suite, then finally remove the `@only` annotation from the suite. This will allow you to run the least amount of tests at any time, while you work, giving you the fastest testing turnaround time.
+A good working practice is to put a `@only` annotaiton on the suite for the class you are working on, then the group, then the individual test. You can then simply remove the annotation from the test when you have finished, and run the tests again, to see if you caused regression in any of the group's tests, then remove from the group and run the suite, then finally remove the `@only` annotation from the suite. This will allow you to run the least amount of tests at any time, while you work, giving you the fastest testing turnaround time.
 
 
 ### Only show output for failures
 <a name="only-show-output-for-failed-tests"></a>
-In addition to the the `@only` and `@ignore` annotations, Rooibos has another mechanism for aiding the TDD process. You are able to execute Rooibos in `showOnblyFailures` mode. In this mode, all tests are executed (according to the `@only` and `@ignore` annotations); but if any failures are encountered, then only the failures are displayed. If all tests pass, then the stanard test output is shown.
+In addition to the the `@only` and `@ignore` annotations, Rooibos has another mechanism for aiding the TDD process. You are able to execute Rooibos in `showOnlyFailures` mode. In this mode, all tests are executed (according to the `@only` and `@ignore` annotations); but if any failures are encountered, then only the failures are displayed. If all tests pass, then the stanard test output is shown.
 
 This makes it easy to quickly dive into the test suite and see what regressions have been introduced, then you can simply navigate to the failed tests and annotate them with `@only` annotations (so that subsequent runs are much quicker)
 
@@ -573,7 +574,7 @@ Note that all test suites contain the param `nodeContext`, which contains a refe
 
 ## Using mocks and stubs
 <a name="mocks-and-stubs"></a>
-Rooibos can be used for integration, behaviour, unit testing, and TDD. In many cases (particularly TDD and unit testing), we will not want to execute all of the methods invoked by our code; but will instead prefer to mock and stub those method calls.
+Rooibos can be used for integration, behavior, unit testing, and TDD. In many cases (particularly TDD and unit testing), we will not want to execute all of the methods invoked by our code; but will instead prefer to mock and stub those method calls.
 
 In other cases, it may simply be impractical to execute code as part of our tests. Examples can be executing method that make network calls, require hardware, or playback, or just simply take to long.
 
@@ -585,7 +586,7 @@ In all of these cases, you can use Rooibos's mocks and stubs in place of real me
 Fakes are objects, which you can use in place of real methods. They are invoked, receive parameters, and can return values, just like real methods. As far as the invokee is concerned, it _is_ the real method you intended to be executed in your code. Fakes are what Rooibos uses under the hood, to facilitate it's Stub and Mock implementations.
 
 #### Stubs
-Stubs are Fakes which are not tracked. This means that you can execute your unit tests, using the fake methods; but Rooibos will not fail your tests if things were not as expected (i.e. wrong params, wrong number of invocations). These can be very handy for setting certain test conditions (i.e. you can create a fake network response that will return a speific result, which drives your test)
+Stubs are Fakes which are not tracked. This means that you can execute your unit tests, using the fake methods; but Rooibos will not fail your tests if things were not as expected (i.e. wrong params, wrong number of invocations). These can be very handy for setting certain test conditions (i.e. you can create a fake network response that will return a specific result, which drives your test)
 
 To create a stub, we use the `Stub` method:
 
@@ -619,7 +620,7 @@ m.Stub(detailsVM,"ExecuteNetRequest", invalid, returnJson)
 detailsVM.LoadDetails()
 
 m.assertFalse(detailsVM.isLoading)
-m.assertTure(detailsVM.isShowingError)
+m.assertTrue(detailsVM.isShowingError)
 ```
 
 In this case, our detailsVM object, will not actually call ExecuteNetRequests's source code; but will instead call a _fake_ (i.e fake method body), which can return predtermined values, or be later checked for invocation arg conformance.
@@ -633,7 +634,7 @@ We create mocks by using the methods:
  - ExpectOnce - Creates a mock, which we expect to be called once _or can created individual overloaded calls to the same method_
  - ExpectNone - Creates a mock, which we _never_ expect to be invoked
 
-### asserting mocks
+### Asserting mocks
 Mocks are asserted by invoking `m.assertMocks()`
 ***As a convenience, Rooibos will automatically assert any mocks for you when your test finishes executing***. This saves you from having to manually add this line at the end of your code.
 
@@ -656,7 +657,7 @@ m.assertFalse(detailsVM.isLoading)
 m.assertTrue(detailsVM.isShowingError)
 ```
 
-In addition to the other asserts, Rooibos will autoamtically check that ExecuteNetRequest was executed exactly once
+In addition to the other asserts, Rooibos will automatically check that ExecuteNetRequest was executed exactly once
 
 #### Manually Checking mock invocations
 If you wish you, you can store a reference to a mock or a stub, and later check the invocation values.
@@ -668,14 +669,14 @@ executeMock = m.ExpectOnce(detailsVM,"ExecuteNetRequest", invalid, returnJson)
 
 detailsVM.LoadDetails()
 
-? exceuteMock.invokedArgs
-? excecuteMock.invocations
+? executeMock.invokedArgs
+? executeMock.invocations
 ```
 
 #### Specifying expected invocation arguments
 You can save yourself a lot of time, and really think about and kick the tyres of your code, by defining the arguments you expect a function to be invoked with. This is done by passing in an array of the expected invocation arguments via the expectedArgs param. You may also really not care about the args, in which case you can set that value to `invalid` and the call to `m.assertMocks()` will skip checking the invoked args.
 
-#### assertin limitations.
+#### assertion limitations.
 
  - Up to 15 arguments are supported on mocked methods
  - You can have up to 24 mocks.
@@ -791,7 +792,7 @@ You can also specify multiple return values, if you expect your mock to be execu
 ### Allowing mocking of non-existent functions
 As a sanity check, rooibos will expect a method to exist on an object before allowing it to be stubbed or mocked. If it is not, it will fail log an error and lead to a failing mock assertion.
 
-This behaviour can be disabled by passing in the last argument of the mock/stub/fake function (`allowNonExistingMethods`) as `true`. In this case, rooibos will still log a warning; but you will be allowed to create the fake method.
+This behavior can be disabled by passing in the last argument of the mock/stub/fake function (`allowNonExistingMethods`) as `true`. In this case, rooibos will still log a warning; but you will be allowed to create the fake method.
 
 This is handy for quickly creating mock dependencies with simple _pobos_ (plain old brightscript objects). e.g.
 
@@ -812,7 +813,7 @@ Rooibos does not have special test runners for outputting to files, or uploading
 
 Becuase the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
 
-Note that rooibos doesn't need any special paramters to run. If you follow the standard setup the tests will run. Simply ensure that your build system includes, or does not include rooibosDist.brs (and better still, _all_ of your tests), depending on whether you wish to run the tests or not.
+Note that rooibos doesn't need any special parameters to run. If you follow the standard setup the tests will run. Simply ensure that your build system includes, or does not include rooibosDist.brs (and better still, _all_ of your tests), depending on whether you wish to run the tests or not.
 
 An example make target might look like
 
@@ -834,21 +835,17 @@ continuousIntegration: build install
 
 In the above example, we pipe the output of the telnet session to `dist/test.log`, wait for the test execution to finish, and finally, parse the line of test output to check for the SUCCESS flag.
 
+## Testing nodes
 
-## Coming soon.
+Rooibos is unashamedly, predominantly a TDD framework, aimed at facilitating rapid TDD with class based roku development.
 
-I am currently toying with integrating with : https://github.com/georgejecook/roku-test-automation/  - when that work is complete, roobis will be easy to run from CI, as we'll have a socket connection.
+However, it is useful to be able to test whole real nodes, with observes, and promises, in integration scenarios. In this case you will leverage rooibos "node tests". These are tests that
 
-## Advanced setup
-
-### Global test setup
-
-I find it really handy to have my own BaseTestSuite, that extends `Rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
-
-You can always call the super beforeEach/setup/teardown/etc from your other tests, making it trivial to do global setup functions.
-
-
-#### Example Node test file
+- Extend an existing node, so that you can access their node space functions
+- Run on the SG render thread
+- Can run in asynchronous mode, so that you can observe tasks, and other async fields, in your tests, and wait on the response.
+- Node tests are easy to use. All required code is auto-generated for you. Simply add the SGNode("nodeName") annotation to your test suite, where "nodeName" is the component you wish to test.
+### Example Node test file
 
 In the following example, the tests will be run in a new (auto-generated) component that extends `NodeExample` component.
 
@@ -856,7 +853,7 @@ In the following example, the tests will be run in a new (auto-generated) compon
 namespace Tests
   @SGNode NodeExample
   @suite [NET] Node Example Tests
-  class NodeExampleTests extends Rooibos.BaseTestSuite
+  class NodeExampleTests extends rooibos.BaseTestSuite
     override function setup()
       m.setupThing = "something created during setup"
     end function
@@ -879,20 +876,109 @@ namespace Tests
 ```
 
 ### Nuances of testing nodes
-The behaviour of your unit tests is identical to unit testing any other class, with 2 caveates:
+The behavior of your unit tests is identical to unit testing any other class, with 2 caveats:
 
 1. `m` does not refer to your node, it refers to the test suite, as per normal testing. The following variables are available to you in your test as a convenience:
 
   - `m.node` - codebehind for your xml file (e.g. your brs's m)
   - `m.top` the node you are testing
   - `m.global` access to the global node
-2. You **cannot** stub node methods. If there is no `.` reference to a method (via an associated array style object), then Rooibos cannot mock it. You may consider refactoring your code in these cases, as imho, it's better practice for things that you want to mock, to not be in the glue code of your code behdind files, in any case
-3. If you use mixins, which use eval to locate methods by name (common practice if you are doing anything complex) then be aware that the eval namespace is NOT the code in your unit test; but the code in your node's brs file and your test node's brs file. If you need to add more methods, such as callbck stubs, you can add them to the .brs file of your test.
+2. You **cannot** stub node methods. If there is no `.` reference to a method (via an associated array style object), then Rooibos cannot mock it.
+3. Asynchronous code, such as an observer, requires an async test. This is explained in the next section
+
+### Async testing
+To indicate a test suite will have one or more async tests, you must mark it with the @async annotation. This will cause rooibos to run the tests in async mode. If all tests in the suite do not complete within the timeout, then the suite will fail. The default time out is 60 seconds.
+
+You will then mark each test that is @async, with the annotation. This will keep the test running in the background, waiting for a call to m.done(). If the call is not made within the timeout, then the test fails. Again, the default timeout for each test is 2 seconds.
+
+#### Configuring timeouts
+
+You can configure both the testSuite timeout and each test timeout, by providing the ms duration as the argument for the `@async` annotation. e.g. `@async(5000)` sets the timeout to 5 seconds.
+
+#### Calling done, to indicate async operation is finished.
+
+You must call `testSuite.done()` on your async test. the `done` method is available on `m.done()` if your code is executing in your test suite, and on `m.testSuite.done()`, if your code is executing in the "node scope", of your component (e.g. on an observe callback).
+
+Calling done multiple times _should_ have no effect; but delayed calls to done, from previous tests, may cause your later async tests to fail. It is best to cleanup your observers and tasks, and other async elements, in your test tearDown/afterEach functions.
+
+## IMPORTANT! Cancelling pending calls to done.
+You should remove any observers and cancel any tasks, etc, in your test cleanup (e.g. afterEach or tearDown methods)
+
+#### Example
+
+```
+namespace tests
+  @only
+  @async
+  @SGNode("NodeExample")
+  @suite
+  class NodeExampleTests extends rooibos.BaseTestSuite
+    protected override function setup()
+      m.setupThing = "something created during setup"
+    end function
+
+    protected override function beforeEach()
+      m.beforeEachThing = "something created beforeEach"
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group1")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @async
+    @it("HelloFromNode")
+    function _()
+      'bs:disable-next-line
+      text = HelloFromNode("georgejecook", 12)
+      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      m.done()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group2")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @async(10)
+    @it("HelloFromNode with params")
+    @params("jon", 40)
+    @params("ringo", 23)
+    @params("ringo", 50)
+    @params("ringo", 24)
+    @params("george", 40)
+    @params("paul", 50)
+    function _(name, age)
+      'bs:disable-next-line
+      text = HelloFromNode(name, age)
+      m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
+      m.timer = createObject("roSGNode", "Timer")
+      m.timer.duration = 0.5
+      m.timer.observeFieldScoped("fire", "OnTimer")
+      m.timer.control = "start"
+    end function
+  end class
+end namespace
+
+function OnTimer()
+  ? " TIMER IS FIRED"
+  m.testSuite.done()
+end function
+```
+
+
+## Advanced setup
+
+### Global test setup
+
+I find it really handy to have my own BaseTestSuite, that extends `Rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
+
+You can always call the super beforeEach/setup/teardown/etc from your other tests, making it trivial to do global setup functions.
+
+
 
 ## Working with tests
 There are many articles on the benefits of TDD, and how to go about TDD, which you can readily find, such as [this link](https://builttoadapt.io/why-tdd-489fdcdda05e) which has a good overview, plus a great video with warnings of how to take it too far.
 
-Personally, I get great mileage doing TDD in roku by using MVVM pattern (I'm soon to release a lightweight MVVM framework). You can get more info on that [here](https://medium.com/flawless-app-stories/how-to-use-a-model-view-viewmodel-architecture-for-ios-46963c67be1b) (for iOS), and ideas on how that benefits roku dev [here](https://medium.com/plexlabs/xml-code-good-times-rsg-application-b963f0cec01b)
+Personally, I get great mileage doing TDD in roku by using MVVM pattern (I'm soon to release a lightweight MVVM framework). You can get more info on that [here](https://medium.com/flawless-app-stories/how-to-use-a-model-view-viewmodel-architectrue-for-ios-46963c67be1b) (for iOS), and ideas on how that benefits roku dev [here](https://medium.com/plexlabs/xml-code-good-times-rsg-application-b963f0cec01b)
 
 I use these practices as much as possible becuase:
 
@@ -913,29 +999,40 @@ I slap an `@only` annotation on the suite, group and test I'm currently working 
 
 Once my test passes, I test for regression, then run the whole suite, then run the app and test out in the UI.
 
+## Roobios vscode Extension
+
+I have made an extension that adds rooibos (and maestro framework, which I also maintain) support to vscode. It adds useful features such as:
+
+- navigate straight to test
+- navigate to code
+- @only, on a suite, group or test, with a hotkey
+- Auto generate a run config, to only run files that are open in vscode right now (saves on compile times, and is excellent for TDD workflows).
+
+Get it [here](https://marketplace.visualstudio.com/items?itemName=tantawowa.vscode-maestro-roku)
+
 ## Backward compatibility
 
 Rooibos is NOT backward compatible with pre version 4 versions of rooibos; and not compatible with any other unit test framework.
 
 ## Generate code coverage
 
-**THIS FEATURE IS NOT YET AVAILBALE - I WILL REENABLE THIS IN ROOIBOS 4.2** : If you want it sooner, I can tell you how to implement it - it's a cpl hours of work, I don't have time for right now.
+**THIS FEATrue IS NOT YET AVAILBALE - I WILL REENABLE THIS IN ROOIBOS 4.2** : If you want it sooner, I can tell you how to implement it - it's a cpl hours of work, I don't have time for right now.
 
 
 
 Rooibos can measure and report the test coverage your unit tests are producing.
 
-### Code coverage recording is desctructive!
+### Code coverage recording is destructive!
 
 #### WARNING - DO NOT run code coverage against your source folder!
 
 Recording coverage means modifying your sources! you should only run the coverage on a project path pointing to a build folder _not_ your source.
 
-These files should be cleaned and recopied _every time you run coverage_ or you will get compile errors/other undetermined behaviour.
+These files should be cleaned and recopied _every time you run coverage_ or you will get compile errors/other undetermined behavior.
 
 #### WARNING - Running code coverage is slower and may crash your device
 
-Running a code coverage report is a lot slower than a standard test, due to conitnual probing of your source. Only run coverage when needed. Also - be aware it will crash very tight loops, like inside of a while waiting on a port, which will in fact crash and hard reset your device.
+Running a code coverage report is a lot slower than a standard test, due to continual probing of your source. Only run coverage when needed. Also - be aware it will crash very tight loops, like inside of a while waiting on a port, which will in fact crash and hard reset your device.
 
 ### Recording coverage
 To record coverage, set the `sourceFilePattern` to a glob matching (including and excluding) the files that should be included in your coverage report, and set the `isRecordingCodeCoverage` flag to true. Be careful to not include your test specs!!
