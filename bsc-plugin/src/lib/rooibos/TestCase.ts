@@ -74,6 +74,7 @@ export class TestCase {
             return `[${o
                 .map(obj => `${this.fixBadJson(obj)}`)
                 .join(',')
+                // eslint-disable-next-line @typescript-eslint/indent
                 }]`;
         }
         // not an object, stringify using native function
@@ -86,6 +87,7 @@ export class TestCase {
                 return `"${key.replace(/"/g, '')}":${this.fixBadJson(o[key])}`;
             })
             .join(',')
+            // eslint-disable-next-line @typescript-eslint/indent
             }}`;
     }
 

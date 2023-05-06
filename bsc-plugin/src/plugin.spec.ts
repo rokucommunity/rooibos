@@ -120,7 +120,7 @@ describe('RooibosPlugin', () => {
             expect(test.asyncTimeout).to.equal(2000);
         });
 
-        it.only('finds a @async and applies timeout override', () => {
+        it('finds a @async and applies timeout override', () => {
             program.setFile('source/test.spec.bs', `
             @async(1)
             @suite("named")

@@ -1,4 +1,4 @@
-import { AnnotationExpression, BrsFile, Statement } from 'brighterscript';
+import type { AnnotationExpression, BrsFile, Statement } from 'brighterscript';
 import { diagnosticIllegalParams, diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined } from '../utils/Diagnostics';
 
 export enum AnnotationType {
