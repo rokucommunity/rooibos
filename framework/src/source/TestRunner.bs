@@ -26,6 +26,7 @@ namespace rooibos
       end if
       nodeContext.scene = testScene
 
+      m.top = nodeContext.top
       m.nodeContext = nodeContext
 
       m.stats = new rooibos.Stats()
@@ -132,26 +133,51 @@ namespace rooibos
         testSuite.scene = m.nodeContext.global.testsScene
         testSuite.catchCrashes = m.config.catchCrashes
         m.nodeContext.testSuite = testSuite
+        m.nodeTestName = nodeTestName
+        m.nodeContext.testRunner = m
         m.nodeContext.top.addFields({
-          "rooibosSuiteFinished": 0
-          "rooibosTestFinished": 0
+          "rooibosSuiteFinished": false
+          "rooibosTestFinished": false
           "rooibosTestIsAsync": false
         })
 
       end if
 
       if testSuite <> invalid
-        testSuite.run()
-        return {
-          stats: testSuite.stats
-          tests: testSuite.tests
-        }
+        m.runningTestSuite = testSuite
+        testSuite.testRunner = m
+        if testSuite.isAsync = true
+          ? "Running async test"
+          m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
+          testSuite.run()
+        else
+          ? "Running async test"
+          testSuite.run()
+          return m.onTestSuiteComplete()
+        end if
+
       else
         ? "[ERROR] could not create test suite " ; nodeTestName
       end if
 
       ? "ERROR! executing node test " + nodeTestName + " was unsuccessful."
 
+      return invalid
+    end function
+
+    private function onTestSuiteComplete()
+      testSuite = m.runningTestSuite
+      if testSuite <> invalid
+        return {
+          stats: testSuite.stats
+          tests: testSuite.tests
+        }
+
+      else
+        ? "[ERROR] could not create test suite " ; m.testRunner.nodeTestName
+      end if
+
+      ? "ERROR! executing node test " + m.testRunner.nodeTestName + " was unsuccessful."
       return invalid
     end function
 
@@ -185,7 +211,7 @@ namespace rooibos
         if attempts = maxAttempts
           return false
         end if
-        ? "waiting for signal field '" ; fieldName "' - " ; attempts " VALUE " target[fieldName]
+        ' ? "waiting for signal field '" ; fieldName "' - " ; attempts " VALUE " target[fieldName]
       end while
 
       return true
@@ -205,15 +231,20 @@ namespace rooibos
         'wait on the field
 
         if type(node) = "roSGNode"
-          if node.rooibosSuiteFinished = false
-            m.waitForField(node, "rooibosSuiteFinished")
+          if testSuite.isAsync = true
+            if node.rooibosSuiteFinished = false
+              timeout = testSuite.asyncTimeout = invalid ? 60000 : testSuite.asyncTimeout
+
+              ? "Waiting max " timeout "ms for the test suite to finish"
+              m.waitForField(node, "rooibosSuiteFinished", 10, timeout / 10)
+            end if
           end if
-          nodeResults = node.rooibosTestResult
+          nodeResults = node.asyncRooibosTestResult
           if nodeResults <> invalid
             testSuite.stats = nodeResults.stats
             testSuite.testCases = nodeResults.testCases
           else
-            ? " ERROR! The node test"; testSuite.name; " did not return a result from from the rooibos_runNodeTestSuite method. This usually means you are not importing rooibos.brs and the required test file. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+            ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
           end if
           m.testScene.removeChild(node)
           return
@@ -259,5 +290,9 @@ namespace rooibos
   function runNodeTestSuite(name)
     nodeRunner = new TestRunner(m.top.getScene(), m)
     return nodeRunner.runInNodeMode(name)
+  end function
+
+  function onTestSuiteComplete()
+    m.testRunner.onTestSuiteComplete()
   end function
 end namespace

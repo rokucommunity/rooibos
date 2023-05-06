@@ -64,6 +64,7 @@ export class AnnotationParams {
 }
 export class RooibosAnnotation {
     isAsync: boolean;
+    asyncTimeout: number;
 
     /**
      * Represents a group of comments which contain tags such as @only, @suite, @describe, @it etc
@@ -99,6 +100,7 @@ export class RooibosAnnotation {
         let noCatch = false;
         let noEarlyExit = false;
         let nodeName = null;
+        let asyncTimeout = 2000;
         let tags = [] as string[];
         if (statement.annotations?.length) {
             let describeAnnotations = statement.annotations.filter((a) => getAnnotationType(a.name) === AnnotationType.Describe);
@@ -115,6 +117,8 @@ export class RooibosAnnotation {
                         break;
                     case AnnotationType.Async:
                         async = true;
+                        //ensure the arg is an integer, if not set to 2000
+                        asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : asyncTimeout;
                         break;
                     case AnnotationType.NoCatch:
                         noCatch = true;
@@ -141,17 +145,20 @@ export class RooibosAnnotation {
                     case AnnotationType.TestSuite:
                         const groupName = annotation.getArguments()[0] as string;
                         blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch, noEarlyExit);
+                        blockAnnotation.isAsync = async;
+                        blockAnnotation.asyncTimeout = asyncTimeout;
                         nodeName = null;
                         isSolo = false;
                         isIgnore = false;
                         break;
-                    case AnnotationType.It:
-                        const testName = annotation.getArguments()[0] as string;
-                        if (!testName || testName.trim() === '') {
-                            diagnosticNoTestNameDefined(file, annotation);
-                        }
-                        let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
-                        newAnnotation.isAsync = async;
+                        case AnnotationType.It:
+                            const testName = annotation.getArguments()[0] as string;
+                            if (!testName || testName.trim() === '') {
+                                diagnosticNoTestNameDefined(file, annotation);
+                            }
+                            let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
+                            newAnnotation.isAsync = async;
+                            newAnnotation.asyncTimeout = asyncTimeout;
                         if (testAnnotation) {
                             diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
                         } else {

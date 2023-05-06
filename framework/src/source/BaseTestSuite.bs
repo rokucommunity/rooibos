@@ -70,6 +70,8 @@ namespace rooibos
         m.hasSoloGroups = data.hasSoloGroups
         m.isSolo = data.isSolo
         m.isIgnored = data.isIgnored
+        m.isAsync = data.isAsync
+        m.asyncTimeout = data.asyncTimeout
         m.noCatch = data.noCatch
         m.groupsData = data.testGroups
         m.lineNumber = data.lineNumber
@@ -2490,9 +2492,13 @@ namespace rooibos
     end function
 
     function done()
-      ? "ASYNC TEST IS DONE "
-      m.top.rooibosSuiteFinished = true
+      ? "Async test is complete"
       m.top.rooibosTestFinished = true
+    end function
+
+    function testSuiteDone()
+      ? "Async suite is complete"
+      m.top.rooibosSuiteFinished = true
     end function
 
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)

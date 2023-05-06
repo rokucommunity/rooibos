@@ -37,6 +37,9 @@ export class TestBlock {
     public get isAsync(): boolean {
         return this.annotation.isAsync;
     }
+    public get asyncTimeout(): number {
+        return this.annotation.asyncTimeout;
+    }
 
     public get isIgnored(): boolean {
         return this.annotation.isIgnore;
@@ -133,6 +136,8 @@ export class TestSuite extends TestBlock {
       beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"
       afterEachFunctionName: "${this.afterEachFunctionName || ''}"
       isNodeTest: ${this.isNodeTest || false}
+      isAsync: ${this.isAsync || false}
+      asyncTimeout: ${this.asyncTimeout || 60000}
       nodeName: "${this.nodeName || ''}"
       generatedNodeName: "${this.generatedNodeName || ''}"
       testGroups: [${testGroups}]

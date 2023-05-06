@@ -28,6 +28,7 @@ export class TestCase {
     public isIgnored: boolean;
     public isParamTest: boolean;
     public isAsync: boolean;
+    public asyncTimeout: number;
     public name: string;
     public lineNumber: number;
     public paramLineNumber: number;
@@ -47,6 +48,7 @@ export class TestCase {
           funcName: "${this.funcName || ''}"
           isIgnored: ${this.isIgnored}
           isAsync: ${this.isAsync}
+          asyncTimeout: ${this.asyncTimeout || 2000}
           isParamTest: ${this.isParamTest}
           name: ${sanitizeBsJsonString(this.name)}
           lineNumber: ${this.lineNumber + 2}

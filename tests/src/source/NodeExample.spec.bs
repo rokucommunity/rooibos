@@ -1,4 +1,5 @@
 namespace tests
+  @async
   @SGNode("NodeExample")
   @suite
   class NodeExampleTests extends rooibos.BaseTestSuite
@@ -22,9 +23,10 @@ namespace tests
       m.done()
     end function
 
+    @async
     @it("HelloFromNode with params")
     @onlyparams("jon", 40)
-    @params("ringo", 23)
+    @onlyparams("ringo", 23)
     @params("ringo", 50)
     @params("ringo", 24)
     @params("george", 40)
@@ -34,7 +36,7 @@ namespace tests
       text = HelloFromNode(name, age)
       m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
       m.timer = createObject("roSGNode", "Timer")
-      m.timer.duration = 2
+      m.timer.duration = 0.5
       m.timer.observeFieldScoped("fire", "OnTimer")
       m.timer.control = "start"
     end function

@@ -34,6 +34,8 @@ namespace rooibos
       m.hasFailures = testSuite.hasFailures
       m.isSolo = data.isSolo
       m.isIgnored = data.isIgnored
+      m.isAsync = data.isAsync
+      m.asyncTimeout = data.asyncTimeout
       m.testsData = data.testCases
       m.isNodeTest = false
       m.nodeName = invalid
@@ -54,7 +56,22 @@ namespace rooibos
     '++ running
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    private currentTestIndex = 0
+    'TODO CONVERT THIS TO ASYNC
     function run()
+      ? ">>>>>>>>>>>>"
+      ? " RUNNING TEST GROUP"
+      m.testRunner = m.testSuite.testRunner
+      if m.testSuite.isAsync = true
+        ? " THIS GROUP IS ASYNC"
+        m.runAsync()
+      else
+        ? " THIS GROUP IS SYNC"
+        m.runSync()
+      end if
+    end function
+
+    function runSync()
       isOk = m.runSuiteFunction(m.setupFunctionName, "setup")
 
       if isOk
@@ -83,6 +100,85 @@ namespace rooibos
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
     end function
 
+
+    function runASync()
+      isOk = m.runSuiteFunction(m.setupFunctionName, "setup")
+      if isOk
+        m.testRunner.currentGroup = m
+        for each testData in m.testsData
+          test = new rooibos.Test(m, testData)
+          m.tests.push(test)
+        end for
+        m.currentTestIndex = -1
+        m.runNextAsync()
+      else
+        ? "ERROR running test setup function"
+        m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
+      end if
+    end function
+
+    private function runNextAsync()
+      ? "Getting next async test"
+      m.currentTestIndex++
+      m.currentTest = m.tests[m.currentTestIndex]
+      if m.currentTest = invalid
+        ? " all tests are finished"
+        'finished
+        m.finishAsyncTests()
+      else
+        m.testRunner.top.rooibosTestFinished = false
+        isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
+        if isOk
+          m.testRunner.top.observeFieldScoped("rooibosTestFinished", "rooibos_onTestComplete")
+
+          'TODO - set a timeout here
+          m.testSuite.runTest(m.currentTest)
+          if m.currentTest.result.isFail
+            ? "Test failed before any async code could be executed"
+            m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
+            m.testRunner.top.rooibosTestFinished = true
+            m.onAsyncTestComplete()
+          end if
+
+        else
+          ? "Error running test before each function"
+          m.isTestFailedDueToEarlyExit = true
+          m.finishAsyncTests()
+        end if
+      end if
+    end function
+
+    private function onAsyncTestComplete()
+      ? "++ CURRENT TEST COMPLETED"
+      m.runSuiteFunction(m.afterEachFunctionName, "afterEach", m.currentTest)
+
+      m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
+
+      m.stats.appendTestResult(m.currentTest.result)
+
+      if m.stats.hasFailures and m.testSuite.isFailingFast
+        ? "Terminating group due to failed test"
+        m.isTestFailedDueToEarlyExit = true
+        m.finishAsyncTests()
+      else
+        m.runNextAsync()
+      end if
+
+    end function
+
+    private function finishAsyncTests()
+      m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
+
+      m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
+      ? " indicating test suite is done"
+      m.testRunner.top.addFields({asyncRooibosTestResult:{
+        stats: m.stats
+        tests: m.tests
+      }
+      })
+      m.testSuite.testSuiteDone()
+    end function
+
     private function runSuiteFunction(methodName, defaultMethodName, test = invalid)
 
       if methodName = invalid or methodName = ""
@@ -108,4 +204,9 @@ namespace rooibos
     end function
 
   end class
+
+  function onTestComplete()
+    ? "++++++++ THE TEST COMPLETED"
+    m.testRunner.currentGroup.onAsyncTestComplete()
+  end function
 end namespace
