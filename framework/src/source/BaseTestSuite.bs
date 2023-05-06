@@ -108,6 +108,19 @@ namespace rooibos
     '++++++++++++++++++++++++++++++++++++?+++++++++++++++++++++++++
 
     function run()
+
+      ' ? ">>>>>>>>>>>>"
+      ' ? " RUNNING TEST SUITE"
+      if m.isAsync = true
+        ' ? " THIS GROUP IS ASYNC"
+        m.runAsync()
+      else
+        ' ? " THIS GROUP IS SYNC"
+        m.runSync()
+      end if
+    end function
+
+    function runSync()
       for each groupData in m.groupsData
         'bs:disable-next-line
         group = new TestGroup(m, groupData)
@@ -131,6 +144,101 @@ namespace rooibos
         end if
 
       end for
+    end function
+
+    function runASync()
+      ' ? "running groups async"
+
+      m.groups = []
+      for each groupData in m.groupsData
+        'bs:disable-next-line
+        group = new TestGroup(m, groupData)
+        m.groups.push(group)
+      end for
+
+      m.currentGroupIndex = -1
+      m.runNextAsync()
+
+    end function
+
+    private function runNextAsync()
+      ' ? "Getting next async group"
+      m.currentGroupIndex++
+      m.currentGroup = m.groups[m.currentGroupIndex]
+      if m.currentGroup = invalid
+        m.setTestTimer(0)
+        ' ? " all groups are finished"
+        'finished
+        m.finishAsyncGroups()
+      else
+        group = m.currentGroup
+        m.testRunner.top.rooibosGroupFinished = false
+
+        ? ""
+        ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
+        'bs:disable-next-line
+        ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
+        ? ""
+
+        m.testRunner.top.observeFieldScoped("rooibosGroupFinished", "rooibos_onGroupComplete")
+
+        group.run()
+
+        if m.currentGroup.stats.hasFailures
+          ? "Group failed before any async code could be executed"
+          m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
+          m.testGroupDone()
+          m.onAsyncGroupComplete()
+        end if
+
+      end if
+    end function
+
+    private function onAsyncGroupComplete()
+      ' ? "++ CURRENT GROUP COMPLETED"
+      m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
+
+      group = m.currentGroup
+      'bs:disable-next-line
+      m.stats.merge(group.stats)
+
+      if m.stats.hasFailures and m.isFailingFast
+        ' ? "Terminating group due to failed test"
+        m.isTestFailedDueToEarlyExit = true
+        m.finishAsyncGroups()
+      else
+        m.runNextAsync()
+      end if
+
+    end function
+
+    private function finishAsyncGroups()
+      m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
+
+      m.testRunner.top.addFields({ asyncRooibosTestResult: {
+          stats: m.stats
+          tests: m.tests
+          groups: m.groups
+        }
+      })
+      ' ? " indicating test suite is done"
+      m.testSuiteDone()
+    end function
+
+    private function setTestTimer(duration)
+    ? " SETTING TIMER FOR " duration
+      if m.testTimer = invalid
+        m.testTimer = createObject("roSGNode", "Timer")
+      end if
+      if duration = 0
+        m.testTimer.unobserveFieldScoped("fire")
+        m.testTimer.control = "stop"
+      else
+        m.testTimer.observeFieldScoped("fire", "rooibos_onTestTimer")
+
+        m.testTimer.duration = duration / 1000
+        m.testTimer.control = "start"
+      end if
     end function
 
     function runTest(test as rooibos.Test)
@@ -183,6 +291,14 @@ namespace rooibos
         return false
       end if
       m.currentResult.fail(msg, m.currentAssertLineNumber)
+      return false
+    end function
+
+    function failBecauseOfTimeOut() as dynamic
+      if m.currentResult.isFail
+        return false
+      end if
+      m.currentResult.fail("Async test execution exceeded " + m.asyncTimeout.toStr() + "ms")
       return false
     end function
 
@@ -2492,13 +2608,18 @@ namespace rooibos
     end function
 
     function done()
-      ? "Async test is complete"
+      ' ? "Async test is complete"
       m.top.rooibosTestFinished = true
     end function
 
     function testSuiteDone()
-      ? "Async suite is complete"
+      ' ? "Async suite is complete"
       m.top.rooibosSuiteFinished = true
+    end function
+
+    function testGroupDone()
+      ? "Async group is complete"
+      m.top.rooibosGroupFinished = true
     end function
 
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)
@@ -2548,4 +2669,14 @@ namespace rooibos
 
   end class
 
+
+  function onGroupComplete()
+    ' ? "++++++++ THE GROUP COMPLETED"
+    m.testRunner.currentTestSuite.onAsyncGroupComplete()
+  end function
+
+  function onTestTimer()
+    ? "++++++++ TEST TIMED OUT"
+    m.testRunner.currentTestSuite.failBecauseOfTimeOut()
+  end function
 end namespace

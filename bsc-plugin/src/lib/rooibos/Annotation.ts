@@ -1,4 +1,4 @@
-import type { BrsFile, Statement, AnnotationExpression } from 'brighterscript';
+import { AnnotationExpression, BrsFile, Statement } from 'brighterscript';
 import { diagnosticIllegalParams, diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined } from '../utils/Diagnostics';
 
 export enum AnnotationType {
@@ -100,7 +100,7 @@ export class RooibosAnnotation {
         let noCatch = false;
         let noEarlyExit = false;
         let nodeName = null;
-        let asyncTimeout = 2000;
+        let asyncTimeout = -1;
         let tags = [] as string[];
         if (statement.annotations?.length) {
             let describeAnnotations = statement.annotations.filter((a) => getAnnotationType(a.name) === AnnotationType.Describe);
@@ -118,7 +118,7 @@ export class RooibosAnnotation {
                     case AnnotationType.Async:
                         async = true;
                         //ensure the arg is an integer, if not set to 2000
-                        asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : asyncTimeout;
+                        asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : -1;
                         break;
                     case AnnotationType.NoCatch:
                         noCatch = true;
@@ -146,7 +146,7 @@ export class RooibosAnnotation {
                         const groupName = annotation.getArguments()[0] as string;
                         blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch, noEarlyExit);
                         blockAnnotation.isAsync = async;
-                        blockAnnotation.asyncTimeout = asyncTimeout;
+                        blockAnnotation.asyncTimeout = asyncTimeout == -1 ? 60000 : asyncTimeout;
                         nodeName = null;
                         isSolo = false;
                         isIgnore = false;
@@ -158,7 +158,7 @@ export class RooibosAnnotation {
                             }
                             let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
                             newAnnotation.isAsync = async;
-                            newAnnotation.asyncTimeout = asyncTimeout;
+                            newAnnotation.asyncTimeout = asyncTimeout == -1 ? 2000 : asyncTimeout;
                         if (testAnnotation) {
                             diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
                         } else {

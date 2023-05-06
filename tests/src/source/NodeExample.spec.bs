@@ -1,4 +1,5 @@
 namespace tests
+  @only
   @async
   @SGNode("NodeExample")
   @suite
@@ -12,21 +13,26 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests methods present on the node")
+    @describe("group1")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @async
     @it("HelloFromNode")
     function _()
       'bs:disable-next-line
       text = HelloFromNode("georgejecook", 12)
-      m.AssertEqual(text, "HELLO georgejecook" + " aged:" + stri(12))
+      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
       m.done()
     end function
 
-    @async
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group2")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @async(10)
     @it("HelloFromNode with params")
-    @onlyparams("jon", 40)
-    @onlyparams("ringo", 23)
+    @params("jon", 40)
+    @params("ringo", 23)
     @params("ringo", 50)
     @params("ringo", 24)
     @params("george", 40)

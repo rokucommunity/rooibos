@@ -139,19 +139,20 @@ namespace rooibos
           "rooibosSuiteFinished": false
           "rooibosTestFinished": false
           "rooibosTestIsAsync": false
+          "rooibosGroupFinished": false
         })
 
       end if
 
       if testSuite <> invalid
-        m.runningTestSuite = testSuite
+        m.currentTestSuite = testSuite
         testSuite.testRunner = m
         if testSuite.isAsync = true
           ? "Running async test"
           m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
           testSuite.run()
         else
-          ? "Running async test"
+          ? "Running sync test"
           testSuite.run()
           return m.onTestSuiteComplete()
         end if
@@ -166,7 +167,7 @@ namespace rooibos
     end function
 
     private function onTestSuiteComplete()
-      testSuite = m.runningTestSuite
+      testSuite = m.currentTestSuite
       if testSuite <> invalid
         return {
           stats: testSuite.stats
@@ -192,8 +193,8 @@ namespace rooibos
         else
           testSuite.run()
         end if
-
         m.stats.merge(testSuite.stats)
+
       end if
     end function
 
@@ -235,14 +236,22 @@ namespace rooibos
             if node.rooibosSuiteFinished = false
               timeout = testSuite.asyncTimeout = invalid ? 60000 : testSuite.asyncTimeout
 
+              m.groups = []
+              for each groupData in testSuite.groupsData
+                'bs:disable-next-line
+                group = new TestGroup(testSuite, groupData)
+                testSuite.groups.push(group)
+              end for
+
               ? "Waiting max " timeout "ms for the test suite to finish"
               m.waitForField(node, "rooibosSuiteFinished", 10, timeout / 10)
             end if
           end if
           nodeResults = node.asyncRooibosTestResult
           if nodeResults <> invalid
-            testSuite.stats = nodeResults.stats
-            testSuite.testCases = nodeResults.testCases
+            testSuite.stats.merge(nodeResults.stats)
+            m.mergeGroups(testSuite, nodeResults.groups)
+            ' testSuite.stats = nodeResults.stats
           else
             ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
           end if
@@ -262,6 +271,24 @@ namespace rooibos
       testSuite.stats.hasFailures = true
       testSuite.failedCount += testSuite.testsData.count()
     end function
+
+    private function mergeGroups(testSuite, groups)
+      for i = 0 to testSuite.groups.count() -1
+        group = groups[i]
+        realGroup = testSuite.groups[i]
+        realGroup.stats.merge(group.stats)
+        realGroup.hasFailures = group.hasFailures
+        realGroup.tests = []
+        for testDataIndex = 0 to group.testsData.count() -1
+          testData = group.testsData[testDataIndex]
+          realTest = new rooibos.Test(m, testData)
+          realTest.testSuite = testSuite
+          realGroup.tests.push(realTest)
+          test = group.tests[i]
+          realTest.result.merge(test.result)
+        end for
+      end for
+  end function
 
     private function sendHomeKeypress()
       ut = createObject("roUrlTransfer")
