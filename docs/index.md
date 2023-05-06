@@ -887,9 +887,11 @@ The behavior of your unit tests is identical to unit testing any other class, wi
 3. Asynchronous code, such as an observer, requires an async test. This is explained in the next section
 
 ### Async testing
-To indicate a test suite will have one or more async tests, you must mark it with the @async annotation. This will cause rooibos to run the tests in async mode. If all tests in the suite do not complete within the timeout, then the suite will fail. The default time out is 60 seconds.
+To indicate a test suite will run in async mode you will mark the test suite with the @async annotation or mark one ore more tests with @async. This will cause rooibos to run the tests in async mode. If all tests in the suite do not complete within the timeout, then the suite will fail. The default time out is 60 seconds.
 
-You will then mark each test that is @async, with the annotation. This will keep the test running in the background, waiting for a call to m.done(). If the call is not made within the timeout, then the test fails. Again, the default timeout for each test is 2 seconds.
+When you mark any test in a suite with the @async annotation this will keep the test running in the background, waiting for a call to m.done(). If the call is not made within the timeout, then the test fails. Again, the default timeout for each test is 2 seconds.
+
+Note: you are not required to add @async to your testSuite, it is implied when you add it one more more tests. However, you may wish to add tge async annotation to your suite, to override the default of 60 seconds (e.g. with the annotation `async(12000)` we are instructing rooibos to wait up to 2 minutes for the _whole_ suite).
 
 #### Configuring timeouts
 

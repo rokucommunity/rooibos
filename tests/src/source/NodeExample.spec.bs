@@ -1,6 +1,5 @@
 namespace tests
   @only
-  @async
   @SGNode("NodeExample")
   @suite
   class NodeExampleTests extends rooibos.BaseTestSuite
@@ -29,7 +28,7 @@ namespace tests
     @describe("group2")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @async(10)
+    @async(1000)
     @it("HelloFromNode with params")
     @params("jon", 40)
     @params("ringo", 23)

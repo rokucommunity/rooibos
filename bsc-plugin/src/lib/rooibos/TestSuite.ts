@@ -50,6 +50,7 @@ export class TestBlock {
 
     public hasFailures = false;
     public hasSoloTests = false;
+    public hasAsyncTests = false;
     public hasIgnoredTests = false;
 
     public setupFunctionName: string;
@@ -87,6 +88,9 @@ export class TestSuite extends TestBlock {
         }
         if (group.hasSoloTests) {
             this.hasSoloTests = true;
+        }
+        if (group.hasAsyncTests) {
+            this.annotation.isAsync = true;
         }
         if (group.isSolo) {
             this.hasSoloGroups = true;

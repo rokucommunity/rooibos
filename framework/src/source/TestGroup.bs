@@ -59,15 +59,15 @@ namespace rooibos
     private currentTestIndex = 0
     'TODO CONVERT THIS TO ASYNC
     function run()
-      ? ">>>>>>>>>>>>"
-      ? " RUNNING TEST GROUP"
+      ' ? ">>>>>>>>>>>>"
+      ' ? " RUNNING TEST GROUP"
       m.testRunner = m.testSuite.testRunner
       m.testSuite.setTestTimer(0)
       if m.testSuite.isAsync = true
-        ? " THIS GROUP IS ASYNC"
+        ' ? " THIS GROUP IS ASYNC"
         m.runAsync()
       else
-        ? " THIS GROUP IS SYNC"
+        ' ? " THIS GROUP IS SYNC"
         m.runSync()
       end if
     end function
@@ -104,6 +104,8 @@ namespace rooibos
 
     function runAsync()
       isOk = m.runSuiteFunction(m.setupFunctionName, "setup")
+      m.testTimer = createObject("roTimespan")
+
       if isOk
         m.testRunner.currentGroup = m
         for each testData in m.testsData
@@ -123,6 +125,7 @@ namespace rooibos
       m.currentTestIndex++
       m.currentTest = m.tests[m.currentTestIndex]
       m.testSuite.isDoneCalled = false
+      m.testTimer.mark()
       if m.currentTest = invalid
         ' ? " all tests are finished"
         'finished
@@ -133,7 +136,7 @@ namespace rooibos
         if isOk
           'TODO - set a timeout here
           test = m.currentTest
-          if test.Async <> true
+          if test.isAsync <> true
             ? "Executing test synchronously"
             m.testSuite.runTest(test)
             m.testRunner.top.rooibosTestFinished = true
@@ -167,6 +170,7 @@ namespace rooibos
 
       m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
 
+      m.currentTest.result.time = m.testTimer.totalMilliseconds()
       m.stats.appendTestResult(m.currentTest.result)
 
       if m.stats.hasFailures and m.testSuite.isFailingFast

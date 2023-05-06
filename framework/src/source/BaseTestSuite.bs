@@ -144,9 +144,18 @@ namespace rooibos
         end if
 
       end for
+
+      if m.isNodeTest and m.testRunner.top <> invalid
+        m.testRunner.top.addFields({ asyncRooibosTestResult: {
+            stats: m.stats
+            tests: m.tests
+            groups: m.groups
+          }
+        })
+      end if
     end function
 
-    function runAsync()
+    function runASync()
       ' ? "running groups async"
 
       m.groups = []
@@ -184,21 +193,25 @@ namespace rooibos
 
         group.run()
 
-        if m.currentGroup.stats.hasFailures
+        if group.stats.hasFailures
           ? "Group failed before any async code could be executed"
           m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
-          m.testGroupDone()
-          m.onAsyncGroupComplete()
+          ' m.testGroupDone()
+          m.onAsyncGroupComplete(group)
         end if
 
       end if
     end function
 
-    private function onAsyncGroupComplete()
+    private function onAsyncGroupComplete(group = invalid) as void
       ' ? "++ CURRENT GROUP COMPLETED"
       m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
 
-      group = m.currentGroup
+      group = group = invalid ? m.currentGroup : group
+      if group = invalid
+        ? "cannot find test group to mark async finished for?!"
+        return
+      end if
       'bs:disable-next-line
       m.stats.merge(group.stats)
 
@@ -300,6 +313,7 @@ namespace rooibos
         return false
       end if
       m.currentResult.fail("Async test execution exceeded " + m.currentTimeout.toStr() + "ms")
+      m.done()
       return false
     end function
 
