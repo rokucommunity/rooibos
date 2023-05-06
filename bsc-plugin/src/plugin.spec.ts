@@ -112,7 +112,7 @@ describe('RooibosPlugin', () => {
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
             let suite = plugin.session.sessionInfo.testSuitesToRun[0];
-            expect(suite.name).to.equal('named');
+            expect(suite.name).to.equal('ATest');
             expect(suite.isAsync).to.be.true;
             expect(suite.asyncTimeout).to.equal(60000);
             let test = suite.testGroups.get('groupA').testCases.get('is test1');
@@ -419,6 +419,8 @@ describe('RooibosPlugin', () => {
                             beforeEachFunctionName: ""
                             afterEachFunctionName: ""
                             isNodeTest: false
+                            isAsync: false
+                            asyncTimeout: 60000
                             nodeName: ""
                             generatedNodeName: "ATest"
                             testGroups: [
@@ -438,6 +440,8 @@ describe('RooibosPlugin', () => {
                                             noCatch: false
                                             funcName: "groupA_is_test1"
                                             isIgnored: false
+                                            isAsync: false
+                                            asyncTimeout: 2000
                                             isParamTest: false
                                             name: "is test1"
                                             lineNumber: 7
