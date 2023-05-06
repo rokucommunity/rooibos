@@ -1,6 +1,5 @@
 namespace tests
-  @tags("fixme")
-  @ignore("not working")
+  @only
   @SGNode("NodeExample")
   @suite
   class NodeExampleTests extends rooibos.BaseTestSuite
@@ -13,16 +12,23 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests methods present on the node")
+    @describe("group1")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @async
     @it("HelloFromNode")
     function _()
       'bs:disable-next-line
       text = HelloFromNode("georgejecook", 12)
-      m.AssertEqual(text, "HELLO georgejecook" + " aged:" + stri(12))
+      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      m.done()
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("group2")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @async(1000)
     @it("HelloFromNode with params")
     @params("jon", 40)
     @params("ringo", 23)
@@ -34,6 +40,15 @@ namespace tests
       'bs:disable-next-line
       text = HelloFromNode(name, age)
       m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
+      m.timer = createObject("roSGNode", "Timer")
+      m.timer.duration = 0.5
+      m.timer.observeFieldScoped("fire", "OnTimer")
+      m.timer.control = "start"
     end function
   end class
 end namespace
+
+function OnTimer()
+  ? " TIMER IS FIRED"
+  m.testSuite.done()
+end function

@@ -26,6 +26,7 @@ namespace rooibos
       end if
       nodeContext.scene = testScene
 
+      m.top = nodeContext.top
       m.nodeContext = nodeContext
 
       m.stats = new rooibos.Stats()
@@ -131,20 +132,53 @@ namespace rooibos
         testSuite.top = m.nodeContext.top
         testSuite.scene = m.nodeContext.global.testsScene
         testSuite.catchCrashes = m.config.catchCrashes
+        m.nodeContext.testSuite = testSuite
+        m.nodeTestName = nodeTestName
+        m.nodeContext.testRunner = m
+        m.nodeContext.top.addFields({
+          "rooibosSuiteFinished": false
+          "rooibosTestFinished": false
+          "rooibosTestIsAsync": false
+          "rooibosGroupFinished": false
+        })
+
       end if
 
       if testSuite <> invalid
-        testSuite.run()
-        return {
-          stats: testSuite.stats
-          tests: testSuite.tests
-        }
+        m.currentTestSuite = testSuite
+        testSuite.testRunner = m
+        if testSuite.isAsync = true
+          ? "Running suite asynchronously!"
+          m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
+          testSuite.run()
+        else
+          ? "Running suite synchronously!"
+          testSuite.run()
+          return m.onTestSuiteComplete()
+        end if
+
       else
         ? "[ERROR] could not create test suite " ; nodeTestName
       end if
 
-      ? "ERROR! executing node test " + nodeTestName + " was unsuccessful."
+      ? "ERROR! (runInNodeMode) executing node test " + nodeTestName + " was unsuccessful."
 
+      return invalid
+    end function
+
+    private function onTestSuiteComplete()
+      testSuite = m.currentTestSuite
+      if testSuite <> invalid
+        return {
+          stats: testSuite.stats
+          tests: testSuite.tests
+        }
+
+      else
+        ? "[ERROR] could not create test suite " ; m.testRunner.nodeTestName
+      end if
+
+      ? "ERROR! (onTestSuiteComplete) executing node test " + m.testRunner.nodeTestName + " was unsuccessful."
       return invalid
     end function
 
@@ -159,9 +193,34 @@ namespace rooibos
         else
           testSuite.run()
         end if
-
         m.stats.merge(testSuite.stats)
+
       end if
+    end function
+
+    private function waitForField(target, fieldName, delay = 500, maxAttempts = 10)
+      attempts = 0
+      if target = invalid
+        return false
+      end if
+
+      initialValue = target[fieldName]
+      while target[fieldName] = initialValue
+        port = CreateObject("roMessagePort")
+        wait(delay, port)
+        attempts++
+        if attempts = maxAttempts
+          return false
+        end if
+        ' ? "waiting for signal field '" ; fieldName "' - " ; attempts " VALUE " target[fieldName]
+      end while
+
+      return true
+    end function
+
+    function wait(delay = 1)
+      port = CreateObject("roMessagePort")
+      wait(delay, port)
     end function
 
     private function runNodeTest(testSuite) as void
@@ -170,14 +229,30 @@ namespace rooibos
         ? " node type is " ; testSuite.generatedNodeName
 
         node = m.testScene.createChild(testSuite.generatedNodeName)
+        'wait on the field
 
         if type(node) = "roSGNode"
-          nodeResults = node.rooibosTestResult
+          m.groups = []
+          for each groupData in testSuite.groupsData
+            'bs:disable-next-line
+            group = new TestGroup(testSuite, groupData)
+            testSuite.groups.push(group)
+          end for
+
+          if testSuite.isAsync = true
+            if node.rooibosSuiteFinished = false
+              timeout = testSuite.asyncTimeout = invalid ? 60000 : testSuite.asyncTimeout
+
+              ? "Waiting max " timeout "ms for the test suite to finish"
+              m.waitForField(node, "rooibosSuiteFinished", 10, timeout / 10)
+            end if
+          end if
+          nodeResults = node.asyncRooibosTestResult
           if nodeResults <> invalid
-            testSuite.stats = nodeResults.stats
-            testSuite.testCases = nodeResults.testCases
+            testSuite.stats.merge(nodeResults.stats)
+            m.mergeGroups(testSuite, nodeResults.groups)
           else
-            ? " ERROR! The node test"; testSuite.name; " did not return a result from from the rooibos_runNodeTestSuite method. This usually means you are not importing rooibos.brs and the required test file. Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+            ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
           end if
           m.testScene.removeChild(node)
           return
@@ -194,6 +269,24 @@ namespace rooibos
 
       testSuite.stats.hasFailures = true
       testSuite.failedCount += testSuite.testsData.count()
+    end function
+
+    private function mergeGroups(testSuite, groups)
+      for i = 0 to testSuite.groups.count() - 1
+        group = groups[i]
+        realGroup = testSuite.groups[i]
+        realGroup.stats.merge(group.stats)
+        realGroup.hasFailures = group.hasFailures
+        realGroup.tests = []
+        for testDataIndex = 0 to group.testsData.count() - 1
+          testData = group.testsData[testDataIndex]
+          realTest = new rooibos.Test(m, testData)
+          realTest.testSuite = testSuite
+          realGroup.tests.push(realTest)
+          test = group.tests[i]
+          realTest.result.merge(test.result)
+        end for
+      end for
     end function
 
     private function sendHomeKeypress()
@@ -223,5 +316,9 @@ namespace rooibos
   function runNodeTestSuite(name)
     nodeRunner = new TestRunner(m.top.getScene(), m)
     return nodeRunner.runInNodeMode(name)
+  end function
+
+  function onTestSuiteComplete()
+    m.testRunner.onTestSuiteComplete()
   end function
 end namespace
