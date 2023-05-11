@@ -3,9 +3,9 @@ namespace rooibos
 
     private lineWidth = 60
 
-    function new(testRunner)
+    function new(runner)
       'bs:disable-next-line
-      super(testRunner)
+      super(runner)
       if m.config.lineWidth <> invalid
         m.lineWidth = m.config.lineWidth
       else
