@@ -53,7 +53,9 @@ namespace tests
 
       newManager = Rooibos.Common.makePathStubbable(manager, "manager.item.data")
 
-      m.assertEqual(newManager, {
+      m.assertEqual(newManager, { id: "data" })
+
+      m.assertEqual(manager, {
         id: "man"
         item: {
           id: "item"
@@ -74,8 +76,9 @@ namespace tests
       }
 
       newManager = Rooibos.Common.makePathStubbable(manager, "manager.item.data")
+      m.assertEqual(newManager, { id: "data" })
 
-      m.assertEqual(newManager, {
+      m.assertEqual(manager, {
         id: "man"
         item: {
           data: {
