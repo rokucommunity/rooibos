@@ -1,6 +1,6 @@
 {
   "name": "rooibos-tests",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - tests",
   "scripts": {
     "build": "bsc",
