@@ -5,10 +5,10 @@ namespace rooibos
     public config = invalid
     public allStats = invalid
 
-    function new(testRunner as dynamic)
-      m.testRunner = testRunner
-      m.config = testRunner.config
-      m.allStats = testRunner.stats
+    function new(runner as dynamic)
+      m.testRunner = runner
+      m.config = runner.config
+      m.allStats = runner.stats
     end function
 
     function reportResults(allStats as dynamic)

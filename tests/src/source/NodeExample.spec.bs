@@ -1,5 +1,4 @@
 namespace tests
-  @only
   @SGNode("NodeExample")
   @suite
   class NodeExampleTests extends rooibos.BaseTestSuite
