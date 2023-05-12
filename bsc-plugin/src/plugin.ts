@@ -60,6 +60,9 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.keepAppOpen === undefined) {
             config.keepAppOpen = true;
         }
+        if (config.testSceneName === undefined) {
+            config.testSceneName = 'TestsScene';
+        }
         //ignore roku modules by default
         if (config.includeFilters === undefined) {
             config.includeFilters = [

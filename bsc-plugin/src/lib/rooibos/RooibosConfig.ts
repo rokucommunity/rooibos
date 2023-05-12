@@ -21,6 +21,7 @@ export interface RooibosConfig {
     catchCrashes?: boolean;
     sendHomeOnFinish?: boolean;
     keepAppOpen?: boolean;
+    testSceneName?: string;
 
     /**
      * The path to the folder where the rooibos framework roku files reside.
