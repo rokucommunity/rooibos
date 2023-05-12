@@ -60,7 +60,7 @@ export class FileFactory {
             dest: s`${this.targetCompsPath}/RooibosScene.xml`
         };
         this.addedFrameworkFiles.push(
-            program.setFile(entry, this.createTestXML('TestsScene', 'Scene'))
+            program.setFile(entry, this.createTestXML('RooibosScene', 'Scene'))
         );
     }
 

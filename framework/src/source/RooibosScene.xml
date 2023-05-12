@@ -1,5 +1,5 @@
 <component
-    name='TestsScene'
+    name='RooibosScene'
     extends='Scene'>
   <interface>
     <function name='Rooibos_CreateTestNode' />

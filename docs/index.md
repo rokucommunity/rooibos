@@ -134,15 +134,21 @@ e.g.
 
 The following options are supported:
 
-- logLevel?: RooibosLogLevel - 0-4 (error, warn, info, debug)
-- showOnlyFailures?: boolean - if true, then only failed tests are shown; but everything is show if no failures occurred
-- printTestTimes?: boolean - if true then the time each test took is output
-- lineWidth?: number - width of test output lines in columns
-- catchCrashes? : boolean - if true, then any crashes will report CRASH statement, and note halt test execution - very useful for running a whole suite
-- sendHomeOnFinish? : boolean - if true, then the app will exit upon finish. The default is true. Useful to set to false for local test suites.
-- keepAppOpen? : boolean - when true, the app will remain open upon test completion. The default is true. Set false to return execution to Main.
-- testsFilePattern?: string - the pattern to use to find tests, this is a glob, the default is "**/*.spec.bs"
-- tags?: string[] - the tags listed here control what is run - you can use !tagname to indicated any tests/suites that are skipped, all other tags are ANDed. This is very useful for having a bsconfig to run, say tests including long, and slow integration tests, or just running a certain subset of your suite.
+Here is the information converted into a Markdown table:
+
+| Property          | Type            | Description                                                                                                                                                                                        |
+|-------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| logLevel?         | RooibosLogLevel | 0-4 (error, warn, info, debug)                                                                                                                                                                     |
+| showOnlyFailures? | boolean         | If true, then only failed tests are shown; but everything is shown if no failures occurred                                                                                                         |
+| printTestTimes?   | boolean         | If true, then the time each test took is output                                                                                                                                                    |
+| lineWidth?        | number          | Width of test output lines in columns                                                                                                                                                              |
+| catchCrashes?     | boolean         | If true, then any crashes will report CRASH statement, and note halt test execution - very useful for running a whole suite                                                                        |
+| sendHomeOnFinish? | boolean         | If true, then the app will exit upon finish. The default is true. Useful to set to false for local test suites                                                                                     |
+| keepAppOpen?      | boolean         | When true, the app will remain open upon test completion. The default is true. Set false to return execution to Main                                                                               |
+| testsFilePattern? | string          | The pattern to use to find tests. This is a glob. The default is "**/*.spec.bs"                                                                                                                    |
+| tags?             | string[]        | The tags listed here control what is run. You can use !tagname to indicate any tests/suites that are skipped. All other tags are ANDed. This is useful for running specific subsets of your suite. |
+| testSceneName     | string          | Test scene to use for the test run. Provide a different name here if you need custom setup in your scene. You should extend or duplicate the RooibosScene component (found in RooibosScene.xml)    |
+
 
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
@@ -1055,14 +1061,14 @@ An example, using a json config file is :
 		"!**/rLogComponents/**/*.*",
 		"!**/rooibosDist.brs",
 		"!**/rooibosFunctionMap.brs",
-		"!**/TestsScene.brs",
+		"!**/RooibosScene.brs",
 		"!**/ThreadUtils.brs"
 	],
 	"testsFilePattern": [
 		"**/tests/**/*.brs",
 		"!**/rooibosDist.brs",
 		"!**/rooibosFunctionMap.brs",
-		"!**/TestsScene.brs"
+		"!**/RooibosScene.brs"
 	],
 	"isRecordingCodeCoverage": true
 }

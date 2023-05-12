@@ -385,7 +385,7 @@ describe('RooibosPlugin', () => {
                 getContents('rooibosMain.brs')
             ).to.eql(undent`
                 function main()
-                    Rooibos_init()
+                    Rooibos_init("RooibosScene")
                 end function
             `);
             expect(
@@ -501,7 +501,7 @@ describe('RooibosPlugin', () => {
                 getContents('rooibosMain.brs')
             ).to.eql(undent`
                 function main()
-                    Rooibos_init()
+                    Rooibos_init("RooibosScene")
                 end function
             `);
         });
@@ -521,7 +521,54 @@ describe('RooibosPlugin', () => {
                 getContents('main.brs')
             ).to.eql(undent`
                 sub main()
-                    Rooibos_init()
+                    Rooibos_init("RooibosScene")
+                    print "main"
+                end sub
+            `);
+            //the AST should not have been permanently modified
+            const statements = (file.parser.statements[0] as FunctionStatement).func.body.statements;
+            expect(statements).to.be.lengthOf(1);
+            expect(statements[0]).to.be.instanceof(PrintStatement);
+        });
+
+
+        it('adds launch hook with custom scene', async () => {
+            options = {
+                rootDir: _rootDir,
+                stagingFolderPath: _stagingFolderPath,
+                stagingDir: _stagingFolderPath,
+                rooibos: {
+                    testSceneName: 'CustomRooibosScene'
+                }
+            };
+            plugin = new RooibosPlugin();
+            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(_rootDir);
+            fsExtra.ensureDirSync(tmpPath);
+
+            builder = new ProgramBuilder();
+            builder.options = util.normalizeAndResolveConfig(options);
+            builder.program = new Program(builder.options);
+            program = builder.program;
+            program.plugins.add(plugin);
+            program.createSourceScope(); //ensure source scope is created
+            plugin.beforeProgramCreate(builder);
+            plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
+            plugin.afterProgramCreate(program);
+            // program.validate();
+            const file = program.setFile<BrsFile>('source/main.bs', `
+                sub main()
+                    print "main"
+                end sub
+            `);
+            program.validate();
+            await builder.transpile();
+
+            expect(
+                getContents('main.brs')
+            ).to.eql(undent`
+                sub main()
+                    Rooibos_init("CustomRooibosScene")
                     print "main"
                 end sub
             `);
