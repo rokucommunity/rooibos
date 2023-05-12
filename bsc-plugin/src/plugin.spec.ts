@@ -507,6 +507,32 @@ describe('RooibosPlugin', () => {
         });
 
         it('adds launch hook to existing main function', async () => {
+            plugin.afterProgramCreate(program);
+            // program.validate();
+            const file = program.setFile<BrsFile>('source/main.bs', `
+                sub main()
+                    print "main"
+                end sub
+            `);
+            program.validate();
+            await builder.transpile();
+
+            expect(
+                getContents('main.brs')
+            ).to.eql(undent`
+                sub main()
+                    Rooibos_init("RooibosScene")
+                    print "main"
+                end sub
+            `);
+            //the AST should not have been permanently modified
+            const statements = (file.parser.statements[0] as FunctionStatement).func.body.statements;
+            expect(statements).to.be.lengthOf(1);
+            expect(statements[0]).to.be.instanceof(PrintStatement);
+        });
+
+
+        it('adds launch hook with custom scene', async () => {
             options = {
                 rootDir: _rootDir,
                 stagingFolderPath: _stagingFolderPath,
@@ -543,33 +569,6 @@ describe('RooibosPlugin', () => {
             ).to.eql(undent`
                 sub main()
                     Rooibos_init("CustomRooibosScene")
-                    print "main"
-                end sub
-            `);
-            //the AST should not have been permanently modified
-            const statements = (file.parser.statements[0] as FunctionStatement).func.body.statements;
-            expect(statements).to.be.lengthOf(1);
-            expect(statements[0]).to.be.instanceof(PrintStatement);
-        });
-
-
-        it('adds launch hook with custom scene', async () => {
-            plugin.config.testSceneName = 'CustomSCene';
-            plugin.afterProgramCreate(program);
-            // program.validate();
-            const file = program.setFile<BrsFile>('source/main.bs', `
-                sub main()
-                    print "main"
-                end sub
-            `);
-            program.validate();
-            await builder.transpile();
-
-            expect(
-                getContents('main.brs')
-            ).to.eql(undent`
-                sub main()
-                    Rooibos_init("CustomSCene")
                     print "main"
                 end sub
             `);
