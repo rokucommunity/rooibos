@@ -58,7 +58,7 @@ export class RooibosSession {
             }
         }
         if (mainFunction) {
-            editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'TestsScene'}")`));
+            editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
         }
     }
     public addLaunchHookFileIfNotPresent() {
@@ -80,7 +80,7 @@ export class RooibosSession {
                 diagnosticNoStagingDir(files[0]);
             } else {
                 const filePath = path.join(this._builder.options.stagingDir ?? this._builder.options.stagingFolderPath, 'source/rooibosMain.brs');
-                fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'TestsScene'}")\nend function`);
+                fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
 
             }
         }

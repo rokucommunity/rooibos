@@ -385,7 +385,7 @@ describe('RooibosPlugin', () => {
                 getContents('rooibosMain.brs')
             ).to.eql(undent`
                 function main()
-                    Rooibos_init("TestsScene")
+                    Rooibos_init("RooibosScene")
                 end function
             `);
             expect(
@@ -501,7 +501,7 @@ describe('RooibosPlugin', () => {
                 getContents('rooibosMain.brs')
             ).to.eql(undent`
                 function main()
-                    Rooibos_init("TestsScene")
+                    Rooibos_init("RooibosScene")
                 end function
             `);
         });
@@ -512,7 +512,7 @@ describe('RooibosPlugin', () => {
                 stagingFolderPath: _stagingFolderPath,
                 stagingDir: _stagingFolderPath,
                 rooibos: {
-                    testSceneName: 'CustomTestsScene'
+                    testSceneName: 'CustomRooibosScene'
                 }
             };
             plugin = new RooibosPlugin();
@@ -542,7 +542,7 @@ describe('RooibosPlugin', () => {
                 getContents('main.brs')
             ).to.eql(undent`
                 sub main()
-                    Rooibos_init("CustomTestsScene")
+                    Rooibos_init("CustomRooibosScene")
                     print "main"
                 end sub
             `);

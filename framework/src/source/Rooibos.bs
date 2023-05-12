@@ -9,16 +9,16 @@ namespace rooibos
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
     if testSceneName = invalid or testSceneName = ""
-      testSceneName = "TestsScene"
+      testSceneName = "RooibosScene"
     end if
 
-    ? "Starting test using test scene with name TestsScene" ; testSceneName
+    ? "Starting test using test scene with name RooibosScene" ; testSceneName
     scene = screen.CreateScene(testSceneName)
     scene.id = "ROOT"
     screen.show()
 
     m.global = screen.getGlobalNode()
-    m.global.addFields({ "testsScene": scene })
+    m.global.addFields({ "RooibosScene": scene })
 
     if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false
       ? "The scene is not ready yet - waiting for it to set isReadyToStartTests to true"

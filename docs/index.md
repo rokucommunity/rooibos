@@ -147,7 +147,7 @@ Here is the information converted into a Markdown table:
 | keepAppOpen?      | boolean         | When true, the app will remain open upon test completion. The default is true. Set false to return execution to Main                                                                               |
 | testsFilePattern? | string          | The pattern to use to find tests. This is a glob. The default is "**/*.spec.bs"                                                                                                                    |
 | tags?             | string[]        | The tags listed here control what is run. You can use !tagname to indicate any tests/suites that are skipped. All other tags are ANDed. This is useful for running specific subsets of your suite. |
-| testSceneName     | string          | Test scene to use for the test run. Provide a different name here if you need custom setup in your scene. You should extend or duplicate the TestScene component (found in RooibosScene.xml)       |
+| testSceneName     | string          | Test scene to use for the test run. Provide a different name here if you need custom setup in your scene. You should extend or duplicate the RooibosScene component (found in RooibosScene.xml)    |
 
 
 ## Creating test suites
@@ -1061,14 +1061,14 @@ An example, using a json config file is :
 		"!**/rLogComponents/**/*.*",
 		"!**/rooibosDist.brs",
 		"!**/rooibosFunctionMap.brs",
-		"!**/TestsScene.brs",
+		"!**/RooibosScene.brs",
 		"!**/ThreadUtils.brs"
 	],
 	"testsFilePattern": [
 		"**/tests/**/*.brs",
 		"!**/rooibosDist.brs",
 		"!**/rooibosFunctionMap.brs",
-		"!**/TestsScene.brs"
+		"!**/RooibosScene.brs"
 	],
 	"isRecordingCodeCoverage": true
 }
