@@ -13,6 +13,15 @@ namespace rooibos
       m.test = test
     end function
 
+    function merge(other)
+      m.isFail = other.isFail
+      m.isCrash = other.isCrash
+      m.message = other.message
+      m.lineNumber = other.lineNumber
+      m.time = other.time
+      m.error = other.error
+    end function
+
     function reset() as void
       m.isFail = false
       m.isCrash = false

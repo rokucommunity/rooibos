@@ -7,7 +7,7 @@
   ],
   "autoImportComponentScript": true,
   "createPackage": false,
-  "stagingFolderPath": "build",
+  "stagingDir": "build",
   "diagnosticFilters": [
     {
       "src": "**/roku_modules/**/*.*",
@@ -28,7 +28,8 @@
     "catchCrashes": true,
     "lineWidth": 70,
     "failFast": false,
-    "sendHomeOnFinish": false
+    "sendHomeOnFinish": false,
+    "keepAppOpen": true
   },
   "sourceMap": true
 }

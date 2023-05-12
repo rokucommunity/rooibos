@@ -57,6 +57,12 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.isRecordingCodeCoverage === undefined) {
             config.isRecordingCodeCoverage = false;
         }
+        if (config.keepAppOpen === undefined) {
+            config.keepAppOpen = true;
+        }
+        if (config.testSceneName === undefined) {
+            config.testSceneName = 'RooibosScene';
+        }
         //ignore roku modules by default
         if (config.includeFilters === undefined) {
             config.includeFilters = [
@@ -90,7 +96,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return;
         }
 
-        console.log('processing ', file.pkgPath);
+        // console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
             if (this.session.processFile(file)) {
             }

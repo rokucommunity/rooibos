@@ -1,7 +1,6 @@
 import * as path from 'path';
 import type { BrsFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder } from 'brighterscript';
-import { util } from 'brighterscript';
-import { isBrsFile, ParseMode } from 'brighterscript';
+import { isBrsFile, ParseMode, util } from 'brighterscript';
 import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -9,7 +8,7 @@ import { TestSuiteBuilder } from './TestSuiteBuilder';
 import { RawCodeStatement } from './RawCodeStatement';
 import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
-import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound } from '../utils/Diagnostics';
+import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoStagingDir } from '../utils/Diagnostics';
 import undent from 'undent';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import * as fsExtra from 'fs-extra';
@@ -59,7 +58,7 @@ export class RooibosSession {
             }
         }
         if (mainFunction) {
-            editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init()`));
+            editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
         }
     }
     public addLaunchHookFileIfNotPresent() {
@@ -76,8 +75,14 @@ export class RooibosSession {
         }
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files[0]);
-            const filePath = path.join(this._builder.options.stagingDir, 'source/rooibosMain.brs');
-            fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init()\nend function`);
+            if (!this._builder.options.stagingDir && !this._builder.options.stagingFolderPath) {
+                console.error('this plugin requires that stagingDir or the deprecated stagingFolderPath bsconfig option is set');
+                diagnosticNoStagingDir(files[0]);
+            } else {
+                const filePath = path.join(this._builder.options.stagingDir ?? this._builder.options.stagingFolderPath, 'source/rooibosMain.brs');
+                fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
+
+            }
         }
     }
 
@@ -110,6 +115,7 @@ export class RooibosSession {
                         "printLcov": ${this.config.printLcov ? 'true' : 'false'}
                         "port": "${this.config.port || 'invalid'}"
                         "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
+                        "keepAppOpen": ${this.config.keepAppOpen === undefined || this.config.keepAppOpen ? 'true' : 'false'}
                     }`
                 )
             );

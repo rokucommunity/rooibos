@@ -95,6 +95,58 @@ describe('RooibosPlugin', () => {
             expect(suite.isSolo).to.be.true;
         });
 
+        it('finds a @async', () => {
+            program.setFile('source/test.spec.bs', `
+                @async
+                @suite()
+                class ATest
+                    @describe("groupA")
+
+                    @async
+                    @it("is test1")
+                    function Test()
+                    end function
+
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            let suite = plugin.session.sessionInfo.testSuitesToRun[0];
+            expect(suite.name).to.equal('ATest');
+            expect(suite.isAsync).to.be.true;
+            expect(suite.asyncTimeout).to.equal(60000);
+            let test = suite.testGroups.get('groupA').testCases.get('is test1');
+            expect(test.isAsync).to.be.true;
+            expect(test.asyncTimeout).to.equal(2000);
+        });
+
+        it('finds a @async and applies timeout override', () => {
+            program.setFile('source/test.spec.bs', `
+            @async(1)
+            @suite("named")
+                class ATest
+                @describe("groupA")
+
+                    @async(2)
+                    @it("is test1")
+                    function Test()
+                    end function
+
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            let suite = plugin.session.sessionInfo.testSuitesToRun[0];
+            expect(suite.name).to.equal('named');
+            expect(suite.isAsync).to.be.true;
+            expect(suite.asyncTimeout).to.equal(1);
+            let test = suite.testGroups.get('groupA').testCases.get('is test1');
+            expect(test.isAsync).to.be.true;
+            expect(test.asyncTimeout).to.equal(2);
+        });
+
         it('ignores a suite', () => {
             program.setFile('source/test.spec.bs', `
                 @ignore
@@ -334,7 +386,7 @@ describe('RooibosPlugin', () => {
                 getContents('rooibosMain.brs')
             ).to.eql(undent`
                 function main()
-                    Rooibos_init()
+                    Rooibos_init("RooibosScene")
                 end function
             `);
             expect(
@@ -368,6 +420,8 @@ describe('RooibosPlugin', () => {
                             beforeEachFunctionName: ""
                             afterEachFunctionName: ""
                             isNodeTest: false
+                            isAsync: false
+                            asyncTimeout: 60000
                             nodeName: ""
                             generatedNodeName: "ATest"
                             testGroups: [
@@ -387,6 +441,8 @@ describe('RooibosPlugin', () => {
                                             noCatch: false
                                             funcName: "groupA_is_test1"
                                             isIgnored: false
+                                            isAsync: false
+                                            asyncTimeout: 2000
                                             isParamTest: false
                                             name: "is test1"
                                             lineNumber: 7
@@ -446,7 +502,7 @@ describe('RooibosPlugin', () => {
                 getContents('rooibosMain.brs')
             ).to.eql(undent`
                 function main()
-                    Rooibos_init()
+                    Rooibos_init("RooibosScene")
                 end function
             `);
         });
@@ -466,7 +522,54 @@ describe('RooibosPlugin', () => {
                 getContents('main.brs')
             ).to.eql(undent`
                 sub main()
-                    Rooibos_init()
+                    Rooibos_init("RooibosScene")
+                    print "main"
+                end sub
+            `);
+            //the AST should not have been permanently modified
+            const statements = (file.parser.statements[0] as FunctionStatement).func.body.statements;
+            expect(statements).to.be.lengthOf(1);
+            expect(statements[0]).to.be.instanceof(PrintStatement);
+        });
+
+
+        it('adds launch hook with custom scene', async () => {
+            options = {
+                rootDir: _rootDir,
+                stagingFolderPath: _stagingFolderPath,
+                stagingDir: _stagingFolderPath,
+                rooibos: {
+                    testSceneName: 'CustomRooibosScene'
+                }
+            };
+            plugin = new RooibosPlugin();
+            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(_rootDir);
+            fsExtra.ensureDirSync(tmpPath);
+
+            builder = new ProgramBuilder();
+            builder.options = util.normalizeAndResolveConfig(options);
+            builder.program = new Program(builder.options);
+            program = builder.program;
+            program.plugins.add(plugin);
+            program.createSourceScope(); //ensure source scope is created
+            plugin.beforeProgramCreate(builder);
+            plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
+            plugin.afterProgramCreate(program);
+            // program.validate();
+            const file = program.setFile<BrsFile>('source/main.bs', `
+                sub main()
+                    print "main"
+                end sub
+            `);
+            program.validate();
+            await builder.transpile();
+
+            expect(
+                getContents('main.brs')
+            ).to.eql(undent`
+                sub main()
+                    Rooibos_init("CustomRooibosScene")
                     print "main"
                 end sub
             `);
@@ -1296,6 +1399,7 @@ describe('RooibosPlugin', () => {
                             "printLcov": false
                             "port": "invalid"
                             "catchCrashes": false
+                            "keepAppOpen": true
                         }
                     end function
                     instance.getTestSuiteClassWithName = function(name)
@@ -1358,7 +1462,8 @@ describe('RooibosPlugin', () => {
                     'catchCrashes': true,
                     'lineWidth': 70,
                     'failFast': false,
-                    'sendHomeOnFinish': false
+                    'sendHomeOnFinish': false,
+                    'keepAppOpen': true
                 },
                 'maestro': {
                     'nodeFileDelay': 0,

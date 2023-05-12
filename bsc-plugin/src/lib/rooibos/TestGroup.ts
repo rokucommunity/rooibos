@@ -38,7 +38,11 @@ export class TestGroup extends TestBlock {
         } else if (testCase.isSolo) {
             this.hasSoloTests = true;
             this.soloTestCases.push(testCase);
+            this.hasAsyncTests = testCase.isAsync;
+        } else {
+            this.hasAsyncTests = testCase.isAsync;
         }
+
     }
 
     public getTestCases(): TestCase[] {

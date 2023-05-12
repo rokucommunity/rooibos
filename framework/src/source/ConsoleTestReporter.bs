@@ -3,9 +3,9 @@ namespace rooibos
 
     private lineWidth = 60
 
-    function new(testRunner)
+    function new(runner)
       'bs:disable-next-line
-      super(testRunner)
+      super(runner)
       if m.config.lineWidth <> invalid
         m.lineWidth = m.config.lineWidth
       else
@@ -16,7 +16,6 @@ namespace rooibos
     override function reportResults(allStats)
       m.allStats = allStats
       m.startReport()
-
       for each testSuite in m.testRunner.testSuites
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
           m.printSuiteStart(testSuite)

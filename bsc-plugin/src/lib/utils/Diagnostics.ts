@@ -254,3 +254,12 @@ export function diagnosticCorruptTestProduced(file: BrsFile, annotation: Annotat
         annotation
     );
 }
+
+export function diagnosticNoStagingDir(file: BscFile) {
+    addDiagnostic(
+        file,
+        2221,
+        `The bsconfig must define stagingDir, or the deprecated stagingFolderPath options`, 1, 1, 1, 1, DiagnosticSeverity.Error
+    );
+}
+

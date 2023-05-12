@@ -523,7 +523,11 @@ namespace rooibos.Common
   '  * @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
   '  * @returns {Integer} - element index if array contains a value, else return -1
   '  */
-  function findElementIndexInArray(array, value, compareAttribute = invalid, caseSensitive = false) as integer
+  function findElementIndexInArray(array, value, compareAttribute = invalid, caseSensitive = false, callCount = 0) as integer
+    if callCount = 0 and not Rooibos.Common.isArray(array)
+      array = Rooibos.Common.asArray(array)
+    end if
+
     if Rooibos.Common.isArray(array)
       for i = 0 to Rooibos.Common.asArray(array).Count() - 1
         compareValue = array[i]
@@ -532,7 +536,7 @@ namespace rooibos.Common
           compareValue = compareValue.lookupCI(compareAttribute)
         end if
 
-        if Rooibos.Common.eqValues(compareValue, value)
+        if Rooibos.Common.eqValues(compareValue, value, callCount + 1)
           return i
         end if
       next
@@ -638,7 +642,12 @@ namespace rooibos.Common
   '  * @param {Dynamic} Value2 - second item to compare
   '  * @returns {boolean} - True if values are equal or False in other case.
   '  */
-  function eqValues(Value1, Value2, fuzzy = false) as dynamic
+  function eqValues(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
+    if callCount > 10
+      ? "REACHED MAX ITERATIONS DOING COMPARISON"
+      return true
+    end if
+
     ' Workaraund for bug with string boxing, and box everything else
     val1Type = Rooibos.Common.getSafeType(Value1)
     val2Type = Rooibos.Common.getSafeType(Value2)
@@ -660,11 +669,11 @@ namespace rooibos.Common
       valtype = val1Type
 
       if val1Type = "List"
-        return Rooibos.Common.eqArray(Value1, Value2, fuzzy)
+        return Rooibos.Common.eqArray(Value1, Value2, fuzzy, callCount + 1)
       else if valtype = "roAssociativeArray"
-        return Rooibos.Common.eqAssocArray(Value1, Value2, fuzzy)
+        return Rooibos.Common.eqAssocArray(Value1, Value2, fuzzy, callCount + 1)
       else if valtype = "roArray"
-        return Rooibos.Common.eqArray(Value1, Value2, fuzzy)
+        return Rooibos.Common.eqArray(Value1, Value2, fuzzy, callCount + 1)
       else if valtype = "roSGNode"
         if val2Type <> "roSGNode"
           return false
@@ -713,7 +722,7 @@ namespace rooibos.Common
   '  * @param {Dynamic} Value2 - second associative array
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
-  function eqAssocArray(Value1, Value2, fuzzy = false) as dynamic
+  function eqAssocArray(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
     l1 = Value1.Count()
     l2 = Value2.Count()
 
@@ -727,7 +736,7 @@ namespace rooibos.Common
           if rooibos.common.canSafelyIterateAAKey(Value1, k) and rooibos.common.canSafelyIterateAAKey(Value2, k)
             v1 = Value1[k]
             v2 = Value2[k]
-            if not Rooibos.Common.eqValues(v1, v2, fuzzy)
+            if not Rooibos.Common.eqValues(v1, v2, fuzzy, callCount + 1)
               return false
             end if
           end if
@@ -738,7 +747,7 @@ namespace rooibos.Common
   end function
 
   function canSafelyIterateAAKey(aa, key) as boolean
-    if lcase(key) = "__rooibosskipfields" or key = "__mocks" or key = "__stubs" 'fix infinite loop/box crash when doing equals on an aa with a mock
+    if lcase(key) = "__rooibosskipfields" or key = "__mocks" or key = "__stubs" or key = "log" or key = "top" or key = "m" 'fix infinite loop/box crash when doing equals on an aa with a mock
       return false
     else if aa.__rooibosSkipFields <> invalid and aa.__rooibosSkipFields.doesExist(key)
       return false
@@ -757,7 +766,11 @@ namespace rooibos.Common
   '  * @param {Dynamic} Value2 - second array
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
-  function eqArray(Value1, Value2, fuzzy = false) as dynamic
+  function eqArray(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
+    if callCount > 30
+      ? "REACHED MAX ITERATIONS DOING COMPARISON"
+      return true
+    end if
     if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value2)
       return false
     end if
@@ -771,7 +784,7 @@ namespace rooibos.Common
       for i = 0 to l1 - 1
         v1 = Value1[i]
         v2 = Value2[i]
-        if not Rooibos.Common.eqValues(v1, v2, fuzzy)
+        if not Rooibos.Common.eqValues(v1, v2, fuzzy, callCount + 1)
           return false
         end if
       end for

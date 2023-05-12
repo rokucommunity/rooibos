@@ -6,6 +6,8 @@ export class TestCase {
         params: any[] = null, paramTestIndex = 0, paramLineNumber = 0, expectedNumberOfParams = 0) {
         this.annotation = annotation;
         this.isSolo = isSolo;
+        this.isAsync = annotation.isAsync;
+        this.asyncTimeout = annotation.asyncTimeout;
         this.funcName = funcName;
         this.isIgnored = isIgnored;
         this.name = name;
@@ -26,6 +28,8 @@ export class TestCase {
     public funcName: string;
     public isIgnored: boolean;
     public isParamTest: boolean;
+    public isAsync: boolean;
+    public asyncTimeout: number;
     public name: string;
     public lineNumber: number;
     public paramLineNumber: number;
@@ -44,6 +48,8 @@ export class TestCase {
           noCatch: ${this.annotation.noCatch}
           funcName: "${this.funcName || ''}"
           isIgnored: ${this.isIgnored}
+          isAsync: ${this.isAsync}
+          asyncTimeout: ${this.asyncTimeout || 2000}
           isParamTest: ${this.isParamTest}
           name: ${sanitizeBsJsonString(this.name)}
           lineNumber: ${this.lineNumber + 2}
@@ -65,24 +71,24 @@ export class TestCase {
     fixBadJson(o) {
         // In case of an array we'll stringify all objects.
         if (Array.isArray(o)) {
-            return `[${
-                o
-                    .map(obj => `${this.fixBadJson(obj)}`)
-                    .join(',')
-            }]`;
+            return `[${o
+                .map(obj => `${this.fixBadJson(obj)}`)
+                .join(',')
+                // eslint-disable-next-line @typescript-eslint/indent
+                }]`;
         }
         // not an object, stringify using native function
         if (typeof o !== 'object' || o === null) {
             return JSON.stringify(o);
         }
-        return `{${
-            Object
-                .keys(o)
-                .map(key => {
-                    return `"${key.replace(/"/g, '')}":${this.fixBadJson(o[key])}`;
-                })
-                .join(',')
-        }}`;
+        return `{${Object
+            .keys(o)
+            .map(key => {
+                return `"${key.replace(/"/g, '')}":${this.fixBadJson(o[key])}`;
+            })
+            .join(',')
+            // eslint-disable-next-line @typescript-eslint/indent
+            }}`;
     }
 
 }
