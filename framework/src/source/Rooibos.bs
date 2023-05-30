@@ -18,7 +18,7 @@ namespace rooibos
     screen.show()
 
     m.global = screen.getGlobalNode()
-    m.global.addFields({ "RooibosScene": scene })
+    m.global.addFields({ "testsScene": scene })
 
     if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false
       ? "The scene is not ready yet - waiting for it to set isReadyToStartTests to true"
