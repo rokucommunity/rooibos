@@ -34,7 +34,7 @@ export class RooibosPlugin implements CompilerPlugin {
         this.fileFactory = new FileFactory(this.config);
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
-            this.codeCoverageProcessor = new CodeCoverageProcessor(builder);
+            this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
         }
     }
     private getConfig(options: any) {
@@ -55,7 +55,7 @@ export class RooibosPlugin implements CompilerPlugin {
             config.showOnlyFailures = true;
         }
         if (config.isRecordingCodeCoverage === undefined) {
-            config.isRecordingCodeCoverage = true;
+            config.isRecordingCodeCoverage = false;
         }
         if (config.keepAppOpen === undefined) {
             config.keepAppOpen = true;
@@ -69,6 +69,13 @@ export class RooibosPlugin implements CompilerPlugin {
                 '**/*.spec.bs',
                 '!**/BaseTestSuite.spec.bs',
                 '!**/roku_modules/**/*'];
+        }
+
+        if (config.coverageExcludedFiles === undefined) {
+            config.coverageExcludedFiles = [
+                '**/*.spec.bs',
+                '**/roku_modules/**/*'
+            ];
         }
 
         return config;
@@ -92,9 +99,6 @@ export class RooibosPlugin implements CompilerPlugin {
         // console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
             if (this.session.processFile(file)) {
-                //
-            } else {
-                this.codeCoverageProcessor.addCodeCoverage(file);
             }
         }
     }
@@ -106,6 +110,7 @@ export class RooibosPlugin implements CompilerPlugin {
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addLaunchHookFileIfNotPresent();
+        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
     }
 
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
@@ -125,6 +130,10 @@ export class RooibosPlugin implements CompilerPlugin {
             if (testSuite.isNodeTest) {
                 this.session.createNodeFile(event.program, testSuite);
             }
+        }
+
+        if (isBrsFile(event.file) && this.shouldAddCodeCoverageToFile(event.file)) {
+            this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
         }
     }
 
@@ -146,6 +155,21 @@ export class RooibosPlugin implements CompilerPlugin {
         } else {
             for (let filter of this.config.includeFilters) {
                 if (!minimatch(file.pathAbsolute, filter)) {
+                    return false;
+                }
+            }
+        }
+        // console.log('including ', file.pkgPath);
+        return true;
+    }
+    shouldAddCodeCoverageToFile(file: BscFile) {
+        if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
+            return false;
+        } else if (!this.config.coverageExcludedFiles) {
+            return true;
+        } else {
+            for (let filter of this.config.coverageExcludedFiles) {
+                if (minimatch(file.pathAbsolute, filter)) {
                     return false;
                 }
             }

@@ -7,7 +7,7 @@ export enum RooibosLogLevel {
 }
 
 export interface RooibosConfig {
-    coverageSourceFilePattern?: string[];
+    coverageExcludedFiles?: string[];
     isRecordingCodeCoverage?: boolean;
     logLevel?: RooibosLogLevel;
     showOnlyFailures?: boolean;

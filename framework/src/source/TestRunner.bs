@@ -106,15 +106,17 @@ namespace rooibos
       }
       m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
 
-      'code coverage is not enabled in rooibos 4.0.0 - will get added again in future
-      ' if Rooibos.Common.isFunction(RBS_reportCodeCoverage)
-      '   'bs:disable-next-line
-      '   RBS_reportCodeCoverage()
+      'bs:disable-next-line
+      if Rooibos.Common.isFunction(rooibos.Coverage.reportCodeCoverage)
+        'bs:disable-next-line
+        rooibos.Coverage.reportCodeCoverage()
 
-      '   if m.config.printLcov = true
-      '     Coverage.printLCovInfo()
-      '   end if
-      ' end if
+        if m.config.printLcov = true
+          rooibos.Coverage.printLCovInfo()
+        end if
+      else
+        ? "rooibos.Coverage.reportCodeCoverage is not a function"
+      end if
       if m.config.sendHomeOnFinish <> false
         m.sendHomeKeypress()
       end if
