@@ -1024,62 +1024,28 @@ Rooibos is NOT backward compatible with pre version 4 versions of rooibos; and n
 
 ## Generate code coverage
 
-**THIS FEATrue IS NOT YET AVAILBALE - I WILL REENABLE THIS IN ROOIBOS 4.2** : If you want it sooner, I can tell you how to implement it - it's a cpl hours of work, I don't have time for right now.
-
-
-
-Rooibos can measure and report the test coverage your unit tests are producing.
-
-### Code coverage recording is destructive!
-
-#### WARNING - DO NOT run code coverage against your source folder!
-
-Recording coverage means modifying your sources! you should only run the coverage on a project path pointing to a build folder _not_ your source.
-
-These files should be cleaned and recopied _every time you run coverage_ or you will get compile errors/other undetermined behavior.
+Rooibos can measure and report the test coverage your unit tests are producing. The output is shown in the ide, when your test execution has finished.
 
 #### WARNING - Running code coverage is slower and may crash your device
 
-Running a code coverage report is a lot slower than a standard test, due to continual probing of your source. Only run coverage when needed. Also - be aware it will crash very tight loops, like inside of a while waiting on a port, which will in fact crash and hard reset your device.
+Running a code coverage report is a lot slower than a standard test, due to continual probing of your source. Only run coverage when needed. Also - be aware it will crash very tight loops, like inside of a while waiting on a port, which will probably crash and hard reset your device.
+
+It is advisable that your app has `run_as_process=1` in the manifest
 
 ### Recording coverage
-To record coverage, set the `sourceFilePattern` to a glob matching (including and excluding) the files that should be included in your coverage report, and set the `isRecordingCodeCoverage` flag to true. Be careful to not include your test specs!!
-
-An example, using a json config file is :
+To record coverage, set the `isRecordingCodeCoverage` to true, in your rooibos config (in your bsconfig.json file).
+Indicate which files to exclude, using the `coverageExcludedFiles`: [], array in the rooibos config.
+e.g.
 
 ```
-{
-  TBD
-	"sourceFilePattern": [
-		"**/*.brs",
-		"**/*.xml",
-		"!**/tests/**/*.*",
-		"!**/tests",
-		"!**/rLog",
-		"!**/rLog/**/*.*",
-		"!**/rLogComponents",
-		"!**/rLogComponents/**/*.*",
-		"!**/rooibosDist.brs",
-		"!**/rooibosFunctionMap.brs",
-		"!**/RooibosScene.brs",
-		"!**/ThreadUtils.brs"
-	],
-	"testsFilePattern": [
-		"**/tests/**/*.brs",
-		"!**/rooibosDist.brs",
-		"!**/rooibosFunctionMap.brs",
-		"!**/RooibosScene.brs"
-	],
-	"isRecordingCodeCoverage": true
-}
+"rooibos": {
+    "isRecordingCodeCoverage": true,
+    "coverageExcludedFiles": [
+        '**/*.spec.bs',
+        '**/some-vendor-library/**.*'
+    ]
+},
 ```
-
-This can be done, from the command line also, with the following command:
-
-### How coverage works
-
-TODO
-
 #### Statement support
 
 The following statements types are supported:
@@ -1096,7 +1062,6 @@ The following statements are _not_ supported
 
   - goto
   - named lines (e.g. `myGotoLine:`)
-  - else if conditions (these are coming real soon though)
 
 ### Coverage report
 
