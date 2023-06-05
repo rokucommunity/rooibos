@@ -71,11 +71,16 @@ export class RooibosPlugin implements CompilerPlugin {
                 '!**/roku_modules/**/*'];
         }
 
+        const defaultCoverageExcluded = [
+            '!**/*.spec.bs',
+            '!**/roku_modules/**/*'
+        ];
+
+        // Set default coverage exclusions, or merge with defaults if available.
         if (config.coverageExcludedFiles === undefined) {
-            config.coverageExcludedFiles = [
-                '**/*.spec.bs',
-                '**/roku_modules/**/*'
-            ];
+            config.coverageExcludedFiles = defaultCoverageExcluded;
+        } else {
+            config.coverageExcludedFiles.push(...defaultCoverageExcluded);
         }
 
         return config;
