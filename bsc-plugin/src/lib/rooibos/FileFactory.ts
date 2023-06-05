@@ -4,11 +4,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 
-const frameworkSrc = path.resolve(__dirname, '../../../../framework/src/source');
-
 export class FileFactory {
-    private coverageComponentXmlTemplate = fs.readFileSync(path.join(frameworkSrc, 'CodeCoverage.xml'), 'utf8');
-    private coverageComponentBrsTemplate = fs.readFileSync(path.join(frameworkSrc, 'CodeCoverage.brs'), 'utf8');
+    private coverageComponentXmlTemplate;
+    private coverageComponentBrsTemplate;
 
     constructor(
         private options?: {
@@ -25,6 +23,9 @@ export class FileFactory {
                 this.options.frameworkSourcePath = s`${__dirname}/../framework`;
             }
         }
+
+        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.xml'), 'utf8');
+        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.brs'), 'utf8');
     }
 
     private frameworkFileNames = [
