@@ -605,14 +605,14 @@ describe('RooibosPlugin', () => {
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                     "getFunction"
                     ])
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                     "getFunction"
                     ], "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 8
@@ -621,7 +621,7 @@ describe('RooibosPlugin', () => {
                     "a"
                     "b"
                     ])
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 9
@@ -630,7 +630,7 @@ describe('RooibosPlugin', () => {
                     "a"
                     "b"
                     ], "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
 
@@ -655,12 +655,12 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid)
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid, "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
 
@@ -687,12 +687,12 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 8
@@ -700,7 +700,7 @@ describe('RooibosPlugin', () => {
                     "arg1"
                     "arg2"
                     ])
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 9
@@ -708,7 +708,7 @@ describe('RooibosPlugin', () => {
                     "arg1"
                     "arg2"
                     ], "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
             it('does not break when validating again after a transpile', async () => {
@@ -735,12 +735,12 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 8
@@ -748,7 +748,7 @@ describe('RooibosPlugin', () => {
                     "arg1"
                     "arg2"
                     ])
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 9
@@ -756,7 +756,7 @@ describe('RooibosPlugin', () => {
                     "arg1"
                     "arg2"
                     ], "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
 
@@ -792,7 +792,7 @@ describe('RooibosPlugin', () => {
                     m.assertEqual(b, {
                     someValue: "value"
                     })
-                    if m.currentResult.isFail then return invalid`);
+                    if m.currentResult?.isFail = true then m.done() : return invalid`);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
@@ -823,12 +823,12 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 7
                     m._expectCalled(item, "getFunction", item, "item", [])
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 8
                     m._expectCalled(item, "getFunction", item, "item", [], "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 9
@@ -836,7 +836,7 @@ describe('RooibosPlugin', () => {
                     "arg1"
                     "arg2"
                     ])
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 10
@@ -844,7 +844,7 @@ describe('RooibosPlugin', () => {
                     "arg1"
                     "arg2"
                     ], "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
         });
@@ -1015,22 +1015,22 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 9
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
 
@@ -1058,12 +1058,12 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
                 //verify original code does not remain modified after the transpile cycle
                 const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
@@ -1100,7 +1100,7 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "getFunctionField", m, "m.thing")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
                 //verify original code does not remain modified after the transpile cycle
                 const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
@@ -1134,22 +1134,22 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 9
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
 
@@ -1179,12 +1179,12 @@ describe('RooibosPlugin', () => {
 
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(item, "getFunction", item, "item")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(item, "getFunction", item, "item")
-                    if m.currentResult.isFail then return invalid
+                    if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
         });
@@ -1369,12 +1369,12 @@ describe('RooibosPlugin', () => {
 
                 m.currentAssertLineNumber = 7
                 m._expectNotCalled(item, "getFunction", item, "item")
-                if m.currentResult.isFail then return invalid
+                if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                 m.currentAssertLineNumber = 8
                 m._expectNotCalled(item, "getFunction", item, "item")
-                if m.currentResult.isFail then return invalid
+                if m.currentResult?.isFail = true then m.done() : return invalid
             `);
 
             let a = getContents('rooibos/RuntimeConfig.brs');

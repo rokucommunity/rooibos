@@ -77,7 +77,7 @@ export class TestGroup extends TestBlock {
                                 overrideAstTranspile(editor, expressionStatement, '\n' + undent`
                                     m.currentAssertLineNumber = ${callExpression.range.start.line}
                                     ${callExpression.transpile(transpileState).join('')}
-                                    ${noEarlyExit ? '' : 'if m.currentResult.isFail then return invalid'}
+                                    ${noEarlyExit ? '' : 'if m.currentResult?.isFail = true then m.done() : return invalid'}
                                 ` + '\n');
                             }
                         }
