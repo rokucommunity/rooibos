@@ -711,6 +711,54 @@ describe('RooibosPlugin', () => {
                     if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
+            it('does not produce crashing code for subs', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        sub _()
+                        m.expectCalled(m.thing.getFunction())
+                        m.expectCalled(m.thing.getFunction(), "return")
+                        m.expectCalled(m.thing.getFunction("arg1", "arg2"))
+                        m.expectCalled(m.thing.getFunction("arg1", "arg2"), "return")
+                        end sub
+                    end class
+                `);
+                program.validate();
+                await builder.transpile();
+                expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                let a = getTestSubContents(true);
+                expect(
+                    getTestSubContents(true)
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 6
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
+                    if m.currentResult?.isFail = true then m.done() : return
+
+
+                    m.currentAssertLineNumber = 7
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
+                    if m.currentResult?.isFail = true then m.done() : return
+
+
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [
+                    "arg1"
+                    "arg2"
+                    ])
+                    if m.currentResult?.isFail = true then m.done() : return
+
+
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [
+                    "arg1"
+                    "arg2"
+                    ], "return")
+                    if m.currentResult?.isFail = true then m.done() : return
+                `);
+            });
             it('does not break when validating again after a transpile', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1512,6 +1560,18 @@ function getTestFunctionContents(trimEveryLine = false) {
     const [, body] = /\= function\(\)([\S\s]*|.*)(?=end function)/gim.exec(contents);
     let result = undent(
         body.split('end function')[0]
+    );
+    if (trimEveryLine) {
+        result = trim(result);
+    }
+    return result;
+}
+
+function getTestSubContents(trimEveryLine = false) {
+    const contents = getContents('test.spec.brs');
+    const [, body] = /groupA_test1 \= sub\(\)([\S\s]*|.*)(?=end sub)/gim.exec(contents);
+    let result = undent(
+        body.split('end sub')[0]
     );
     if (trimEveryLine) {
         result = trim(result);

@@ -1,5 +1,5 @@
 import type { AstEditor, CallExpression, DottedGetExpression, Expression } from 'brighterscript';
-import { isCallExpression, isCallfuncExpression, isIndexedGetExpression, ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isLiteralExpression, isVariableExpression } from 'brighterscript';
+import { isCallExpression, isCallfuncExpression, isIndexedGetExpression, ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isLiteralExpression, isVariableExpression, isFunctionExpression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
@@ -58,10 +58,11 @@ export class TestGroup extends TestBlock {
         try {
             let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(brighterscript.createVisitor({
-                ExpressionStatement: (expressionStatement) => {
+                ExpressionStatement: (expressionStatement, parent, owner) => {
                     let callExpression = expressionStatement.expression as CallExpression;
                     if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
+                        let isSub = isFunctionExpression(callExpression.parent.parent.parent) && callExpression.parent.parent.parent.functionType.kind === TokenKind.Sub;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.name.text)) {
                             if (dge.name.text === 'stubCall') {
@@ -77,7 +78,7 @@ export class TestGroup extends TestBlock {
                                 overrideAstTranspile(editor, expressionStatement, '\n' + undent`
                                     m.currentAssertLineNumber = ${callExpression.range.start.line}
                                     ${callExpression.transpile(transpileState).join('')}
-                                    ${noEarlyExit ? '' : 'if m.currentResult?.isFail = true then m.done() : return invalid'}
+                                    ${noEarlyExit ? '' : `if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`}
                                 ` + '\n');
                             }
                         }

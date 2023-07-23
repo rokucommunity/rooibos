@@ -201,6 +201,33 @@ namespace tests
 end namespace
 ```
 
+Note, you can also use sub, if you wish
+
+```
+namespace tests
+
+  @suite("basic tests")
+  class BasicTests extends Rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests the node context is available for a Node scope function")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does something in node scope")
+    sub _()
+      m.assertNotInvalid(m.node)
+      Tests.doSomethingInNodeScope(true)
+      m.assertIonvalid(m._isNodeScopeVarSet)
+      m.assertTrue(m.node._isNodeScopeVarSet)
+    end sub
+
+  end class
+
+end namespace
+```
+
+
+
 #### Simple example Notes
 
 1. The `++++++++++++`'s around the `@describe` declaration are not required; but I find it makes the file much easier to read, and recommend it (or something similar, such as `'*****` as a best practice.
