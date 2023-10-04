@@ -6,7 +6,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
 </h3>
 
 
-## FEATrueS
+## Features
  - [Easy to integrate](#easy-to-integrate)
  - [Simple, annotation-based, syntax for writing tests](#simple-syntax-for-writing-tests)
  - [No need for special file names, or method names](#no-need-for-special-file-or-method-names)
@@ -18,7 +18,6 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Node specific assertions](#node-specific-assertions)
  - [Parameterized testing](#parameterized-testing)
  - [Mocks and stubs](#mocks-and-stubs)
- - [Mocks node](#mocks-node)
  - [Execute tests on scenegraph nodes](#execute-tests-on-scenegraph-nodes)
  - [Incorporate your own util methods](#incorporate-your-own-util-methods)
  - [Hook into your global setup mechanisms](#hook-into-your-global-setup-mechanisms)
@@ -260,15 +259,15 @@ The following annotations are supported.
 | @beforeEach                 | Run before each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                              |                                                                                                   |
 | @afterEach                  | Run after each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                               |                                                                                                   |
 | @describe                   | Indicates a group of tests. Groupings improve readability. A group might denote various tests for a given method, or even an aspect of functionality                                                                                                                                                          | Name of the describe group, which is used in the test output                                      |
-| @it                         | Indicates a test. Must directly precede a function definition                                                                                                                                                                                                                                                 | The name of the test acse, which will be reported in the test output                              |
+| @it                         | Indicates a test. Must directly precede a function definition                                                                                                                                                                                                                                                 | The name of the test case, which will be reported in the test output                              |
 | @only                       | Precedes a Suite, Describe group, or it test, to indicate that _only that item_ should be executed. This can be used to rapidly filter out tests. Only other `@only` items will be run.                                                                                                                       |                                                                                                   |
 | @ignore                     | Precedes a suite, Describe group or it test, to indicate that that item should be ignored. If an `@ignore` tag is found before an item, then it will not be executed as part of the test run                                                                                                                  |                                                                                                   |
 | @params[p1,p2,...,p6]       | Indicates a Parameterized test. Must come _after_ a `@it` annotation. Can accept up to 6 arguments, which are comma separated. When using parameterized tests, the test function signatrue _must_ accept the same number of arguments, and each of params statemens, must also have the same number of params | Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function |
 | @ignoreParams[p1,p2,...,p6] | A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run.                                                                                                                                                                                                       | As per `@params`                                                                                  |
-| @onlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily _solor_ params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                             | As per `@params`                                                                                  |
+| @onlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily run just one set of params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                 | As per `@params`                                                                                  |
 | @tags("one","two"..."n")    | Allows indicating the tags to apply to the group,test or suite. This is a really effective way to categorise your test suite. These tags can be used to filter tests in your rooibos bsconfig options.                                                                                                        | List of tag names to apply                                                                        |
-| @noatch                     | If present, will not catch errors for the test or suite it is placed on. This is handy when developing, and you want to debug the exact line on which an error occurred.                                                                                                                                      | none                                                                                              |
-| @noearlyexit                | If present, will not exit a test on an assertion failure, which prevents crashes/skewed results. This annotation is mainly used for testing, such as testing rooibos framework itself. It is recommend that you _do not_ use this annotation.                                                                 | none                                                                                              |
+| @noCatch                    | If present, will not catch errors for the test or suite it is placed on. This is handy when developing, and you want to debug the exact line on which an error occurred.                                                                                                                                      | none                                                                                              |
+| @noEarlyexit                | If present, will not exit a test on an assertion failure, which prevents crashes/skewed results. This annotation is mainly used for testing, such as testing rooibos framework itself. It is recommend that you _do not_ use this annotation.                                                                 | none                                                                                              |
 | @async                      | If present, on a test suite or test case (e.g. @it) indicates that the test will execute asynchronously. This will allow you to use observeField in your tests. The only argument is timeout in ms  e.g. @async(2000). Default time out is 2000ms for a test, and 6000 for a test suite                       | max time in ms                                                                                    |
 
 
@@ -616,7 +615,7 @@ In all of these cases, you can use Rooibos's mocks and stubs in place of real me
 ### Mocks, Stubs and Fakes
 
 #### Fakes
-Fakes are objects, which you can use in place of real methods. They are invoked, receive parameters, and can return values, just like real methods. As far as the invokee is concerned, it _is_ the real method you intended to be executed in your code. Fakes are what Rooibos uses under the hood, to facilitate it's Stub and Mock implementations.
+Fakes are objects, which you can use in place of real methods. They are invoked, receive parameters, and can return values, just like real methods. As far as the invoked function is concerned, it _is_ the real method you intended to be executed in your code. Fakes are what Rooibos uses under the hood, to facilitate it's Stub and Mock implementations.
 
 #### Stubs
 Stubs are Fakes which are not tracked. This means that you can execute your unit tests, using the fake methods; but Rooibos will not fail your tests if things were not as expected (i.e. wrong params, wrong number of invocations). These can be very handy for setting certain test conditions (i.e. you can create a fake network response that will return a specific result, which drives your test)
@@ -747,7 +746,7 @@ In that case, the following mock definition would satisfy the assertion:
 
 If you only care about some arguments, then you can use `m.ignoreValue` to instruct rooibos to not assert equality for the arguments you've ignored.
 
-In the above example, the assertion will be satisfied with a mock confiugred thusly:
+In the above example, the assertion will be satisfied with a mock configured thusly:
 
 ```m.expectOnce(myObj, "myMethod", ["a", "b", m.ignoreValue], true)```
 
@@ -758,7 +757,7 @@ This will pass when `myMethod` is invoked with args: `["a", "b", "c"]`, as would
 
 #### Using matchers to assert mock invocation args
 
-In addition to the other basic matchers described above, rooibos provides a set of pre-defined _any_ matchers, and a mechansim for you to provide custom matchers for any mock argument.
+In addition to the other basic matchers described above, rooibos provides a set of pre-defined _any_ matchers, and a mechanism for you to provide custom matchers for any mock argument.
 
 ##### Built in matchers
 
@@ -808,7 +807,7 @@ And inline:
 
 #### returning values from your mocks
 Simply set your return value to a non-invalid value, to specify a return value.
-You can also specify multiple return values, if you expect your mock to be executed multiple times, and would like to use different values. In that case, return a pobo, with the special key : `multiResult`. The value will be returned for each invocation - if the mock is invoked more than the number of return values, the last one is reutrned. e.g.
+You can also specify multiple return values, if you expect your mock to be executed multiple times, and would like to use different values. In that case, return a pobo, with the special key : `multiResult`. The value will be returned for each invocation - if the mock is invoked more than the number of return values, the last one is returned. e.g.
 
 ```
   m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
@@ -827,7 +826,7 @@ As a sanity check, rooibos will expect a method to exist on an object before all
 
 This behavior can be disabled by passing in the last argument of the mock/stub/fake function (`allowNonExistingMethods`) as `true`. In this case, rooibos will still log a warning; but you will be allowed to create the fake method.
 
-This is handy for quickly creating mock dependencies with simple _pobos_ (plain old brightscript objects). e.g.
+This is handy for quickly creating mock dependencies with simple aa objects. e.g.
 
 ```
 videoService = {}
@@ -844,7 +843,7 @@ Please note, mocks DO NOT work with globally scoped methods (i.e. subs and funct
 <a name="easily-integrate-into-any-ci-system"></a>
 Rooibos does not have special test runners for outputting to files, or uploading to servers. However, that will not stop you integrating with your CI system.
 
-Becuase the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
+Because the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
 
 Note that rooibos doesn't need any special parameters to run. If you follow the standard setup the tests will run. Simply ensure that your build system includes, or does not include rooibosDist.brs (and better still, _all_ of your tests), depending on whether you wish to run the tests or not.
 
@@ -853,7 +852,7 @@ An example make target might look like
 ```
 #amount of time to wait for unit test execution
 ROKU_TEST_WAIT_DURATION=5
-ROKU_TEST_ID=[Some identifiter for your tests, should be set by CI as the buildid/git hash]
+ROKU_TEST_ID=[Some identifier for your tests, should be set by CI as the buildId/git hash]
 
 continuousIntegration: build install
 	echo "Running Rooibos Unit Tests"
@@ -1015,7 +1014,7 @@ There are many articles on the benefits of TDD, and how to go about TDD, which y
 
 Personally, I get great mileage doing TDD in roku by using MVVM pattern (I'm soon to release a lightweight MVVM framework). You can get more info on that [here](https://medium.com/flawless-app-stories/how-to-use-a-model-view-viewmodel-architectrue-for-ios-46963c67be1b) (for iOS), and ideas on how that benefits roku dev [here](https://medium.com/plexlabs/xml-code-good-times-rsg-application-b963f0cec01b)
 
-I use these practices as much as possible becuase:
+I use these practices as much as possible because:
 
 1. Keeps my view and business logic separated
 2. Tests are super fast to run (I generally run about 400 or so in each of my projects in < 5 seconds, and when running 1 test, turn around time is < 3 seconds)
