@@ -626,11 +626,12 @@ To create a stub, we use the `stubCall` method:
 function stubCall(invocation, returnValue = invalid) as object
 ```
 
- - The target is the object which will have it's method replaced,
- - Method name is the name of the method to replace
- - expectedInvocations is the number of times we expect the method to be called
- - expectedArgs is an array of values we expect the method to be invoked with
- - returnValue is the value we wish to return
+e.g.
+
+```
+m.stubCall(detailsVM.rexecuteNetRequest, returnJson)
+```
+
 
 ##### A simple example
 Given a ViewModel, named DetailsVM, which has a method LoadDetails, as such:
