@@ -662,12 +662,43 @@ Mocks are _expected_ fakes. Your code will invoke the method, as if it _is_ the 
 
 We create mocks by using the methods:
 
+
+ - ExpectCalled(invocation, result)
+ - ExpectNotCalled(method)
+
+These are advanced functions, using the rooibos plugin to greatly simplify mocking. Simply include the actual invocation you expect, or the method you don't expect to be called, and the framework does the rest.
+
+- it will Create the underlying rooibos mock method for you
+- and will wire up the correct expected values and return values
+- it will automatically create the whole chain of objects required for the mock to work. For example, if you do
+  `m.expectCalled(m.screen.entitlementService.manager.isEntitled(), true)` and screen, entitlementServic or manager do not exist, rooibos will _automatically_ create the chain of objects as simple aa's with the relevant id, and setup the mock call for you.
+
+### CallFunc @. nuances
+
+You can `expectCalled` on both method invocations and @. invocations, however.
+e.g.
+`m.expectCalled(m.screen.entitlementService.manager.isEntitled(), true)`
+`m.expectCalled(m.screen.entitlementService.manager@.isEntitled(), true)`
+
+You can also `expectNotCalled` on both; but there is a slight difference here:
+`m.expectNotCalled(m.screen.entitlementService.manager.isEntitled)`
+`m.expectNotCalled(m.screen.entitlementService.manager@.isEntitled())`
+
+For the regular class method variation, you can simply pass a pointer to the function, for the @.variation you must use an empty params invocation (to satisfy the brighterscript transpiler),
+  #### Legacy mocking methods
+
+  Under the hood rooibos leverages these methods; but with the modern syntax you will not typicall interact with these methods.
+
  - Expect - Creates a generic mock
  - ExpectOnce - Creates a mock, which we expect to be called once _or can created individual overloaded calls to the same method_
  - ExpectNone - Creates a mock, which we _never_ expect to be invoked
 
+
 ### Asserting mocks
 Mocks are asserted by invoking `m.assertMocks()`
+
+** You will not normally need this information**
+
 ***As a convenience, Rooibos will automatically assert any mocks for you when your test finishes executing***. This saves you from having to manually add this line at the end of your code.
 
 When a mock fails, Rooibos will report to you what caused the failure. The possible reasons are:
@@ -679,11 +710,11 @@ When a mock fails, Rooibos will report to you what caused the failure. The possi
 For example, the above test could be written with mocks as follows:
 
 ```
-detailsVM = CreateDetailsVM()
+detailsVM = createDetailsVM()
 returnJson = {success:false}
-m.ExpectOnce(detailsVM,"ExecuteNetRequest", invalid, returnJson)
+m.expectCalled(detailsVM,.executeNetRequest() returnJson)
 
-detailsVM.LoadDetails()
+detailsVM.loadDetails()
 
 m.assertFalse(detailsVM.isLoading)
 m.assertTrue(detailsVM.isShowingError)
@@ -692,14 +723,17 @@ m.assertTrue(detailsVM.isShowingError)
 In addition to the other asserts, Rooibos will automatically check that ExecuteNetRequest was executed exactly once
 
 #### Manually Checking mock invocations
+
+** You will not normally need this information**
+
 If you wish you, you can store a reference to a mock or a stub, and later check the invocation values.
 
 All mock and stub methods return a reference to the _Fake_ that it wired into your code. e.g.
 
 ```
-executeMock = m.ExpectOnce(detailsVM,"ExecuteNetRequest", invalid, returnJson)
+executeMock = m.expectCalled(detailsVM.executeNetRequest(), returnJson)
 
-detailsVM.LoadDetails()
+detailsVM.loadDetails()
 
 ? executeMock.invokedArgs
 ? executeMock.invocations
@@ -717,42 +751,43 @@ You can save yourself a lot of time, and really think about and kick the tyres o
 
 You may wish to call the same method various times, and return different values, or check different arguments were invoked
 
-In this case, we use overloaded `expectOnce` calls, as per the following example:
+In this case, we use overloaded `expectCalled` calls, as per the following example:
 
 ```
-  m.expectOnce(obj, "mockMethod", [arg1], result1, true)
-  m.expectOnce(obj, "mockMethod", [arg2], result2, true)
-  m.expectOnce(obj, "mockMethod", [arg3], result3, true)
+  m.expectCalled(obj.mockMethod(arg1), result1)
+  m.expectCalled(obj.mockMethod(arg2), result2)
+  m.expectCalled(obj.mockMethod(arg3), result3)
 ```
 
 This will now set the framework to expect 3 calls to mockMethod, the first with value of _arg1_, returning _result1_; the second with value of _arg2_, returning _result2_; and the last with value of _arg3_, returning _result3_
 
+**The order of calls must match the invocations**
 
-#### Specifying an expected value of invalid, with m.invalidValue
 
-If you specify the invoked args, then by default, rooibos will check that the invoked args match the arguments you specify. You can expect any value for an arg, or use the special `m.invalidValue` to indicate you expect the argument to be invalid. This is the default value.
+#### Rooibos checks that the invocation values match
+
+If you specify the invoked args, then by default, rooibos will check that the invoked args match the arguments you specify.
 
 So for example, if one had the following mock
 
-```m.expectOnce(myObj, "myMethod", ["a", "b"], true)```
+`m.expectCalled(myObj.myMethod("a", "b"), true)`
 
-and `myMethod` was invoked with `["a", "b", "c"]`, this would be a mock failure, because the 3rd argument was expected to be invalid, by default.
+and we invoked `myObj.myMethod("a", "b", "c")` this will be a mock failure, because the invocation arguments do not match.
 
-In that case, the following mock definition would satisfy the assertion:
+#### Only checking the call is made, and ignoring the params
+If you wish to ignore all params for an invocation, simply use `m.expectCalled` with a function pointer. e.g. `m.expectCalled(myObj.myMethod, true)`, which will simply check the function is called, and return true.
 
-```m.expectOnce(myObj, "myMethod", ["a", "b", "c"], true)```
-
+Note, this feature is NOT available for @. invocations.
 #### Skipping value assertion with m.ignoreValue
 
-If you only care about some arguments, then you can use `m.ignoreValue` to instruct rooibos to not assert equality for the arguments you've ignored.
+
+If you only care about *some* arguments, then you can use `m.ignoreValue` to instruct rooibos to not assert equality for the arguments you've ignored.
 
 In the above example, the assertion will be satisfied with a mock configured thusly:
 
-```m.expectOnce(myObj, "myMethod", ["a", "b", m.ignoreValue], true)```
+```m.expectCalled(myObj.myMethod("a", "b", m.ignoreValue), true)```
 
-This will pass when `myMethod` is invoked with args: `["a", "b", "c"]`, as would the following mock definition:
-
-```m.expectOnce(myObj, "myMethod", [m.ignoreValue, "b", "c"], true)```
+This will pass when `myMethod` is invoked with args: `"a", "b", "c"`, or `"a", "b"`, or `"a", "b", 22`, etc
 
 
 #### Using matchers to assert mock invocation args
@@ -772,7 +807,7 @@ Rooibos has matchers that will pass, if the values are of the specified _anyXXXM
 
 Simply specify the matcher in your mock definition, as follows:
 
-```m.expectOnce(myObj, "myMethod", [m.anyStringMatcher, m.anyBoolMatcher], true)```
+```m.expectCalled(myObj.myMethod(m.anyStringMatcher, m.anyBoolMatcher), true)```
 
 In this case, the mock be satisfied if it was called with 2 params, the first one a string, the second a bool, both of any value.
 
@@ -787,21 +822,21 @@ It is simple to use a custom matcher to assert your mock arguments. Simply:
 For example, using a function pointer (.brs):
 
 ```
-  m.expectOnce(m.myClass, "doWork", [{"matcher": Rooibos_Matcher_anyArray}], returnValue)
+  m.expectCalled(m.myClass.doWork({"matcher": Rooibos_Matcher_anyArray}), returnValue)
 ```
 
 For example, using a function pointer (bs):
 
 ```
-  m.expectOnce(m.myClass, "doWork", [{"matcher": Rooibos.Matcher.anyArray}], returnValue)
+  m.expectCalled(m.myClass.doWork({"matcher": Rooibos.Matcher.anyArray}), returnValue)
 ```
 
 And inline:
 
 ```
-  m.expectOnce(m.myClass, "doWork", [{ "matcher": function(value)
+  m.expectCalled(m.myClass.doWork({ "matcher": function(value)
         return value = true
-    end function }], returnValue)
+    end function }), returnValue)
 ```
 
 
@@ -810,7 +845,7 @@ Simply set your return value to a non-invalid value, to specify a return value.
 You can also specify multiple return values, if you expect your mock to be executed multiple times, and would like to use different values. In that case, return a pobo, with the special key : `multiResult`. The value will be returned for each invocation - if the mock is invoked more than the number of return values, the last one is returned. e.g.
 
 ```
-  m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
+  m.expectCalled(obj.mockMethod(5), {"multiResult": ["one", 2, invalid, "last"]}, true)
 
   m.assertEqual(obj.mockMethod(), "one")
   m.assertEqual(obj.mockMethod(), 2)
@@ -822,6 +857,10 @@ You can also specify multiple return values, if you expect your mock to be execu
 
 
 ### Allowing mocking of non-existent functions
+**By default this is disabled** because using invocations means that the brighterscript diagnostics will inform you of any illegal or unknown method calls. This flag should remain disabled.
+
+**This is documented for legacy purposes**
+
 As a sanity check, rooibos will expect a method to exist on an object before allowing it to be stubbed or mocked. If it is not, it will fail log an error and lead to a failing mock assertion.
 
 This behavior can be disabled by passing in the last argument of the mock/stub/fake function (`allowNonExistingMethods`) as `true`. In this case, rooibos will still log a warning; but you will be allowed to create the fake method.
@@ -830,14 +869,16 @@ This is handy for quickly creating mock dependencies with simple aa objects. e.g
 
 ```
 videoService = {}
-m.expectOnce (videoService, "getVideos", invalid, someJson, true)
+m.expectCalled(videoService.getVideos, someJson, true)
 ```
 
 Note, you can also opt to disable the error at the whole test suite level; by setting `m.allowNonExistingMethods = true` in your test suite code.
 
 
 ### Mock limitations
-Please note, mocks DO NOT work with globally scoped methods (i.e. subs and functions which are not assigned to an associative array). E.g. if you have a method, which is not accessed via `m.SomeMethod`, or `someObject.SomeMethod`, then you cannot mock it. This is a long term limitation. If you are hitting this problem, I suggest it's likely a code-smell anyhow, and you might consider using a pattern such as MVVM, which will better allow you to separate view and business logic.
+Please note, mocks DO NOT work with globally scoped methods (i.e. subs and functions which are not assigned to an associative array). E.g. if you have a method, which is not accessed via `m.SomeMethod`, or `someObject.SomeMethod`, then you cannot mock it.
+
+**This is due to be addressed 2123Q4**
 
 ## Integrating with your CI
 <a name="easily-integrate-into-any-ci-system"></a>
