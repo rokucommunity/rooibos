@@ -620,10 +620,10 @@ Fakes are objects, which you can use in place of real methods. They are invoked,
 #### Stubs
 Stubs are Fakes which are not tracked. This means that you can execute your unit tests, using the fake methods; but Rooibos will not fail your tests if things were not as expected (i.e. wrong params, wrong number of invocations). These can be very handy for setting certain test conditions (i.e. you can create a fake network response that will return a specific result, which drives your test)
 
-To create a stub, we use the `Stub` method:
+To create a stub, we use the `stubCall` method:
 
 ```
-function Stub(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
+function stubCall(invocation, returnValue = invalid) as object
 ```
 
  - The target is the object which will have it's method replaced,
@@ -635,8 +635,8 @@ function Stub(target, methodName, expectedInvocations = 1, expectedArgs = invali
 ##### A simple example
 Given a ViewModel, named DetailsVM, which has a method LoadDetails, as such:
 ```
-function LoadDetails()
-	isNetworkRequestExecuted = m.ExecuteNetRequest("http://my.data.com/get")
+function loadDetails()
+	isNetworkRequestExecuted = m.executeNetRequest("http://my.data.com/get")
 	m.isLoading = isNetworkRequestExecuted
 	m.isShowingError = not isNetworkRequestExecuted
 end function
@@ -645,17 +645,17 @@ end function
 We can use a stub, to facilitate testing against the network layer
 
 ```
-detailsVM = CreateDetailsVM()
+detailsVM = createDetailsVM()
 returnJson = {success:false}
-m.Stub(detailsVM,"ExecuteNetRequest", invalid, returnJson)
+m.stubCall(detailsVM.rexecuteNetRequest, returnJson)
 
-detailsVM.LoadDetails()
+detailsVM.loadDetails()
 
 m.assertFalse(detailsVM.isLoading)
 m.assertTrue(detailsVM.isShowingError)
 ```
 
-In this case, our detailsVM object, will not actually call ExecuteNetRequests's source code; but will instead call a _fake_ (i.e fake method body), which can return predtermined values, or be later checked for invocation arg conformance.
+In this case, our detailsVM object, will not actually call executeNetRequests's source code; but will instead call a _fake_ (i.e fake method body), which can return predtermined values, or be later checked for invocation arg conformance.
 
 #### Mocks
 Mocks are _expected_ fakes. Your code will invoke the method, as if it _is_ the real method; but the difference is that Rooibos will track the invoction of mocks, and if the method was not invoked in the manner you expected (i.e. with the expected parameters and the expected number of invocations) then a unit test failure will result.
@@ -663,8 +663,8 @@ Mocks are _expected_ fakes. Your code will invoke the method, as if it _is_ the 
 We create mocks by using the methods:
 
 
- - ExpectCalled(invocation, result)
- - ExpectNotCalled(method)
+ - expectCalled(invocation, result)
+ - expectNotCalled(method)
 
 These are advanced functions, using the rooibos plugin to greatly simplify mocking. Simply include the actual invocation you expect, or the method you don't expect to be called, and the framework does the rest.
 
@@ -689,9 +689,9 @@ For the regular class method variation, you can simply pass a pointer to the fun
 
   Under the hood rooibos leverages these methods; but with the modern syntax you will not typicall interact with these methods.
 
- - Expect - Creates a generic mock
- - ExpectOnce - Creates a mock, which we expect to be called once _or can created individual overloaded calls to the same method_
- - ExpectNone - Creates a mock, which we _never_ expect to be invoked
+ - expect - Creates a generic mock
+ - expectOnce - Creates a mock, which we expect to be called once _or can created individual overloaded calls to the same method_
+ - expectNone - Creates a mock, which we _never_ expect to be invoked
 
 
 ### Asserting mocks
@@ -747,7 +747,7 @@ You can save yourself a lot of time, and really think about and kick the tyres o
  - Up to 15 arguments are supported on mocked methods
  - You can have up to 24 mocks.
 
-#### Expecting several calls to the same method, with verified invocation params
+#### expecting several calls to the same method, with verified invocation params
 
 You may wish to call the same method various times, and return different values, or check different arguments were invoked
 
