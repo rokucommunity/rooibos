@@ -11,7 +11,7 @@ let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
 
-describe('RooibosPlugin', () => {
+describe.only('RooibosPlugin', () => {
     let program: Program;
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
@@ -21,7 +21,10 @@ describe('RooibosPlugin', () => {
         options = {
             rootDir: _rootDir,
             stagingFolderPath: _stagingFolderPath,
-            stagingDir: _stagingFolderPath
+            stagingDir: _stagingFolderPath,
+            rooibos: {
+                isGlobalMethodMockingEnabled: true
+            }
         };
         fsExtra.ensureDirSync(_stagingFolderPath);
         fsExtra.ensureDirSync(_rootDir);
@@ -895,6 +898,146 @@ describe('RooibosPlugin', () => {
                     if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
             });
+            it('correctly transpiles global function calls', async () => {
+
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        item = {id: "item"}
+                        m.expectCalled(sayHello("arg1", "arg2"), "return")
+                        m.expectCalled(sayHello())
+                        m.expectCalled(sayHello(), "return")
+                        m.expectCalled(sayHello("arg1", "arg2"))
+                        end function
+                    end class
+                `);
+                program.setFile('source/code.bs', `
+                function sayHello(firstName = "" as string, lastName = "" as string)
+                    print firstName + " " + lastName
+                end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const testText = getTestFunctionContents(true);
+                expect(
+                    testText
+                ).to.eql(undent`
+                item = {
+                id: "item"
+                }
+
+                m.currentAssertLineNumber = 7
+                m._expectCalled(invalid, "sayHello", invalid, invalid, [
+                "arg1"
+                "arg2"
+                ], "return")
+                if m.currentResult?.isFail = true then m.done() : return invalid
+
+
+                m.currentAssertLineNumber = 8
+                m._expectCalled(invalid, "sayHello", invalid, invalid, [])
+                if m.currentResult?.isFail = true then m.done() : return invalid
+
+
+                m.currentAssertLineNumber = 9
+                m._expectCalled(invalid, "sayHello", invalid, invalid, [], "return")
+                if m.currentResult?.isFail = true then m.done() : return invalid
+
+
+                m.currentAssertLineNumber = 10
+                m._expectCalled(invalid, "sayHello", invalid, invalid, [
+                "arg1"
+                "arg2"
+                ])
+                if m.currentResult?.isFail = true then m.done() : return invalid
+`);
+
+                let codeText = getContents('code.brs');
+                expect(codeText).to.equal(`
+                TODO
+`);
+            });
+            it.only('correctly transpiles namespaced function calls', async () => {
+                plugin.config.isGlobalMethodMockingEnabled = true;
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                        item = {id: "item"}
+                        m.expectCalled(utils.sayHello("arg1", "arg2"), "return")
+                        m.expectCalled(utils.sayHello())
+                        m.expectCalled(utils.sayHello(), "return")
+                        m.expectCalled(utils.sayHello("arg1", "arg2"))
+                        end function
+                    end class
+                `);
+                program.setFile('source/code.bs', `
+                namespace utils
+                    function sayHello(firstName = "" as string, lastName = "" as string)
+                        print firstName + " " + lastName
+                    end function
+                end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const testText = getTestFunctionContents(true);
+                expect(
+                    testText
+                ).to.eql(undent`
+                item = {
+                id: "item"
+                }
+
+                m.currentAssertLineNumber = 7
+                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
+                "arg1"
+                "arg2"
+                ])
+                if m.currentResult?.isFail = true then m.done() : return invalid
+
+
+                m.currentAssertLineNumber = 8
+                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
+                if m.currentResult?.isFail = true then m.done() : return invalid
+
+
+                m.currentAssertLineNumber = 9
+                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
+                if m.currentResult?.isFail = true then m.done() : return invalid
+
+
+                m.currentAssertLineNumber = 10
+                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
+                "arg1"
+                "arg2"
+                ])
+                if m.currentResult?.isFail = true then m.done() : return invalid
+`);
+
+                let codeText = trimLeading(getContents('code.brs'));
+                expect(codeText).to.equal(trimLeading(`function utils_sayHello(firstName = "", lastName = "")
+                if RBS_CC_1_getMocksByFunctionName()["utils_sayHello"] <> invalid
+                return RBS_CC_1_getMocksByFunctionName()["utils_sayHello"](firstName,lastName)
+                end if
+                print firstName + " " + lastName
+                end function
+
+                function RBS_CC_1_getMocksByFunctionName()
+                if m._rMocksByFunctionName = invalid
+                m._rMocksByFunctionName = {}
+                end if
+                return m._rMocksByFunctionName
+                end functiond`));
+            });
         });
 
         describe('stubCall transpilation', () => {
@@ -1578,3 +1721,8 @@ function getTestSubContents(trimEveryLine = false) {
     }
     return result;
 }
+
+function trimLeading(text: string) {
+    return text.split('\n').map((line) => line.trimStart()).join('\n');
+}
+

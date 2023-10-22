@@ -162,7 +162,7 @@ Rooibos has a hierarchy of tests as follows:
 
 Test suites are defined by:
  - declaring a class _inside_ a namespace
- - which extends `Rooibos.BaseTestSuite`
+ - which extends `rooibos.BaseTestSuite`
  - and has a `@suite` annotation
 
 No special file naming is required. I recommend you call your files `thing.spec.bs` <a name="no-need-for-special-file-or-method-names"></a>
@@ -171,7 +171,7 @@ Please note that rooibos tests are _brighterscript_ only. You can test regular b
 
 ### Some advice
 
-I find it really handy to have my own BaseTestSuite, that extends `Rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
+I find it really handy to have my own BaseTestSuite, that extends `rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
 
 ### Simple example
 The following is a minimum working example of a Rooibos test suite, named `Simple.brs`
@@ -181,7 +181,7 @@ The following is a minimum working example of a Rooibos test suite, named `Simpl
 namespace tests
 
   @suite("basic tests")
-  class BasicTests extends Rooibos.BaseTestSuite
+  class BasicTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests the node context is available for a Node scope function")
@@ -206,7 +206,7 @@ Note, you can also use sub, if you wish
 namespace tests
 
   @suite("basic tests")
-  class BasicTests extends Rooibos.BaseTestSuite
+  class BasicTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests the node context is available for a Node scope function")
@@ -408,7 +408,7 @@ In addition, we can also use beforeEach and afterEach to run before **each and e
 
 ```
 namespace Tests
-  class SampleTest extends Rooibos.BaseTestSuite
+  class SampleTest extends rooibos.BaseTestSuite
 
     override function setup()
       m.values = [{index:1,name:"one"},{index:4, name:"four"},{index:12, name:"twelve"}]
@@ -828,7 +828,7 @@ For example, using a function pointer (.brs):
 For example, using a function pointer (bs):
 
 ```
-  m.expectCalled(m.myClass.doWork({"matcher": Rooibos.Matcher.anyArray}), returnValue)
+  m.expectCalled(m.myClass.doWork({"matcher": rooibos.Matcher.anyArray}), returnValue)
 ```
 
 And inline:
@@ -1044,7 +1044,7 @@ end function
 
 ### Global test setup
 
-I find it really handy to have my own BaseTestSuite, that extends `Rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
+I find it really handy to have my own BaseTestSuite, that extends `rooibos.BaseTestSuite` and I use that as the base of all my tests. In this way I can easily use common utilities and use common beforeEach/setup for setting things up.
 
 You can always call the super beforeEach/setup/teardown/etc from your other tests, making it trivial to do global setup functions.
 

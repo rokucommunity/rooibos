@@ -33,7 +33,7 @@ namespace rooibos
       m.runtimeConfig = new rooibos.RuntimeConfig()
       m.config = m.runtimeConfig.getRuntimeConfig()
       'TODO - allow providing different reporters via config
-      m.testReporter = new Rooibos.ConsoleTestReporter(m)
+      m.testReporter = new rooibos.ConsoleTestReporter(m)
     end function
 
     ' /**
@@ -107,7 +107,7 @@ namespace rooibos
       m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
 
       'bs:disable-next-line
-      if Rooibos.Common.isFunction(rooibos.Coverage.reportCodeCoverage)
+      if rooibos.common.isFunction(rooibos.Coverage.reportCodeCoverage)
         'bs:disable-next-line
         rooibos.Coverage.reportCodeCoverage()
 
@@ -187,7 +187,7 @@ namespace rooibos
     private function runTestSuite(testSuite) as void
       if testSuite.groupsData <> invalid and testSuite.groupsData.count() > 0
         ? ""
-        ? Rooibos.Common.fillText("> SUITE: " + testSuite.name, ">", 80)
+        ? rooibos.common.fillText("> SUITE: " + testSuite.name, ">", 80)
         m.testSuites.push(testSuite)
 
         if testSuite.isNodeTest

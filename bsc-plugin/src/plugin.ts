@@ -6,7 +6,12 @@ import type {
     TranspileObj,
     AstEditor,
     BeforeFileTranspileEvent,
-    PluginHandler
+    PluginHandler,
+    ClassStatement,
+    FunctionStatement,
+    Statement,
+    Scope,
+    BrsFile
 } from 'brighterscript';
 import {
     isBrsFile
@@ -16,12 +21,26 @@ import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 import * as minimatch from 'minimatch';
+import { MockUtil } from './lib/rooibos/MockUtil';
+
+
+export interface NamespaceContainer {
+    file: BscFile;
+    fullName: string;
+    nameRange: Range;
+    lastPartName: string;
+    statements: Statement[];
+    classStatements: Record<string, ClassStatement>;
+    functionStatements: Record<string, FunctionStatement>;
+    namespaces: Record<string, NamespaceContainer>;
+}
 
 export class RooibosPlugin implements CompilerPlugin {
 
     public name = 'rooibosPlugin';
     public session: RooibosSession;
     public codeCoverageProcessor: CodeCoverageProcessor;
+    public mockUtil: MockUtil;
     public fileFactory: FileFactory;
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
@@ -35,6 +54,7 @@ export class RooibosPlugin implements CompilerPlugin {
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
+            this.mockUtil = new MockUtil(builder, this.fileFactory);
         }
     }
     private getConfig(options: any) {
@@ -56,6 +76,9 @@ export class RooibosPlugin implements CompilerPlugin {
         }
         if (config.isRecordingCodeCoverage === undefined) {
             config.isRecordingCodeCoverage = false;
+        }
+        if (config.isGlobalMethodMockingEnabled === undefined) {
+            config.isGlobalMethodMockingEnabled = false;
         }
         if (config.keepAppOpen === undefined) {
             config.keepAppOpen = true;
@@ -83,6 +106,18 @@ export class RooibosPlugin implements CompilerPlugin {
             config.coverageExcludedFiles = defaultCoverageExcluded;
         } else {
             config.coverageExcludedFiles.push(...defaultCoverageExcluded);
+        }
+
+        const defaultGlobalMethodMockingExcluded = [
+            '**/*.spec.bs',
+            '**/roku_modules/**/*',
+            '**/source/main.bs',
+            '**/source/rooibos/**/*'
+        ];
+        if (config.globalMethodMockingExcludedFiles === undefined) {
+            config.globalMethodMockingExcludedFiles = defaultGlobalMethodMockingExcluded;
+        } else {
+            config.globalMethodMockingExcludedFiles.push(...defaultGlobalMethodMockingExcluded);
         }
 
         return config;
@@ -129,9 +164,10 @@ export class RooibosPlugin implements CompilerPlugin {
             }
 
             testSuite.addDataFunctions(event.editor as any);
+            const namespaceLookup = this.getNamespaces(testSuite.file);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any);
+                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any, namespaceLookup);
                 }
             }
             if (testSuite.isNodeTest) {
@@ -139,8 +175,13 @@ export class RooibosPlugin implements CompilerPlugin {
             }
         }
 
-        if (isBrsFile(event.file) && this.shouldAddCodeCoverageToFile(event.file)) {
-            this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
+        if (isBrsFile(event.file)) {
+            if (this.shouldAddCodeCoverageToFile(event.file)) {
+                this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
+            }
+            if (this.shouldEnableGlobalMocksOnFile(event.file)) {
+                this.mockUtil.enableGlobalMethodMocks(event.file, event.editor);
+            }
         }
     }
 
@@ -182,6 +223,35 @@ export class RooibosPlugin implements CompilerPlugin {
             }
         }
         return true;
+    }
+
+    shouldEnableGlobalMocksOnFile(file: BscFile) {
+        if (!isBrsFile(file) || !this.config.isGlobalMethodMockingEnabled) {
+            return false;
+        } else if (!this.config.globalMethodMockingExcludedFiles) {
+            return true;
+        } else {
+            for (let filter of this.config.globalMethodMockingExcludedFiles) {
+                if (minimatch(file.pkgPath, filter)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public getNamespaceLookup(scope: Scope): Map<string, NamespaceContainer> {
+        // eslint-disable-next-line @typescript-eslint/dot-notation
+        return scope['cache'].getOrAdd('namespaceLookup', () => scope.buildNamespaceLookup() as any);
+    }
+
+    private getNamespaces(file: BrsFile) {
+        let scopeNamespaces = new Map<string, NamespaceContainer>();
+        for (let scope of file.program.getScopesForFile(file)) {
+            let scopeMap = this.getNamespaceLookup(scope);
+            scopeNamespaces = new Map<string, NamespaceContainer>([...Array.from(scopeMap.entries())]);
+        }
+        return scopeNamespaces;
     }
 }
 
