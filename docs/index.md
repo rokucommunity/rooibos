@@ -61,6 +61,27 @@ Either click the select brighterscript button in the bottom right, or add this s
 "brightscript.bsdk": "node_modules/brighterscript"
 ```
 
+## IMPORTANT: Disable rendezvous tracking, when launching from vscode
+Roku will perform poorly if roku's rendezvous tracking is enabled, when launching from vscode. Please ensure your launch.json config has this flag set to false
+` "rendezvousTracking": false`
+```javascript
+{
+      "type": "brightscript",
+      "request": "launch",
+      "name": "PROD",
+      "stopOnEntry": false,
+      "preLaunchTask": "build-prod",
+      "envFile": "${workspaceFolder}/.vscode/.env",
+      "host": "${env:ROKU_DEV_TARGET}",
+      "password": "${env:ROKU_DEVPASSWORD}",
+      "rootDir": "${workspaceFolder}/build",
+      "files": ["*", "*.*", "**/*.*"],
+      "enableDebugProtocol": false,
+      "rendezvousTracking": false
+    }
+  ```,
+
+
 ## Installation
 <a name="easy-to-integrate"></a>
 
