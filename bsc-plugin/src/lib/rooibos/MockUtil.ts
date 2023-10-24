@@ -8,19 +8,18 @@ import { RawCodeStatement } from './RawCodeStatement';
 import { Range } from 'vscode-languageserver-types';
 import type { FileFactory } from './FileFactory';
 import undent from 'undent';
+import type { RooibosSession } from './RooibosSession';
 
 export class MockUtil {
 
-    constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
+    constructor(builder: ProgramBuilder, fileFactory: FileFactory, session: RooibosSession) {
         this.config = (builder.options as any).rooibos as RooibosConfig || {};
         this.filePathMap = {};
         this.fileId = 0;
+        this.session = session;
         this.fileFactory = fileFactory;
-        try {
-        } catch (e) {
-            console.log('Error:', e.stack);
-        }
     }
+    session: RooibosSession;
 
     private brsFileAdditions = `
     function RBS_CC_#ID#_getMocksByFunctionName()
@@ -61,19 +60,27 @@ export class MockUtil {
 
     private enableMockOnFunction(functionExpression: brighterscript.FunctionExpression) {
         if (isClassStatement(functionExpression.parent?.parent)) {
+            console.log('skipping class', functionExpression.parent?.parent.name.text)
             return;
         }
         if (this.processedStatements.has(functionExpression)) {
             return;
         }
 
-        const methodName = functionExpression.functionStatement.getName(brighterscript.ParseMode.BrightScript);
+        const methodName = functionExpression?.functionStatement?.getName(brighterscript.ParseMode.BrightScript) || '';
+        // console.log('MN', methodName);
+        if (this.config.isGlobalMethodMockingEfficientMode && !this.session.globalStubbedMethods.has(methodName)) {
+            return;
+        }
+
+        //TODO check if the user has actually mocked or stubbed this function, otherwise leave it alone!
+
         for (let param of functionExpression.parameters) {
             param.asToken = null;
         }
         const paramNames = functionExpression.parameters.map((param) => param.name.text).join(',');
 
-        const returnStatement = (functionExpression.functionType.kind === brighterscript.TokenKind.Sub || functionExpression.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
+        const returnStatement = ((functionExpression.functionType?.kind === brighterscript.TokenKind.Sub && (functionExpression.returnTypeToken === undefined || functionExpression.returnTypeToken?.kind === brighterscript.TokenKind.Void)) || functionExpression.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
         this.astEditor.addToArray(functionExpression.body.statements, 0, new RawCodeStatement(undent`
             if RBS_CC_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
                 result = RBS_CC_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})

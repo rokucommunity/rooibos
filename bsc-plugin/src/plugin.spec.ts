@@ -11,7 +11,7 @@ let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
 
-describe.only('RooibosPlugin', () => {
+describe('RooibosPlugin', () => {
     let program: Program;
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
@@ -932,7 +932,7 @@ describe.only('RooibosPlugin', () => {
                 }
 
                 m.currentAssertLineNumber = 7
-                m._expectCalled(invalid, "sayHello", invalid, invalid, [
+                m._expectCalled(sayHello, "sayHello", invalid, invalid, [
                 "arg1"
                 "arg2"
                 ], "return")
@@ -940,17 +940,17 @@ describe.only('RooibosPlugin', () => {
 
 
                 m.currentAssertLineNumber = 8
-                m._expectCalled(invalid, "sayHello", invalid, invalid, [])
+                m._expectCalled(sayHello, "sayHello", invalid, invalid, [])
                 if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                 m.currentAssertLineNumber = 9
-                m._expectCalled(invalid, "sayHello", invalid, invalid, [], "return")
+                m._expectCalled(sayHello, "sayHello", invalid, invalid, [], "return")
                 if m.currentResult?.isFail = true then m.done() : return invalid
 
 
                 m.currentAssertLineNumber = 10
-                m._expectCalled(invalid, "sayHello", invalid, invalid, [
+                m._expectCalled(sayHello, "sayHello", invalid, invalid, [
                 "arg1"
                 "arg2"
                 ])
@@ -958,11 +958,23 @@ describe.only('RooibosPlugin', () => {
 `);
 
                 let codeText = getContents('code.brs');
-                expect(codeText).to.equal(`
-                TODO
-`);
+                expect(codeText).to.equal(undent`
+                function sayHello(firstName = "", lastName = "")
+                    if RBS_CC_1_getMocksByFunctionName()["sayHello"] <> invalid
+                        result = RBS_CC_1_getMocksByFunctionName()["sayHello"].callback(firstName,lastName)
+                        return result
+                    end if
+                    print firstName + " " + lastName
+                end function
+
+                    function RBS_CC_1_getMocksByFunctionName()
+                        if m._rMocksByFunctionName = invalid
+                        m._rMocksByFunctionName = {}
+                        end if
+                        return m._rMocksByFunctionName
+                    end function`);
             });
-            it.only('correctly transpiles namespaced function calls', async () => {
+            it('correctly transpiles namespaced function calls', async () => {
                 plugin.config.isGlobalMethodMockingEnabled = true;
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1001,7 +1013,7 @@ describe.only('RooibosPlugin', () => {
                 m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
                 "arg1"
                 "arg2"
-                ])
+                ], "return")
                 if m.currentResult?.isFail = true then m.done() : return invalid
 
 
@@ -1011,7 +1023,7 @@ describe.only('RooibosPlugin', () => {
 
 
                 m.currentAssertLineNumber = 9
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
+                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [], "return")
                 if m.currentResult?.isFail = true then m.done() : return invalid
 
 
@@ -1026,7 +1038,8 @@ describe.only('RooibosPlugin', () => {
                 let codeText = trimLeading(getContents('code.brs'));
                 expect(codeText).to.equal(trimLeading(`function utils_sayHello(firstName = "", lastName = "")
                 if RBS_CC_1_getMocksByFunctionName()["utils_sayHello"] <> invalid
-                return RBS_CC_1_getMocksByFunctionName()["utils_sayHello"](firstName,lastName)
+                result = RBS_CC_1_getMocksByFunctionName()["utils_sayHello"].callback(firstName,lastName)
+                return result
                 end if
                 print firstName + " " + lastName
                 end function
@@ -1036,7 +1049,7 @@ describe.only('RooibosPlugin', () => {
                 m._rMocksByFunctionName = {}
                 end if
                 return m._rMocksByFunctionName
-                end functiond`));
+                end function`));
             });
         });
 
@@ -1581,15 +1594,15 @@ describe.only('RooibosPlugin', () => {
                     end function
                     instance.getRuntimeConfig = function()
                         return {
-                            "failFast": false
-                            "sendHomeOnFinish": false
+                            "failFast": true
+                            "sendHomeOnFinish": true
                             "logLevel": 0
-                            "showOnlyFailures": false
-                            "printTestTimes": false
+                            "showOnlyFailures": true
+                            "printTestTimes": true
                             "lineWidth": 60
                             "printLcov": false
                             "port": "invalid"
-                            "catchCrashes": false
+                            "catchCrashes": true
                             "keepAppOpen": true
                         }
                     end function

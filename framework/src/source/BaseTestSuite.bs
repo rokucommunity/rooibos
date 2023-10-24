@@ -1749,18 +1749,22 @@ namespace rooibos
 
       fake = m.createFake(id, target, methodName, 1, invalid, returnValue)
       m.stubs[id] = fake
-      allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
-      isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
-      if isMethodPresent or allowNonExisting
-        target[methodName] = m["StubCallback" + id]
-        target.__stubs = m.stubs
-
-        ' FIXME: add a log setting for this - and add better detection so that stubs know that they are colliding/don't exist/have correct sigs
-        ' if not isMethodPresent
-        '   ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
-        ' end if
+      if target.isGlobalCall = true
+        rooibos.getMocksByFunctionName()[methodName] = fake
       else
-        ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName
+        allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+        isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
+        if isMethodPresent or allowNonExisting
+          target[methodName] = m["StubCallback" + id]
+          target.__stubs = m.stubs
+
+          ' FIXME: add a log setting for this - and add better detection so that stubs know that they are colliding/don't exist/have correct sigs
+          ' if not isMethodPresent
+          '   ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
+          ' end if
+        else
+          ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName
+        end if
       end if
 
       return fake
@@ -1846,13 +1850,18 @@ namespace rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-      try
+    'HACK
+    'HACK
+    'HACK
+    'HACK
+    'HACK
+      ' try
         return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
-      catch error
+      ' catch error
         'bs:disable-next-line
-        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
-        return false
-      end try
+      '   m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+      '   return false
+      ' end try
       return false
     end function
 
@@ -1989,7 +1998,7 @@ namespace rooibos
       for i = 0 to m.__mockId
         id = stri(i).trim()
         mock = m.mocks[id]
-        if mock <> invalid and mock.methodName = methodName and (mock.target.__rooibosTargetId = target.__rooibosTargetId or (mock.target.isGlobalCall and target.isGlobalCall))
+        if mock <> invalid and mock.methodName = methodName and (mock.target.__rooibosTargetId = target.__rooibosTargetId or (mock.target.isGlobalCall = true and target.isGlobalCall = true))
           fake = mock
           fake.lineNumbers.push(lineNumber)
           exit for
@@ -2006,7 +2015,7 @@ namespace rooibos
 
         fake = m.createFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
         m.mocks[id] = fake 'this will bind it to m
-        if target.isGlobalCall
+        if target.isGlobalCall = true
           rooibos.getMocksByFunctionName()[methodName] = fake
         else
           allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods

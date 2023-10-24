@@ -13,7 +13,7 @@ function trimLeading(text: string) {
     return text.split('\n').map((line) => line.trimStart()).join('\n');
 }
 
-describe('MockUtil', () => {
+describe.only('MockUtil', () => {
     let program: Program;
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
@@ -34,7 +34,8 @@ describe('MockUtil', () => {
                     isGlobalMethodMockingEnabled: true,
                     globalMethodMockingExcludedFiles: [
                         '**/*.coverageExcluded.bs'
-                    ]
+                    ],
+                    isGlobalMethodMockingEfficientMode: false
                 },
                 allowBrighterScriptInBrightScript: true
             };
@@ -78,7 +79,8 @@ describe('MockUtil', () => {
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`function sayHello(a1, a2)
                 if RBS_CC_1_getMocksByFunctionName()["sayHello"] <> invalid
-                return RBS_CC_1_getMocksByFunctionName()["sayHello"](a1,a2)
+                result = RBS_CC_1_getMocksByFunctionName()["sayHello"].callback(a1,a2)
+                return result
                 end if
                 print "hello"
                 end function
@@ -108,7 +110,42 @@ describe('MockUtil', () => {
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`function sayHello(a1, a2)
                 if RBS_CC_1_getMocksByFunctionName()["sayHello"] <> invalid
-                return RBS_CC_1_getMocksByFunctionName()["sayHello"](a1,a2)
+                result = RBS_CC_1_getMocksByFunctionName()["sayHello"].callback(a1,a2)
+                return result
+                end if
+                print "hello"
+                end function
+
+                function RBS_CC_1_getMocksByFunctionName()
+                if m._rMocksByFunctionName = invalid
+                m._rMocksByFunctionName = {}
+                end if
+                return m._rMocksByFunctionName
+                end function
+`);
+                expect(a).to.equal(b);
+
+            });
+            it.only('weird raletracker task issue I saw', async () => {
+                program.setFile('source/code.bs', `
+                Sub RedLines_SetRulerLines(rulerLines)
+                    For Each line In rulerLines.Items()
+                        RedLines_AddLine(line.key, line.value.position, line.value.coords, m.node, m.childMap)
+                    End For
+                end Sub
+                Sub RedLines_AddLine(id, position, coords, node, childMap) as Object
+                    line = CreateObject("roSGNode", "Rectangle")
+                    line.setField("id", id)
+                end sub
+            `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                let a = getContents('source/code.brs');
+                let b = trimLeading(`function sayHello(a1, a2)
+                if RBS_CC_1_getMocksByFunctionName()["sayHello"] <> invalid
+                result = RBS_CC_1_getMocksByFunctionName()["sayHello"].callback(a1,a2)
+                return result
                 end if
                 print "hello"
                 end function
@@ -136,7 +173,7 @@ describe('MockUtil', () => {
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`sub sayHello(a1, a2)
                 if RBS_CC_1_getMocksByFunctionName()["sayHello"] <> invalid
-                RBS_CC_1_getMocksByFunctionName()["sayHello"](a1,a2)
+                result = RBS_CC_1_getMocksByFunctionName()["sayHello"].callback(a1,a2)
                 return
                 end if
                 print "hello"
@@ -167,7 +204,8 @@ describe('MockUtil', () => {
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`function person_utils_sayHello(a1, a2)
                 if RBS_CC_1_getMocksByFunctionName()["person_utils_sayHello"] <> invalid
-                return RBS_CC_1_getMocksByFunctionName()["person_utils_sayHello"](a1,a2)
+                result = RBS_CC_1_getMocksByFunctionName()["person_utils_sayHello"].callback(a1,a2)
+                return result
                 end if
                 print "hello"
                 end function
@@ -197,7 +235,7 @@ describe('MockUtil', () => {
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`sub person_utils_sayHello(a1, a2)
                 if RBS_CC_1_getMocksByFunctionName()["person_utils_sayHello"] <> invalid
-                RBS_CC_1_getMocksByFunctionName()["person_utils_sayHello"](a1,a2)
+                result = RBS_CC_1_getMocksByFunctionName()["person_utils_sayHello"].callback(a1,a2)
                 return
                 end if
                 print "hello"
@@ -280,14 +318,16 @@ describe('MockUtil', () => {
 
                 function beings_sayHello()
                 if RBS_CC_1_getMocksByFunctionName()["beings_sayHello"] <> invalid
-                return RBS_CC_1_getMocksByFunctionName()["beings_sayHello"]()
+                result = RBS_CC_1_getMocksByFunctionName()["beings_sayHello"].callback()
+                return result
                 end if
                 print "hello2"
                 end function
 
                 function sayHello()
                 if RBS_CC_1_getMocksByFunctionName()["sayHello"] <> invalid
-                return RBS_CC_1_getMocksByFunctionName()["sayHello"]()
+                result = RBS_CC_1_getMocksByFunctionName()["sayHello"].callback()
+                return result
                 end if
                 print "hello3"
                 end function

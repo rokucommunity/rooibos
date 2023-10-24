@@ -133,19 +133,20 @@ export class TestGroup extends TestBlock {
                     editor.addToArray(callExpression.args, 0, createInvalidLiteral());
                     editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
                     editor.addToArray(callExpression.args, 0, brighterscript.createVariableExpression(functionName));
+                    this.testSuite.session.globalStubbedMethods.add(functionName);
+                } else {
+                    let functionName = arg0.callee.name.text;
+                    let fullPath = this.getStringPathFromDottedGet(arg0.callee.obj as DottedGetExpression);
+                    editor.removeFromArray(callExpression.args, 0);
+                    if (!isNotCalled && !isStubCall) {
+                        const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                        editor.addToArray(callExpression.args, 0, expectedArgs);
+                    }
+                    editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
+                    editor.addToArray(callExpression.args, 0, this.getRootObjectFromDottedGet(arg0.callee));
+                    editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
+                    editor.addToArray(callExpression.args, 0, arg0.callee.obj);
                 }
-            } else {
-                let functionName = arg0.callee.name.text;
-                let fullPath = this.getStringPathFromDottedGet(arg0.callee.obj as DottedGetExpression);
-                editor.removeFromArray(callExpression.args, 0);
-                if (!isNotCalled && !isStubCall) {
-                    const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
-                    editor.addToArray(callExpression.args, 0, expectedArgs);
-                }
-                editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
-                editor.addToArray(callExpression.args, 0, this.getRootObjectFromDottedGet(arg0.callee));
-                editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
-                editor.addToArray(callExpression.args, 0, arg0.callee.obj);
             }
         } else if (brighterscript.isDottedGetExpression(arg0)) {
             let functionName = arg0.name.text;
@@ -186,6 +187,7 @@ export class TestGroup extends TestBlock {
             editor.addToArray(callExpression.args, 0, createInvalidLiteral());
             editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
             editor.addToArray(callExpression.args, 0, brighterscript.createVariableExpression(functionName));
+            this.testSuite.session.globalStubbedMethods.add(functionName);
         }
     }
 

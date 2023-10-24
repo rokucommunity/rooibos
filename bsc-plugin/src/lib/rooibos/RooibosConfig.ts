@@ -7,6 +7,7 @@ export enum RooibosLogLevel {
 }
 
 export interface RooibosConfig {
+    isGlobalMethodMockingEfficientMode?: boolean;
     coverageExcludedFiles?: string[];
     isRecordingCodeCoverage?: boolean;
     isGlobalMethodMockingEnabled?: boolean;

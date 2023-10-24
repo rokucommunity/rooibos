@@ -54,7 +54,7 @@ export class RooibosPlugin implements CompilerPlugin {
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
-            this.mockUtil = new MockUtil(builder, this.fileFactory);
+            this.mockUtil = new MockUtil(builder, this.fileFactory, this.session);
         }
     }
     private getConfig(options: any) {
@@ -79,6 +79,9 @@ export class RooibosPlugin implements CompilerPlugin {
         }
         if (config.isGlobalMethodMockingEnabled === undefined) {
             config.isGlobalMethodMockingEnabled = false;
+        }
+        if (config.isGlobalMethodMockingEfficientMode === undefined) {
+            config.isGlobalMethodMockingEfficientMode = false;
         }
         if (config.keepAppOpen === undefined) {
             config.keepAppOpen = true;
@@ -116,8 +119,6 @@ export class RooibosPlugin implements CompilerPlugin {
         ];
         if (config.globalMethodMockingExcludedFiles === undefined) {
             config.globalMethodMockingExcludedFiles = defaultGlobalMethodMockingExcluded;
-        } else {
-            config.globalMethodMockingExcludedFiles.push(...defaultGlobalMethodMockingExcluded);
         }
 
         return config;

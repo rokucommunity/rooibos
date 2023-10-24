@@ -30,7 +30,7 @@
     "failFast": false,
     "sendHomeOnFinish": false,
     "keepAppOpen": true,
-    "isGlobalMethodMockingEnabled": true,
+    "isGlobalMethodMockingEnabled": true
   },
   "sourceMap": true
 }

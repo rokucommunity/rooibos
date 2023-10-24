@@ -6,6 +6,7 @@ import type { RooibosAnnotation } from './Annotation';
 
 import type { TestGroup } from './TestGroup';
 import { addOverriddenMethod, sanitizeBsJsonString } from './Utils';
+import { RooibosSession } from './RooibosSession';
 
 /**
  * base of test suites and blocks..
@@ -80,6 +81,7 @@ export class TestSuite extends TestBlock {
     public generatedNodeName: string;
     public hasSoloGroups = false;
     public isNodeTest = false;
+    public session: RooibosSession;
 
     public addGroup(group: TestGroup) {
         this.testGroups.set(group.name, group);

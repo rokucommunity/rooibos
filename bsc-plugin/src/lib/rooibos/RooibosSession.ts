@@ -31,7 +31,7 @@ export class RooibosSession {
     private _suiteBuilder: TestSuiteBuilder;
 
     public sessionInfo: SessionInfo;
-
+    public globalStubbedMethods = new Set<string>();
     public reset() {
         this.sessionInfo = new SessionInfo(this.config);
     }
