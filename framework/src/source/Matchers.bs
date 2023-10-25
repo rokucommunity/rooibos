@@ -1,27 +1,27 @@
 namespace rooibos.Matcher
 
   function anyString(value)
-    return Rooibos.Common.isString(value)
+    return rooibos.common.isString(value)
   end function
 
   function anyBool(value)
-    return Rooibos.Common.isBoolean(value)
+    return rooibos.common.isBoolean(value)
   end function
 
   function anyNumber(value)
-    return Rooibos.Common.isNumber(value)
+    return rooibos.common.isNumber(value)
   end function
 
   function anyAA(value)
-    return Rooibos.Common.isAssociativeArray(value)
+    return rooibos.common.isAssociativeArray(value)
   end function
 
   function anyArray(value)
-    return Rooibos.Common.isArray(value)
+    return rooibos.common.isArray(value)
   end function
 
   function anyNode(value)
-    return Rooibos.Common.isSGNode(value)
+    return rooibos.common.isSGNode(value)
   end function
 
 

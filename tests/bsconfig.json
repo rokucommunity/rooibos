@@ -29,7 +29,8 @@
     "lineWidth": 70,
     "failFast": false,
     "sendHomeOnFinish": false,
-    "keepAppOpen": true
+    "keepAppOpen": true,
+    "isGlobalMethodMockingEnabled": true
   },
   "sourceMap": true
 }

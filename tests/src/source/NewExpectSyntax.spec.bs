@@ -1,3 +1,4 @@
+import "pkg:/source/Globals.bs"
 
 namespace tests
   @suite
@@ -306,7 +307,7 @@ namespace tests
     function _()
       thing = { "id": "thing" }
 
-      error = {message: "error"}
+      error = { message: "error" }
       m.expectCalled(thing.thrownAnError())
       m.expectLastCallToThrowError(error)
 
@@ -318,6 +319,75 @@ namespace tests
 
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("global functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("uses default implementation on global functions")
+    function _()
+      m.assertEqual(utils.sayHello("John", "Lennon"), "John, Lennon")
+    end function
+
+    @it("uses default implementation on namespaced functions")
+    function _()
+      m.assertEqual(globalSayHello("John", "Lennon"), "John, Lennon")
+    end function
+
+    @it("supports mocks on global functions")
+    function _()
+      m.expectCalled(globalSayHello("John", "Lennon"), "john")
+
+      m.assertEqual(globalSayHello("John", "Lennon"), "john")
+    end function
+
+    @it("supports mocks on namespaced functions")
+    function _()
+      m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul")
+
+      m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul")
+    end function
+
+    @it("reports uncalled mocks on global functions")
+    function _()
+      m.expectCalled(globalSayHello("John", "Lennon"), "john")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    @it("reports uncalled mocks on namespaced functions")
+    function _()
+      m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul")
+
+      m.assertRunningTestIsFailed()
+    end function
+
+    @it("resets to default implementation on global functions")
+    function _()
+      m.assertEqual(utils.sayHello("John", "Lennon"), "John, Lennon")
+    end function
+
+    @it("resets to default implementation on namespaced functions")
+    function _()
+      m.assertEqual(globalSayHello("John", "Lennon"), "John, Lennon")
+    end function
+
+    @it("supports overloaded mocks on global functions")
+    function _()
+      m.expectCalled(globalSayHello("John", "Lennon"), "john")
+      m.expectCalled(globalSayHello("John", "Lennon"), "john2")
+
+      m.assertEqual(globalSayHello("John", "Lennon"), "john")
+      m.assertEqual(globalSayHello("John", "Lennon"), "john2")
+    end function
+
+    @it("supports overloaded mocks on namespaced functions")
+    function _()
+      m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul1")
+      m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul2")
+
+      m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul1")
+      m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul2")
+    end function
 
   end class
 

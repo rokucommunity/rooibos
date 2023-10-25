@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { BrsFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder } from 'brighterscript';
+import type { BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
 import { isBrsFile, ParseMode, util } from 'brighterscript';
 import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
@@ -12,11 +12,25 @@ import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoSt
 import undent from 'undent';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import * as fsExtra from 'fs-extra';
+import type { MockUtil } from './MockUtil';
 
 // eslint-disable-next-line
 const pkg = require('../../../package.json');
 
+
+export interface NamespaceContainer {
+    file: BscFile;
+    fullName: string;
+    nameRange: Range;
+    lastPartName: string;
+    statements: Statement[];
+    classStatements: Record<string, ClassStatement>;
+    functionStatements: Record<string, FunctionStatement>;
+    namespaces: Record<string, NamespaceContainer>;
+}
+
 export class RooibosSession {
+
     constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
         this.fileFactory = fileFactory;
         this.config = builder.options ? (builder.options as any).rooibos as RooibosConfig || {} : {};
@@ -27,25 +41,42 @@ export class RooibosSession {
 
     private fileFactory: FileFactory;
     private _builder: ProgramBuilder;
-    public config: RooibosConfig;
+    config: RooibosConfig;
+    namespaceLookup: Map<string, NamespaceContainer>;
     private _suiteBuilder: TestSuiteBuilder;
 
-    public sessionInfo: SessionInfo;
+    sessionInfo: SessionInfo;
+    globalStubbedMethods = new Set<string>();
 
-    public reset() {
+    reset() {
         this.sessionInfo = new SessionInfo(this.config);
     }
 
-    public updateSessionStats() {
+    prepareForTranspile(editor: AstEditor, program: Program, mockUtil: MockUtil) {
+        this.addTestRunnerMetadata(editor);
+        this.addLaunchHookToExistingMain(editor);
+        if (this.config.isGlobalMethodMockingEnabled && this.config.isGlobalMethodMockingEfficientMode) {
+            console.log('Efficient global stubbing is enabled');
+            this.namespaceLookup = this.getNamespaces(program);
+            for (let testSuite of this.sessionInfo.testSuitesToRun) {
+                mockUtil.gatherGlobalMethodMocks(testSuite);
+            }
+
+        } else {
+            this.namespaceLookup = new Map<string, NamespaceContainer>();
+        }
+    }
+
+    updateSessionStats() {
         this.sessionInfo.updateInfo();
     }
 
-    public processFile(file: BrsFile): boolean {
+    processFile(file: BrsFile): TestSuite[] {
         let testSuites = this._suiteBuilder.processFile(file);
-        return testSuites.length > 0;
+        return testSuites;
     }
 
-    public addLaunchHookToExistingMain(editor: AstEditor) {
+    addLaunchHookToExistingMain(editor: AstEditor) {
         let mainFunction: FunctionStatement;
         const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
@@ -61,7 +92,7 @@ export class RooibosSession {
             editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
         }
     }
-    public addLaunchHookFileIfNotPresent() {
+    addLaunchHookFileIfNotPresent() {
         let mainFunction: FunctionStatement;
         const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
@@ -86,7 +117,7 @@ export class RooibosSession {
         }
     }
 
-    public addTestRunnerMetadata(editor: AstEditor) {
+    addTestRunnerMetadata(editor: AstEditor) {
         let runtimeConfig = this._builder.program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
             let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
@@ -98,7 +129,7 @@ export class RooibosSession {
         }
     }
 
-    public updateRunTimeConfigFunction(classStatement: ClassStatement, editor: AstEditor) {
+    updateRunTimeConfigFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getRuntimeConfig');
         if (method) {
             editor.addToArray(
@@ -122,7 +153,7 @@ export class RooibosSession {
         }
     }
 
-    public updateVersionTextFunction(classStatement: ClassStatement, editor: AstEditor) {
+    updateVersionTextFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getVersionText');
         if (method) {
             editor.addToArray(
@@ -133,7 +164,7 @@ export class RooibosSession {
         }
     }
 
-    public updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
+    updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement(undent`
@@ -146,7 +177,7 @@ export class RooibosSession {
         }
     }
 
-    public updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
+    updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement([
@@ -157,7 +188,7 @@ export class RooibosSession {
         }
     }
 
-    public createNodeFiles(program: Program) {
+    createNodeFiles(program: Program) {
 
         for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
             this.createNodeFile(program, suite);
@@ -189,7 +220,25 @@ export class RooibosSession {
         return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName);
     }
 
-    public createIgnoredTestsInfoFunction(cs: ClassStatement, editor: AstEditor) {
+    private getNamespaceLookup(scope: Scope): Map<string, NamespaceContainer> {
+        // eslint-disable-next-line @typescript-eslint/dot-notation
+        return scope['cache'].getOrAdd('namespaceLookup', () => scope.buildNamespaceLookup() as any);
+    }
+
+    private getNamespaces(program: Program) {
+        let scopeNamespaces = new Map<string, NamespaceContainer>();
+        for (const files of Object.values(program.files)) {
+
+            for (let scope of program.getScopesForFile(files)) {
+                let scopeMap = this.getNamespaceLookup(scope);
+                scopeNamespaces = new Map<string, NamespaceContainer>([...Array.from(scopeMap.entries())]);
+            }
+        }
+        return scopeNamespaces;
+    }
+
+
+    private createIgnoredTestsInfoFunction(cs: ClassStatement, editor: AstEditor) {
         let method = cs.methods.find((m) => m.name.text === 'getIgnoredTestInfo');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement([

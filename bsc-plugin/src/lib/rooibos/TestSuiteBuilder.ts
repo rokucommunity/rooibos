@@ -1,7 +1,9 @@
 
-import type { BrsFile,
+import type {
+    BrsFile,
     ClassMethodStatement,
-    ClassStatement } from 'brighterscript';
+    ClassStatement
+} from 'brighterscript';
 import {
     isClassMethodStatement
 } from 'brighterscript';
@@ -97,6 +99,7 @@ export class TestSuiteBuilder {
 
     public processClass(annotation: RooibosAnnotation, classStatement: ClassStatement): TestSuite {
         this.testSuite = new TestSuite(annotation, classStatement);
+        this.testSuite.session = this.session;
         this.currentGroup = null;
         this.annotation = null;
         for (let s of classStatement.body) {

@@ -181,6 +181,7 @@ namespace tests
       m.assertEqual(item.service.caller@.say("hello"), "hi")
     end function
 
+
   end class
 
 end namespace
