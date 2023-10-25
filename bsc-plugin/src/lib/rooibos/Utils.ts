@@ -80,14 +80,14 @@ export function getRootObjectFromDottedGet(value: brighterscript.DottedGetExpres
 }
 
 export function getStringPathFromDottedGet(value: brighterscript.DottedGetExpression) {
-    let parts = [this.getPathValuePartAsString(value)];
+    let parts = [getPathValuePartAsString(value)];
     let root;
     root = value.obj;
     while (root) {
         if (brighterscript.isCallExpression(root) || brighterscript.isCallfuncExpression(root)) {
             return undefined;
         }
-        parts.push(`${this.getPathValuePartAsString(root)}`);
+        parts.push(`${getPathValuePartAsString(root)}`);
         root = root.obj;
     }
     let joinedParts = parts.reverse().join('.');

@@ -12,7 +12,7 @@ import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoSt
 import undent from 'undent';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import * as fsExtra from 'fs-extra';
-import { MockUtil } from './MockUtil';
+import type { MockUtil } from './MockUtil';
 
 // eslint-disable-next-line
 const pkg = require('../../../package.json');

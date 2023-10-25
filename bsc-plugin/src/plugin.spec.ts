@@ -1526,7 +1526,7 @@ describe('RooibosPlugin', () => {
     });
 
     describe('addTestRunnerMetadata', () => {
-        it.only('does not permanently modify the AST', async () => {
+        it('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest1
@@ -1534,7 +1534,6 @@ describe('RooibosPlugin', () => {
                     @it("test1")
                     function _()
                         item = {id: "item"}
-                        m.assertEqual(item, "wtf")
                         m.expectNotCalled(item.getFunction())
                         m.expectNotCalled(item.getFunction())
                     end function
@@ -1547,7 +1546,6 @@ describe('RooibosPlugin', () => {
                     @it("test1")
                     function _()
                         item = {id: "item"}
-                        m.assertEqual(item, "wtf")
                         m.expectNotCalled(item.getFunction())
                         m.expectNotCalled(item.getFunction())
                     end function
