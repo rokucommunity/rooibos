@@ -227,11 +227,21 @@ export class RooibosSession {
 
     private getNamespaces(program: Program) {
         let scopeNamespaces = new Map<string, NamespaceContainer>();
-        for (const files of Object.values(program.files)) {
+        let processedScopes = new Set<string>();
 
-            for (let scope of program.getScopesForFile(files)) {
+        for (const file of Object.values(program.files)) {
+
+            for (let scope of program.getScopesForFile(file)) {
+                if (processedScopes.has(scope.dependencyGraphKey)) {
+                    // Skip this scope if it has already been processed
+                    continue;
+                }
                 let scopeMap = this.getNamespaceLookup(scope);
-                scopeNamespaces = new Map<string, NamespaceContainer>([...Array.from(scopeMap.entries())]);
+                // scopeNamespaces = new Map<string, NamespaceContainer>([...Array.from(scopeMap.entries())]);
+                for (let [key, value] of scopeMap.entries()) {
+                    scopeNamespaces.set(key, value);
+                }
+                processedScopes.add(scope.dependencyGraphKey);
             }
         }
         return scopeNamespaces;

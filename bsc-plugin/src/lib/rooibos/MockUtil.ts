@@ -81,7 +81,7 @@ export class MockUtil {
         }
 
         // console.log('processing  stubbed method', methodName);
-        //TODO check if the user has actually mocked or stubbed this function, otherwise leave it alone!
+        // TODO check if the user has actually mocked or stubbed this function, otherwise leave it alone!
 
         for (let param of functionStatement.func.parameters) {
             param.asToken = null;
@@ -142,7 +142,7 @@ export class MockUtil {
                 walkMode: brighterscript.WalkMode.visitStatementsRecursive
             });
         } catch (e) {
-            // console.log(e);
+            console.log(e);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(testSuite.file, e.message);
         }

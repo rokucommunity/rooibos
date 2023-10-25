@@ -15,7 +15,7 @@ namespace tests
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
       m.cleanMocks()
-      m.cleanSTubs()
+      m.cleanStubs()
       m.assertTrue(isFail)
     end function
 
@@ -26,7 +26,7 @@ namespace tests
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
       m.cleanMocks()
-      m.cleanSTubs()
+      m.cleanStubs()
       m.assertFalse(isFail)
     end function
 
