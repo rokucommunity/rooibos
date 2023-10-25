@@ -23,7 +23,6 @@ import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 import * as minimatch from 'minimatch';
 import { MockUtil } from './lib/rooibos/MockUtil';
 
-
 export class RooibosPlugin implements CompilerPlugin {
 
     public name = 'rooibosPlugin';

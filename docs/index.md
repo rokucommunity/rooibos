@@ -135,18 +135,21 @@ The following options are supported:
 
 Here is the information converted into a Markdown table:
 
-| Property          | Type            | Description                                                                                                                                                                                        |
-|-------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| logLevel?         | RooibosLogLevel | 0-4 (error, warn, info, debug)                                                                                                                                                                     |
-| showOnlyFailures? | boolean         | If true, then only failed tests are shown; but everything is shown if no failures occurred                                                                                                         |
-| printTestTimes?   | boolean         | If true, then the time each test took is output                                                                                                                                                    |
-| lineWidth?        | number          | Width of test output lines in columns                                                                                                                                                              |
-| catchCrashes?     | boolean         | If true, then any crashes will report CRASH statement, and note halt test execution - very useful for running a whole suite                                                                        |
-| sendHomeOnFinish? | boolean         | If true, then the app will exit upon finish. The default is true. Useful to set to false for local test suites                                                                                     |
-| keepAppOpen?      | boolean         | When true, the app will remain open upon test completion. The default is true. Set false to return execution to Main                                                                               |
-| testsFilePattern? | string          | The pattern to use to find tests. This is a glob. The default is "**/*.spec.bs"                                                                                                                    |
-| tags?             | string[]        | The tags listed here control what is run. You can use !tagname to indicate any tests/suites that are skipped. All other tags are ANDed. This is useful for running specific subsets of your suite. |
-| testSceneName     | string          | Test scene to use for the test run. Provide a different name here if you need custom setup in your scene. You should extend or duplicate the RooibosScene component (found in RooibosScene.xml)    |
+| Property                           | Type            | Description                                                                                                                                                                                        |
+|------------------------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| logLevel?                          | RooibosLogLevel | 0-4 (error, warn, info, debug)                                                                                                                                                                     |
+| showOnlyFailures?                  | boolean         | If true, then only failed tests are shown; but everything is shown if no failures occurred                                                                                                         |
+| printTestTimes?                    | boolean         | If true, then the time each test took is output                                                                                                                                                    |
+| lineWidth?                         | number          | Width of test output lines in columns                                                                                                                                                              |
+| catchCrashes?                      | boolean         | If true, then any crashes will report CRASH statement, and note halt test execution - very useful for running a whole suite                                                                        |
+| sendHomeOnFinish?                  | boolean         | If true, then the app will exit upon finish. The default is true. Useful to set to false for local test suites                                                                                     |
+| keepAppOpen?                       | boolean         | When true, the app will remain open upon test completion. The default is true. Set false to return execution to Main                                                                               |
+| testsFilePattern?                  | string          | The pattern to use to find tests. This is a glob. The default is "**/*.spec.bs"                                                                                                                    |
+| tags?                              | string[]        | The tags listed here control what is run. You can use !tagname to indicate any tests/suites that are skipped. All other tags are ANDed. This is useful for running specific subsets of your suite. |
+| testSceneName                      | string          | Test scene to use for the test run. Provide a different name here if you need custom setup in your scene. You should extend or duplicate the RooibosScene component (found in RooibosScene.xml)    |
+| isGlobalMethodMockingEnabled       | boolean         | Default is false. Enables mocking and stubbing support for global and namespace functions                                                                                                          |
+| isGlobalMethodMockingEfficientMode | boolean         | default to true, when set causes rooibos to modify only those functions that were mocked or stubbed                                                                                                |
+| globalMethodMockingExcludedFiles   | string[]        | Files that rooibos will not modify when adding global function or namespace function mocking support                                                                                               |
 
 
 ## Creating test suites
@@ -693,6 +696,52 @@ For the regular class method variation, you can simply pass a pointer to the fun
  - expectOnce - Creates a mock, which we expect to be called once _or can created individual overloaded calls to the same method_
  - expectNone - Creates a mock, which we _never_ expect to be invoked
 
+## Mocking global and namespaced functions
+
+Mocking and stubbing of global functions works the same as for class methods. Please note, the functions must be in scope - you cannot mock a global function call inside of a node. So if your call crosses an observer, or callfunc bridge, it will not work. This is by design, and there are no plans to provide intra-node global or namespace mocking, at this point.
+
+To enable this feature, set the `isGlobalMethodMockingEnabled` rooibos config parameter to true. **DO NOT** enable this on your ide's bsconfig.json, as it will negatively impact performance and may cause other issues. This setting is not compatible with watch  mode, at this moment.
+
+### Configuration
+In addition to the `isGlobalMethodMockingEnabled`, you use the following config flags:
+
+ - `isGlobalMethodMockingEfficientMode` - default to true, when set causes rooibos to modify only those functions that were mocked or stubbed
+ - `globalMethodMockingExcludedFiles` - files that rooibos will not modify, when adding global mocking or stubbing support.
+
+### Known limitations:
+
+#### You must include default values in your expect calls, even if your invoking code does not use them
+ - if you mock or stub a global or namespaced method, you will have to expect default parameters in your expectCalled invocation, as rooibos will receive the default values.
+
+e.g.
+```
+namespace utils
+  function getModel(name as string, asJson = false as boolean)
+  end function
+end namespace
+
+'in the code
+function getBeatlesModel()
+  utils.getModel("Ringo")
+end function
+
+'in the unit test
+@describe("getBeatlesModel")
+@it("gets ringo")
+function _()
+  'This will fail, because rooibos will receive the asJson param with the default value
+  m.expectCalled(utils.getModel("ringo"))
+
+  'therefore we need to do this
+  m.expectCalled(utils.getModel("ringo", false))
+end function
+```
+
+Note - this will be addressed shortly; pr's are welcome in the interim.
+
+#### There might be some bugs, or unknown issues
+Mocking, of global and namespaced functions is supported; but is a relatively new feature. It is possible that there are some scenarios that are not supported. Please raise issues in the rooibos slack channel, if you spot any anomalies.
+
 
 ### Asserting mocks
 Mocks are asserted by invoking `m.assertMocks()`
@@ -874,11 +923,6 @@ m.expectCalled(videoService.getVideos, someJson, true)
 
 Note, you can also opt to disable the error at the whole test suite level; by setting `m.allowNonExistingMethods = true` in your test suite code.
 
-
-### Mock limitations
-Please note, mocks DO NOT work with globally scoped methods (i.e. subs and functions which are not assigned to an associative array). E.g. if you have a method, which is not accessed via `m.SomeMethod`, or `someObject.SomeMethod`, then you cannot mock it.
-
-**This is due to be addressed 2123Q4**
 
 ## Integrating with your CI
 <a name="easily-integrate-into-any-ci-system"></a>
