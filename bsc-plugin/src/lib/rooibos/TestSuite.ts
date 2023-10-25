@@ -6,7 +6,7 @@ import type { RooibosAnnotation } from './Annotation';
 
 import type { TestGroup } from './TestGroup';
 import { addOverriddenMethod, sanitizeBsJsonString } from './Utils';
-import { RooibosSession } from './RooibosSession';
+import type { RooibosSession } from './RooibosSession';
 
 /**
  * base of test suites and blocks..

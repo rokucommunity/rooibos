@@ -52,3 +52,65 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
 export function sanitizeBsJsonString(text: string) {
     return `"${text ? text.replace(/"/g, '\'') : ''}"`;
 }
+
+export function getAllDottedGetParts(dg: brighterscript.DottedGetExpression) {
+    let parts = [dg?.name?.text];
+    let nextPart = dg.obj;
+    while (brighterscript.isDottedGetExpression(nextPart) || brighterscript.isVariableExpression(nextPart)) {
+        parts.push(nextPart?.name?.text);
+        nextPart = brighterscript.isDottedGetExpression(nextPart) ? nextPart.obj : undefined;
+    }
+    return parts.reverse();
+}
+
+
+export function getRootObjectFromDottedGet(value: brighterscript.DottedGetExpression) {
+    let root;
+    if (brighterscript.isDottedGetExpression(value) || brighterscript.isIndexedGetExpression(value)) {
+
+        root = value.obj;
+        while (root.obj) {
+            root = root.obj;
+        }
+    } else {
+        root = value;
+    }
+
+    return root;
+}
+
+export function getStringPathFromDottedGet(value: brighterscript.DottedGetExpression) {
+    let parts = [this.getPathValuePartAsString(value)];
+    let root;
+    root = value.obj;
+    while (root) {
+        if (brighterscript.isCallExpression(root) || brighterscript.isCallfuncExpression(root)) {
+            return undefined;
+        }
+        parts.push(`${this.getPathValuePartAsString(root)}`);
+        root = root.obj;
+    }
+    let joinedParts = parts.reverse().join('.');
+    return joinedParts === '' ? undefined : brighterscript.createStringLiteral(joinedParts);
+}
+
+export function getPathValuePartAsString(expr: Expression) {
+    if (brighterscript.isCallExpression(expr) || brighterscript.isCallfuncExpression(expr)) {
+        return undefined;
+    }
+    if (brighterscript.isVariableExpression(expr)) {
+        return expr.name.text;
+    }
+    if (!expr) {
+        return undefined;
+    }
+    if (brighterscript.isDottedGetExpression(expr)) {
+        return expr.name.text;
+    } else if (brighterscript.isIndexedGetExpression(expr)) {
+        if (brighterscript.isLiteralExpression(expr.index)) {
+            return `${expr.index.token.text.replace(/^"/, '').replace(/"$/, '')}`;
+        } else if (brighterscript.isVariableExpression(expr.index)) {
+            return `${expr.index.name.text}`;
+        }
+    }
+}

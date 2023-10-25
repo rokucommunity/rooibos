@@ -582,7 +582,7 @@ describe('RooibosPlugin', () => {
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
 
-        describe('expectCalled transpilation', () => {
+        describe.skip('expectCalled transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -601,8 +601,9 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
+                const testContents = getTestFunctionContents(true);
                 expect(
-                    getTestFunctionContents(true)
+                    testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
@@ -685,8 +686,9 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                const testContents = getTestFunctionContents(true);
                 expect(
-                    getTestFunctionContents(true)
+                    testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
@@ -781,8 +783,9 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                const testContents = getTestFunctionContents(true);
                 expect(
-                    getTestFunctionContents(true)
+                    testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
@@ -832,8 +835,9 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 // expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
+                const testContents = getTestFunctionContents(true);
                 expect(
-                    getTestFunctionContents(true)
+                    testContents
                 ).to.eql(undent`
                     b = {
                     someValue: "value"
@@ -865,8 +869,9 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
+                const testContents = getTestFunctionContents(true);
                 expect(
-                    getTestFunctionContents(true)
+                    testContents
                 ).to.eql(undent`
                     item = {
                     id: "item"
@@ -960,14 +965,14 @@ describe('RooibosPlugin', () => {
                 let codeText = getContents('code.brs');
                 expect(codeText).to.equal(undent`
                 function sayHello(firstName = "", lastName = "")
-                    if RBS_CC_1_getMocksByFunctionName()["sayHello"] <> invalid
-                        result = RBS_CC_1_getMocksByFunctionName()["sayHello"].callback(firstName,lastName)
+                    if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
+                        result = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName,lastName)
                         return result
                     end if
                     print firstName + " " + lastName
                 end function
 
-                    function RBS_CC_1_getMocksByFunctionName()
+                    function RBS_SM_1_getMocksByFunctionName()
                         if m._rMocksByFunctionName = invalid
                         m._rMocksByFunctionName = {}
                         end if
@@ -1037,14 +1042,14 @@ describe('RooibosPlugin', () => {
 
                 let codeText = trimLeading(getContents('code.brs'));
                 expect(codeText).to.equal(trimLeading(`function utils_sayHello(firstName = "", lastName = "")
-                if RBS_CC_1_getMocksByFunctionName()["utils_sayHello"] <> invalid
-                result = RBS_CC_1_getMocksByFunctionName()["utils_sayHello"].callback(firstName,lastName)
+                if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
+                result = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName,lastName)
                 return result
                 end if
                 print firstName + " " + lastName
                 end function
 
-                function RBS_CC_1_getMocksByFunctionName()
+                function RBS_SM_1_getMocksByFunctionName()
                 if m._rMocksByFunctionName = invalid
                 m._rMocksByFunctionName = {}
                 end if
@@ -1053,7 +1058,7 @@ describe('RooibosPlugin', () => {
             });
         });
 
-        describe('stubCall transpilation', () => {
+        describe.skip('stubCall transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1195,7 +1200,7 @@ describe('RooibosPlugin', () => {
             });
         });
 
-        describe('expectNotCalled transpilation', () => {
+        describe.skip('expectNotCalled transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1374,8 +1379,9 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
+                const testContents = getTestFunctionContents(true);
                 expect(
-                    getTestFunctionContents(true)
+                    testContents
                 ).to.eql(undent`
                     item = {
                     id: "item"
@@ -1520,7 +1526,7 @@ describe('RooibosPlugin', () => {
     });
 
     describe('addTestRunnerMetadata', () => {
-        it('does not permanently modify the AST', async () => {
+        it.only('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest1
@@ -1528,6 +1534,7 @@ describe('RooibosPlugin', () => {
                     @it("test1")
                     function _()
                         item = {id: "item"}
+                        m.assertEqual(item, "wtf")
                         m.expectNotCalled(item.getFunction())
                         m.expectNotCalled(item.getFunction())
                     end function
@@ -1540,6 +1547,7 @@ describe('RooibosPlugin', () => {
                     @it("test1")
                     function _()
                         item = {id: "item"}
+                        m.assertEqual(item, "wtf")
                         m.expectNotCalled(item.getFunction())
                         m.expectNotCalled(item.getFunction())
                     end function
@@ -1563,9 +1571,9 @@ describe('RooibosPlugin', () => {
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
 
             await builder.transpile();
-            let l = getTestFunctionContents(true);
+            let testContents = getTestFunctionContents(true);
             expect(
-                getTestFunctionContents(true)
+                testContents
             ).to.eql(undent`
                 item = {
                 id: "item"

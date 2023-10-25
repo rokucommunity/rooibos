@@ -24,17 +24,6 @@ import * as minimatch from 'minimatch';
 import { MockUtil } from './lib/rooibos/MockUtil';
 
 
-export interface NamespaceContainer {
-    file: BscFile;
-    fullName: string;
-    nameRange: Range;
-    lastPartName: string;
-    statements: Statement[];
-    classStatements: Record<string, ClassStatement>;
-    functionStatements: Record<string, FunctionStatement>;
-    namespaces: Record<string, NamespaceContainer>;
-}
-
 export class RooibosPlugin implements CompilerPlugin {
 
     public name = 'rooibosPlugin';
@@ -81,7 +70,7 @@ export class RooibosPlugin implements CompilerPlugin {
             config.isGlobalMethodMockingEnabled = false;
         }
         if (config.isGlobalMethodMockingEfficientMode === undefined) {
-            config.isGlobalMethodMockingEfficientMode = false;
+            config.isGlobalMethodMockingEfficientMode = true;
         }
         if (config.keepAppOpen === undefined) {
             config.keepAppOpen = true;
@@ -141,14 +130,12 @@ export class RooibosPlugin implements CompilerPlugin {
 
         // console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
-            if (this.session.processFile(file)) {
-            }
+            this.session.processFile(file);
         }
     }
 
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.addTestRunnerMetadata(editor);
-        this.session.addLaunchHookToExistingMain(editor);
+        this.session.prepareForTranspile(editor, program, this.mockUtil);
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
@@ -165,10 +152,9 @@ export class RooibosPlugin implements CompilerPlugin {
             }
 
             testSuite.addDataFunctions(event.editor as any);
-            const namespaceLookup = this.getNamespaces(testSuite.file);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any, namespaceLookup);
+                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any, this.session.namespaceLookup);
                 }
             }
             if (testSuite.isNodeTest) {
@@ -234,6 +220,7 @@ export class RooibosPlugin implements CompilerPlugin {
         } else {
             for (let filter of this.config.globalMethodMockingExcludedFiles) {
                 if (minimatch(file.pkgPath, filter)) {
+                    // console.log('±±±skipping file', file.pkgPath);
                     return false;
                 }
             }
@@ -241,19 +228,6 @@ export class RooibosPlugin implements CompilerPlugin {
         return true;
     }
 
-    public getNamespaceLookup(scope: Scope): Map<string, NamespaceContainer> {
-        // eslint-disable-next-line @typescript-eslint/dot-notation
-        return scope['cache'].getOrAdd('namespaceLookup', () => scope.buildNamespaceLookup() as any);
-    }
-
-    private getNamespaces(file: BrsFile) {
-        let scopeNamespaces = new Map<string, NamespaceContainer>();
-        for (let scope of file.program.getScopesForFile(file)) {
-            let scopeMap = this.getNamespaceLookup(scope);
-            scopeNamespaces = new Map<string, NamespaceContainer>([...Array.from(scopeMap.entries())]);
-        }
-        return scopeNamespaces;
-    }
 }
 
 export default () => {
