@@ -56,43 +56,43 @@ export class TestGroup extends TestBlock {
         //wrap with if is not fail
         //add line number as last param
         const transpileState = new BrsTranspileState(this.file);
-        // try {
-        let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
-        func.walk(brighterscript.createVisitor({
-            ExpressionStatement: (expressionStatement, parent, owner) => {
-                let callExpression = expressionStatement.expression as CallExpression;
-                if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
-                    let dge = callExpression.callee;
-                    let isSub = isFunctionExpression(callExpression.parent.parent.parent) && callExpression.parent.parent.parent.functionType.kind === TokenKind.Sub;
-                    let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
-                    if (dge && assertRegex.test(dge.name.text)) {
-                        if (dge.name.text === 'stubCall') {
-                            this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
-                            return expressionStatement;
-
-                        } else {
-
-                            if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+        try {
+            let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+            func.walk(brighterscript.createVisitor({
+                ExpressionStatement: (expressionStatement, parent, owner) => {
+                    let callExpression = expressionStatement.expression as CallExpression;
+                    if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
+                        let dge = callExpression.callee;
+                        let isSub = isFunctionExpression(callExpression.parent.parent.parent) && callExpression.parent.parent.parent.functionType.kind === TokenKind.Sub;
+                        let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
+                        if (dge && assertRegex.test(dge.name.text)) {
+                            if (dge.name.text === 'stubCall') {
                                 this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
-                            }
-                            //TODO change this to editor.setProperty(parentObj, parentKey, new SourceNode()) once bsc supports it
-                            overrideAstTranspile(editor, expressionStatement, '\n' + undent`
+                                return expressionStatement;
+
+                            } else {
+
+                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
+                                }
+                                //TODO change this to editor.setProperty(parentObj, parentKey, new SourceNode()) once bsc supports it
+                                overrideAstTranspile(editor, expressionStatement, '\n' + undent`
                                     m.currentAssertLineNumber = ${callExpression.range.start.line}
                                     ${callExpression.transpile(transpileState).join('')}
                                     ${noEarlyExit ? '' : `if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`}
                                 ` + '\n');
+                            }
                         }
                     }
                 }
-            }
-        }), {
-            walkMode: brighterscript.WalkMode.visitStatementsRecursive
-        });
-        // } catch (e) {
-        //     // console.log(e);
-        //     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        //     diagnosticErrorProcessingFile(this.testSuite.file, e.message);
-        // }
+            }), {
+                walkMode: brighterscript.WalkMode.visitStatementsRecursive
+            });
+        } catch (e) {
+            // console.log(e);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            diagnosticErrorProcessingFile(this.testSuite.file, e.message);
+        }
     }
 
     private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>) {
