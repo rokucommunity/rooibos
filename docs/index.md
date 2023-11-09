@@ -79,7 +79,7 @@ Roku will perform poorly if roku's rendezvous tracking is enabled, when launchin
       "enableDebugProtocol": false,
       "rendezvousTracking": false
     }
-  ```,
+  ```
 
 
 ## Installation
