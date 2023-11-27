@@ -70,6 +70,8 @@ namespace rooibos
         m.hasSoloGroups = data.hasSoloGroups
         m.isSolo = data.isSolo
         m.isIgnored = data.isIgnored
+        m.isAsync = data.isAsync
+        m.asyncTimeout = data.asyncTimeout
         m.noCatch = data.noCatch
         m.groupsData = data.testGroups
         m.lineNumber = data.lineNumber
@@ -106,6 +108,19 @@ namespace rooibos
     '++++++++++++++++++++++++++++++++++++?+++++++++++++++++++++++++
 
     function run()
+
+      ' ? ">>>>>>>>>>>>"
+      ' ? " RUNNING TEST SUITE"
+      if m.isAsync = true
+        ' ? " THIS GROUP IS ASYNC"
+        m.runAsync()
+      else
+        ' ? " THIS GROUP IS SYNC"
+        m.runSync()
+      end if
+    end function
+
+    function runSync()
       for each groupData in m.groupsData
         'bs:disable-next-line
         group = new TestGroup(m, groupData)
@@ -129,6 +144,115 @@ namespace rooibos
         end if
 
       end for
+
+      if m.isNodeTest and m.testRunner.top <> invalid
+        m.testRunner.top.addFields({ asyncRooibosTestResult: {
+            stats: m.stats
+            tests: m.tests
+            groups: m.groups
+          }
+        })
+      end if
+    end function
+
+    function runASync()
+      ' ? "running groups async"
+
+      m.groups = []
+      for each groupData in m.groupsData
+        'bs:disable-next-line
+        group = new TestGroup(m, groupData)
+        m.groups.push(group)
+      end for
+
+      m.currentGroupIndex = -1
+      m.runNextAsync()
+
+    end function
+
+    private function runNextAsync()
+      ' ? "Getting next async group"
+      m.currentGroupIndex++
+      m.currentGroup = m.groups[m.currentGroupIndex]
+      if m.currentGroup = invalid
+        m.setTestTimer(0)
+        ' ? " all groups are finished"
+        'finished
+        m.finishAsyncGroups()
+      else
+        group = m.currentGroup
+        m.testRunner.top.rooibosGroupFinished = false
+
+        ? ""
+        ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
+        'bs:disable-next-line
+        ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
+        ? ""
+
+        m.testRunner.top.observeFieldScoped("rooibosGroupFinished", "rooibos_onGroupComplete")
+
+        group.run()
+
+        if group.stats.hasFailures
+          ? "Group failed before any async code could be executed"
+          m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
+          ' m.testGroupDone()
+          m.onAsyncGroupComplete(group)
+        end if
+
+      end if
+    end function
+
+    private function onAsyncGroupComplete(group = invalid) as void
+      ' ? "++ CURRENT GROUP COMPLETED"
+      m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
+
+      group = group = invalid ? m.currentGroup : group
+      if group = invalid
+        ? "cannot find test group to mark async finished for?!"
+        return
+      end if
+      'bs:disable-next-line
+      m.stats.merge(group.stats)
+
+      if m.stats.hasFailures and m.isFailingFast
+        ' ? "Terminating group due to failed test"
+        m.isTestFailedDueToEarlyExit = true
+        m.finishAsyncGroups()
+      else
+        m.runNextAsync()
+      end if
+
+    end function
+
+    private function finishAsyncGroups()
+      m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
+
+      m.testRunner.top.addFields({ asyncRooibosTestResult: {
+          stats: m.stats
+          tests: m.tests
+          groups: m.groups
+        }
+      })
+      ' ? " indicating test suite is done"
+      m.testSuiteDone()
+    end function
+
+    private function setTestTimer(duration)
+      ' ? " SETTING TIMER FOR " duration
+      if m.testTimer = invalid
+        m.testTimer = createObject("roSGNode", "Timer")
+      end if
+      if duration = 0
+        m.testTimer.unobserveFieldScoped("fire")
+        m.testTimer.control = "stop"
+      else
+        m.currentTimeout = duration
+        m.testTimer.observeFieldScoped("fire", "rooibos_onTestTimer")
+
+        m.testTimer.duration = duration / 1000.0
+        m.testTimer.control = "start"
+      end if
     end function
 
     function runTest(test as rooibos.Test)
@@ -184,6 +308,15 @@ namespace rooibos
       return false
     end function
 
+    function failBecauseOfTimeOut() as dynamic
+      if m.currentResult.isFail
+        return false
+      end if
+      m.currentResult.fail("Async test execution exceeded " + m.currentTimeout.toStr() + "ms")
+      m.done()
+      return false
+    end function
+
     ' /**
     '  * @memberof module:BaseTestSuite
     '  * @name assertFalse
@@ -199,7 +332,7 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isBoolean(expr)
+        if rooibos.common.isBoolean(expr)
           if expr
             return m.fail(msg)
           end if
@@ -229,7 +362,7 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isBoolean(expr)
+        if rooibos.common.isBoolean(expr)
           if not expr
             return m.fail(msg)
           end if
@@ -261,10 +394,10 @@ namespace rooibos
         return false
       end if
       try
-        if not Rooibos.Common.eqValues(first, second)
+        if not rooibos.common.eqValues(first, second)
           if msg = ""
-            first_as_string = Rooibos.Common.asString(first, true)
-            second_as_string = Rooibos.Common.asString(second, true)
+            first_as_string = rooibos.common.asString(first, true)
+            second_as_string = rooibos.common.asString(second, true)
             msg = first_as_string + " != " + second_as_string
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -295,10 +428,10 @@ namespace rooibos
         return false
       end if
       try
-        if not Rooibos.Common.eqValues(first, second, true)
+        if not rooibos.common.eqValues(first, second, true)
           if msg = ""
-            first_as_string = Rooibos.Common.asString(first)
-            second_as_string = Rooibos.Common.asString(second)
+            first_as_string = rooibos.common.asString(first)
+            second_as_string = rooibos.common.asString(second)
             msg = first_as_string + " != " + second_as_string
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -329,10 +462,10 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.eqValues(first, second)
+        if rooibos.common.eqValues(first, second)
           if msg = ""
-            first_as_string = Rooibos.Common.asString(first, true)
-            second_as_string = Rooibos.Common.asString(second, true)
+            first_as_string = rooibos.common.asString(first, true)
+            second_as_string = rooibos.common.asString(second, true)
             msg = first_as_string + " == " + second_as_string
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -365,7 +498,7 @@ namespace rooibos
       try
         if value <> invalid
           if msg = ""
-            expr_as_string = Rooibos.Common.asString(value, true)
+            expr_as_string = rooibos.common.asString(value, true)
             msg = expr_as_string + " <> Invalid"
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -427,7 +560,7 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(array)
+        if rooibos.common.isAssociativeArray(array)
           if not array.DoesExist(key)
             if msg = ""
               msg = "Array doesn't have the '" + key + "' key."
@@ -466,7 +599,7 @@ namespace rooibos
       end if
 
       try
-        if Rooibos.Common.isAssociativeArray(array)
+        if rooibos.common.isAssociativeArray(array)
           if array.DoesExist(key)
             if msg = ""
               msg = "Array has the '" + key + "' key."
@@ -505,7 +638,7 @@ namespace rooibos
       end if
 
       try
-        if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isArray(keys)
+        if rooibos.common.isAssociativeArray(array) and rooibos.common.isArray(keys)
           for each key in keys
             if not array.DoesExist(key)
               if msg = ""
@@ -545,7 +678,7 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isArray(keys)
+        if rooibos.common.isAssociativeArray(array) and rooibos.common.isArray(keys)
           for each key in keys
             if array.DoesExist(key)
               if msg = ""
@@ -588,9 +721,9 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
-          if not Rooibos.Common.arrayContains(array, value, key)
-            msg = "Array doesn't have the '" + Rooibos.Common.asString(value, true) + "' value."
+        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
+          if not rooibos.common.arrayContains(array, value, key)
+            msg = "Array doesn't have the '" + rooibos.common.asString(value, true) + "' value."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -624,27 +757,27 @@ namespace rooibos
         return false
       end if
       try
-        if not Rooibos.Common.isArray(values)
+        if not rooibos.common.isArray(values)
           msg = "values to search for are not an Array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
-        if Rooibos.Common.isArray(array)
+        if rooibos.common.isArray(array)
           for each value in values
             isMatched = false
-            if not Rooibos.Common.isAssociativeArray(value)
-              msg = "Value to search for was not associativeArray " + Rooibos.Common.asString(value, true)
+            if not rooibos.common.isAssociativeArray(value)
+              msg = "Value to search for was not associativeArray " + rooibos.common.asString(value, true)
               m.currentResult.fail(msg, m.currentAssertLineNumber)
               return false
             end if
             for each item in array
-              if Rooibos.Common.IsAssociativeArray(item)
+              if rooibos.common.IsAssociativeArray(item)
                 isValueMatched = true
                 for each key in value
                   fieldValue = value[key]
                   itemValue = item[key]
-                  if not Rooibos.Common.eqValues(fieldValue, itemValue)
+                  if not rooibos.common.eqValues(fieldValue, itemValue)
                     isValueMatched = false
                     exit for
                   end if
@@ -657,7 +790,7 @@ namespace rooibos
             end for ' items in array
 
             if not isMatched
-              msg = "array missing value: " + Rooibos.Common.asString(value, true)
+              msg = "array missing value: " + rooibos.common.asString(value, true)
               m.currentResult.fail(msg, m.currentAssertLineNumber)
               return false
             end if
@@ -695,9 +828,9 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
-          if Rooibos.Common.arrayContains(array, value, key)
-            msg = "Array has the '" + Rooibos.Common.asString(value, true) + "' value."
+        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
+          if rooibos.common.arrayContains(array, value, key)
+            msg = "Array has the '" + rooibos.common.asString(value, true) + "' value."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -731,8 +864,8 @@ namespace rooibos
         return false
       end if
       try
-        if (Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)) or (Rooibos.Common.isArray(array) and Rooibos.Common.isArray(subset))
-          isAA = Rooibos.Common.isAssociativeArray(subset)
+        if (rooibos.common.isAssociativeArray(array) and rooibos.common.isAssociativeArray(subset)) or (rooibos.common.isArray(array) and rooibos.common.isArray(subset))
+          isAA = rooibos.common.isAssociativeArray(subset)
           for each item in subset
             key = invalid
             value = item
@@ -740,8 +873,8 @@ namespace rooibos
               key = item
               value = subset[key]
             end if
-            if not Rooibos.Common.arrayContains(array, value, key)
-              msg = "Array doesn't have the '" + Rooibos.Common.asString(value, true) + "' value."
+            if not rooibos.common.arrayContains(array, value, key)
+              msg = "Array doesn't have the '" + rooibos.common.asString(value, true) + "' value."
               m.currentResult.fail(msg, m.currentAssertLineNumber)
               return false
             end if
@@ -776,8 +909,8 @@ namespace rooibos
         return false
       end if
       try
-        if (Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)) or (Rooibos.Common.isArray(array) and Rooibos.Common.isArray(subset))
-          isAA = Rooibos.Common.isAssociativeArray(subset)
+        if (rooibos.common.isAssociativeArray(array) and rooibos.common.isAssociativeArray(subset)) or (rooibos.common.isArray(array) and rooibos.common.isArray(subset))
+          isAA = rooibos.common.isAssociativeArray(subset)
           for each item in subset
             key = invalid
             value = item
@@ -785,8 +918,8 @@ namespace rooibos
               key = item
               value = item[key]
             end if
-            if Rooibos.Common.arrayContains(array, value, key)
-              msg = "Array has the '" + Rooibos.Common.asString(value, true) + "' value."
+            if rooibos.common.arrayContains(array, value, key)
+              msg = "Array has the '" + rooibos.common.asString(value, true) + "' value."
               m.currentResult.fail(msg, m.currentAssertLineNumber)
               return false
             end if
@@ -821,9 +954,9 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
+        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
           if array.Count() <> count
-            msg = "Array items count " + Rooibos.Common.asString(array.Count()) + " <> " + Rooibos.Common.asString(count) + "."
+            msg = "Array items count " + rooibos.common.asString(array.Count()) + " <> " + rooibos.common.asString(count) + "."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -857,9 +990,9 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
+        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
           if array.Count() = count
-            msg = "Array items count = " + Rooibos.Common.asString(count) + "."
+            msg = "Array items count = " + rooibos.common.asString(count) + "."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -892,15 +1025,15 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(item) or Rooibos.Common.isArray(item)
+        if rooibos.common.isAssociativeArray(item) or rooibos.common.isArray(item)
           if item.count() > 0
             msg = "Array is not empty."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
-        else if Rooibos.Common.isString(item)
-          if Rooibos.Common.asString(item) <> ""
-            msg = "String is not empty, contains: " + Rooibos.Common.asString(item, true)
+        else if rooibos.common.isString(item)
+          if rooibos.common.asString(item) <> ""
+            msg = "String is not empty, contains: " + rooibos.common.asString(item, true)
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -933,13 +1066,13 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(item) or Rooibos.Common.isArray(item)
+        if rooibos.common.isAssociativeArray(item) or rooibos.common.isArray(item)
           if item.count() = 0
             msg = "Array is empty."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
-        else if Rooibos.Common.isString(item)
+        else if rooibos.common.isString(item)
           if item = ""
             msg = "Input value is empty."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -982,13 +1115,13 @@ namespace rooibos
           return false
         end if
 
-        if Rooibos.Common.isAssociativeArray(array) or Rooibos.Common.isArray(array)
+        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
           methodName = "Rooibos_Common_Is" + typeStr
           typeCheckFunction = m.getIsTypeFunction(methodName)
           if typeCheckFunction <> invalid
             for each item in array
               if not typeCheckFunction(item)
-                msg = Rooibos.Common.asString(item, true) + " is not a '" + typeStr + "' type."
+                msg = rooibos.common.asString(item, true) + " is not a '" + typeStr + "' type."
                 m.currentResult.fail(msg, m.currentAssertLineNumber)
                 return false
               end if
@@ -1014,35 +1147,35 @@ namespace rooibos
 
     function getIsTypeFunction(name)
       if name = "Rooibos_Common_IsFunction"
-        return Rooibos.Common.isFunction
+        return rooibos.common.isFunction
       else if name = "Rooibos_Common_IsXmlElement"
-        return Rooibos.Common.isXmlElement
+        return rooibos.common.isXmlElement
       else if name = "Rooibos_Common_IsInteger"
-        return Rooibos.Common.isInteger
+        return rooibos.common.isInteger
       else if name = "Rooibos_Common_IsBoolean"
-        return Rooibos.Common.isBoolean
+        return rooibos.common.isBoolean
       else if name = "Rooibos_Common_IsFloat"
-        return Rooibos.Common.isFloat
+        return rooibos.common.isFloat
       else if name = "Rooibos_Common_IsDouble"
-        return Rooibos.Common.isDouble
+        return rooibos.common.isDouble
       else if name = "Rooibos_Common_IsLongInteger"
-        return Rooibos.Common.isLongInteger
+        return rooibos.common.isLongInteger
       else if name = "Rooibos_Common_IsNumber"
-        return Rooibos.Common.isNumber
+        return rooibos.common.isNumber
       else if name = "Rooibos_Common_IsList"
-        return Rooibos.Common.isList
+        return rooibos.common.isList
       else if name = "Rooibos_Common_IsArray"
-        return Rooibos.Common.isArray
+        return rooibos.common.isArray
       else if name = "Rooibos_Common_IsAssociativeArray"
-        return Rooibos.Common.isAssociativeArray
+        return rooibos.common.isAssociativeArray
       else if name = "Rooibos_Common_IsSGNode"
-        return Rooibos.Common.isSGNode
+        return rooibos.common.isSGNode
       else if name = "Rooibos_Common_IsString"
-        return Rooibos.Common.isString
+        return rooibos.common.isString
       else if name = "Rooibos_Common_IsDateTime"
-        return Rooibos.Common.isDateTime
+        return rooibos.common.isDateTime
       else if name = "Rooibos_Common_IsUndefined"
-        return Rooibos.Common.isUndefined
+        return rooibos.common.isUndefined
       else
         return invalid
       end if
@@ -1066,7 +1199,7 @@ namespace rooibos
       try
         if type(value) <> typeStr
           if msg = ""
-            expr_as_string = Rooibos.Common.asString(value, true)
+            expr_as_string = rooibos.common.asString(value, true)
             msg = expr_as_string + " was not expected type " + typeStr
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -1099,14 +1232,14 @@ namespace rooibos
       try
         if type(value) <> "roSGNode"
           if msg = ""
-            expr_as_string = Rooibos.Common.asString(value, true)
+            expr_as_string = rooibos.common.asString(value, true)
             msg = expr_as_string + " was not a node, so could not match subtype " + typeStr
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         else if value.subType() <> typeStr
           if msg = ""
-            expr_as_string = Rooibos.Common.asString(value, true)
+            expr_as_string = rooibos.common.asString(value, true)
             msg = expr_as_string + "( type : " + value.subType() + ") was not of subType " + typeStr
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -1125,13 +1258,13 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
-      if rooibos.Common.isFunction(func)
+      if rooibos.common.isFunction(func)
         func = func.toStr().mid(10).replace("_", ".")
       end if
       try
-        if not Rooibos.Common.isAssociativeArray(value)
+        if not rooibos.common.isAssociativeArray(value)
           if msg = ""
-            expr_as_string = Rooibos.Common.asString(value)
+            expr_as_string = rooibos.common.asString(value)
             msg = expr_as_string + " was not an aa, so could not match Class " + func
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -1176,10 +1309,17 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if node.getChildCount() <> count
-            msg = "node items count <> " + Rooibos.Common.asString(count) + ". Received " + Rooibos.Common.asString(node.getChildCount())
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
+          if node.isSubType("mc_Node")
+            if node.isSubType("mc_Node")
+              childCount = node.length
+            else
+              childCount = node.getChildCount()
+            end if
+            if childCount <> count
+              msg = "node items count <> " + rooibos.common.asString(count) + ". Received " + rooibos.common.asString(childCount)
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
+            end if
           end if
         else
           msg = "Input value is not an node."
@@ -1212,8 +1352,13 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if node.getChildCount() = count
-            msg = "node items count = " + Rooibos.Common.asString(count) + "."
+          if node.isSubType("mc_Node")
+            childCount = node.length
+          else
+            childCount = node.getChildCount()
+          end if
+          if childCount = count
+            msg = "node items count = " + rooibos.common.asString(count) + "."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -1247,7 +1392,12 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if node.getChildCount() > 0
+          if node.isSubType("mc_Node")
+            childCount = node.length
+          else
+            childCount = node.getChildCount()
+          end if
+          if childCount > 0
             msg = "node is not empty."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
@@ -1310,8 +1460,8 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if not Rooibos.Common.nodeContains(node, value)
-            msg = "Node doesn't have the '" + Rooibos.Common.asString(value, true) + "' value."
+          if not rooibos.common.nodeContains(node, value)
+            msg = "Node doesn't have the '" + rooibos.common.asString(value, true) + "' value."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -1346,14 +1496,21 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if not Rooibos.Common.nodeContains(node, value)
-            msg = "Node doesn't have the '" + Rooibos.Common.asString(value, true) + "' value."
+          if not rooibos.common.nodeContains(node, value)
+            msg = "Node doesn't have the '" + rooibos.common.asString(value, true) + "' value."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
-          else if node.getChildCount() <> 1
-            msg = "Node Contains speicified value; but other values as well"
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
+          else
+            if node.isSubType("mc_Node")
+              childCount = node.length
+            else
+              childCount = node.getChildCount()
+            end if
+            if childCount <> 1
+              msg = "Node Contains specified value; but other values as well"
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
+            end if
           end if
         else
           msg = "Input value is not an Node."
@@ -1387,8 +1544,8 @@ namespace rooibos
       end if
       try
         if type(node) = "roSGNode"
-          if Rooibos.Common.nodeContains(node, value)
-            msg = "Node has the '" + Rooibos.Common.asString(value, true) + "' value."
+          if rooibos.common.nodeContains(node, value)
+            msg = "Node has the '" + rooibos.common.asString(value, true) + "' value."
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -1422,15 +1579,15 @@ namespace rooibos
         return false
       end if
       try
-        if (type(node) = "roSGNode" and Rooibos.Common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and Rooibos.Common.isArray(subset))
-          isIgnoredFields = Rooibos.Common.isArray(ignoredFields)
+        if (type(node) = "roSGNode" and rooibos.common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and rooibos.common.isArray(subset))
+          isIgnoredFields = rooibos.common.isArray(ignoredFields)
           for each key in subset
             if key <> ""
-              if not isIgnoredFields or not Rooibos.Common.arrayContains(ignoredFields, key)
+              if not isIgnoredFields or not rooibos.common.arrayContains(ignoredFields, key)
                 subsetValue = subset[key]
                 nodeValue = node[key]
-                if not Rooibos.Common.eqValues(nodeValue, subsetValue)
-                  msg = key + ": Expected '" + Rooibos.Common.asString(subsetValue, true) + "', got '" + Rooibos.Common.asString(nodeValue, true) + "'"
+                if not rooibos.common.eqValues(nodeValue, subsetValue)
+                  msg = key + ": Expected '" + rooibos.common.asString(subsetValue, true) + "', got '" + rooibos.common.asString(nodeValue, true) + "'"
                   m.currentResult.fail(msg, m.currentAssertLineNumber)
                   return false
                 end if
@@ -1469,8 +1626,8 @@ namespace rooibos
         return false
       end if
       try
-        if (type(node) = "roSGNode" and Rooibos.Common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and Rooibos.Common.isArray(subset))
-          isAA = Rooibos.Common.isAssociativeArray(subset)
+        if (type(node) = "roSGNode" and rooibos.common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and rooibos.common.isArray(subset))
+          isAA = rooibos.common.isAssociativeArray(subset)
           for each item in subset
             key = invalid
             value = item
@@ -1478,8 +1635,8 @@ namespace rooibos
               key = item
               value = item[key]
             end if
-            if Rooibos.Common.nodeContains(node, value)
-              msg = "Node has the '" + Rooibos.Common.asString(value, true) + "' value."
+            if rooibos.common.nodeContains(node, value)
+              msg = "Node has the '" + rooibos.common.asString(value, true) + "' value."
               m.currentResult.fail(msg, m.currentAssertLineNumber)
               return false
             end if
@@ -1519,15 +1676,15 @@ namespace rooibos
         return false
       end if
       try
-        if Rooibos.Common.isAssociativeArray(array) and Rooibos.Common.isAssociativeArray(subset)
-          isIgnoredFields = Rooibos.Common.isArray(ignoredFields)
+        if rooibos.common.isAssociativeArray(array) and rooibos.common.isAssociativeArray(subset)
+          isIgnoredFields = rooibos.common.isArray(ignoredFields)
           for each key in subset
             if key <> ""
-              if not isIgnoredFields or not Rooibos.Common.arrayContains(ignoredFields, key)
+              if not isIgnoredFields or not rooibos.common.arrayContains(ignoredFields, key)
                 subsetValue = subset[key]
                 arrayValue = array[key]
-                if not Rooibos.Common.eqValues(arrayValue, subsetValue)
-                  msg = key + ": Expected '" + Rooibos.Common.asString(subsetValue, true) + "', got '" + Rooibos.Common.asString(arrayValue, true) + "'"
+                if not rooibos.common.eqValues(arrayValue, subsetValue)
+                  msg = key + ": Expected '" + rooibos.common.asString(subsetValue, true) + "', got '" + rooibos.common.asString(arrayValue, true) + "'"
                   m.currentResult.fail(msg, m.currentAssertLineNumber)
                   return false
                 end if
@@ -1568,7 +1725,10 @@ namespace rooibos
     '  * @returns {Object} - stub that was wired into the real method
     '  */
     function stub(target, methodName, returnValue = invalid, allowNonExistingMethods = false) as object
-      if type(target) <> "roAssociativeArray"
+      if target = invalid and not rooibos.common.isFunction(methodName)
+        m.fail("could not create Stub. Global function", methodName, ", is invalid")
+        return {}
+      else if type(target) <> "roAssociativeArray"
         m.fail("could not create Stub provided target was null")
         return {}
       end if
@@ -1589,18 +1749,22 @@ namespace rooibos
 
       fake = m.createFake(id, target, methodName, 1, invalid, returnValue)
       m.stubs[id] = fake
-      allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
-      isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
-      if isMethodPresent or allowNonExisting
-        target[methodName] = m["StubCallback" + id]
-        target.__stubs = m.stubs
-
-        ' FIXME: add a log setting for this - and add better detection so that stubs know that they are colliding/don't exist/have correct sigs
-        ' if not isMethodPresent
-        '   ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
-        ' end if
+      if target.isGlobalCall = true
+        rooibos.getMocksByFunctionName()[methodName] = fake
       else
-        ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName
+        allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+        isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
+        if isMethodPresent or allowNonExisting
+          target[methodName] = m["StubCallback" + id]
+          target.__stubs = m.stubs
+
+          ' FIXME: add a log setting for this - and add better detection so that stubs know that they are colliding/don't exist/have correct sigs
+          ' if not isMethodPresent
+          '   ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
+          ' end if
+        else
+          ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName
+        end if
       end if
 
       return fake
@@ -1623,7 +1787,7 @@ namespace rooibos
     function _expectCalled(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic, expectedArgs = invalid, returnValue = invalid as dynamic) as object
       try
         if type(target) <> "roAssociativeArray" and fullPath <> invalid
-          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
+          target = rooibos.common.makePathStubbable(rootObject, fullPath)
         end if
         return m.mock(target, methodName, 1, expectedArgs, returnValue, true)
       catch error
@@ -1641,7 +1805,7 @@ namespace rooibos
     function _stubCall(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic, returnValue = invalid as dynamic) as object
       try
         if type(target) <> "roAssociativeArray" and fullPath <> invalid
-          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
+          target = rooibos.common.makePathStubbable(rootObject, fullPath)
         end if
         return m.stub(target, methodName, returnValue, true)
       catch error
@@ -1660,7 +1824,7 @@ namespace rooibos
     function _expectNotCalled(target, methodName, rootObject = invalid as dynamic, fullPath = invalid as dynamic) as object
       try
         if type(target) <> "roAssociativeArray" and fullPath <> invalid
-          target = rooibos.Common.makePathStubbable(rootObject, fullPath)
+          target = rooibos.common.makePathStubbable(rootObject, fullPath)
         end if
         return m.mock(target, methodName, 0, invalid, invalid, true)
       catch error
@@ -1686,13 +1850,18 @@ namespace rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-      try
+    'HACK
+    'HACK
+    'HACK
+    'HACK
+    'HACK
+      ' try
         return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
-      catch error
+      ' catch error
         'bs:disable-next-line
-        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
-        return false
-      end try
+      '   m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+      '   return false
+      ' end try
       return false
     end function
 
@@ -1786,19 +1955,20 @@ namespace rooibos
     function mock(target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
       lineNumber = m.currentAssertLineNumber
       'check params
-      if not Rooibos.Common.isAssociativeArray(target)
+
+      if target <> invalid and not rooibos.common.isFunction(target) and not rooibos.common.isAssociativeArray(target)
         methodName = ""
-        m.mockFail(lineNumber, "", "mock args: target was not an AA")
-      else if not Rooibos.Common.isString(methodName)
+        m.mockFail(lineNumber, "", "mock args: target should be an AA or in-scope Global function", methodName)
+      else if not rooibos.common.isString(methodName)
         methodName = ""
         m.mockFail(lineNumber, "", "mock args: methodName was not a string")
-      else if not Rooibos.Common.isNumber(expectedInvocations)
+      else if not rooibos.common.isNumber(expectedInvocations)
         m.mockFail(lineNumber, methodName, "mock args: expectedInvocations was not an int")
-      else if not Rooibos.Common.isArray(expectedArgs) and Rooibos.Common.isValid(expectedArgs)
+      else if not rooibos.common.isArray(expectedArgs) and rooibos.common.isValid(expectedArgs)
         m.mockFail(lineNumber, methodName, "mock args: expectedArgs was not invalid or an array of args")
-      else if Rooibos.Common.isUndefined(expectedArgs)
+      else if rooibos.common.isUndefined(expectedArgs)
         m.mockFail(lineNumber, methodName, "mock args: expectedArgs undefined")
-      else if Rooibos.Common.isUndefined(returnValue)
+      else if rooibos.common.isUndefined(returnValue)
         m.mockFail(lineNumber, methodName, "mock args: returnValue undefined")
       end if
 
@@ -1811,9 +1981,15 @@ namespace rooibos
         m.__mockId = -1
         m.__mockTargetId = -1
         m.mocks = {}
+        rooibos.resetMocksByFunctionName()
       end if
 
       fake = invalid
+      if rooibos.common.isFunction(target)
+        target = {
+          isGlobalCall: true
+        }
+      end if
       if not target.doesExist("__rooibosTargetId")
         m.__mockTargetId++
         target["__rooibosTargetId"] = m.__mockTargetId
@@ -1822,7 +1998,7 @@ namespace rooibos
       for i = 0 to m.__mockId
         id = stri(i).trim()
         mock = m.mocks[id]
-        if mock <> invalid and mock.methodName = methodName and mock.target.__rooibosTargetId = target.__rooibosTargetId
+        if mock <> invalid and mock.methodName = methodName and (mock.target.__rooibosTargetId = target.__rooibosTargetId or (mock.target.isGlobalCall = true and target.isGlobalCall = true))
           fake = mock
           fake.lineNumbers.push(lineNumber)
           exit for
@@ -1839,21 +2015,26 @@ namespace rooibos
 
         fake = m.createFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue)
         m.mocks[id] = fake 'this will bind it to m
-        allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
-        isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
-        if isMethodPresent or allowNonExisting
-          target[methodName] = m["MockCallback" + id]
-          target.__mocks = m.mocks
-
-          if not isMethodPresent
-            ' ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
-          end if
+        if target.isGlobalCall = true
+          rooibos.getMocksByFunctionName()[methodName] = fake
         else
-          ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
+          allowNonExisting = m.allowNonExistingMethodsOnMocks = true or allowNonExistingMethods
+          isMethodPresent = type(target[methodName]) = "Function" or type(target[methodName]) = "roFunction"
+          if isMethodPresent or allowNonExisting
+            target[methodName] = m["MockCallback" + id]
+            target.__mocks = m.mocks
+
+            if not isMethodPresent
+              ' ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
+            end if
+          else
+            ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
+          end if
         end if
       else
         m.combineFakes(fake, m.createFake(id, target, methodName, expectedInvocations, expectedArgs, returnValue))
       end if
+
       return fake
     end function
 
@@ -1873,22 +2054,23 @@ namespace rooibos
     function createFake(id, target, methodName, expectedInvocations = 1, expectedArgs = invalid, returnValue = invalid) as object
       expectedArgsValues = []
       lineNumber = m.currentAssertLineNumber
-      hasArgs = Rooibos.Common.isArray(expectedArgs)
+      hasArgs = rooibos.common.isArray(expectedArgs)
+      defaultValue = m.ignoreValue
       if hasArgs
         defaultValue = m.invalidValue
       else
-        defaultValue = m.ignoreValue
         expectedArgs = []
       end if
+
       lineNumbers = [lineNumber]
 
       for i = 0 to 9
         if hasArgs and expectedArgs.count() > i
           'guard against bad values
           value = expectedArgs[i]
-          if not Rooibos.Common.isUndefined(value)
-            if Rooibos.Common.isAssociativeArray(value) and Rooibos.Common.isValid(value.matcher)
-              if not Rooibos.Common.isFunction(value.matcher)
+          if not rooibos.common.isUndefined(value)
+            if rooibos.common.isAssociativeArray(value) and rooibos.common.isValid(value.matcher)
+              if not rooibos.common.isFunction(value.matcher)
                 ? "[ERROR] you have specified a matching function; but it is not in scope!"
                 expectedArgsValues.push("#ERR-OUT_OF_SCOPE_MATCHER!")
               else
@@ -1976,7 +2158,9 @@ namespace rooibos
           "multiInvoke": [currentExpectedArgsArgs]
         }
       end if
-      fake.expectedArgs.multiInvoke.push(otherFake.expectedArgs)
+      for i = 1 to otherFake.expectedInvocations
+        fake.expectedArgs.multiInvoke.push(otherFake.expectedArgs)
+      end for
 
       'add on the expected return values
       if type(fake.returnValue) <> "roAssociativeArray" or not fake.returnValue.doesExist("multiResult")
@@ -1985,9 +2169,11 @@ namespace rooibos
           "multiResult": [currentReturnValue]
         }
       end if
-      fake.returnValue.multiResult.push(otherFake.returnValue)
+      for i = 1 to otherFake.expectedInvocations
+        fake.returnValue.multiResult.push(otherFake.returnValue)
+      end for
       fake.lineNumbers.push(lineNumber)
-      fake.expectedInvocations++
+      fake.expectedInvocations += otherFake.expectedInvocations
     end function
     ' /**
     '  * @memberof module:BaseTestSuite
@@ -1997,7 +2183,7 @@ namespace rooibos
     '  * @description Will check all mocks that have been created to ensure they were invoked the expected amount of times, with the expected args.
     '  */
     function assertMocks() as void
-      if m.__mockId = invalid or not Rooibos.Common.isAssociativeArray(m.mocks)
+      if m.__mockId = invalid or not rooibos.common.isAssociativeArray(m.mocks)
         return
       end if
 
@@ -2008,8 +2194,8 @@ namespace rooibos
           m.mockFail(mock.lineNumbers[0], methodName, "Wrong number of calls. (" + stri(mock.invocations).trim() + " / " + stri(mock.expectedInvocations).trim() + ")")
           m.cleanMocks()
           return
-        else if mock.expectedInvocations > 0 and (Rooibos.Common.isArray(mock.expectedArgs) or (type(mock.expectedArgs) = "roAssociativeArray" and Rooibos.Common.isArray(mock.expectedArgs.multiInvoke)))
-          isMultiArgsSupported = type(mock.expectedArgs) = "roAssociativeArray" and Rooibos.Common.isArray(mock.expectedArgs.multiInvoke)
+        else if mock.expectedInvocations > 0 and (rooibos.common.isArray(mock.expectedArgs) or (type(mock.expectedArgs) = "roAssociativeArray" and rooibos.common.isArray(mock.expectedArgs.multiInvoke)))
+          isMultiArgsSupported = type(mock.expectedArgs) = "roAssociativeArray" and rooibos.common.isArray(mock.expectedArgs.multiInvoke)
 
           for invocationIndex = 0 to mock.invocations - 1
             invokedArgs = mock.allInvokedArgs[invocationIndex]
@@ -2021,25 +2207,25 @@ namespace rooibos
             for i = 0 to expectedArgs.count() - 1
               value = invokedArgs[i]
               expected = expectedArgs[i]
-              didNotExpectArg = Rooibos.Common.isString(expected) and expected = m.invalidValue
+              didNotExpectArg = rooibos.common.isString(expected) and expected = m.invalidValue
               if didNotExpectArg
                 expected = invalid
               end if
 
-              isUsingMatcher = Rooibos.Common.isAssociativeArray(expected) and Rooibos.Common.isFunction(expected.matcher)
+              isUsingMatcher = rooibos.common.isAssociativeArray(expected) and rooibos.common.isFunction(expected.matcher)
 
               if isUsingMatcher
                 if not expected.matcher(value)
-                  m.mockFail(mock.lineNumbers[invocationIndex], methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to match matching function '" + Rooibos.Common.asString(expected.matcher) + "' got '" + Rooibos.Common.asString(value, true) + "')")
+                  m.mockFail(mock.lineNumbers[invocationIndex], methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to match matching function '" + rooibos.common.asString(expected.matcher) + "' got '" + rooibos.common.asString(value, true) + "')")
                   m.cleanMocks()
                 end if
               else
-                if not (Rooibos.Common.isString(expected) and expected = m.ignoreValue) and not Rooibos.Common.eqValues(value, expected)
+                if not (rooibos.common.isString(expected) and expected = m.ignoreValue) and not rooibos.common.eqValues(value, expected)
                   if expected = invalid
                     expected = "[INVALID]"
                   end if
 
-                  m.mockFail(mock.lineNumbers[invocationIndex], methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + Rooibos.Common.asString(expected, true) + "' got '" + Rooibos.Common.asString(value, true) + "')")
+                  m.mockFail(mock.lineNumbers[invocationIndex], methodName, "on Invocation #" + stri(invocationIndex).trim() + ", expected arg #" + stri(i).trim() + "  to be '" + rooibos.common.asString(expected, true) + "' got '" + rooibos.common.asString(value, true) + "')")
                   m.cleanMocks()
                   return
                 end if
@@ -2068,6 +2254,7 @@ namespace rooibos
         mock.target.__mocks = invalid
       end for
       m.mocks = invalid
+      rooibos.resetMocksByFunctionName()
     end function
 
     ' /**
@@ -2086,6 +2273,7 @@ namespace rooibos
         stub.target.__stubs = invalid
       end for
       m.stubs = invalid
+      rooibos.resetMocksByFunctionName()
     end function
 
 
@@ -2456,6 +2644,31 @@ namespace rooibos
       wait(delay, port)
     end function
 
+    function setAsync(isAsync as boolean)
+      ? "Setting current test to async " isAsync
+      m.top.rooibosTestIsAsync = isAsync
+    end function
+
+    function done()
+      ' ? "Async test is complete"
+      if m.isDoneCalled = false
+        m.isDoneCalled = true
+        m.top.rooibosTestFinished = true
+      else
+        ? "WARNING - extra done call after test is done ! Did you properly clean up your observers?"
+      end if
+    end function
+
+    function testSuiteDone()
+      ' ? "Async suite is complete"
+      m.top.rooibosSuiteFinished = true
+    end function
+
+    function testGroupDone()
+      ? "Async group is complete"
+      m.top.rooibosGroupFinished = true
+    end function
+
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)
       try
         if m.currentResult.isFail
@@ -2503,4 +2716,33 @@ namespace rooibos
 
   end class
 
+
+  function onGroupComplete()
+    ' ? "++++++++ THE GROUP COMPLETED"
+    m.testRunner.currentTestSuite.onAsyncGroupComplete()
+  end function
+
+  function onTestTimer()
+    ' ? "++++++++ TEST TIMED OUT"
+    m.testRunner.currentTestSuite.failBecauseOfTimeOut()
+  end function
+
+  function getMocksByFunctionName()
+    if m._rMocksByFunctionName = invalid
+      m._rMocksByFunctionName = {}
+    end if
+    return m._rMocksByFunctionName
+  end function
+
+  function resetMocksByFunctionName()
+    m._rMocksByFunctionName = invalid
+  end function
+
+  function getMockForFunction(functionName as string)
+    return rooibos.getMocksByFunctionName()[functionName]
+  end function
+
+  function isFunctionMocked(functionName as string)
+    return rooibos.getMockForFunction(functionName) <> invalid
+  end function
 end namespace

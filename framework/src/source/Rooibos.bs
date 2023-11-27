@@ -1,5 +1,5 @@
 namespace rooibos
-  function init() as void
+  function init(testSceneName = invalid) as void
     if createObject("roAPPInfo").IsDev() <> true
       ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
       return
@@ -8,9 +8,11 @@ namespace rooibos
     screen = CreateObject("roSGScreen")
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
-    testSceneName = "TestsScene"
+    if testSceneName = invalid or testSceneName = ""
+      testSceneName = "RooibosScene"
+    end if
 
-    ? "Starting test using test scene with name TestsScene" ; testSceneName
+    ? "Starting test using test scene with name RooibosScene" ; testSceneName
     scene = screen.CreateScene(testSceneName)
     scene.id = "ROOT"
     screen.show()
@@ -26,6 +28,11 @@ namespace rooibos
       ? "scene is ready; running tests now"
       runner = new rooibos.TestRunner(scene, m)
       runner.Run()
+
+      if runner.config.keepAppOpen = false
+        ? "keepAppOpen is false; exiting Rooibos"
+        return
+      end if
     end if
 
     while true

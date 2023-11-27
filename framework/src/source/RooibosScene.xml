@@ -1,5 +1,5 @@
 <component
-    name='TestsScene'
+    name='RooibosScene'
     extends='Scene'>
   <interface>
     <function name='Rooibos_CreateTestNode' />
@@ -19,7 +19,7 @@
       uri='source/rooibos/Matchers.bs' />
   <script
       type='text/brighterscript'
-      uri='source/rooibos/Rooibos.bs' />
+      uri='source/rooibos/rooibos.bs' />
   <script
       type='text/brighterscript'
       uri='source/rooibos/RuntimeConfig.bs' />

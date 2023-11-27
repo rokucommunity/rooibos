@@ -1,0 +1,9 @@
+function globalSayHello(firstName = "" as string, lastName = "" as string)
+  return firstName + ", " + lastName
+end function
+
+namespace utils
+  function sayHello(firstName = "" as string, lastName = "" as string)
+    return firstName + ", " + lastName
+  end function
+end namespace

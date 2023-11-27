@@ -1,4 +1,4 @@
-import type { BrsFile, Statement, AnnotationExpression } from 'brighterscript';
+import type { AnnotationExpression, BrsFile, Statement } from 'brighterscript';
 import { diagnosticIllegalParams, diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined } from '../utils/Diagnostics';
 
 export enum AnnotationType {
@@ -16,6 +16,7 @@ export enum AnnotationType {
     Params = 'params',
     IgnoreParams = 'ignoreparams',
     SoloParams = 'onlyparams',
+    Async = 'async',
     Tags = 'tags',
     NoCatch = 'nocatch',
     NoEarlyExit = 'noearlyexit'
@@ -35,6 +36,7 @@ let annotationLookup = {
     params: AnnotationType.Params,
     ignoreparams: AnnotationType.IgnoreParams,
     onlyparams: AnnotationType.SoloParams,
+    async: AnnotationType.Async,
     tags: AnnotationType.Tags,
     nocatch: AnnotationType.NoCatch,
     noearlyexit: AnnotationType.NoEarlyExit
@@ -55,12 +57,15 @@ export class AnnotationParams {
         public isIgnore = false,
         public isSolo = false,
         public noCatch = false,
-        public noearlyexit = false
+        public noEarlyexit = false
     ) {
 
     }
 }
 export class RooibosAnnotation {
+    isAsync: boolean;
+    asyncTimeout: number;
+
     /**
      * Represents a group of comments which contain tags such as @only, @suite, @describe, @it etc
      * @param statement block of comments that contain annotations to apply to the next statement
@@ -90,10 +95,12 @@ export class RooibosAnnotation {
         let blockAnnotation: RooibosAnnotation;
         let testAnnotation: RooibosAnnotation;
         let isSolo = false;
+        let async = false;
         let isIgnore = false;
         let noCatch = false;
         let noEarlyExit = false;
         let nodeName = null;
+        let asyncTimeout = -1;
         let tags = [] as string[];
         if (statement.annotations?.length) {
             let describeAnnotations = statement.annotations.filter((a) => getAnnotationType(a.name) === AnnotationType.Describe);
@@ -107,6 +114,11 @@ export class RooibosAnnotation {
                 switch (annotationType) {
                     case AnnotationType.NoEarlyExit:
                         noEarlyExit = true;
+                        break;
+                    case AnnotationType.Async:
+                        async = true;
+                        //ensure the arg is an integer, if not set to 2000
+                        asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : -1;
                         break;
                     case AnnotationType.NoCatch:
                         noCatch = true;
@@ -133,9 +145,13 @@ export class RooibosAnnotation {
                     case AnnotationType.TestSuite:
                         const groupName = annotation.getArguments()[0] as string;
                         blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch, noEarlyExit);
+                        blockAnnotation.isAsync = async;
+                        blockAnnotation.asyncTimeout = asyncTimeout === -1 ? 60000 : asyncTimeout;
                         nodeName = null;
                         isSolo = false;
                         isIgnore = false;
+                        async = false;
+                        asyncTimeout = -1;
                         break;
                     case AnnotationType.It:
                         const testName = annotation.getArguments()[0] as string;
@@ -143,6 +159,8 @@ export class RooibosAnnotation {
                             diagnosticNoTestNameDefined(file, annotation);
                         }
                         let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
+                        newAnnotation.isAsync = async;
+                        newAnnotation.asyncTimeout = asyncTimeout === -1 ? 2000 : asyncTimeout;
                         if (testAnnotation) {
                             diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
                         } else {
@@ -150,6 +168,8 @@ export class RooibosAnnotation {
                         }
                         isSolo = false;
                         isIgnore = false;
+                        async = false;
+                        asyncTimeout = -1;
                         break;
                     case AnnotationType.Params:
                     case AnnotationType.SoloParams:

@@ -26,6 +26,8 @@ namespace rooibos
       m.noCatch = data.noCatch
       m.funcName = data.funcName
       m.isIgnored = data.isIgnored
+      m.isAsync = data.isAsync
+      m.asyncTimeout = data.asyncTimeout
       m.name = data.name
       m.lineNumber = data.lineNumber
       m.paramLineNumber = data.paramLineNumber
@@ -42,8 +44,8 @@ namespace rooibos
     end function
 
     function run()
-      timer = createObject("roTimespan")
-      timer.mark()
+      rooibosTimer = createObject("roTimespan")
+      rooibosTimer.mark()
 
       if m.isParamTest
         m.runParamsTest()
@@ -51,7 +53,7 @@ namespace rooibos
         m.testSuite[m.funcName]()
       end if
 
-      m.result.time = timer.totalMilliseconds()
+      m.result.time = rooibosTimer.totalMilliseconds()
 
     end function
 

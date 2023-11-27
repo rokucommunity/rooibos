@@ -6,7 +6,12 @@ import type {
     TranspileObj,
     AstEditor,
     BeforeFileTranspileEvent,
-    PluginHandler
+    PluginHandler,
+    ClassStatement,
+    FunctionStatement,
+    Statement,
+    Scope,
+    BrsFile
 } from 'brighterscript';
 import {
     isBrsFile
@@ -16,12 +21,14 @@ import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 import * as minimatch from 'minimatch';
+import { MockUtil } from './lib/rooibos/MockUtil';
 
 export class RooibosPlugin implements CompilerPlugin {
 
     public name = 'rooibosPlugin';
     public session: RooibosSession;
     public codeCoverageProcessor: CodeCoverageProcessor;
+    public mockUtil: MockUtil;
     public fileFactory: FileFactory;
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
@@ -34,7 +41,8 @@ export class RooibosPlugin implements CompilerPlugin {
         this.fileFactory = new FileFactory(this.config);
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
-            this.codeCoverageProcessor = new CodeCoverageProcessor(builder);
+            this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
+            this.mockUtil = new MockUtil(builder, this.fileFactory, this.session);
         }
     }
     private getConfig(options: any) {
@@ -55,7 +63,19 @@ export class RooibosPlugin implements CompilerPlugin {
             config.showOnlyFailures = true;
         }
         if (config.isRecordingCodeCoverage === undefined) {
-            config.isRecordingCodeCoverage = true;
+            config.isRecordingCodeCoverage = false;
+        }
+        if (config.isGlobalMethodMockingEnabled === undefined) {
+            config.isGlobalMethodMockingEnabled = false;
+        }
+        if (config.isGlobalMethodMockingEfficientMode === undefined) {
+            config.isGlobalMethodMockingEfficientMode = true;
+        }
+        if (config.keepAppOpen === undefined) {
+            config.keepAppOpen = true;
+        }
+        if (config.testSceneName === undefined) {
+            config.testSceneName = 'RooibosScene';
         }
         //ignore roku modules by default
         if (config.includeFilters === undefined) {
@@ -63,6 +83,30 @@ export class RooibosPlugin implements CompilerPlugin {
                 '**/*.spec.bs',
                 '!**/BaseTestSuite.spec.bs',
                 '!**/roku_modules/**/*'];
+        }
+
+        const defaultCoverageExcluded = [
+            '**/*.spec.bs',
+            '**/roku_modules/**/*',
+            '**/source/main.bs',
+            '**/source/rooibos/**/*'
+        ];
+
+        // Set default coverage exclusions, or merge with defaults if available.
+        if (config.coverageExcludedFiles === undefined) {
+            config.coverageExcludedFiles = defaultCoverageExcluded;
+        } else {
+            config.coverageExcludedFiles.push(...defaultCoverageExcluded);
+        }
+
+        const defaultGlobalMethodMockingExcluded = [
+            '**/*.spec.bs',
+            '**/roku_modules/**/*',
+            '**/source/main.bs',
+            '**/source/rooibos/**/*'
+        ];
+        if (config.globalMethodMockingExcludedFiles === undefined) {
+            config.globalMethodMockingExcludedFiles = defaultGlobalMethodMockingExcluded;
         }
 
         return config;
@@ -85,19 +129,17 @@ export class RooibosPlugin implements CompilerPlugin {
 
         // console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
-            if (this.session.processFile(file)) {
-                //
-            } else {
-                this.codeCoverageProcessor.addCodeCoverage(file);
-            }
+            this.session.processFile(file);
         }
     }
 
-    beforePublish() { }
-
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.addTestRunnerMetadata(editor);
-        this.session.addLaunchHook(editor);
+        this.session.prepareForTranspile(editor, program, this.mockUtil);
+    }
+
+    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        this.session.addLaunchHookFileIfNotPresent();
+        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
     }
 
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
@@ -111,7 +153,7 @@ export class RooibosPlugin implements CompilerPlugin {
             testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any);
+                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any, this.session.namespaceLookup);
                 }
             }
             if (testSuite.isNodeTest) {
@@ -119,14 +161,17 @@ export class RooibosPlugin implements CompilerPlugin {
             }
         }
 
-        this.session.createNodeFiles(this._builder.program);
+        if (isBrsFile(event.file)) {
+            if (this.shouldAddCodeCoverageToFile(event.file)) {
+                this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
+            }
+            if (this.shouldEnableGlobalMocksOnFile(event.file)) {
+                this.mockUtil.enableGlobalMethodMocks(event.file, event.editor);
+            }
+        }
     }
 
-    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.removeRooibosMain();
-    }
-
-    afterProgramValidate() {
+    afterProgramValidate(program: Program) {
         // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
@@ -151,6 +196,37 @@ export class RooibosPlugin implements CompilerPlugin {
         // console.log('including ', file.pkgPath);
         return true;
     }
+    shouldAddCodeCoverageToFile(file: BscFile) {
+        if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
+            return false;
+        } else if (!this.config.coverageExcludedFiles) {
+            return true;
+        } else {
+            for (let filter of this.config.coverageExcludedFiles) {
+                if (minimatch(file.pkgPath, filter)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    shouldEnableGlobalMocksOnFile(file: BscFile) {
+        if (!isBrsFile(file) || !this.config.isGlobalMethodMockingEnabled) {
+            return false;
+        } else if (!this.config.globalMethodMockingExcludedFiles) {
+            return true;
+        } else {
+            for (let filter of this.config.globalMethodMockingExcludedFiles) {
+                if (minimatch(file.pkgPath, filter)) {
+                    // console.log('±±±skipping file', file.pkgPath);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 }
 
 export default () => {
