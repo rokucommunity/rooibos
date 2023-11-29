@@ -277,7 +277,7 @@ The following annotations are supported.
 | Annotation                  | Description                                                                                                                                                                                                                                                                                                   | Data                                                                                              |
 |-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
 | @suite                      | Indicates a file is a test suite. Required.                                                                                                                                                                                                                                                                   | Name of the test suite. Used in test output                                                       |
-| @SGNode                     | Indicates that a test will run in a node. Rooibos plugin will automatically generate the test node and inject all the test code                                                                                                                                                                               | Name of the component to extend to run tests                                                      |
+| @SGNode                     | Indicates that a test will run in a node. Rooibos plugin will automatically generate the test node and inject all the test code. Note you have to have `     "autoImportComponentScript": true,` in your bsconfig.json, for this style of testing to work.                                                    | Name of the component to extend to run tests                                                      |
 | @setup                      | Run once when the suite, or describe group is executed <a name="common-tdd-methods"></a>.                                                                                                                                                                                                                     |                                                                                                   |
 | @tearDown                   | Run once when the suite or describe group is finished                                                                                                                                                                                                                                                         |                                                                                                   |
 | @beforeEach                 | Run before each test. Can be specified for the `@suite`, or for each `@it` group                                                                                                                                                                                                                              |                                                                                                   |
@@ -987,6 +987,8 @@ However, it is useful to be able to test whole real nodes, with observes, and pr
 
 In the following example, the tests will be run in a new (auto-generated) component that extends `NodeExample` component.
 
+**NOTE:** you have to have `     "autoImportComponentScript": true,` in your bsconfig.json, for this style of testing to work.
+
 ```
 namespace Tests
   @SGNode NodeExample
@@ -1045,6 +1047,8 @@ Calling done multiple times _should_ have no effect; but delayed calls to done, 
 You should remove any observers and cancel any tasks, etc, in your test cleanup (e.g. afterEach or tearDown methods)
 
 #### Example
+
+**NOTE:** you have to have `     "autoImportComponentScript": true,` in your bsconfig.json, for this style of testing to work.
 
 ```
 namespace tests
