@@ -15,7 +15,9 @@
         1107,
         1009
       ]
-    }
+    },
+    1128,
+    1001
   ],
   "plugins": [
     "../bsc-plugin/src/plugin.ts"
