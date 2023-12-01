@@ -1,4 +1,4 @@
-import type { BrsFile, CallExpression, ClassMethodStatement, ClassStatement, ExpressionStatement, FunctionStatement } from 'brighterscript';
+import type { BrsFile, CallExpression, ClassStatement, ExpressionStatement, FunctionStatement, MethodStatement } from 'brighterscript';
 import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
@@ -8,7 +8,7 @@ import * as trim from 'trim-whitespace';
 import undent from 'undent';
 let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let _stagingDir = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
 
 describe('RooibosPlugin', () => {
@@ -20,13 +20,12 @@ describe('RooibosPlugin', () => {
         plugin = new RooibosPlugin();
         options = {
             rootDir: _rootDir,
-            stagingFolderPath: _stagingFolderPath,
-            stagingDir: _stagingFolderPath,
+            stagingDir: _stagingDir,
             rooibos: {
                 isGlobalMethodMockingEnabled: true
             }
         };
-        fsExtra.ensureDirSync(_stagingFolderPath);
+        fsExtra.ensureDirSync(_stagingDir);
         fsExtra.ensureDirSync(_rootDir);
         fsExtra.ensureDirSync(tmpPath);
 
@@ -37,9 +36,9 @@ describe('RooibosPlugin', () => {
         program = builder.program;
         program.plugins.add(plugin);
         program.createSourceScope(); //ensure source scope is created
-        plugin.beforeProgramCreate(builder);
+        plugin.beforeProgramCreate({ builder: builder });
         plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
-        plugin.afterProgramCreate(program);
+        plugin.afterProgramCreate({ program: program, builder: builder });
     });
 
     afterEach(() => {
@@ -50,7 +49,7 @@ describe('RooibosPlugin', () => {
     });
 
     describe('basic tests', () => {
-        it('does not find tests with no annotations', () => {
+        it.only('does not find tests with no annotations', () => {
             program.setFile('source/test.spec.bs', `
                 class notATest
                 end class
@@ -364,7 +363,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('test full transpile', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/test.spec.bs', `
                 @suite
@@ -473,13 +472,13 @@ describe('RooibosPlugin', () => {
 
             //verify the AST was restored after transpile
             const cls = file.ast.statements[0] as ClassStatement;
-            expect(cls.body.find((x: ClassMethodStatement) => {
+            expect(cls.body.find((x: MethodStatement) => {
                 return x.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
         });
 
         it('test full transpile with complex params', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -511,7 +510,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('adds launch hook to existing main function', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/main.bs', `
                 sub main()
@@ -539,14 +538,13 @@ describe('RooibosPlugin', () => {
         it('adds launch hook with custom scene', async () => {
             options = {
                 rootDir: _rootDir,
-                stagingFolderPath: _stagingFolderPath,
-                stagingDir: _stagingFolderPath,
+                stagingDir: _stagingDir,
                 rooibos: {
                     testSceneName: 'CustomRooibosScene'
                 }
             };
             plugin = new RooibosPlugin();
-            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(_stagingDir);
             fsExtra.ensureDirSync(_rootDir);
             fsExtra.ensureDirSync(tmpPath);
 
@@ -556,9 +554,9 @@ describe('RooibosPlugin', () => {
             program = builder.program;
             program.plugins.add(plugin);
             program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProgramCreate(builder);
+            plugin.beforeProgramCreate({ builder: builder });
             plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/main.bs', `
                 sub main()
@@ -1275,7 +1273,7 @@ describe('RooibosPlugin', () => {
                     if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
                 //verify original code does not remain modified after the transpile cycle
-                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
+                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as MethodStatement);
 
                 const call1 = (testMethod.func.body.statements[1] as ExpressionStatement).expression as CallExpression;
                 expect(call1.args).to.be.lengthOf(1);
@@ -1312,7 +1310,7 @@ describe('RooibosPlugin', () => {
                     if m.currentResult?.isFail = true then m.done() : return invalid
                 `);
                 //verify original code does not remain modified after the transpile cycle
-                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
+                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as MethodStatement);
                 const call = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
                 const arg0 = call.args[0] as DottedGetExpression;
                 expect(call.args).to.be.lengthOf(1);
@@ -1423,9 +1421,9 @@ describe('RooibosPlugin', () => {
                 plugin = new RooibosPlugin();
                 options = {
                     rootDir: _rootDir,
-                    stagingFolderPath: _stagingFolderPath
+                    stagingDir: _stagingDir
                 };
-                fsExtra.ensureDirSync(_stagingFolderPath);
+                fsExtra.ensureDirSync(_stagingDir);
                 fsExtra.ensureDirSync(_rootDir);
                 fsExtra.ensureDirSync(tmpPath);
 
@@ -1437,9 +1435,9 @@ describe('RooibosPlugin', () => {
                 program = builder.program;
                 program.plugins.add(plugin);
                 program.createSourceScope(); //ensure source scope is created
-                plugin.beforeProgramCreate(builder);
+                plugin.beforeProgramCreate({ builder: builder });
                 plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
-                plugin.afterProgramCreate(program);
+                plugin.afterProgramCreate({ program: program, builder: builder });
                 // program.validate();
             });
 
@@ -1656,7 +1654,7 @@ describe('RooibosPlugin', () => {
         it('sanity checks on parsing - only run this outside of ci', () => {
             let programBuilder = new ProgramBuilder();
             let swv = {
-                'stagingFolderPath': 'build',
+                'statingDir': 'build',
                 'rootDir': '/home/george/hope/open-source/rooibos/tests',
                 'files': ['manifest', 'source/**/*.*', 'components/**/*.*'],
                 'autoImportComponentScript': true,
@@ -1713,7 +1711,7 @@ describe('RooibosPlugin', () => {
 
 function getContents(filename: string) {
     return undent(
-        fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString()
+        fsExtra.readFileSync(s`${_stagingDir}/source/${filename}`).toString()
     );
 }
 

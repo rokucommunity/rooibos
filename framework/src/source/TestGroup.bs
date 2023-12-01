@@ -27,6 +27,10 @@ namespace rooibos
     testsData = invalid
     tests = []
 
+    private testRunner
+    private testTimer
+    private currentTest
+
     function new(testSuite, data)
       m.testSuite = testSuite
       m.name = data.name

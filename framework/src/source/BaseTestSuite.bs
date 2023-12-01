@@ -2,7 +2,7 @@ namespace rooibos
   ' /**
   '  * @module TestSuite
   '  * @description All brs files that include `'@TestSuite` annotations automatically extend the TestSuite.
-  '  * The base test suite contains all of the assertions, and utility methods required to writey our tests, as well as being responsible for tracking the state of the tests and groups.
+  '  * The base test suite contains all of the assertions, and utility methods required to write your tests, as well as being responsible for tracking the state of the tests and groups.
   '  */
   class BaseTestSuite
 
@@ -22,7 +22,12 @@ namespace rooibos
     protected groups = []
     protected groupsData = []
     protected stats = invalid
+    protected tests = invalid
     protected currentAssertLineNumber = -1
+    protected currentGroupIndex = 0
+    protected currentGroup = invalid
+    protected testTimer = invalid
+    protected currentTimeout = invalid
     protected valid = false
     protected hasFailures = false
     protected hasSoloGroups = false
@@ -51,6 +56,11 @@ namespace rooibos
 
     protected global = invalid
     protected catchCrashes = false
+    protected isAsync = false
+    protected testRunner as rooibos.TestRunner
+    protected errorToThrow
+    protected top
+    protected isDoneCalled = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ base methods to override
@@ -855,7 +865,7 @@ namespace rooibos
     '  * @instance
     '  * @description Fail if the array doesn't have the item subset.
     '  * @param {Dynamic} array - target array
-    '  * @param {Dynamic} subset - items to check presnece of
+    '  * @param {Dynamic} subset - items to check presence of
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
@@ -900,7 +910,7 @@ namespace rooibos
     '  * @instance
     '  * @description Fail if the array have the item from subset.
     '  * @param {Dynamic} array - target array
-    '  * @param {Dynamic} subset - items to check presnece of
+    '  * @param {Dynamic} subset - items to check presence of
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
@@ -1726,7 +1736,7 @@ namespace rooibos
     '  */
     function stub(target, methodName, returnValue = invalid, allowNonExistingMethods = false) as object
       if target = invalid and not rooibos.common.isFunction(methodName)
-        m.fail("could not create Stub. Global function", methodName, ", is invalid")
+        m.fail(`could not create Stub. Global function ${methodName} is invalid`)
         return {}
       else if type(target) <> "roAssociativeArray"
         m.fail("could not create Stub provided target was null")
@@ -1775,7 +1785,7 @@ namespace rooibos
         mock = m.mocks[m.__mockId.toStr()]
         mock.toThrow(error)
       catch error
-        m.log.error("could not add throw to last call", error)
+        ? "could not add throw to last call" error
       end try
     end function
 
@@ -1850,15 +1860,15 @@ namespace rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-    'HACK
-    'HACK
-    'HACK
-    'HACK
-    'HACK
+      'HACK
+      'HACK
+      'HACK
+      'HACK
+      'HACK
       ' try
-        return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
+      return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
       ' catch error
-        'bs:disable-next-line
+      'bs:disable-next-line
       '   m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
       '   return false
       ' end try
@@ -1870,7 +1880,7 @@ namespace rooibos
     '  * @name expectOnceOrNone
     '  * @function
     '  * @instance
-    '  * @description Toggles between expectOnce and expectNone, to allow for easy paremeterized expect behaviour
+    '  * @description Toggles between expectOnce and expectNone, to allow for easy parameterized expect behavior
     '  * @param {Dynamic} target - object on which the method to be stubbed is found
     '  * @param {Dynamic} methodName - name of method to stub
     '  * @param {Dynamic} isExpected - if true, then this is the same as expectOnce, if false, then this is the same as expectNone
@@ -1958,7 +1968,7 @@ namespace rooibos
 
       if target <> invalid and not rooibos.common.isFunction(target) and not rooibos.common.isAssociativeArray(target)
         methodName = ""
-        m.mockFail(lineNumber, "", "mock args: target should be an AA or in-scope Global function", methodName)
+        m.mockFail(lineNumber, "", `mock args: target should be an AA or in-scope Global function ${methodName}`)
       else if not rooibos.common.isString(methodName)
         methodName = ""
         m.mockFail(lineNumber, "", "mock args: methodName was not a string")

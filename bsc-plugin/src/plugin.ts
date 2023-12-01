@@ -4,17 +4,21 @@ import type {
     Program,
     ProgramBuilder,
     TranspileObj,
-    AstEditor,
-    BeforeFileTranspileEvent,
+    Editor,
+    BeforePrepareProgramEvent,
+    AfterProgramCreateEvent,
+    BeforeProgramCreateEvent,
+    AfterProgramValidateEvent,
+    BeforeSerializeFileEvent,
+    File,
     PluginHandler,
-    ClassStatement,
-    FunctionStatement,
-    Statement,
-    Scope,
-    BrsFile
+    BeforePrepareFileEvent,
+    AfterSerializeProgramEvent,
+    AfterProvideFileEvent,
+    AfterFileAddEvent
 } from 'brighterscript';
 import {
-    isBrsFile
+    isBrsFile, isXmlFile
 } from 'brighterscript';
 import { RooibosSession } from './lib/rooibos/RooibosSession';
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
@@ -33,8 +37,9 @@ export class RooibosPlugin implements CompilerPlugin {
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
 
-    beforeProgramCreate(builder: ProgramBuilder): void {
-        this._builder = builder;
+    beforeProgramCreate(event: BeforeProgramCreateEvent): void {
+        const builder = event.builder;
+        this._builder = event.builder;
 
         this.config = this.getConfig((builder.options as any).rooibos || {});
 
@@ -112,13 +117,17 @@ export class RooibosPlugin implements CompilerPlugin {
         return config;
     }
 
-    afterProgramCreate(program: Program) {
-        this.fileFactory.addFrameworkFiles(program);
+    afterProgramCreate(event: AfterProgramCreateEvent) {
+        this.fileFactory.addFrameworkFiles(event.program);
     }
 
-    afterFileParse(file: BscFile): void {
+    afterFileAdd(event: AfterFileAddEvent) {
         // console.log('afp', file.pkgPath);
-        if (file.pathAbsolute.includes('/rooibos/bsc-plugin/dist/framework')) {
+        const file = event.file;
+        if (!isBrsFile(file) && !isXmlFile(file)) {
+            return;
+        }
+        if (file.srcPath.includes('/rooibos/bsc-plugin/dist/framework')) {
             // eslint-disable-next-line @typescript-eslint/dot-notation
             file['diagnostics'] = [];
             return;
@@ -133,16 +142,20 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.prepareForTranspile(editor, program, this.mockUtil);
+    beforePrepareProgram(event: BeforePrepareProgramEvent) {
+        this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
     }
 
-    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+    afterSerializeProgram(event: AfterSerializeProgramEvent) {
         this.session.addLaunchHookFileIfNotPresent();
-        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
+        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, event.program);
     }
 
-    beforeFileTranspile(event: BeforeFileTranspileEvent) {
+    beforePrepareFile(event: BeforePrepareFileEvent) {
+        const file = event.file;
+        if (!isBrsFile(file) && !isXmlFile(file)) {
+            return;
+        }
         let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
         if (testSuite) {
             let noEarlyExit = testSuite.annotation.noEarlyExit;
@@ -171,7 +184,7 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    afterProgramValidate(program: Program) {
+    afterProgramValidate(event: AfterProgramValidateEvent) {
         // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
@@ -188,7 +201,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.includeFilters) {
-                if (!minimatch(file.pathAbsolute, filter)) {
+                if (!minimatch(file.srcPath, filter)) {
                     return false;
                 }
             }

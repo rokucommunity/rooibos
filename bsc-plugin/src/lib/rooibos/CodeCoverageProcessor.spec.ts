@@ -7,7 +7,7 @@ import { RooibosPlugin } from '../../plugin';
 
 let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let _stagingDir = s`${tmpPath}/staging`;
 
 function trimLeading(text: string) {
     return text.split('\n').map((line) => line.trimStart()).join('\n');
@@ -21,7 +21,7 @@ describe('RooibosPlugin', () => {
 
     function getContents(filename: string) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        return trimLeading(fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString());
+        return trimLeading(fsExtra.readFileSync(s`${_stagingDir}/${filename}`).toString());
     }
 
     describe('CodeCoverageProcessor', () => {
@@ -29,7 +29,7 @@ describe('RooibosPlugin', () => {
             plugin = new RooibosPlugin();
             options = {
                 rootDir: _rootDir,
-                stagingFolderPath: _stagingFolderPath,
+                stagingDir: _stagingDir,
                 rooibos: {
                     isRecordingCodeCoverage: true,
                     coverageExcludedFiles: [
@@ -38,7 +38,7 @@ describe('RooibosPlugin', () => {
                 },
                 allowBrighterScriptInBrightScript: true
             };
-            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(_stagingDir);
             fsExtra.ensureDirSync(_rootDir);
             fsExtra.ensureDirSync(tmpPath);
 
@@ -51,11 +51,11 @@ describe('RooibosPlugin', () => {
             builder.plugins = new PluginInterface([plugin], { logger: builder.logger });
             program.plugins = new PluginInterface([plugin], { logger: builder.logger });
             program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProgramCreate(builder);
+            plugin.beforeProgramCreate({ builder: builder });
 
         });
         afterEach(() => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             fsExtra.ensureDirSync(tmpPath);
             fsExtra.emptyDirSync(tmpPath);
             builder.dispose();

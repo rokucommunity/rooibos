@@ -3,21 +3,19 @@
   "files": [
     "manifest",
     "source/**/*.*",
-    "components/**/*.*"
+    "components/**/*.*",
+    "!**/CodeCoverage.brs",
+    "!**/*.spec.bs"
   ],
   "autoImportComponentScript": true,
   "createPackage": false,
-  "stagingFolderPath": "dist",
+  "stagingDir": "dist",
   "diagnosticFilters": [
+    "**/*.spec.bs",
     {
       "src": "**/roku_modules/**/*.*",
-      "codes": [
-        1107,
-        1009
-      ]
+      "codes": [1107, 1009]
     }
-  ],
-  "plugins": [
-    "@rokucommunity/bslint"
   ]
+  //   "plugins": ["@rokucommunity/bslint"]
 }

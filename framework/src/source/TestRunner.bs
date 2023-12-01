@@ -16,8 +16,10 @@ namespace rooibos
     public config = invalid
     public testSuites = []
     private runtimeConfig = invalid
+    private currentTestSuite = invalid
     private stats = invalid
     private top = invalid
+    private testRunner = invalid
 
     public function new(testScene, nodeContext)
       m.testScene = testScene

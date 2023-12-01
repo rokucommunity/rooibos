@@ -63,7 +63,7 @@ end function
     private coverageMap: Map<number, number>;
     private fileFactory: FileFactory;
     private processedStatements: Set<Statement>;
-    private astEditor: Editor;
+    private editor: Editor;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
         if (isUsingCoverage) {
@@ -71,19 +71,19 @@ end function
         }
     }
 
-    public addCodeCoverage(file: BrsFile, astEditor: Editor) {
+    public addCodeCoverage(file: BrsFile, editor: Editor) {
         if (this.config.isRecordingCodeCoverage) {
             this.transpileState = new BrsTranspileState(file);
-            this._processFile(file, astEditor);
+            this._processFile(file, editor);
         }
     }
 
-    public _processFile(file: BrsFile, astEditor: Editor) {
+    public _processFile(file: BrsFile, editor: Editor) {
         this.fileId++;
         this.coverageMap = new Map<number, number>();
         this.executableLines = new Map<number, Statement>();
         this.processedStatements = new Set<Statement>();
-        this.astEditor = astEditor;
+        this.editor = editor;
 
         file.ast.walk(createVisitor({
             ForStatement: (ds, parent, owner, key) => {
@@ -170,7 +170,7 @@ end function
         const lineNumber = statement.range.start.line;
         this.coverageMap.set(lineNumber, coverageType);
         const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
-        this.astEditor.arraySplice(owner, key, 0, parsed);
+        this.editor.arraySplice(owner, key, 0, parsed);
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
     }

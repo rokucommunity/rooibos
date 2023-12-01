@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "5.8.0",
+    "version": "6.0.0-wip",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "repository": {
         "type": "git",
@@ -28,7 +28,7 @@
         "@typescript-eslint/eslint-plugin": "^5.27.0",
         "@typescript-eslint/parser": "^5.27.0",
         "cz-conventional-changelog": "^3.3.0",
-        "brighterscript": "^0.61.3",
+        "brighterscript": "^0.66.0-alpha.9",
         "chai": "^4.2.0",
         "chai-subset": "^1.6.0",
         "coveralls": "^3.0.0",

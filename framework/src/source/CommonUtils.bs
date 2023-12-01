@@ -57,7 +57,7 @@ namespace rooibos.common
       if type(map) = "roAssociativeArray"
         'bs:disable-next-line
         functionPointer = map[functionName]
-        'bs:disable-next-linenrb
+        'bs:disable-next-line
         return functionPointer
       else
         return invalid
@@ -519,7 +519,7 @@ namespace rooibos.common
   '  * @memberof module:CommonUtils
   '  * @param {Dynamic} array - array to search
   '  * @param {Dynamic} value - value to check
-  '  * @param {Dynamic} compareAttribute - attribue to use for comparisons
+  '  * @param {Dynamic} compareAttribute - attribute to use for comparisons
   '  * @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
   '  * @returns {Integer} - element index if array contains a value, else return -1
   '  */
@@ -536,7 +536,7 @@ namespace rooibos.common
           compareValue = compareValue.lookupCI(compareAttribute)
         end if
 
-        if rooibos.common.eqValues(compareValue, value, callCount + 1)
+        if rooibos.common.eqValues(compareValue, value, false, callCount + 1)
           return i
         end if
       next
@@ -637,7 +637,7 @@ namespace rooibos.common
   '  * @name EqValues
   '  * @function
   '  * @instance
-  '  * @description Compare two arbtrary values to eachother.
+  '  * @description Compare two arbitrary values to eachother.
   '  * @param {Dynamic} Value1 - first item to compare
   '  * @param {Dynamic} Value2 - second item to compare
   '  * @returns {boolean} - True if values are equal or False in other case.
@@ -648,7 +648,7 @@ namespace rooibos.common
       return true
     end if
 
-    ' Workaraund for bug with string boxing, and box everything else
+    ' Workaround for bug with string boxing, and box everything else
     val1Type = rooibos.common.getSafeType(Value1)
     val2Type = rooibos.common.getSafeType(Value2)
     if val1Type = invalid or val2Type = invalid

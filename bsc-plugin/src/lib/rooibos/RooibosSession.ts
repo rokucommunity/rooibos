@@ -1,7 +1,7 @@
 import * as path from 'path';
 import type { BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
 import { isBrsFile, ParseMode, util } from 'brighterscript';
-import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
+import type { Editor } from 'brighterscript/dist/astUtils/Editor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
@@ -52,7 +52,7 @@ export class RooibosSession {
         this.sessionInfo = new SessionInfo(this.config);
     }
 
-    prepareForTranspile(editor: AstEditor, program: Program, mockUtil: MockUtil) {
+    prepareForTranspile(editor: Editor, program: Program, mockUtil: MockUtil) {
         this.addTestRunnerMetadata(editor);
         this.addLaunchHookToExistingMain(editor);
         if (this.config.isGlobalMethodMockingEnabled && this.config.isGlobalMethodMockingEfficientMode) {
@@ -76,7 +76,7 @@ export class RooibosSession {
         return testSuites;
     }
 
-    addLaunchHookToExistingMain(editor: AstEditor) {
+    addLaunchHookToExistingMain(editor: Editor) {
         let mainFunction: FunctionStatement;
         const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
@@ -105,19 +105,19 @@ export class RooibosSession {
             }
         }
         if (!mainFunction) {
-            diagnosticWarnNoMainFound(files[0]);
-            if (!this._builder.options.stagingDir && !this._builder.options.stagingFolderPath) {
+            diagnosticWarnNoMainFound(files.find(isBrsFile));
+            if (!this._builder.options.stagingDir && !this._builder.options.stagingDir) {
                 console.error('this plugin requires that stagingDir or the deprecated stagingFolderPath bsconfig option is set');
-                diagnosticNoStagingDir(files[0]);
+                diagnosticNoStagingDir(files.find(isBrsFile));
             } else {
-                const filePath = path.join(this._builder.options.stagingDir ?? this._builder.options.stagingFolderPath, 'source/rooibosMain.brs');
+                const filePath = path.join(this._builder.options.stagingDir ?? this._builder.options.stagingDir, 'source/rooibosMain.brs');
                 fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
 
             }
         }
     }
 
-    addTestRunnerMetadata(editor: AstEditor) {
+    addTestRunnerMetadata(editor: Editor) {
         let runtimeConfig = this._builder.program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
             let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
@@ -129,7 +129,7 @@ export class RooibosSession {
         }
     }
 
-    updateRunTimeConfigFunction(classStatement: ClassStatement, editor: AstEditor) {
+    updateRunTimeConfigFunction(classStatement: ClassStatement, editor: Editor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getRuntimeConfig');
         if (method) {
             editor.addToArray(
@@ -153,7 +153,7 @@ export class RooibosSession {
         }
     }
 
-    updateVersionTextFunction(classStatement: ClassStatement, editor: AstEditor) {
+    updateVersionTextFunction(classStatement: ClassStatement, editor: Editor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getVersionText');
         if (method) {
             editor.addToArray(
@@ -164,7 +164,7 @@ export class RooibosSession {
         }
     }
 
-    updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
+    updateClassLookupFunction(classStatement: ClassStatement, editor: Editor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement(undent`
@@ -177,7 +177,7 @@ export class RooibosSession {
         }
     }
 
-    updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
+    updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: Editor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement([
@@ -195,6 +195,7 @@ export class RooibosSession {
         }
     }
 
+    //MOVE TO FILES API - serializeProgram, like in maestro plugin
     createNodeFile(program: Program, suite: TestSuite) {
         let p = path.join('components', 'rooibos', 'generated');
 
@@ -204,7 +205,6 @@ export class RooibosSession {
         let bsFile = program.getFile(bsPath);
         if (bsFile) {
             (bsFile as BrsFile).parser.statements.push();
-            bsFile.needsTranspiled = true;
         }
         let brsFile = this.fileFactory.addFile(program, bsPath, undent`
         import "pkg:/${suite.file.pkgPath}"
@@ -248,7 +248,7 @@ export class RooibosSession {
     }
 
 
-    private createIgnoredTestsInfoFunction(cs: ClassStatement, editor: AstEditor) {
+    private createIgnoredTestsInfoFunction(cs: ClassStatement, editor: Editor) {
         let method = cs.methods.find((m) => m.name.text === 'getIgnoredTestInfo');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement([

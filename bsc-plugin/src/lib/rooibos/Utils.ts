@@ -1,9 +1,9 @@
-import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression, AstEditor } from 'brighterscript';
+import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression, Editor } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import { SourceNode } from 'source-map';
 
-export function overrideAstTranspile(editor: AstEditor, node: Expression | Statement, value: string) {
+export function overrideAstTranspile(editor: Editor, node: Expression | Statement, value: string) {
     editor.setProperty(node, 'transpile', function transpile(this: Expression | Statement, state) {
         //indent every line with the current transpile indent level (except the first line, because that's pre-indented by bsc)
         let source = value.replace(/\r?\n/g, (match, newline) => {
@@ -19,7 +19,7 @@ export function overrideAstTranspile(editor: AstEditor, node: Expression | State
     });
 }
 
-export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: Editor): boolean {
     let functionSource = `
         function ${name}()
             ${source}
@@ -36,7 +36,7 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
             let n = brighterscript.createIdentifier(name, target.range);
             let method = new brighterscript.ClassMethodStatement(p, n, statement.func, o);
             //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
-            //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
+            //trigger that functionality BEFORE performing Editor operations. TODO remove this whenever bsc stops doing this.
             // eslint-disable-next-line @typescript-eslint/dot-notation
             target['ensureConstructorFunctionExists']?.();
             editor.addToArray(target.body, target.body.length, method);

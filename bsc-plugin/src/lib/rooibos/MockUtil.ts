@@ -40,18 +40,18 @@ export class MockUtil {
     private filePathMap: any;
     private fileFactory: FileFactory;
     private processedStatements: Set<brighterscript.FunctionStatement>;
-    private astEditor: Editor;
+    private editor: Editor;
 
-    enableGlobalMethodMocks(file: BrsFile, astEditor: Editor) {
+    enableGlobalMethodMocks(file: BrsFile, editor: Editor) {
         if (this.config.isGlobalMethodMockingEnabled) {
-            this._processFile(file, astEditor);
+            this._processFile(file, editor);
         }
     }
 
-    _processFile(file: BrsFile, astEditor: Editor) {
+    _processFile(file: BrsFile, editor: Editor) {
         this.fileId++;
         this.processedStatements = new Set<brighterscript.FunctionStatement>();
-        this.astEditor = astEditor;
+        this.editor = editor;
         // console.log('processing global methods on ', file.pkgPath);
         for (let fs of file.parser.references.functionStatements) {
             this.enableMockOnFunction(fs);
@@ -89,7 +89,7 @@ export class MockUtil {
         const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
 
         const returnStatement = ((functionStatement.func.functionType?.kind === brighterscript.TokenKind.Sub && (functionStatement.func.returnTypeToken === undefined || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void)) || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
-        this.astEditor.addToArray(functionStatement.func.body.statements, 0, new RawCodeStatement(undent`
+        this.editor.addToArray(functionStatement.func.body.statements, 0, new RawCodeStatement(undent`
             if RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
                 result = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
                 ${returnStatement}

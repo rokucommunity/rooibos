@@ -1,10 +1,10 @@
-import type { BrsFile, ClassStatement, FunctionStatement, Statement, BscFile, AnnotationExpression } from 'brighterscript';
+import type { BrsFile, ClassStatement, FunctionStatement, Statement, File, AnnotationExpression, XmlFile } from 'brighterscript';
 import { DiagnosticSeverity, Range } from 'brighterscript';
 
 import type { AnnotationType, RooibosAnnotation } from '../rooibos/Annotation';
 
 function addDiagnostic(
-    file: BscFile,
+    file: BrsFile | XmlFile,
     code: number,
     message: string,
     startLine = 0,
@@ -30,7 +30,7 @@ function addDiagnosticForStatement(
 }
 
 function addDiagnosticForAnnotation(
-    file: BscFile,
+    file: BrsFile | XmlFile,
     code: number,
     message: string,
     annotation: AnnotationExpression,
@@ -44,7 +44,7 @@ function addDiagnosticForAnnotation(
 }
 
 function createDiagnostic(
-    bscFile: BscFile,
+    file: BrsFile | XmlFile,
     code: number,
     message: string,
     startLine = 0,
@@ -57,7 +57,7 @@ function createDiagnostic(
         code: `RBS${code}`,
         message: message,
         range: Range.create(startLine, startCol, endLine, endCol),
-        file: bscFile,
+        file: file,
         severity: severity
     };
     return diagnostic;
@@ -183,7 +183,7 @@ export function diagnosticErrorProcessingFile(file: BrsFile, message: string) {
     );
 }
 
-export function diagnosticErrorNoMainFound(file: BscFile) {
+export function diagnosticErrorNoMainFound(file: BrsFile | XmlFile) {
     addDiagnostic(
         file,
         2213,
@@ -255,7 +255,7 @@ export function diagnosticCorruptTestProduced(file: BrsFile, annotation: Annotat
     );
 }
 
-export function diagnosticNoStagingDir(file: BscFile) {
+export function diagnosticNoStagingDir(file: BrsFile | XmlFile) {
     addDiagnostic(
         file,
         2221,

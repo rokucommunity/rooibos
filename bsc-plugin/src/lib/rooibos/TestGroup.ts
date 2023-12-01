@@ -1,4 +1,4 @@
-import type { AstEditor, CallExpression, DottedGetExpression, Expression } from 'brighterscript';
+import type { Editor, CallExpression, DottedGetExpression, Expression } from 'brighterscript';
 import { isCallExpression, isCallfuncExpression, isIndexedGetExpression, ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isLiteralExpression, isVariableExpression, isFunctionExpression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
@@ -50,7 +50,7 @@ export class TestGroup extends TestBlock {
         return [...this.testCases.values()];
     }
 
-    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>) {
+    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>) {
         //for each method
         //if assertion
         //wrap with if is not fail
@@ -95,7 +95,7 @@ export class TestGroup extends TestBlock {
         }
     }
 
-    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>) {
+    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>) {
         let isNotCalled = false;
         let isStubCall = false;
         if (isDottedGetExpression(callExpression.callee)) {
