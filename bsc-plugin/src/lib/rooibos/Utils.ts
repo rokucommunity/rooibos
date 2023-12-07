@@ -34,7 +34,7 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
             let p = brighterscript.createToken(brighterscript.TokenKind.Public, 'public', target.range);
             let o = brighterscript.createToken(brighterscript.TokenKind.Override, 'override', target.range);
             let n = brighterscript.createIdentifier(name, target.range);
-            let method = new brighterscript.ClassMethodStatement(p, n, statement.func, o);
+            let method = new brighterscript.MethodStatement(p, n, statement.func, o);
             //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
             //trigger that functionality BEFORE performing Editor operations. TODO remove this whenever bsc stops doing this.
             // eslint-disable-next-line @typescript-eslint/dot-notation

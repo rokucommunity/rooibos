@@ -4,10 +4,9 @@ import type { BrsFile, Editor, ExpressionStatement, Program, ProgramBuilder, Sta
 import { Parser, isIfStatement, Position, WalkMode, createVisitor } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
-import { RawCodeStatement } from './RawCodeStatement';
+import { RawCodeStatement, RawCodeExpression } from './RawCodeStatement';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { Range } from 'vscode-languageserver-types';
-import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
 
 export enum CodeCoverageLineType {

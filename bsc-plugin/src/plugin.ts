@@ -15,7 +15,9 @@ import type {
     BeforePrepareFileEvent,
     AfterSerializeProgramEvent,
     AfterProvideFileEvent,
-    AfterFileAddEvent
+    AfterFileAddEvent,
+    BeforeWriteProgramEvent,
+    AfterPrepareFileEvent
 } from 'brighterscript';
 import {
     isBrsFile, isXmlFile
@@ -147,11 +149,12 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     afterSerializeProgram(event: AfterSerializeProgramEvent) {
-        this.session.addLaunchHookFileIfNotPresent();
         this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, event.program);
+        this.session.addLaunchHookFileIfNotPresent(event);
     }
 
-    beforePrepareFile(event: BeforePrepareFileEvent) {
+    // beforePrepareFile(event: BeforePrepareFileEvent) {
+    afterPrepareFile(event: AfterPrepareFileEvent) {
         const file = event.file;
         if (!isBrsFile(file) && !isXmlFile(file)) {
             return;

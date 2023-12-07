@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
+import type { AfterSerializeProgramEvent, BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
 import { isBrsFile, ParseMode, util } from 'brighterscript';
 import type { Editor } from 'brighterscript/dist/astUtils/Editor';
 import type { RooibosConfig } from './RooibosConfig';
@@ -92,7 +92,7 @@ export class RooibosSession {
             editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
         }
     }
-    addLaunchHookFileIfNotPresent() {
+    addLaunchHookFileIfNotPresent(event: AfterSerializeProgramEvent) {
         let mainFunction: FunctionStatement;
         const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
@@ -106,13 +106,18 @@ export class RooibosSession {
         }
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files.find(isBrsFile));
-            if (!this._builder.options.stagingDir && !this._builder.options.stagingDir) {
-                console.error('this plugin requires that stagingDir or the deprecated stagingFolderPath bsconfig option is set');
+            if (!this._builder.options.stagingDir) {
+                console.error('this plugin requires that stagingDir bsconfig option is set');
                 diagnosticNoStagingDir(files.find(isBrsFile));
             } else {
-                const filePath = path.join(this._builder.options.stagingDir ?? this._builder.options.stagingDir, 'source/rooibosMain.brs');
-                fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
+                const mainPath = 'source/rooibosMain.brs';
+                const mainFile = {
+                    pkgPath: mainPath,
+                    data: Buffer.from(`function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`)
 
+                };
+
+                event.result.get(event.result.keys().next().value).push(mainFile);
             }
         }
     }

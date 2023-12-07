@@ -188,10 +188,10 @@ end namespace
             assertSuite(testSuite, 1);
             assertGroupCount(testSuite, 0, 1);
         });
-    });
 
-    it('class with 1 group 2 tests', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+
+        it('class with 1 group 2 tests', () => {
+            let testSuite = createTestSuite('test1.bs', `namespace Tests
 
   @suite("Rooibos assertion tests")
   class AssertionTests extends rooibos.BaseTestSuite
@@ -210,12 +210,12 @@ end namespace
 end class
 end namespace
       `);
-        assertSuite(testSuite, 1);
-        assertGroupCount(testSuite, 0, 2);
-    });
+            assertSuite(testSuite, 1);
+            assertGroupCount(testSuite, 0, 2);
+        });
 
-    it('class with 2 group, 1 test each', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+        it('class with 2 group, 1 test each', () => {
+            let testSuite = createTestSuite('test1.bs', `namespace Tests
 
     @suite("Rooibos assertion tests")
     class AssertionTests extends rooibos.BaseTestSuite
@@ -238,14 +238,14 @@ end namespace
     end class
     end namespace
     `);
-        assertSuite(testSuite, 2);
-        assertGroupCount(testSuite, 0, 1);
-        assertGroupCount(testSuite, 1, 1);
+            assertSuite(testSuite, 2);
+            assertGroupCount(testSuite, 0, 1);
+            assertGroupCount(testSuite, 1, 1);
 
-    });
+        });
 
-    it('class with 2 group, 1 test each - concise syntax', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+        it('class with 2 group, 1 test each - concise syntax', () => {
+            let testSuite = createTestSuite('test1.bs', `namespace Tests
 
     @suite("Rooibos assertion tests")
     class AssertionTests extends rooibos.BaseTestSuite
@@ -264,81 +264,85 @@ end namespace
     end class
     end namespace
     `);
-        assertSuite(testSuite, 2);
-        assertGroupCount(testSuite, 0, 1);
-        assertGroupCount(testSuite, 1, 1);
+            assertSuite(testSuite, 2);
+            assertGroupCount(testSuite, 0, 1);
+            assertGroupCount(testSuite, 1, 1);
+
+        });
+
+
+        it('Valid params', () => {
+            let testSuite = createTestSuite('test1.bs', `namespace Tests
+
+        @suite("Rooibos assertion tests")
+        class AssertionTests extends rooibos.BaseTestSuite
+
+        @describe("group1")
+
+        @it("one")
+        @params(true, "one")
+        function test_one(v1, v2)
+        end function
+        end class
+        end namespace
+        `);
+            assertSuite(testSuite, 1);
+            assertGroupCount(testSuite, 0, 1);
+            assertParamTestCase(testSuite, 0, 0, 0);
+        });
+
+        it('Valid params 2 params', () => {
+            let testSuite = createTestSuite('test1.bs', `namespace Tests
+
+        @suite("Rooibos assertion tests")
+        class AssertionTests extends rooibos.BaseTestSuite
+
+        @describe("group1")
+
+        @it("one")
+        @params(true, "one")
+        @params(true, "one")
+        function test_one(v1, v2)
+        end function
+        end class
+        end namespace
+        `);
+            assertSuite(testSuite, 1);
+            assertGroupCount(testSuite, 0, 2);
+            assertParamTestCase(testSuite, 0, 0, 0);
+            assertParamTestCase(testSuite, 0, 1, 1);
+        });
+
+        it('Valid params 5 params', () => {
+            let testSuite = createTestSuite('test1.bs', `namespace Tests
+
+        @suite("Rooibos assertion tests")
+        class AssertionTests extends rooibos.BaseTestSuite
+
+        @describe("group1")
+
+        @it("one")
+        @params(true, "1")
+        @params(true, "2")
+        @params(true, "3")
+        @params(true, "4")
+        @params(true, "5")
+        function test_one(v1, v2)
+        end function
+        end class
+        end namespace
+        `);
+            assertSuite(testSuite, 1);
+            assertGroupCount(testSuite, 0, 5);
+            assertParamTestCase(testSuite, 0, 0, 0);
+            assertParamTestCase(testSuite, 0, 1, 1);
+            assertParamTestCase(testSuite, 0, 2, 2);
+            assertParamTestCase(testSuite, 0, 3, 3);
+            assertParamTestCase(testSuite, 0, 4, 4);
+        });
 
     });
 
-    it('Valid params', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
-
-    @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-
-    @describe("group1")
-
-    @it("one")
-    @params(true, "one")
-    function test_one(v1, v2)
-    end function
-    end class
-    end namespace
-    `);
-        assertSuite(testSuite, 1);
-        assertGroupCount(testSuite, 0, 1);
-        assertParamTestCase(testSuite, 0, 0, 0);
-    });
-
-    it('Valid params 2 params', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
-
-    @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-
-    @describe("group1")
-
-    @it("one")
-    @params(true, "one")
-    @params(true, "one")
-    function test_one(v1, v2)
-    end function
-    end class
-    end namespace
-    `);
-        assertSuite(testSuite, 1);
-        assertGroupCount(testSuite, 0, 2);
-        assertParamTestCase(testSuite, 0, 0, 0);
-        assertParamTestCase(testSuite, 0, 1, 1);
-    });
-
-    it('Valid params 5 params', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
-
-    @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-
-    @describe("group1")
-
-    @it("one")
-    @params(true, "1")
-    @params(true, "2")
-    @params(true, "3")
-    @params(true, "4")
-    @params(true, "5")
-    function test_one(v1, v2)
-    end function
-    end class
-    end namespace
-    `);
-        assertSuite(testSuite, 1);
-        assertGroupCount(testSuite, 0, 5);
-        assertParamTestCase(testSuite, 0, 0, 0);
-        assertParamTestCase(testSuite, 0, 1, 1);
-        assertParamTestCase(testSuite, 0, 2, 2);
-        assertParamTestCase(testSuite, 0, 3, 3);
-        assertParamTestCase(testSuite, 0, 4, 4);
-    });
     describe('only tags', () => {
         it('only suite', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
@@ -1057,94 +1061,95 @@ end namespace
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 3);
         });
+
+        it('2 with url and chars', () => {
+            let ts = createTestSuite('test1.bs', `namespace Tests
+          @suite("Rooibos assertion tests")
+          class AssertionTests extends rooibos.BaseTestSuite
+          @describe("group1")
+
+          @it("one")
+          @params("http://google.com/thing", true)
+          @params("#'_!!@#%", false)
+          @params("3", true)
+          function test_one(value, arg2)
+          end function
+          end class
+          end namespace
+          `);
+            assertSuite(ts, 1);
+            assertGroupCount(ts, 0, 3);
+        });
+
+        it('param mismatch -no params', () => {
+            let ts = createTestSuite('test1.bs', `namespace Tests
+          @suite("Rooibos assertion tests")
+          class AssertionTests extends rooibos.BaseTestSuite
+          @describe("group1")
+
+          @it("one")
+          function test_one(value, arg2)
+          end function
+          end class
+          end namespace
+          `);
+            assertSuiteError(ts);
+        });
+        it('param mismatch -one', () => {
+            let ts = createTestSuite('test1.bs', `namespace Tests
+          @suite("Rooibos assertion tests")
+          class AssertionTests extends rooibos.BaseTestSuite
+          @describe("group1")
+
+          @it("one")
+          @params("http://google.com/thing")
+          @params("#'_!!@#%", false)
+          @params("3", true)
+          function test_one(value, arg2)
+          end function
+          end class
+          end namespace
+          `);
+            assertSuiteError(ts);
+        });
+
+        it('param mismatch -all', () => {
+            let ts = createTestSuite('test1.bs', `namespace Tests
+          @suite("Rooibos assertion tests")
+          class AssertionTests extends rooibos.BaseTestSuite
+          @describe("group1")
+
+          @it("one")
+          @params("http://google.com/thing", true)
+          @params("#'_!!@#%", false)
+          @params("3", true)
+          function test_one(value)
+          end function
+          end class
+          end namespace
+          `);
+            assertSuiteError(ts);
+        });
+
+        it('cannot parse', () => {
+            let ts = createTestSuite('test1.bs', `namespace Tests
+          @suite("Rooibos assertion tests")
+          class AssertionTests extends rooibos.BaseTestSuite
+          @describe("group1")
+
+          @it("one")
+          @params("http://google.com/thing", true ")
+          @params("#'_!!@#%", false)
+          @params("3", true)
+          function test_one(value, value)
+          end function
+          end class
+          end namespace
+          `);
+            assertSuiteError(ts);
+        });
     });
 
-    it('2 with url and chars', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
-
-      @it("one")
-      @params("http://google.com/thing", true)
-      @params("#'_!!@#%", false)
-      @params("3", true)
-      function test_one(value, arg2)
-      end function
-      end class
-      end namespace
-      `);
-        assertSuite(ts, 1);
-        assertGroupCount(ts, 0, 3);
-    });
-
-    it('param mismatch -no params', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
-
-      @it("one")
-      function test_one(value, arg2)
-      end function
-      end class
-      end namespace
-      `);
-        assertSuiteError(ts);
-    });
-    it('param mismatch -one', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
-
-      @it("one")
-      @params("http://google.com/thing")
-      @params("#'_!!@#%", false)
-      @params("3", true)
-      function test_one(value, arg2)
-      end function
-      end class
-      end namespace
-      `);
-        assertSuiteError(ts);
-    });
-
-    it('param mismatch -all', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
-
-      @it("one")
-      @params("http://google.com/thing", true)
-      @params("#'_!!@#%", false)
-      @params("3", true)
-      function test_one(value)
-      end function
-      end class
-      end namespace
-      `);
-        assertSuiteError(ts);
-    });
-
-    it('cannot parse', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
-
-      @it("one")
-      @params("http://google.com/thing", true ")
-      @params("#'_!!@#%", false)
-      @params("3", true)
-      function test_one(value, value)
-      end function
-      end class
-      end namespace
-      `);
-        assertSuiteError(ts);
-    });
 });
 
 function assertSuite(testSuite: TestSuite, expectedGroups: number) {
@@ -1178,7 +1183,8 @@ function assertParamTestCase(testSuite: TestSuite, groupIndex: number, testIndex
 }
 
 function createTestSuite(path: string, text: string): TestSuite {
-    let file = new BrsFile(path, path, program);
+    let file = new BrsFile({ srcPath: `virtual:/${path}`, destPath: path, program: program });
+    // new BrsFile(path, path, program);
     file.parse(text);
     let testSuites = testSuiteBuilder.processFile(file);
     return testSuites.length > 0 ? testSuites[0] : null;

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ProgramBuilder } from 'brighterscript';
-import { Position, isClassStatement } from 'brighterscript';
+import { Position, isClassStatement, isVariableExpression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
@@ -88,7 +88,13 @@ export class MockUtil {
         }
         const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
 
-        const returnStatement = ((functionStatement.func.functionType?.kind === brighterscript.TokenKind.Sub && (functionStatement.func.returnTypeToken === undefined || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void)) || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
+        // const returnStatement = ((functionStatement.func.functionType?.kind === brighterscript.TokenKind.Sub && (functionStatement.func.returnTypeToken === undefined || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void)) || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
+        let returnStatement = 'return';
+        if (isVariableExpression(functionStatement?.func?.returnTypeExpression?.expression)) {
+            if ((functionStatement.func.returnTypeExpression.expression).name.text.toLowerCase() !== 'void') {
+                returnStatement = 'return result';
+            }
+        }
         this.editor.addToArray(functionStatement.func.body.statements, 0, new RawCodeStatement(undent`
             if RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
                 result = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})

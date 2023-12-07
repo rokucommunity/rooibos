@@ -25,7 +25,7 @@ export class TestBlock {
     }
 
     public get filePath(): string {
-        return this.file.pathAbsolute;
+        return this.file.srcPath;
     }
 
     public get name(): string {

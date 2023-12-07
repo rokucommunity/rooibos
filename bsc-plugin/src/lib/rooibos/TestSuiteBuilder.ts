@@ -1,11 +1,11 @@
 
 import type {
     BrsFile,
-    ClassMethodStatement,
+    MethodStatement,
     ClassStatement
 } from 'brighterscript';
 import {
-    isClassMethodStatement
+    isMethodStatement
 } from 'brighterscript';
 
 import { TestGroup } from './TestGroup';
@@ -73,8 +73,8 @@ export class TestSuiteBuilder {
         let oldSuite = this.session.sessionInfo.testSuites.get(annotation.name);
         let suite = this.processClass(annotation, s);
         let isDuplicate = false;
-        if ((oldSuite && oldSuite.file.pathAbsolute !==
-            file.pathAbsolute)) {
+        if ((oldSuite && oldSuite.file.srcPath !==
+            file.srcPath)) {
             oldSuite.isValid = false;
             suite.isValid = false;
             diagnosticDuplicateSuite(file, oldSuite.classStatement, oldSuite.annotation);
@@ -121,7 +121,7 @@ export class TestSuiteBuilder {
             }
             this.annotation = testAnnotation;
 
-            if (isClassMethodStatement(s)) {
+            if (isMethodStatement(s)) {
                 this.processClassMethod(s);
             }
             this.annotation = null;
@@ -145,7 +145,7 @@ export class TestSuiteBuilder {
         }
     }
 
-    public processClassMethod(statement: ClassMethodStatement) {
+    public processClassMethod(statement: MethodStatement) {
 
         if (this.annotation) {
             if (!this.currentGroup) {
@@ -188,7 +188,7 @@ export class TestSuiteBuilder {
     private sanitizeFunctionName(name: string) {
         return name.replace(/[^0-9_a-z]/ig, '_');
     }
-    public createTestCases(statement: ClassMethodStatement, annotation: RooibosAnnotation): boolean {
+    public createTestCases(statement: MethodStatement, annotation: RooibosAnnotation): boolean {
         const lineNumber = statement.func.range.start.line;
         const numberOfArgs = statement.func.parameters.length;
         const numberOfParams = annotation.params.length;

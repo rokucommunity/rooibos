@@ -20,6 +20,9 @@
     "typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": true,
     "files.trimTrailingWhitespace": true,
     "cSpell.words": [
+        "Lcov",
+        "noearlyexit",
+        "sgnode",
         "undent"
     ]
 }

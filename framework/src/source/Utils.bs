@@ -1,4 +1,6 @@
 namespace rooibos.utils
+
+  'TODO implement AssociativeArray
   class MockNode
     public id
     public name
@@ -45,12 +47,14 @@ namespace rooibos.utils
     end function
 
     function addFields(fields)
+      'bs:disable-next-line
       m.append(fields)
     end function
     function setField(field, value)
       m[field] = value
     end function
     function setFields(fields)
+      'bs:disable-next-line
       m.append(fields)
     end function
     function observeField(field, callback)

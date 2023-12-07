@@ -184,11 +184,15 @@ export function diagnosticErrorProcessingFile(file: BrsFile, message: string) {
 }
 
 export function diagnosticErrorNoMainFound(file: BrsFile | XmlFile) {
-    addDiagnostic(
-        file,
-        2213,
-        `Could not find main function to inject rooibos launch code. Rooibos has added one for you`, 1, 1, 1, 1, DiagnosticSeverity.Warning
-    );
+    if (file) {
+        addDiagnostic(
+            file,
+            2213,
+            `Could not find main function to inject rooibos launch code. Rooibos has added one for you`, 1, 1, 1, 1, DiagnosticSeverity.Warning
+        );
+    } else {
+        console.error('There is no file to add a main injection diagnostic to');
+    }
 }
 
 export function diagnosticEmptyGroup(file: BrsFile, annotation: RooibosAnnotation) {
