@@ -1,5 +1,6 @@
 {
   "name": "rooibos",
+  "version": "1.0.0",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "files": [
     "dist/**/!(manifest)*"

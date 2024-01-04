@@ -137,6 +137,7 @@ export class RooibosSession {
                 method.func.body.statements.length,
                 new RawCodeStatement(undent`
                     return {
+                        "reporter": "${this.config.reporter || ''}"
                         "failFast": ${this.config.failFast ? 'true' : 'false'}
                         "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
                         "logLevel": ${this.config.logLevel ?? 0}

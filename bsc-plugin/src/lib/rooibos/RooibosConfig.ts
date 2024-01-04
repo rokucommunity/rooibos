@@ -23,6 +23,7 @@ export interface RooibosConfig {
     tags?: string[];
     catchCrashes?: boolean;
     sendHomeOnFinish?: boolean;
+    reporter?: string;
     keepAppOpen?: boolean;
     testSceneName?: string;
 
