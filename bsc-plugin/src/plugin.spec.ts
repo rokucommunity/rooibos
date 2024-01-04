@@ -1600,6 +1600,7 @@ describe('RooibosPlugin', () => {
                     end function
                     instance.getRuntimeConfig = function()
                         return {
+                            "reporter": ""
                             "failFast": true
                             "sendHomeOnFinish": true
                             "logLevel": 0
