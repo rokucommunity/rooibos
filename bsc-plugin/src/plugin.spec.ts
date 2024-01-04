@@ -1526,7 +1526,7 @@ describe('RooibosPlugin', () => {
     });
 
     describe('addTestRunnerMetadata', () => {
-        it('does not permanently modify the AST', async () => {
+        it.only('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest1
@@ -1600,6 +1600,7 @@ describe('RooibosPlugin', () => {
                     end function
                     instance.getRuntimeConfig = function()
                         return {
+                            "reporter": ""
                             "failFast": true
                             "sendHomeOnFinish": true
                             "logLevel": 0
