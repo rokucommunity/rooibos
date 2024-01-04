@@ -1526,7 +1526,7 @@ describe('RooibosPlugin', () => {
     });
 
     describe('addTestRunnerMetadata', () => {
-        it.only('does not permanently modify the AST', async () => {
+        it('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest1
