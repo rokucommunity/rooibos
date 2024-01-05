@@ -90,8 +90,10 @@ export class FileFactory {
 
                 <children>
                     <Rectangle id="statusBackground" color="#444444" width="1920" height="1080" />
-                    <Label id="statusLabel" text='Rooibos is running tests' />
-                    <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
+                    <LayoutGroup translation="[960, 540]" vertAlignment="center"  horizAlignment="center">
+                        <Label id="statusLabel" text='Rooibos is running tests' width="1800" />
+                        <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
+                    </LayoutGroup>
                 </children>
             </component>
         `;
