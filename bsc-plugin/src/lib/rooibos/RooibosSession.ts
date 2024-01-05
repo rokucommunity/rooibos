@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
-import { isBrsFile, ParseMode } from 'brighterscript';
+import { isBrsFile, isCallExpression, isVariableExpression, ParseMode, WalkMode } from 'brighterscript';
 import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -88,7 +88,12 @@ export class RooibosSession {
             }
         }
         if (mainFunction) {
-            editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
+            const initCall = mainFunction.func.body.findChild(f => isCallExpression(f) && isVariableExpression(f.callee) && f.callee.name.text.toLowerCase() === 'rooibos_init', {
+                walkMode: WalkMode.visitAllRecursive
+            });
+            if (!initCall) {
+                editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
+            }
         }
     }
     addLaunchHookFileIfNotPresent() {
