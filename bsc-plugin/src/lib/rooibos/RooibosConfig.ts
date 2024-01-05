@@ -22,6 +22,7 @@ export interface RooibosConfig {
     includeFilters?: string[];
     tags?: string[];
     catchCrashes?: boolean;
+    throwOnFailedAssertion?: boolean;
     sendHomeOnFinish?: boolean;
     reporter?: string;
     keepAppOpen?: boolean;
