@@ -1,16 +1,13 @@
-import type { AstEditor, CallExpression, DottedGetExpression, Expression } from 'brighterscript';
-import { isCallExpression, isCallfuncExpression, isIndexedGetExpression, ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isLiteralExpression, isVariableExpression, isFunctionExpression } from 'brighterscript';
+import type { AstEditor, CallExpression, DottedGetExpression } from 'brighterscript';
+import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
-import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { RooibosAnnotation } from './Annotation';
-import { RawCodeStatement } from './RawCodeStatement';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
 import { TestBlock } from './TestSuite';
-import { getAllDottedGetParts, getRootObjectFromDottedGet, getStringPathFromDottedGet, overrideAstTranspile, sanitizeBsJsonString } from './Utils';
-import undent from 'undent';
+import { getAllDottedGetParts, getRootObjectFromDottedGet, getStringPathFromDottedGet, sanitizeBsJsonString } from './Utils';
 import type { NamespaceContainer } from './RooibosSession';
 
 export class TestGroup extends TestBlock {
@@ -59,7 +56,7 @@ export class TestGroup extends TestBlock {
         try {
             let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(brighterscript.createVisitor({
-                ExpressionStatement: (expressionStatement, parent, owner) => {
+                ExpressionStatement: (expressionStatement, parent, owner, key) => {
                     let callExpression = expressionStatement.expression as CallExpression;
                     if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
@@ -75,12 +72,15 @@ export class TestGroup extends TestBlock {
                                 if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
                                 }
-                                //TODO change this to editor.setProperty(parentObj, parentKey, new SourceNode()) once bsc supports it
-                                overrideAstTranspile(editor, expressionStatement, '\n' + undent`
-                                    m.currentAssertLineNumber = ${callExpression.range.start.line}
-                                    ${callExpression.transpile(transpileState).join('')}
-                                    ${noEarlyExit ? '' : `if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`}
-                                ` + '\n');
+                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
+                                }
+                                const trailingLine = Parser.parse(`${noEarlyExit ? '' : `if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`}`).ast.statements[0];
+
+                                editor.arraySplice(owner, key + 1, 0, trailingLine);
+
+                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.range.start.line}`).ast.statements[0];
+                                editor.arraySplice(owner, key, 0, leadingLine);
                             }
                         }
                     }
