@@ -51,6 +51,7 @@ namespace rooibos
 
     protected global = invalid
     protected catchCrashes = false
+    protected throwOnFailedAssertion = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ base methods to override
@@ -262,6 +263,7 @@ namespace rooibos
       ? ""
 
       m.currentResult = test.result
+      m.currentResult.throwOnFailedAssertion = m.throwOnFailedAssertion
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
           test.run()
@@ -302,6 +304,9 @@ namespace rooibos
     '  */
     function fail(msg = "Error" as string) as dynamic
       if m.currentResult.isFail
+        if m.throwOnFailedAssertion
+          throw m.currentResult.getMessage()
+        end if
         return false
       end if
       m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -1850,15 +1855,15 @@ namespace rooibos
     '  * @returns {Object} - mock that was wired into the real method
     '  */
     function expectOnce(target, methodName, expectedArgs = invalid, returnValue = invalid, allowNonExistingMethods = false) as object
-    'HACK
-    'HACK
-    'HACK
-    'HACK
-    'HACK
+      'HACK
+      'HACK
+      'HACK
+      'HACK
+      'HACK
       ' try
-        return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
+      return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
       ' catch error
-        'bs:disable-next-line
+      'bs:disable-next-line
       '   m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
       '   return false
       ' end try

@@ -53,6 +53,9 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.catchCrashes === undefined) {
             config.catchCrashes = true;
         }
+        if (config.throwOnFailedAssertion === undefined) {
+            config.throwOnFailedAssertion = false;
+        }
         if (config.sendHomeOnFinish === undefined) {
             config.sendHomeOnFinish = true;
         }

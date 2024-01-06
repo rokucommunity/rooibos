@@ -1610,6 +1610,7 @@ describe('RooibosPlugin', () => {
                             "printLcov": false
                             "port": "invalid"
                             "catchCrashes": true
+                            "throwOnFailedAssertion": false
                             "keepAppOpen": true
                         }
                     end function
@@ -1671,6 +1672,7 @@ describe('RooibosPlugin', () => {
                 'rooibos': {
                     'showOnlyFailures': true,
                     'catchCrashes': true,
+                    'throwOnFailedAssertion': false,
                     'lineWidth': 70,
                     'failFast': false,
                     'sendHomeOnFinish': false,

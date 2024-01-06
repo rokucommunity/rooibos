@@ -69,6 +69,7 @@ namespace rooibos
           testSuite.top = m.nodeContext.top
           testSuite.scene = m.nodeContext.global.testsScene
           testSuite.catchCrashes = m.config.catchCrashes
+          testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
           testSuite.scene.testText = `Running Suite ${i} of ${numSuites}: ${name}`
           m.runTestSuite(testSuite)
           if m.stats.hasFailures = true
@@ -138,6 +139,7 @@ namespace rooibos
         testSuite.top = m.nodeContext.top
         testSuite.scene = m.nodeContext.global.testsScene
         testSuite.catchCrashes = m.config.catchCrashes
+        testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
         m.nodeContext.testSuite = testSuite
         m.nodeTestName = nodeTestName
         m.nodeContext.testRunner = m
