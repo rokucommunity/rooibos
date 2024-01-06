@@ -9,11 +9,10 @@ import { Range } from 'vscode-languageserver-types';
 import type { FileFactory } from './FileFactory';
 import undent from 'undent';
 import type { RooibosSession } from './RooibosSession';
-import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
-import { getAllDottedGetParts, getRootObjectFromDottedGet, getStringPathFromDottedGet, overrideAstTranspile } from './Utils';
+import { getAllDottedGetParts } from './Utils';
 
 export class MockUtil {
 
@@ -188,4 +187,3 @@ export class MockUtil {
     }
 
 }
-

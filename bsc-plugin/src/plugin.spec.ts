@@ -1,11 +1,12 @@
 import type { BrsFile, CallExpression, ClassMethodStatement, ClassStatement, ExpressionStatement, FunctionStatement } from 'brighterscript';
-import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
+import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import * as trim from 'trim-whitespace';
 import undent from 'undent';
+import { SourceMapConsumer } from 'source-map';
 let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
@@ -361,6 +362,61 @@ describe('RooibosPlugin', () => {
             program.validate();
             expect(program.getDiagnostics()).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
+        });
+
+        it('sanity check for sourcemaps', async () => {
+            await testSourcemapLocations(`
+                sub main()
+                    print "hello"
+                end sub
+            `, `
+                sub main()
+                    Rooibos_init("RooibosScene")
+                    print "hello"
+                end sub'//# sourceMappingURL=./test.spec.bs.map
+            `, [
+                // print "h|ello" => print |"hello"
+                { dest: [2, 12], src: [2, 26] }
+            ]);
+        });
+
+        it('produces proper sourcemaps', async () => {
+            await testSourcemapLocations(`
+                @suite
+                class ATest
+                    @describe("groupA")
+                    @describe("groupB")
+                    @it("is test1")
+                    function Test_3()
+                        number = 123
+                        m.assertEqual("123", \`alpha-\${number}-beta\`)
+                        m.assertEqual(123, 123)
+                    end function
+                end class
+            `, `
+                function __ATest_builder()
+                    instance = {}
+                    instance.new = sub()
+                    end sub
+                    instance.groupB_is_test1 = function()
+                        number = 123
+                        m.assertEqual("123", ("alpha-" + bslib_toString(number) + "-beta"))
+                        m.assertEqual(123, 123)
+                    end function
+                    return instance
+                end function
+                function ATest()
+                    instance = __ATest_builder()
+                    instance.new()
+                    return instance
+                end function'//# sourceMappingURL=./test.spec.bs.map
+            `, [
+                // m.assert|Equal("123", ("alpha-" + bslib_toString(number) + "-beta"))    =>    m.|assertEqual("123", `alpha-${number}-beta`)
+                { dest: [6, 16], src: [8, 26] },
+                // m.assert|Equal(123, 123) => m.|assertEqual(123, 123)
+                { dest: [7, 16], src: [9, 26] }
+
+            ]);
         });
 
         it('test full transpile', async () => {
@@ -1576,15 +1632,18 @@ describe('RooibosPlugin', () => {
                 item = {
                 id: "item"
                 }
-
                 m.currentAssertLineNumber = 7
                 m._expectNotCalled(item, "getFunction", item, "item")
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                if m.currentResult?.isFail = true then
+                m.done()
+                return invalid
+                end if
                 m.currentAssertLineNumber = 8
                 m._expectNotCalled(item, "getFunction", item, "item")
-                if m.currentResult?.isFail = true then m.done() : return invalid
+                if m.currentResult?.isFail = true then
+                m.done()
+                return invalid
+                end if
             `);
 
             let a = getContents('rooibos/RuntimeConfig.brs');
@@ -1712,6 +1771,57 @@ describe('RooibosPlugin', () => {
             console.log('done');
         });
     });
+
+
+    /**
+     * Test that the sourcemaps are generated properly and map each token back to their original location.
+     *
+     * Keep in mind, the expectedText is trimmed, so as you're calculating the dest positions, brighterscript will probably omit the leading newline when transpiled,
+     * so your dest lines might need to be 1 line smaller. Also, brighterscript does not honor source indentation, so your column numbers are probably going to be
+     * based on the standard brighterscript formatting.
+     * @param text the text to parse
+     * @param expectedText the expected output text
+     * @param expectedLocations an array of zero-based line and column arrays
+     */
+    async function testSourcemapLocations(text: string, expectedText: string, expectedLocations: Array<{ src: [number, number]; dest: [number, number] }>) {
+        program.options.sourceMap = true;
+        builder.options.sourceMap = true;
+        fsExtra.outputFileSync(`${_rootDir}/source/test.spec.bs`, text);
+        //set the file
+        program.setFile('source/test.spec.bs', text);
+
+        program.validate();
+        //build the project
+        await builder.transpile();
+
+        const actualContents = getContents('test.spec.brs');
+        expect(actualContents).to.eql(undent`${expectedText}`);
+
+        const map = fsExtra.readFileSync(s`${_stagingFolderPath}/source/test.spec.brs.map`).toString();
+
+        //load the source map
+        await SourceMapConsumer.with(map, null, (consumer) => {
+            expect(
+                expectedLocations.map((x) => {
+                    let originalPosition = consumer.originalPositionFor({
+                        //convert 0-based line to source-map 1-based line for the lookup
+                        line: x.dest[0] + 1,
+                        column: x.dest[1],
+                        bias: SourceMapConsumer.GREATEST_LOWER_BOUND
+                    });
+                    return Position.create(
+                        //convert 1-based source-map line to 0-based for the test
+                        originalPosition.line - 1,
+                        originalPosition.column
+                    );
+                })
+            ).to.eql(
+                expectedLocations.map(
+                    x => Position.create(x.src[0], x.src[1])
+                )
+            );
+        });
+    }
 });
 
 function getContents(filename: string) {
@@ -1747,4 +1857,3 @@ function getTestSubContents(trimEveryLine = false) {
 function trimLeading(text: string) {
     return text.split('\n').map((line) => line.trimStart()).join('\n');
 }
-
