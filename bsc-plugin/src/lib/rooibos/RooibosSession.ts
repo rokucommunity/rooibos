@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
-import { isBrsFile, ParseMode, util } from 'brighterscript';
+import { isBrsFile, isCallExpression, isVariableExpression, ParseMode, WalkMode } from 'brighterscript';
 import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -10,7 +10,6 @@ import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
 import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoStagingDir } from '../utils/Diagnostics';
 import undent from 'undent';
-import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import * as fsExtra from 'fs-extra';
 import type { MockUtil } from './MockUtil';
 
@@ -89,7 +88,12 @@ export class RooibosSession {
             }
         }
         if (mainFunction) {
-            editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
+            const initCall = mainFunction.func.body.findChild(f => isCallExpression(f) && isVariableExpression(f.callee) && f.callee.name.text.toLowerCase() === 'rooibos_init', {
+                walkMode: WalkMode.visitAllRecursive
+            });
+            if (!initCall) {
+                editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
+            }
         }
     }
     addLaunchHookFileIfNotPresent() {
