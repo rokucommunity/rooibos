@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, ProgramBuilder } from 'brighterscript';
-import { Position, isClassStatement } from 'brighterscript';
+import type { BrsFile, Editor, NamespaceStatement, ProgramBuilder } from 'brighterscript';
+import { ParseMode, Parser, Position, TokenKind, WalkMode, createVisitor, isClassStatement, isNamespaceStatement } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
@@ -184,6 +184,43 @@ export class MockUtil {
             let functionName = arg0.callee.getName(brighterscript.ParseMode.BrightScript).toLowerCase();
             this.session.globalStubbedMethods.add(functionName);
         }
+    }
+
+    public addRuntimeGlobalFunctionMocks(file: BrsFile, astEditor: Editor) {
+        file.ast.walk(createVisitor({
+            FunctionStatement: (statement, parent, owner, key) => {
+                if (!file.pkgPath.includes('rooibos/') && !file.pkgPath.endsWith('spec.brs')) {
+                    let isDisabledFoMocking = statement.annotations?.find(x => x.name.toLowerCase() === 'disablemocking');
+                    let parentNamespace = statement.findAncestor<NamespaceStatement>(isNamespaceStatement);
+                    while (parentNamespace && !isDisabledFoMocking) {
+                        if (parentNamespace) {
+                            isDisabledFoMocking = parentNamespace.annotations?.find(x => x.name.toLowerCase() === 'disablemocking');
+                            parentNamespace = parentNamespace.findAncestor<NamespaceStatement>(isNamespaceStatement);
+                        }
+                    }
+
+                    if (!isDisabledFoMocking) {
+                        const funcName = statement.getName(ParseMode.BrightScript);
+                        const returnResult = functionRequiresReturnValue(statement);
+                        const globalAaName = '__mocks_globalAa';
+                        const storageName = '_globalMocks';
+                        const template = undent`
+                            ${globalAaName} = getGlobalAa()
+                            if type(${globalAaName}?.${storageName}?.${funcName}) = "roFunction" or type(${globalAaName}?.${storageName}?.${funcName}) = "Function" then
+                                __mockedFunction = ${globalAaName}.${storageName}.${funcName}
+                                __mockResult = __mockedFunction(${statement.func.parameters.map(x => x.name.text).join(', ')})
+                                return ${returnResult ? '__mockResult' : ''}
+                            end if
+                        `;
+                        const mockStatements = Parser.parse(template).ast.statements;
+                        astEditor.arrayUnshift(statement.func.body.statements, ...mockStatements);
+                        file.needsTranspiled = true;
+                    }
+                }
+            }
+        }), {
+            walkMode: WalkMode.visitAllRecursive
+        });
     }
 
 }
