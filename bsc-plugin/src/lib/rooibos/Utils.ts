@@ -1,4 +1,4 @@
-import type { BrsFile, ClassStatement, Expression, FunctionStatement, AnnotationExpression, AstEditor } from 'brighterscript';
+import { type BrsFile, type ClassStatement, type Expression, type FunctionStatement, type AnnotationExpression, type AstEditor, TokenKind } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 
@@ -34,6 +34,12 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
 
 export function sanitizeBsJsonString(text: string) {
     return `"${text ? text.replace(/"/g, '\'') : ''}"`;
+}
+
+export function functionRequiresReturnValue(statement: FunctionStatement) {
+    const returnTypeToken = statement.func.returnTypeToken;
+    const functionType = statement.func.functionType;
+    return !((functionType?.kind === TokenKind.Sub && (returnTypeToken === undefined || returnTypeToken?.kind === TokenKind.Void)) || returnTypeToken?.kind === TokenKind.Void);
 }
 
 export function getAllDottedGetParts(dg: brighterscript.DottedGetExpression) {

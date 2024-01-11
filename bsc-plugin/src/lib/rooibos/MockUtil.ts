@@ -12,7 +12,7 @@ import type { RooibosSession } from './RooibosSession';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
-import { getAllDottedGetParts } from './Utils';
+import { functionRequiresReturnValue, getAllDottedGetParts } from './Utils';
 
 export class MockUtil {
 
@@ -87,7 +87,7 @@ export class MockUtil {
         }
         const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
 
-        const returnStatement = ((functionStatement.func.functionType?.kind === brighterscript.TokenKind.Sub && (functionStatement.func.returnTypeToken === undefined || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void)) || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
+        const returnStatement = functionRequiresReturnValue(functionStatement) ? 'return' : 'return result';
         this.astEditor.addToArray(functionStatement.func.body.statements, 0, new RawCodeStatement(undent`
             if RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
                 result = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
