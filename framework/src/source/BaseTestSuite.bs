@@ -2260,6 +2260,36 @@ namespace rooibos
       end for
       m.mocks = invalid
       rooibos.resetMocksByFunctionName()
+
+      ' Clean up the global functions mocks as well
+      globalAa = getGlobalAa()
+      globalAa._globalMocks = invalid
+    end function
+
+    ' /**
+    '  * @memberof module:BaseTestSuite
+    '  * @name mockGlobalFunction
+    '  * @function
+    '  * @instance
+    '  * @description Adds a function to the global mock for the current components scope
+    '  * @param {String|Function} functionOrFunctionName - a function by reference or the string name of a function to mock
+    '  * @param {Function} mockFunction - the function to use as a mock
+    '  */
+    function mockGlobalFunction(functionOrFunctionName as dynamic, mockFunction as function) as void
+      if type(functionOrFunctionName) = "roFunction" or type(functionOrFunctionName) = "Function"
+        functionName = functionOrFunctionName.toStr().tokenize(" ").peek()
+      else if type(functionOrFunctionName) = "String" or type(functionOrFunctionName) = "roString"
+        functionName = functionOrFunctionName
+      else
+        throw "Did not provide a function or function name to mock"
+      end if
+
+      globalAa = getGlobalAa()
+      if type(globalAa?._globalMocks) <> "roAssociativeArray"
+        globalAa._globalMocks = {}
+      end if
+
+      globalAa._globalMocks[functionName] = mockFunction
     end function
 
     ' /**
