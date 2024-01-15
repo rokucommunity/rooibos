@@ -87,7 +87,7 @@ export class MockUtil {
         }
         const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
 
-        const returnStatement = functionRequiresReturnValue(functionStatement) ? 'return' : 'return result';
+        const returnStatement = functionRequiresReturnValue(functionStatement) ? 'return result' : 'return';
         this.astEditor.addToArray(functionStatement.func.body.statements, 0, new RawCodeStatement(undent`
             if RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
                 result = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
