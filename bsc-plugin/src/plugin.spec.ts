@@ -1021,19 +1021,24 @@ describe('RooibosPlugin', () => {
                 let codeText = getContents('code.brs');
                 expect(codeText).to.equal(undent`
                 function sayHello(firstName = "", lastName = "")
+                    __stubs_globalAa = getGlobalAa()
                     if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                        result = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName,lastName)
-                        return result
+                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName,lastName)
+                        return __stubOrMockResult
+                    else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
+                        __stubFunction = __stubs_globalAa.__globalStubs.sayhello
+                        __stubOrMockResult = __stubFunction()
+                        return __stubOrMockResult
                     end if
                     print firstName + " " + lastName
                 end function
 
-                    function RBS_SM_1_getMocksByFunctionName()
-                        if m._rMocksByFunctionName = invalid
-                        m._rMocksByFunctionName = {}
-                        end if
-                        return m._rMocksByFunctionName
-                    end function`);
+                function RBS_SM_1_getMocksByFunctionName()
+                    if m._rMocksByFunctionName = invalid
+                    m._rMocksByFunctionName = {}
+                    end if
+                    return m._rMocksByFunctionName
+                end function`);
             });
             it('correctly transpiles namespaced function calls', async () => {
                 plugin.config.isGlobalMethodMockingEnabled = true;
@@ -1066,50 +1071,56 @@ describe('RooibosPlugin', () => {
                 expect(
                     testText
                 ).to.eql(undent`
-                item = {
-                id: "item"
-                }
+                    item = {
+                        id: "item"
+                    }
 
-                m.currentAssertLineNumber = 7
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
-                "arg1"
-                "arg2"
-                ], "return")
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
-                m.currentAssertLineNumber = 8
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
-                if m.currentResult?.isFail = true then m.done() : return invalid
+                    m.currentAssertLineNumber = 7
+                    m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
+                        "arg1"
+                        "arg2"
+                    ], "return")
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
-                m.currentAssertLineNumber = 9
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [], "return")
-                if m.currentResult?.isFail = true then m.done() : return invalid
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
+                    if m.currentResult?.isFail = true then m.done() : return invalid
 
 
-                m.currentAssertLineNumber = 10
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
-                "arg1"
-                "arg2"
-                ])
-                if m.currentResult?.isFail = true then m.done() : return invalid
-`);
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [], "return")
+                    if m.currentResult?.isFail = true then m.done() : return invalid
+
+
+                    m.currentAssertLineNumber = 10
+                    m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
+                        "arg1"
+                        "arg2"
+                    ])
+                    if m.currentResult?.isFail = true then m.done() : return invalid
+                `);
 
                 let codeText = trimLeading(getContents('code.brs'));
-                expect(codeText).to.equal(trimLeading(`function utils_sayHello(firstName = "", lastName = "")
-                if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName,lastName)
-                return result
-                end if
-                print firstName + " " + lastName
+                expect(codeText).to.equal(trimLeading(`
+                function utils_sayHello(firstName = "", lastName = "")
+                    __stubs_globalAa = getGlobalAa()
+                    if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
+                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName,lastName)
+                        return __stubOrMockResult
+                    else if type(__stubs_globalAa?.__globalStubs?.beings_sayHello).endsWith("Function")
+                        __stubFunction = __stubs_globalAa.__globalStubs.beings_sayHello
+                        __stubOrMockResult = __stubFunction()
+                        return __stubOrMockResult
+                    end if
+                    print firstName + " " + lastName
                 end function
 
                 function RBS_SM_1_getMocksByFunctionName()
-                if m._rMocksByFunctionName = invalid
-                m._rMocksByFunctionName = {}
-                end if
-                return m._rMocksByFunctionName
+                    if m._rMocksByFunctionName = invalid
+                    m._rMocksByFunctionName = {}
+                    end if
+                    return m._rMocksByFunctionName
                 end function`));
             });
         });

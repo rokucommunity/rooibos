@@ -165,6 +165,47 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall local and namespace functions with new runtime functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("supports function stubbing with a new function at runtime")
+    function _()
+      m.wasCalled = false
+      m.stubCall(locationFunctionWithReturn, function()
+        m.wasCalled = true
+        return true
+      end function)
+      m.assertTrue(locationFunctionWithReturn())
+      m.assertTrue(m.wasCalled)
+      m.wasCalled = false
+
+      m.stubCall(locationFunctionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+      m.assertInvalid(locationFunctionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+      m.wasCalled = false
+
+      m.wasCalled = false
+      m.stubCall(textNamespace.functionWithReturn, function()
+        m.wasCalled = true
+        return true
+      end function)
+      m.assertTrue(textNamespace.functionWithReturn())
+      m.assertTrue(m.wasCalled)
+      m.wasCalled = false
+
+      m.stubCall(textNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+      m.assertInvalid(textNamespace.functionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+      m.wasCalled = false
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("stubCall callFunc functions")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -391,4 +432,24 @@ namespace tests
 
   end class
 
+end namespace
+
+function locationFunctionWithReturn() as dynamic
+  m.wasCalled = false
+  return false
+end function
+
+sub locationFunctionWithoutReturn()
+  m.wasCalled = false
+end sub
+
+namespace textNamespace
+  function functionWithReturn() as dynamic
+    m.wasCalled = false
+    return false
+  end function
+
+  sub FunctionWithoutReturn()
+    m.wasCalled = false
+  end sub
 end namespace

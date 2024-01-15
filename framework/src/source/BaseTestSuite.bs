@@ -1820,7 +1820,7 @@ namespace rooibos
         globalAa.__globalStubs = {}
       end if
 
-      globalAa.__globalStubs[functionName] = stubOrReturnValue
+      globalAa.__globalStubs[lCase(functionName)] = stubOrReturnValue
       return invalid
     end function
 
@@ -2280,7 +2280,7 @@ namespace rooibos
 
       ' Clean up the global functions mocks as well
       globalAa = getGlobalAa()
-      globalAa._globalMocks = invalid
+      globalAa.__globalStubs = invalid
     end function
 
 

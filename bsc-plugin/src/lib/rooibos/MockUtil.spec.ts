@@ -78,9 +78,14 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`function sayHello(a1, a2)
+                __stubs_globalAa = getGlobalAa()
                 if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(a1,a2)
-                return result
+                __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(a1, a2)
+                return __stubOrMockResult
+                else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
+                __stubFunction = __stubs_globalAa.__globalStubs.sayhello
+                __stubOrMockResult = __stubFunction(a1, a2)
+                return __stubOrMockResult
                 end if
                 print "hello"
                 end function
@@ -109,9 +114,14 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`function sayHello(a1, a2)
+                __stubs_globalAa = getGlobalAa()
                 if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(a1,a2)
-                return result
+                __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(a1, a2)
+                return __stubOrMockResult
+                else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
+                __stubFunction = __stubs_globalAa.__globalStubs.sayhello
+                __stubOrMockResult = __stubFunction(a1, a2)
+                return __stubOrMockResult
                 end if
                 print "hello"
                 end function
@@ -143,8 +153,13 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`Sub RedLines_SetRulerLines(rulerLines)
+                __stubs_globalAa = getGlobalAa()
                 if RBS_SM_1_getMocksByFunctionName()["redlines_setrulerlines"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["redlines_setrulerlines"].callback(rulerLines)
+                __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["redlines_setrulerlines"].callback(rulerLines)
+                return
+                else if type(__stubs_globalAa?.__globalStubs?.redlines_setrulerlines).endsWith("Function")
+                __stubFunction = __stubs_globalAa.__globalStubs.redlines_setrulerlines
+                __stubOrMockResult = __stubFunction(rulerLines)
                 return
                 end if
                 For Each line In rulerLines.Items()
@@ -153,9 +168,14 @@ describe('MockUtil', () => {
                 end Sub
 
                 Sub RedLines_AddLine(id, position, coords, node, childMap) as Object
+                __stubs_globalAa = getGlobalAa()
                 if RBS_SM_1_getMocksByFunctionName()["redlines_addline"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["redlines_addline"].callback(id,position,coords,node,childMap)
-                return result
+                __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["redlines_addline"].callback(id, position, coords, node, childMap)
+                return __stubOrMockResult
+                else if type(__stubs_globalAa?.__globalStubs?.redlines_addline).endsWith("Function")
+                __stubFunction = __stubs_globalAa.__globalStubs.redlines_addline
+                __stubOrMockResult = __stubFunction(id, position, coords, node, childMap)
+                return __stubOrMockResult
                 end if
                 line = CreateObject("roSGNode", "Rectangle")
                 line.setField("id", id)
@@ -183,8 +203,13 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`sub sayHello(a1, a2)
+                __stubs_globalAa = getGlobalAa()
                 if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(a1,a2)
+                __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(a1, a2)
+                return
+                else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
+                __stubFunction = __stubs_globalAa.__globalStubs.sayhello
+                __stubOrMockResult = __stubFunction(a1, a2)
                 return
                 end if
                 print "hello"
@@ -214,9 +239,14 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`function person_utils_sayHello(a1, a2)
+                __stubs_globalAa = getGlobalAa()
                 if RBS_SM_1_getMocksByFunctionName()["person_utils_sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["person_utils_sayhello"].callback(a1,a2)
-                return result
+                __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["person_utils_sayhello"].callback(a1, a2)
+                return __stubOrMockResult
+                else if type(__stubs_globalAa?.__globalStubs?.person_utils_sayhello).endsWith("Function")
+                __stubFunction = __stubs_globalAa.__globalStubs.person_utils_sayhello
+                __stubOrMockResult = __stubFunction(a1, a2)
+                return __stubOrMockResult
                 end if
                 print "hello"
                 end function
@@ -245,8 +275,13 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`sub person_utils_sayHello(a1, a2)
+                __stubs_globalAa = getGlobalAa()
                 if RBS_SM_1_getMocksByFunctionName()["person_utils_sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["person_utils_sayhello"].callback(a1,a2)
+                __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["person_utils_sayhello"].callback(a1, a2)
+                return
+                else if type(__stubs_globalAa?.__globalStubs?.person_utils_sayhello).endsWith("Function")
+                __stubFunction = __stubs_globalAa.__globalStubs.person_utils_sayhello
+                __stubOrMockResult = __stubFunction(a1, a2)
                 return
                 end if
                 print "hello"
@@ -313,42 +348,52 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = trimLeading(`function __beings_Person_builder()
-                instance = {}
-                instance.new = sub()
-                end sub
-                instance.sayHello = sub(a1, a2)
-                print "hello"
-                end sub
-                return instance
-                end function
-                function beings_Person()
-                instance = __beings_Person_builder()
-                instance.new()
-                return instance
-                end function
+                    instance = {}
+                    instance.new = sub()
+                    end sub
+                    instance.sayHello = sub(a1, a2)
+                    print "hello"
+                    end sub
+                    return instance
+                    end function
+                    function beings_Person()
+                    instance = __beings_Person_builder()
+                    instance.new()
+                    return instance
+                    end function
 
-                function beings_sayHello()
-                if RBS_SM_1_getMocksByFunctionName()["beings_sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["beings_sayhello"].callback()
-                return result
-                end if
-                print "hello2"
-                end function
+                    function beings_sayHello()
+                    __stubs_globalAa = getGlobalAa()
+                    if RBS_SM_1_getMocksByFunctionName()["beings_sayhello"] <> invalid
+                    __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["beings_sayhello"].callback()
+                    return __stubOrMockResult
+                    else if type(__stubs_globalAa?.__globalStubs?.beings_sayhello).endsWith("Function")
+                    __stubFunction = __stubs_globalAa.__globalStubs.beings_sayhello
+                    __stubOrMockResult = __stubFunction()
+                    return __stubOrMockResult
+                    end if
+                    print "hello2"
+                    end function
 
-                function sayHello()
-                if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback()
-                return result
-                end if
-                print "hello3"
-                end function
+                    function sayHello()
+                    __stubs_globalAa = getGlobalAa()
+                    if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
+                    __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback()
+                    return __stubOrMockResult
+                    else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
+                    __stubFunction = __stubs_globalAa.__globalStubs.sayhello
+                    __stubOrMockResult = __stubFunction()
+                    return __stubOrMockResult
+                    end if
+                    print "hello3"
+                    end function
 
-                function RBS_SM_1_getMocksByFunctionName()
-                if m._rMocksByFunctionName = invalid
-                m._rMocksByFunctionName = {}
-                end if
-                return m._rMocksByFunctionName
-                end function
+                    function RBS_SM_1_getMocksByFunctionName()
+                    if m._rMocksByFunctionName = invalid
+                    m._rMocksByFunctionName = {}
+                    end if
+                    return m._rMocksByFunctionName
+                    end function
 `);
                 expect(a).to.equal(b);
 

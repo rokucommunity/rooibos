@@ -86,21 +86,19 @@ export class MockUtil {
             param.asToken = null;
         }
 
-        const funcName = functionStatement.getName(ParseMode.BrightScript);
         const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
         const requiresReturnValue = functionRequiresReturnValue(functionStatement);
         const globalAaName = '__stubs_globalAa';
         const resultName = '__stubOrMockResult';
         const storageName = '__globalStubs';
 
-        console.log(funcName);
         const template = undent`
             ${globalAaName} = getGlobalAa()
             if RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
                 ${resultName} = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
                 return${requiresReturnValue ? ` ${resultName}` : '' }
-            else if type(${globalAaName}?.${storageName}?.${funcName}).endsWith("Function")
-                __stubFunction = ${globalAaName}.${storageName}.${funcName}
+            else if type(${globalAaName}?.${storageName}?.${methodName}).endsWith("Function")
+                __stubFunction = ${globalAaName}.${storageName}.${methodName}
                 ${resultName} = __stubFunction(${paramNames})
                 return${requiresReturnValue ? ` ${resultName}` : ''}
             end if
