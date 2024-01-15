@@ -85,15 +85,28 @@ export class MockUtil {
         for (let param of functionStatement.func.parameters) {
             param.asToken = null;
         }
-        const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
 
-        const returnStatement = functionRequiresReturnValue(functionStatement) ? 'return result' : 'return';
-        this.astEditor.addToArray(functionStatement.func.body.statements, 0, new RawCodeStatement(undent`
+        const funcName = functionStatement.getName(ParseMode.BrightScript);
+        const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
+        const requiresReturnValue = functionRequiresReturnValue(functionStatement);
+        const globalAaName = '__stubs_globalAa';
+        const resultName = '__stubOrMockResult';
+        const storageName = '__globalStubs';
+
+        console.log(funcName);
+        const template = undent`
+            ${globalAaName} = getGlobalAa()
             if RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
-                result = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
-                ${returnStatement}
+                ${resultName} = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
+                return${requiresReturnValue ? ` ${resultName}` : '' }
+            else if type(${globalAaName}?.${storageName}?.${funcName}).endsWith("Function")
+                __stubFunction = ${globalAaName}.${storageName}.${funcName}
+                ${resultName} = __stubFunction(${paramNames})
+                return${requiresReturnValue ? ` ${resultName}` : ''}
             end if
-            `));
+        `;
+        const astCodeToInject = Parser.parse(template).ast.statements;
+        this.astEditor.arrayUnshift(functionStatement.func.body.statements, ...astCodeToInject);
 
         this.processedStatements.add(functionStatement);
     }

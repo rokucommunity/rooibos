@@ -165,7 +165,6 @@ export class RooibosPlugin implements CompilerPlugin {
         }
 
         if (isBrsFile(event.file)) {
-            this.mockUtil.addRuntimeGlobalFunctionMocks(event.file, event.editor);
             if (this.shouldAddCodeCoverageToFile(event.file)) {
                 this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
             }
