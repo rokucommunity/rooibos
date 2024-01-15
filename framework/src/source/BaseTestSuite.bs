@@ -2268,6 +2268,10 @@ namespace rooibos
     '  * @description Cleans up all tracking data associated with mocks
     '  */
     function cleanMocks() as void
+      ' Clean up the global functions mocks as well
+      globalAa = getGlobalAa()
+      globalAa.__globalStubs = invalid
+
       if m.mocks = invalid
         return
       end if
@@ -2277,10 +2281,6 @@ namespace rooibos
       end for
       m.mocks = invalid
       rooibos.resetMocksByFunctionName()
-
-      ' Clean up the global functions mocks as well
-      globalAa = getGlobalAa()
-      globalAa.__globalStubs = invalid
     end function
 
 
