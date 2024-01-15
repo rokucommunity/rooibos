@@ -171,6 +171,36 @@ export class MockUtil {
         }
         //modify args
         let arg0 = callExpression.args[0];
+        let arg1 = callExpression.args[1];
+
+        if (isStubCall) {
+            if (brighterscript.isFunctionExpression(arg1)) {
+                if (brighterscript.isDottedGetExpression(arg0)) {
+                    let nameParts = getAllDottedGetParts(arg0);
+                    let name = nameParts.pop();
+                    console.log(nameParts[0], namespaceLookup.has(nameParts[0].toLowerCase()));
+
+                    if (name) {
+                        //is a namespace?
+                        if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
+                            //then this must be a namespace method
+                            let fullPathName = nameParts.join('.').toLowerCase();
+                            let ns = namespaceLookup.get(fullPathName);
+                            if (!ns) {
+                                //TODO this is an error condition!
+                            }
+                            nameParts.push(name);
+                            let functionName = nameParts.join('_').toLowerCase();
+                            this.session.globalStubbedMethods.add(functionName);
+                        }
+                    }
+                } else if (brighterscript.isVariableExpression(arg0)) {
+                    const functionName = arg0.getName(ParseMode.BrightScript).toLowerCase();
+                    this.session.globalStubbedMethods.add(functionName);
+                }
+            }
+        }
+
         if (brighterscript.isCallExpression(arg0) && brighterscript.isDottedGetExpression(arg0.callee)) {
 
             //is it a namespace?

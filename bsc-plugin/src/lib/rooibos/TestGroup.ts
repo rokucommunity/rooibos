@@ -98,14 +98,22 @@ export class TestGroup extends TestBlock {
     private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>) {
         let isNotCalled = false;
         let isStubCall = false;
-        if (isDottedGetExpression(callExpression.callee)) {
-            const nameText = callExpression.callee.name.text;
-            editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);
-            isNotCalled = nameText === 'expectNotCalled';
-            isStubCall = nameText === 'stubCall';
-        }
+
         //modify args
         let arg0 = callExpression.args[0];
+        let arg1 = callExpression.args[1];
+        if (isDottedGetExpression(callExpression.callee)) {
+            const nameText = callExpression.callee.name.text;
+            isNotCalled = nameText === 'expectNotCalled';
+            isStubCall = nameText === 'stubCall';
+
+            if (isStubCall && (brighterscript.isDottedGetExpression(arg0) || brighterscript.isVariableExpression(arg0)) && brighterscript.isFunctionExpression(arg1)) {
+                console.log('modifyModernRooibosExpectCallExpression', callExpression.callee.name);
+                return;
+            }
+            editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);
+        }
+
         if (brighterscript.isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
 
             //is it a namespace?
