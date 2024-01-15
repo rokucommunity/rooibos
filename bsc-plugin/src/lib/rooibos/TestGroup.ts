@@ -108,7 +108,6 @@ export class TestGroup extends TestBlock {
             isStubCall = nameText === 'stubCall';
 
             if (isStubCall && (brighterscript.isDottedGetExpression(arg0) || brighterscript.isVariableExpression(arg0)) && brighterscript.isFunctionExpression(arg1)) {
-                console.log('modifyModernRooibosExpectCallExpression', callExpression.callee.name);
                 return;
             }
             editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);

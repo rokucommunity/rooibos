@@ -176,7 +176,6 @@ export class MockUtil {
                 if (brighterscript.isDottedGetExpression(arg0)) {
                     let nameParts = getAllDottedGetParts(arg0);
                     let name = nameParts.pop();
-                    console.log(nameParts[0], namespaceLookup.has(nameParts[0].toLowerCase()));
 
                     if (name) {
                         //is a namespace?
