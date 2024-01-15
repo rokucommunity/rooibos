@@ -52,8 +52,8 @@ export class MockUtil {
         this.processedStatements = new Set<brighterscript.FunctionStatement>();
         this.astEditor = astEditor;
         // console.log('processing global methods on ', file.pkgPath);
-        for (let fs of file.parser.references.functionStatements) {
-            this.enableMockOnFunction(fs);
+        for (let functionStatement of file.parser.references.functionStatements) {
+            this.enableMockOnFunction(file, functionStatement);
         }
 
         this.filePathMap[this.fileId] = file.pkgPath;
@@ -62,7 +62,7 @@ export class MockUtil {
         }
     }
 
-    private enableMockOnFunction(functionStatement: brighterscript.FunctionStatement) {
+    private enableMockOnFunction(file: BrsFile, functionStatement: brighterscript.FunctionStatement) {
         if (isClassStatement(functionStatement.parent?.parent)) {
             // console.log('skipping class', functionStatement.parent?.parent?.name?.text);
             return;
@@ -107,6 +107,7 @@ export class MockUtil {
         this.astEditor.arrayUnshift(functionStatement.func.body.statements, ...astCodeToInject);
 
         this.processedStatements.add(functionStatement);
+        file.needsTranspiled = true;
     }
 
     addBrsAPIText(file: BrsFile) {
