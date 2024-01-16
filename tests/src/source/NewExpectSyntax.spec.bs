@@ -165,42 +165,209 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall local and namespace functions with new runtime functions")
+    @describe("stubCall global functions with new runtime functions")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("supports function stubbing with a new function at runtime")
+    @it("stubs global with inline anon with return value")
     function _()
       m.wasCalled = false
-      m.stubCall(locationFunctionWithReturn, function()
+      m.stubCall(globalFunctionWithReturn, function()
         m.wasCalled = true
         return true
       end function)
-      m.assertTrue(locationFunctionWithReturn())
-      m.assertTrue(m.wasCalled)
-      m.wasCalled = false
 
-      m.stubCall(locationFunctionWithoutReturn, sub()
+      m.assertTrue(globalFunctionWithReturn())
+      m.assertTrue(m.wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global with anon from variable with return value")
+    function _()
+      m.wasCalled = false
+      stub = function()
+        m.wasCalled = true
+        return true
+      end function
+      m.stubCall(globalFunctionWithReturn, stub)
+
+      m.assertTrue(globalFunctionWithReturn())
+      m.assertTrue(m.wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global with inline anon without return value")
+    function _()
+      m.wasCalled = false
+      m.stubCall(globalFunctionWithoutReturn, sub()
         m.wasCalled = true
       end sub)
-      m.assertInvalid(locationFunctionWithoutReturn())
-      m.assertTrue(m.wasCalled)
-      m.wasCalled = false
 
+      m.assertInvalid(globalFunctionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global with anon from variable without return value")
+    function _()
       m.wasCalled = false
-      m.stubCall(textNamespace.functionWithReturn, function()
+      m.stubCall(globalFunctionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(globalFunctionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall namespace functions with new runtime functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stubs namespace with inline anon with return value")
+    function _()
+      m.wasCalled = false
+      m.stubCall(testNamespace.functionWithReturn, function()
         m.wasCalled = true
         return true
       end function)
-      m.assertTrue(textNamespace.functionWithReturn())
+      m.assertTrue(testNamespace.functionWithReturn())
       m.assertTrue(m.wasCalled)
-      m.wasCalled = false
+      m.assertRunningTestIsPassed()
+    end function
 
-      m.stubCall(textNamespace.functionWithoutReturn, sub()
+    @it("stubs namespace with anon from variable with return value")
+    function _()
+      m.wasCalled = false
+      stub = function()
+        m.wasCalled = true
+        return true
+      end function
+      m.stubCall(testNamespace.functionWithReturn, stub)
+
+      m.assertTrue(testNamespace.functionWithReturn())
+      m.assertTrue(m.wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs namespace with inline anon without return value")
+    function _()
+      m.wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
         m.wasCalled = true
       end sub)
-      m.assertInvalid(textNamespace.functionWithoutReturn())
+      m.assertInvalid(testNamespace.functionWithoutReturn())
       m.assertTrue(m.wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs namespace with anon from variable without return value")
+    function _()
       m.wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall global or namespace functions multiple times in a test")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stubs namespace multiple times in one test")
+    function _()
+      m.wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = 1
+      end sub)
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertEqual(m.wasCalled, 1)
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global multiple times in one test")
+    function _()
+      m.wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = 1
+      end sub)
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertEqual(m.wasCalled, 1)
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall global can be cleaned")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stubs namespace and then cleans it")
+    function _()
+      m.wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+
+      m.cleanMocks()
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertFalse(m.wasCalled)
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global and then cleans it")
+    function _()
+      m.wasCalled = false
+      m.stubCall(globalFunctionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(globalFunctionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+
+      m.cleanMocks()
+
+      m.assertInvalid(globalFunctionWithoutReturn())
+      m.assertFalse(m.wasCalled)
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global multiple times in one test")
+    function _()
+      m.wasCalled = false
+      m.stubCall(globalFunctionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(m.wasCalled)
+
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = 1
+      end sub)
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertEqual(m.wasCalled, 1)
 
       m.assertRunningTestIsPassed()
     end function
@@ -434,22 +601,22 @@ namespace tests
 
 end namespace
 
-function locationFunctionWithReturn() as dynamic
+function globalFunctionWithReturn() as dynamic
   m.wasCalled = false
   return false
 end function
 
-sub locationFunctionWithoutReturn()
+sub globalFunctionWithoutReturn()
   m.wasCalled = false
 end sub
 
-namespace textNamespace
+namespace testNamespace
   function functionWithReturn() as dynamic
     m.wasCalled = false
     return false
   end function
 
-  sub FunctionWithoutReturn()
+  sub functionWithoutReturn()
     m.wasCalled = false
   end sub
 end namespace
