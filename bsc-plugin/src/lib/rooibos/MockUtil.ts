@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, NamespaceStatement, ProgramBuilder } from 'brighterscript';
-import { ParseMode, Parser, Position, TokenKind, WalkMode, createVisitor, isClassStatement, isNamespaceStatement } from 'brighterscript';
+import type { BrsFile, Editor, NamespaceContainer, NamespaceStatement, ProgramBuilder } from 'brighterscript';
+import { ParseMode, Parser, Position, WalkMode, createVisitor, isClassStatement, isNamespaceStatement } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
@@ -175,22 +175,10 @@ export class MockUtil {
         if (isStubCall) {
             if (!brighterscript.isCallExpression(arg0)) {
                 if (brighterscript.isDottedGetExpression(arg0)) {
-                    let nameParts = getAllDottedGetParts(arg0);
-                    let name = nameParts.pop();
+                    const functionName = this.getFinalNamespaceFunctionNameFromDottedGet(arg0, namespaceLookup);
 
-                    if (name) {
-                        //is a namespace?
-                        if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
-                            //then this must be a namespace method
-                            let fullPathName = nameParts.join('.').toLowerCase();
-                            let ns = namespaceLookup.get(fullPathName);
-                            if (!ns) {
-                                //TODO this is an error condition!
-                            }
-                            nameParts.push(name);
-                            let functionName = nameParts.join('_').toLowerCase();
-                            this.session.globalStubbedMethods.add(functionName);
-                        }
+                    if (functionName) {
+                        this.session.globalStubbedMethods.add(functionName);
                     }
                 } else if (brighterscript.isVariableExpression(arg0)) {
                     const functionName = arg0.getName(ParseMode.BrightScript).toLowerCase();
@@ -200,30 +188,35 @@ export class MockUtil {
         }
 
         if (brighterscript.isCallExpression(arg0) && brighterscript.isDottedGetExpression(arg0.callee)) {
+            const functionName = this.getFinalNamespaceFunctionNameFromDottedGet(arg0.callee, namespaceLookup);
 
-            //is it a namespace?
-            let dg = arg0.callee;
-            let nameParts = getAllDottedGetParts(dg);
-            let name = nameParts.pop();
-
-            // console.log('found expect with name', name);
-            if (name) {
-                //is a namespace?
-                if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
-                    //then this must be a namespace method
-                    let fullPathName = nameParts.join('.').toLowerCase();
-                    let ns = namespaceLookup.get(fullPathName);
-                    if (!ns) {
-                        //TODO this is an error condition!
-                    }
-                    nameParts.push(name);
-                    let functionName = nameParts.join('_').toLowerCase();
-                    this.session.globalStubbedMethods.add(functionName);
-                }
+            if (functionName) {
+                this.session.globalStubbedMethods.add(functionName);
             }
         } else if (brighterscript.isCallExpression(arg0) && brighterscript.isVariableExpression(arg0.callee)) {
             let functionName = arg0.callee.getName(brighterscript.ParseMode.BrightScript).toLowerCase();
             this.session.globalStubbedMethods.add(functionName);
+        }
+    }
+
+
+    private getFinalNamespaceFunctionNameFromDottedGet(dg: brighterscript.DottedGetExpression, namespaceLookup: Map<string, NamespaceContainer>) {
+        //is it a namespace?
+        let nameParts = getAllDottedGetParts(dg);
+        let name = nameParts.pop();
+
+        if (name) {
+            //is a namespace?
+            if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
+                //then this must be a namespace method
+                let fullPathName = nameParts.join('.').toLowerCase();
+                let ns = namespaceLookup.get(fullPathName);
+                if (!ns) {
+                    //TODO this is an error condition!
+                }
+                nameParts.push(name);
+                return nameParts.join('_').toLowerCase();
+            }
         }
     }
 

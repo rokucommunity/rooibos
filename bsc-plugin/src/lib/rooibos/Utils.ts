@@ -1,4 +1,5 @@
-import { type BrsFile, type ClassStatement, type Expression, type FunctionStatement, type AnnotationExpression, type AstEditor, TokenKind } from 'brighterscript';
+import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, Expression, FunctionStatement } from 'brighterscript';
+import { TokenKind } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 
@@ -51,7 +52,6 @@ export function getAllDottedGetParts(dg: brighterscript.DottedGetExpression) {
     }
     return parts.reverse();
 }
-
 
 export function getRootObjectFromDottedGet(value: brighterscript.DottedGetExpression) {
     let root;

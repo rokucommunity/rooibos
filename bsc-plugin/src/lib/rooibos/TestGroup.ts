@@ -1,4 +1,4 @@
-import type { AstEditor, CallExpression, DottedGetExpression } from 'brighterscript';
+import type { AstEditor, CallExpression, DottedGetExpression, NamespaceContainer } from 'brighterscript';
 import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
@@ -8,7 +8,6 @@ import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
 import { TestBlock } from './TestSuite';
 import { getAllDottedGetParts, getRootObjectFromDottedGet, getStringPathFromDottedGet, sanitizeBsJsonString } from './Utils';
-import type { NamespaceContainer } from './RooibosSession';
 
 export class TestGroup extends TestBlock {
 
