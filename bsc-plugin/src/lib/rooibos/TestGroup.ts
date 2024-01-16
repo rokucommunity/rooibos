@@ -74,10 +74,11 @@ export class TestGroup extends TestBlock {
                                 if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
                                 }
-                                const trailingLine = Parser.parse(`${noEarlyExit ? '' : `if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`}`).ast.statements[0];
 
-                                editor.arraySplice(owner, key + 1, 0, trailingLine);
-
+                                if (!noEarlyExit) {
+                                    const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
+                                    editor.arraySplice(owner, key + 1, 0, trailingLine);
+                                }
                                 const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.range.start.line}`).ast.statements[0];
                                 editor.arraySplice(owner, key, 0, leadingLine);
                             }
