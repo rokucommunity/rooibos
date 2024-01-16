@@ -638,7 +638,7 @@ describe('RooibosPlugin', () => {
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
 
-        describe.skip('expectCalled transpilation', () => {
+        describe('expectCalled transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1125,7 +1125,7 @@ describe('RooibosPlugin', () => {
             });
         });
 
-        describe.skip('stubCall transpilation', () => {
+        describe('stubCall transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1267,7 +1267,7 @@ describe('RooibosPlugin', () => {
             });
         });
 
-        describe.skip('expectNotCalled transpilation', () => {
+        describe('expectNotCalled transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
