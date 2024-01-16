@@ -399,6 +399,43 @@ describe('MockUtil', () => {
 
             });
 
+            it('will skip functions with the disableMocking annotation', async () => {
+                program.setFile('source/code.bs', `
+                @disableMocking
+                namespace beings
+                function sayHello()
+                    print "hello2"
+                end function
+                end namespace
+                namespace aliens
+                @disableMocking
+                function sayHello()
+                    print "hello3"
+                end function
+                end namespace
+                @disableMocking
+                function sayHello()
+                    print "hello4"
+                end function
+            `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                let a = getContents('source/code.brs');
+                let b = trimLeading(`function beings_sayHello()
+                    print "hello2"
+                    end function
+                    function aliens_sayHello()
+                    print "hello3"
+                    end function
+
+                    function sayHello()
+                    print "hello4"
+                    end function`);
+                expect(a).to.equal(b);
+
+            });
+
         });
 
         it('excludes files from coverage', async () => {

@@ -79,6 +79,19 @@ export class MockUtil {
             return;
         }
 
+        let isDisabledFoMocking = functionStatement.annotations?.find(x => x.name.toLowerCase() === 'disablemocking');
+        let parentNamespace = functionStatement.findAncestor<NamespaceStatement>(isNamespaceStatement);
+        while (parentNamespace && !isDisabledFoMocking) {
+            if (parentNamespace) {
+                isDisabledFoMocking = parentNamespace.annotations?.find(x => x.name.toLowerCase() === 'disablemocking');
+                parentNamespace = parentNamespace.findAncestor<NamespaceStatement>(isNamespaceStatement);
+            }
+        }
+        if (isDisabledFoMocking) {
+            // The developer has stated that this function is not safe to be mocked
+            return;
+        }
+
         // console.log('processing  stubbed method', methodName);
         // TODO check if the user has actually mocked or stubbed this function, otherwise leave it alone!
 
@@ -171,7 +184,6 @@ export class MockUtil {
         //modify args
         let arg0 = callExpression.args[0];
         let arg1 = callExpression.args[1];
-
         if (isStubCall) {
             if (!brighterscript.isCallExpression(arg0)) {
                 if (brighterscript.isDottedGetExpression(arg0)) {
@@ -219,42 +231,4 @@ export class MockUtil {
             }
         }
     }
-
-    public addRuntimeGlobalFunctionMocks(file: BrsFile, astEditor: Editor) {
-        file.ast.walk(createVisitor({
-            FunctionStatement: (statement, parent, owner, key) => {
-                if (!file.pkgPath.includes('rooibos/') && !file.pkgPath.endsWith('spec.brs')) {
-                    let isDisabledFoMocking = statement.annotations?.find(x => x.name.toLowerCase() === 'disablemocking');
-                    let parentNamespace = statement.findAncestor<NamespaceStatement>(isNamespaceStatement);
-                    while (parentNamespace && !isDisabledFoMocking) {
-                        if (parentNamespace) {
-                            isDisabledFoMocking = parentNamespace.annotations?.find(x => x.name.toLowerCase() === 'disablemocking');
-                            parentNamespace = parentNamespace.findAncestor<NamespaceStatement>(isNamespaceStatement);
-                        }
-                    }
-
-                    if (!isDisabledFoMocking) {
-                        const funcName = statement.getName(ParseMode.BrightScript);
-                        const returnResult = functionRequiresReturnValue(statement);
-                        const globalAaName = '__mocks_globalAa';
-                        const storageName = '_globalMocks';
-                        const template = undent`
-                            ${globalAaName} = getGlobalAa()
-                            if type(${globalAaName}?.${storageName}?.${funcName}) = "roFunction" or type(${globalAaName}?.${storageName}?.${funcName}) = "Function" then
-                                __mockedFunction = ${globalAaName}.${storageName}.${funcName}
-                                __mockResult = __mockedFunction(${statement.func.parameters.map(x => x.name.text).join(', ')})
-                                return ${returnResult ? '__mockResult' : ''}
-                            end if
-                        `;
-                        const mockStatements = Parser.parse(template).ast.statements;
-                        astEditor.arrayUnshift(statement.func.body.statements, ...mockStatements);
-                        file.needsTranspiled = true;
-                    }
-                }
-            }
-        }), {
-            walkMode: WalkMode.visitAllRecursive
-        });
-    }
-
 }
