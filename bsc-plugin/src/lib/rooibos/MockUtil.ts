@@ -124,9 +124,8 @@ export class MockUtil {
     }
 
     addBrsAPIText(file: BrsFile) {
-        //TODO should use ast editor!
-        const func = new RawCodeStatement(this.brsFileAdditions.replace(/\#ID\#/g, this.fileId.toString().trim()), file, Range.create(Position.create(1, 1), Position.create(1, 1)));
-        file.ast.statements.push(func);
+        const func = Parser.parse(this.brsFileAdditions.replace(/\#ID\#/g, this.fileId.toString().trim())).ast.statements;
+        this.astEditor.arrayPush(file.ast.statements, ...func);
     }
 
 

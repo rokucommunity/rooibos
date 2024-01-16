@@ -657,40 +657,46 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
-                    "getFunction"
+                        "getFunction"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
-                    "getFunction"
+                        "getFunction"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
-                    "getFunction"
-                    "a"
-                    "b"
+                        "getFunction"
+                        "a"
+                        "b"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
-                    "getFunction"
-                    "a"
-                    "b"
+                        "getFunction"
+                        "a"
+                        "b"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
 
@@ -715,12 +721,16 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid)
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid, "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
 
@@ -742,34 +752,40 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
             it('does not produce crashing code for subs', async () => {
@@ -790,34 +806,39 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                let a = getTestSubContents(true);
                 expect(
-                    getTestSubContents(true)
+                    getTestSubContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
-                    if m.currentResult?.isFail = true then m.done() : return
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
                 `);
             });
             it('does not break when validating again after a transpile', async () => {
@@ -839,34 +860,40 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
 
@@ -891,19 +918,22 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 // expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     b = {
-                    someValue: "value"
+                        someValue: "value"
                     }
-
                     m.currentAssertLineNumber = 12
                     m.assertEqual(b, {
-                    someValue: "value"
+                        someValue: "value"
                     })
-                    if m.currentResult?.isFail = true then m.done() : return invalid`);
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
@@ -925,38 +955,43 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     item = {
-                    id: "item"
+                        id: "item"
                     }
-
                     m.currentAssertLineNumber = 7
                     m._expectCalled(item, "getFunction", item, "item", [])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(item, "getFunction", item, "item", [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(item, "getFunction", item, "item", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 10
                     m._expectCalled(item, "getFunction", item, "item", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
             it('correctly transpiles global function calls', async () => {
@@ -984,38 +1019,43 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testText = getTestFunctionContents(true);
+                const testText = getTestFunctionContents();
                 expect(
                     testText
                 ).to.eql(undent`
                 item = {
-                id: "item"
+                    id: "item"
                 }
-
                 m.currentAssertLineNumber = 7
                 m._expectCalled(sayHello, "sayHello", invalid, invalid, [
-                "arg1"
-                "arg2"
+                    "arg1"
+                    "arg2"
                 ], "return")
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                if m.currentResult?.isFail = true then
+                    m.done()
+                    return invalid
+                end if
                 m.currentAssertLineNumber = 8
                 m._expectCalled(sayHello, "sayHello", invalid, invalid, [])
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                if m.currentResult?.isFail = true then
+                    m.done()
+                    return invalid
+                end if
                 m.currentAssertLineNumber = 9
                 m._expectCalled(sayHello, "sayHello", invalid, invalid, [], "return")
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                if m.currentResult?.isFail = true then
+                    m.done()
+                    return invalid
+                end if
                 m.currentAssertLineNumber = 10
                 m._expectCalled(sayHello, "sayHello", invalid, invalid, [
-                "arg1"
-                "arg2"
+                    "arg1"
+                    "arg2"
                 ])
-                if m.currentResult?.isFail = true then m.done() : return invalid
+                if m.currentResult?.isFail = true then
+                    m.done()
+                    return invalid
+                end if
 `);
 
                 let codeText = getContents('code.brs');
@@ -1023,11 +1063,11 @@ describe('RooibosPlugin', () => {
                 function sayHello(firstName = "", lastName = "")
                     __stubs_globalAa = getGlobalAa()
                     if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName,lastName)
+                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
                         return __stubOrMockResult
                     else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
                         __stubFunction = __stubs_globalAa.__globalStubs.sayhello
-                        __stubOrMockResult = __stubFunction()
+                        __stubOrMockResult = __stubFunction(firstName, lastName)
                         return __stubOrMockResult
                     end if
                     print firstName + " " + lastName
@@ -1035,7 +1075,7 @@ describe('RooibosPlugin', () => {
 
                 function RBS_SM_1_getMocksByFunctionName()
                     if m._rMocksByFunctionName = invalid
-                    m._rMocksByFunctionName = {}
+                        m._rMocksByFunctionName = {}
                     end if
                     return m._rMocksByFunctionName
                 end function`);
@@ -1067,50 +1107,55 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testText = getTestFunctionContents(true);
+                const testText = getTestFunctionContents();
                 expect(
                     testText
                 ).to.eql(undent`
                     item = {
                         id: "item"
                     }
-
                     m.currentAssertLineNumber = 7
                     m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
                         "arg1"
                         "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 10
                     m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
                         "arg1"
                         "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
 
-                let codeText = trimLeading(getContents('code.brs'));
-                expect(codeText).to.equal(trimLeading(`
+                let codeText = getContents('code.brs');
+                expect(codeText).to.equal(undent(`
                 function utils_sayHello(firstName = "", lastName = "")
                     __stubs_globalAa = getGlobalAa()
                     if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
-                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName,lastName)
+                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
                         return __stubOrMockResult
-                    else if type(__stubs_globalAa?.__globalStubs?.beings_sayHello).endsWith("Function")
-                        __stubFunction = __stubs_globalAa.__globalStubs.beings_sayHello
-                        __stubOrMockResult = __stubFunction()
+                    else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
+                        __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
+                        __stubOrMockResult = __stubFunction(firstName, lastName)
                         return __stubOrMockResult
                     end if
                     print firstName + " " + lastName
@@ -1118,10 +1163,11 @@ describe('RooibosPlugin', () => {
 
                 function RBS_SM_1_getMocksByFunctionName()
                     if m._rMocksByFunctionName = invalid
-                    m._rMocksByFunctionName = {}
+                        m._rMocksByFunctionName = {}
                     end if
                     return m._rMocksByFunctionName
-                end function`));
+                end function
+            `));
             });
         });
 
@@ -1291,22 +1337,28 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
 
@@ -1331,15 +1383,18 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents()
                 ).to.eql(undent`
                     thing = {}
-
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
                 const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
@@ -1376,7 +1431,10 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "getFunctionField", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
                 const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
@@ -1410,23 +1468,28 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-                `);
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if                `);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
@@ -1446,22 +1509,25 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     item = {
-                    id: "item"
+                        id: "item"
                     }
-
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(item, "getFunction", item, "item")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(item, "getFunction", item, "item")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
         });
