@@ -173,7 +173,7 @@ export class MockUtil {
         let arg1 = callExpression.args[1];
 
         if (isStubCall) {
-            if (brighterscript.isFunctionExpression(arg1)) {
+            if (!brighterscript.isCallExpression(arg0)) {
                 if (brighterscript.isDottedGetExpression(arg0)) {
                     let nameParts = getAllDottedGetParts(arg0);
                     let name = nameParts.pop();
