@@ -205,7 +205,7 @@ export class TestGroup extends TestBlock {
             return scope.getCallableByName(functionName);
         } else if (brighterscript.isVariableExpression(arg0)) {
             return (
-                arg0.getSymbolTable().hasSymbol(arg0.getName(ParseMode.BrightScript)) ||
+                scope.symbolTable.hasSymbol(arg0.getName(ParseMode.BrightScript)) ||
                 scope.getCallableByName(arg0.getName(ParseMode.BrighterScript))
             );
         }

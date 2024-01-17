@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, NamespaceContainer, NamespaceStatement, ProgramBuilder } from 'brighterscript';
-import { ParseMode, Parser, Position, WalkMode, createVisitor, isClassStatement, isNamespaceStatement } from 'brighterscript';
+import type { BrsFile, Editor, NamespaceStatement, ProgramBuilder, Scope } from 'brighterscript';
+import { ParseMode, Parser, isClassStatement, isNamespaceStatement } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
-import { RawCodeStatement } from './RawCodeStatement';
-import { Range } from 'vscode-languageserver-types';
 import type { FileFactory } from './FileFactory';
 import undent from 'undent';
 import type { RooibosSession } from './RooibosSession';
@@ -26,13 +24,13 @@ export class MockUtil {
     session: RooibosSession;
 
     private brsFileAdditions = `
-    function RBS_SM_#ID#_getMocksByFunctionName()
-        if m._rMocksByFunctionName = invalid
-        m._rMocksByFunctionName = {}
-        end if
-        return m._rMocksByFunctionName
-    end function
-`;
+        function RBS_SM_#ID#_getMocksByFunctionName()
+            if m._rMocksByFunctionName = invalid
+            m._rMocksByFunctionName = {}
+            end if
+            return m._rMocksByFunctionName
+        end function
+    `;
 
     private config: RooibosConfig;
     private fileId: number;
@@ -149,13 +147,13 @@ export class MockUtil {
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.name.text)) {
                             if (dge.name.text === 'stubCall') {
-                                this.processGlobalStubbedMethod(callExpression);
+                                this.processGlobalStubbedMethod(callExpression, testSuite);
                                 return expressionStatement;
 
                             } else {
 
                                 if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
-                                    this.processGlobalStubbedMethod(callExpression);
+                                    this.processGlobalStubbedMethod(callExpression, testSuite);
                                 }
                             }
                         }
@@ -171,9 +169,10 @@ export class MockUtil {
         }
     }
 
-    private processGlobalStubbedMethod(callExpression: brighterscript.CallExpression) {
+    private processGlobalStubbedMethod(callExpression: brighterscript.CallExpression, testSuite: TestSuite) {
         let isNotCalled = false;
         let isStubCall = false;
+        const scope = testSuite.file.program.getFirstScopeForFile(testSuite.file);
         const namespaceLookup = this.session.namespaceLookup;
         if (brighterscript.isDottedGetExpression(callExpression.callee)) {
             const nameText = callExpression.callee.name.text;
@@ -183,51 +182,45 @@ export class MockUtil {
         //modify args
         let arg0 = callExpression.args[0];
         let arg1 = callExpression.args[1];
-        if (isStubCall) {
-            if (!brighterscript.isCallExpression(arg0)) {
-                if (brighterscript.isDottedGetExpression(arg0)) {
-                    const functionName = this.getFinalNamespaceFunctionNameFromDottedGet(arg0, namespaceLookup);
 
-                    if (functionName) {
-                        this.session.globalStubbedMethods.add(functionName);
-                    }
-                } else if (brighterscript.isVariableExpression(arg0)) {
-                    const functionName = arg0.getName(ParseMode.BrightScript).toLowerCase();
-                    this.session.globalStubbedMethods.add(functionName);
-                }
+        if (isStubCall) {
+            let functionName = this.getGlobalFunctionName(arg0, scope);
+            if (functionName) {
+                this.session.globalStubbedMethods.add(functionName.toLowerCase());
+                return;
             }
         }
 
-        if (brighterscript.isCallExpression(arg0) && brighterscript.isDottedGetExpression(arg0.callee)) {
-            const functionName = this.getFinalNamespaceFunctionNameFromDottedGet(arg0.callee, namespaceLookup);
-
+        if (brighterscript.isCallExpression(arg0)) {
+            let functionName = this.getGlobalFunctionName(arg0.callee, scope);
             if (functionName) {
-                this.session.globalStubbedMethods.add(functionName);
+                this.session.globalStubbedMethods.add(functionName.toLowerCase());
             }
-        } else if (brighterscript.isCallExpression(arg0) && brighterscript.isVariableExpression(arg0.callee)) {
-            let functionName = arg0.callee.getName(brighterscript.ParseMode.BrightScript).toLowerCase();
-            this.session.globalStubbedMethods.add(functionName);
         }
     }
 
 
-    private getFinalNamespaceFunctionNameFromDottedGet(dg: brighterscript.DottedGetExpression, namespaceLookup: Map<string, NamespaceContainer>) {
-        //is it a namespace?
-        let nameParts = getAllDottedGetParts(dg);
-        let name = nameParts.pop();
+    private getGlobalFunctionName(expression: brighterscript.Expression, scope: Scope) {
+        let result: string;
+        if (brighterscript.isDottedGetExpression(expression)) {
+            let nameParts = getAllDottedGetParts(expression);
+            let functionName = nameParts.join('.');
+            let callable = scope.getCallableByName(functionName);
+            if (callable) {
+                result = callable.getName(ParseMode.BrightScript);
+            }
+        } else if (brighterscript.isVariableExpression(expression)) {
+            let functionName = expression.getName(ParseMode.BrightScript);
+            if (scope.symbolTable.hasSymbol(functionName)) {
+                result = functionName;
+            }
 
-        if (name) {
-            //is a namespace?
-            if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
-                //then this must be a namespace method
-                let fullPathName = nameParts.join('.').toLowerCase();
-                let ns = namespaceLookup.get(fullPathName);
-                if (!ns) {
-                    //TODO this is an error condition!
-                }
-                nameParts.push(name);
-                return nameParts.join('_').toLowerCase();
+            functionName = expression.getName(ParseMode.BrighterScript);
+            if (scope.getCallableByName(functionName)) {
+                result = functionName;
             }
         }
+
+        return result;
     }
 }
