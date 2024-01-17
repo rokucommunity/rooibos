@@ -10,22 +10,15 @@ let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 
-function trimLeading(text: string) {
-    return text.split('\n').map((line) => line.trimStart()).join('\n');
-}
-
 describe('MockUtil', () => {
     let program: Program;
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
     let options;
 
-    function getContents(filename: string, trim = true) {
+    function getContents(filename: string) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         let contents = fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString();
-        if (trim) {
-            return trimLeading(contents);
-        }
         return contents;
     }
 
@@ -81,7 +74,7 @@ describe('MockUtil', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
-                let a = getContents('source/code.brs', false);
+                let a = getContents('source/code.brs');
                 let b = undent(`
                     function sayHello(a1, a2)
                         __stubs_globalAa = getGlobalAa()
@@ -118,7 +111,7 @@ describe('MockUtil', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
-                let a = getContents('source/code.brs', false);
+                let a = getContents('source/code.brs');
                 let b = undent(`
                     function sayHello(a1, a2)
                         __stubs_globalAa = getGlobalAa()
@@ -158,7 +151,7 @@ describe('MockUtil', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
-                let a = getContents('source/code.brs', false);
+                let a = getContents('source/code.brs');
                 let b = undent(`
                     Sub RedLines_SetRulerLines(rulerLines)
                         __stubs_globalAa = getGlobalAa()
@@ -209,7 +202,7 @@ describe('MockUtil', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
-                let a = getContents('source/code.brs', false);
+                let a = getContents('source/code.brs');
                 let b = undent(`
                     sub sayHello(a1, a2)
                         __stubs_globalAa = getGlobalAa()
@@ -246,7 +239,7 @@ describe('MockUtil', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
-                let a = getContents('source/code.brs', false);
+                let a = getContents('source/code.brs');
                 let b = undent(`
                     function person_utils_sayHello(a1, a2)
                         __stubs_globalAa = getGlobalAa()
@@ -283,7 +276,7 @@ describe('MockUtil', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
-                let a = getContents('source/code.brs', false);
+                let a = getContents('source/code.brs');
                 let b = undent(`
                     sub person_utils_sayHello(a1, a2)
                         __stubs_globalAa = getGlobalAa()
@@ -321,20 +314,22 @@ describe('MockUtil', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
                 let a = getContents('source/code.brs');
-                let b = trimLeading(`function __Person_builder()
-                instance = {}
-                instance.new = sub()
-                end sub
-                instance.sayHello = sub(a1, a2)
-                print "hello"
-                end sub
-                return instance
-                end function
-                function Person()
-                instance = __Person_builder()
-                instance.new()
-                return instance
-                end function`);
+                let b = undent(`
+                    function __Person_builder()
+                        instance = {}
+                        instance.new = sub()
+                        end sub
+                        instance.sayHello = sub(a1, a2)
+                            print "hello"
+                        end sub
+                        return instance
+                    end function
+                    function Person()
+                        instance = __Person_builder()
+                        instance.new()
+                        return instance
+                    end function
+                `);
                 expect(a).to.equal(b);
 
             });
@@ -357,7 +352,7 @@ describe('MockUtil', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
-                let a = getContents('source/code.brs', false);
+                let a = getContents('source/code.brs');
                 let b = undent(`
                     function __beings_Person_builder()
                         instance = {}
@@ -433,7 +428,7 @@ describe('MockUtil', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.transpile();
-                let a = getContents('source/code.brs', false);
+                let a = getContents('source/code.brs');
                 let b = undent(`
                     function beings_sayHello()
                         print "hello2"
@@ -453,14 +448,16 @@ describe('MockUtil', () => {
         });
 
         it('excludes files from coverage', async () => {
-            const source = `sub foo()
-        x = function(y)
-            if (true) then
-                return 1
-            end if
-            return 0
-        end function
-    end sub`;
+            const source = `
+                sub foo()
+                    x = function(y)
+                        if (true) then
+                            return 1
+                        end if
+                        return 0
+                    end function
+                end sub
+            `;
 
             program.setFile('source/code.coverageExcluded.bs', source);
             program.validate();
@@ -468,14 +465,16 @@ describe('MockUtil', () => {
             await builder.transpile();
 
             let a = getContents('source/code.coverageExcluded.brs');
-            let b = `sub foo()
-x = function(y)
-if (true) then
-return 1
-end if
-return 0
-end function
-end sub`;
+            let b = undent(`
+                sub foo()
+                    x = function(y)
+                        if (true) then
+                            return 1
+                        end if
+                        return 0
+                    end function
+                end sub
+            `);
 
             expect(a).to.equal(b);
         });
