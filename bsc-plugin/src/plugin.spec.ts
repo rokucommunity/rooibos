@@ -1311,6 +1311,308 @@ describe('RooibosPlugin', () => {
                     m._stubCall(item, "getFunction", item, "item", "return")
                 `);
             });
+
+            it('correctly transpiles global function and inline anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with inline anon with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          m.stubCall(globalFunctionWithReturn, function()
+                            m.wasCalled = true
+                            return true
+                          end function)
+
+                          m.assertTrue(globalFunctionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    function globalFunctionWithReturn() as dynamic
+                        m.wasCalled = false
+                        return false
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    m.stubCall(globalFunctionWithReturn, function()
+                        m.wasCalled = true
+                        return true
+                    end function)
+                    m.currentAssertLineNumber = 12
+                    m.assertTrue(globalFunctionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('correctly transpiles namespace function and inline anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with inline anon with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          m.stubCall(testNamespace.functionWithReturn, function()
+                            m.wasCalled = true
+                            return true
+                          end function)
+
+                          m.assertTrue(testNamespace.functionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    namespace testNamespace
+                        function functionWithReturn() as dynamic
+                            m.wasCalled = false
+                            return false
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    m.stubCall(testNamespace_functionWithReturn, function()
+                        m.wasCalled = true
+                        return true
+                    end function)
+                    m.currentAssertLineNumber = 12
+                    m.assertTrue(testNamespace_functionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('correctly transpiles namespace function and variable anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with anon from variable with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          stub = function()
+                            m.wasCalled = true
+                            return true
+                          end function
+                          m.stubCall(testNamespace.functionWithReturn, stub)
+
+                          m.assertTrue(testNamespace.functionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    namespace testNamespace
+                        function functionWithReturn() as dynamic
+                            m.wasCalled = false
+                            return false
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    stub = function()
+                        m.wasCalled = true
+                        return true
+                    end function
+                    m.stubCall(testNamespace_functionWithReturn, stub)
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(testNamespace_functionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 15
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('correctly transpiles namespace function by brightscript name and inline anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with inline anon with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          m.stubCall(testNamespace_functionWithReturn, function()
+                            m.wasCalled = true
+                            return true
+                          end function)
+
+                          m.assertTrue(testNamespace_functionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    namespace testNamespace
+                        function functionWithReturn() as dynamic
+                            m.wasCalled = false
+                            return false
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    m.stubCall(testNamespace_functionWithReturn, function()
+                        m.wasCalled = true
+                        return true
+                    end function)
+                    m.currentAssertLineNumber = 12
+                    m.assertTrue(testNamespace_functionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('correctly transpiles namespace function by brightscript name and variable anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with anon from variable with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          stub = function()
+                            m.wasCalled = true
+                            return true
+                          end function
+                          m.stubCall(testNamespace_functionWithReturn, stub)
+
+                          m.assertTrue(testNamespace_functionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    namespace testNamespace
+                        function functionWithReturn() as dynamic
+                            m.wasCalled = false
+                            return false
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    stub = function()
+                        m.wasCalled = true
+                        return true
+                    end function
+                    m.stubCall(testNamespace_functionWithReturn, stub)
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(testNamespace_functionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 15
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
         });
 
         describe('expectNotCalled transpilation', () => {
@@ -1909,14 +2211,13 @@ function getContents(filename: string) {
 
 function getTestFunctionContents(trimEveryLine = false) {
     const contents = getContents('test.spec.brs');
-    const [, body] = /\= function\(\)([\S\s]*|.*)(?=end function)/gim.exec(contents);
-    let result = undent(
-        body.split('end function')[0]
-    );
+
+    let [, result] = /instance.[\w_]+\s?\= function\(\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents);
+
     if (trimEveryLine) {
         result = trim(result);
     }
-    return result;
+    return undent(result);
 }
 
 function getTestSubContents(trimEveryLine = false) {
