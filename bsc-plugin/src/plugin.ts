@@ -154,13 +154,13 @@ export class RooibosPlugin implements CompilerPlugin {
             }
 
             testSuite.addDataFunctions(event.editor as any);
+            if (testSuite.isNodeTest) {
+                this.session.createNodeFile(event.program, testSuite);
+            }
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
                     group.modifyAssertions(testCase, noEarlyExit, event.editor as any, this.session.namespaceLookup);
                 }
-            }
-            if (testSuite.isNodeTest) {
-                this.session.createNodeFile(event.program, testSuite);
             }
         }
 
