@@ -89,7 +89,7 @@ export class TestGroup extends TestBlock {
                 walkMode: brighterscript.WalkMode.visitStatementsRecursive
             });
         } catch (e) {
-            // console.log(e);
+            console.error(e);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(this.testSuite.file, e.message);
         }
@@ -201,31 +201,13 @@ export class TestGroup extends TestBlock {
     private shouldNotModifyStubCall(arg0: Expression, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         if (brighterscript.isDottedGetExpression(arg0)) {
             let nameParts = getAllDottedGetParts(arg0);
-            let name = nameParts.pop();
-            let functionName: string;
-
-            if (name) {
-                //is a namespace?
-                if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
-                    //then this must be a namespace method
-                    let fullPathName = nameParts.join('.').toLowerCase();
-                    let ns = namespaceLookup.get(fullPathName);
-                    if (!ns) {
-                        //TODO this is an error condition!
-                    }
-                    nameParts.push(name);
-                    functionName = nameParts.join('.').toLowerCase();
-                }
-            }
-
-            if (functionName && scope.getCallableByName(functionName)) {
-                return true;
-            }
+            let functionName = nameParts.join('.');
+            return scope.getCallableByName(functionName);
         } else if (brighterscript.isVariableExpression(arg0)) {
-            const functionName = arg0.getName(ParseMode.BrightScript).toLowerCase();
-            if (scope.getCallableByName(functionName)) {
-                return true;
-            }
+            return (
+                arg0.getSymbolTable().hasSymbol(arg0.getName(ParseMode.BrightScript)) ||
+                scope.getCallableByName(arg0.getName(ParseMode.BrighterScript))
+            );
         }
         return false;
     }
