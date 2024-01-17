@@ -386,6 +386,102 @@ describe('RooibosPlugin', () => {
 
                 expect(a).to.equal(b);
             });
+
+            it('correctly transpiles some statements', async () => {
+                const source = `
+                    sub foo(action as string)
+                        if action = "action1" then
+                            print "action1"
+                        else if action = "action2" or action = "action2" then
+                            print "action2"
+                        else if action = "action3" then
+                            print "action3"
+                        else if action = "action4" then
+                            print "action4"
+                        else if action = "action5" then
+                            print "action5"
+                        else if action = "action6" then
+                            print "action6"
+                        else if action = "action7" then
+                            print "action7"
+                        else if action = "action8" then
+                            print "action8"
+                        else if action = "action9" then
+                            print "action9"
+                        else if action = "action10" then
+                            print "action10"
+                        end if
+                    end sub
+                `;
+
+                program.setFile('source/code.bs', source);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                let a = getContents('source/code.brs');
+                let b = undent(`
+                    sub foo(action as string)
+                        if RBS_CC_1_reportLine(2, 3) and action = "action1" then
+                            RBS_CC_1_reportLine(3, 1)
+                            print "action1"
+                        else if (RBS_CC_1_reportLine(4, 3) and action = "action2") or (RBS_CC_1_reportLine(4, 3) and action = "action2") then
+                            RBS_CC_1_reportLine(5, 1)
+                            print "action2"
+                        else if RBS_CC_1_reportLine(6, 3) and action = "action3" then
+                            RBS_CC_1_reportLine(7, 1)
+                            print "action3"
+                        else if RBS_CC_1_reportLine(8, 3) and action = "action4" then
+                            RBS_CC_1_reportLine(9, 1)
+                            print "action4"
+                        else if RBS_CC_1_reportLine(10, 3) and action = "action5" then
+                            RBS_CC_1_reportLine(11, 1)
+                            print "action5"
+                        else if RBS_CC_1_reportLine(12, 3) and action = "action6" then
+                            RBS_CC_1_reportLine(13, 1)
+                            print "action6"
+                        else if RBS_CC_1_reportLine(14, 3) and action = "action7" then
+                            RBS_CC_1_reportLine(15, 1)
+                            print "action7"
+                        else if RBS_CC_1_reportLine(16, 3) and action = "action8" then
+                            RBS_CC_1_reportLine(17, 1)
+                            print "action8"
+                        else if RBS_CC_1_reportLine(18, 3) and action = "action9" then
+                            RBS_CC_1_reportLine(19, 1)
+                            print "action9"
+                        else if RBS_CC_1_reportLine(20, 3) and action = "action10" then
+                            RBS_CC_1_reportLine(21, 1)
+                            print "action10"
+                        end if
+                    end sub
+
+                    function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+                        if m.global = invalid
+                            '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+                            return true
+                        else
+                            if m._rbs_ccn = invalid
+                                '? "Coverage maps are not created - creating now"
+                                if m.global._rbs_ccn = invalid
+                                    '? "Coverage maps are not created - creating now"
+                                    m.global.addFields({
+                                        "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
+                                    })
+                                end if
+                                m._rbs_ccn = m.global._rbs_ccn
+                            end if
+                        end if
+                        m._rbs_ccn.entry = {
+                            "f": "1"
+                            "l": stri(lineNumber)
+                            "r": reportType
+                        }
+                        return true
+                    end function
+                `);
+
+                expect(a).to.equal(b);
+            });
         });
 
         it('excludes files from coverage', async () => {
