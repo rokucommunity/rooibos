@@ -320,6 +320,15 @@ namespace tests
     @it("stubs namespace and then cleans it")
     function _()
       getGlobalAA().wasCalled = false
+      m.stubCall(testNamespace.functionWithReturn, function()
+        m.wasCalled = true
+        return true
+      end function)
+
+      m.assertTrue(testNamespace.functionWithReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+
+      getGlobalAA().wasCalled = false
       m.stubCall(testNamespace.functionWithoutReturn, sub()
         m.wasCalled = true
       end sub)
@@ -329,6 +338,10 @@ namespace tests
 
       m.cleanMocks()
 
+      m.assertFalse(testNamespace.functionWithReturn())
+      m.assertFalse(getGlobalAA().wasCalled)
+
+      getGlobalAA().wasCalled = true
       m.assertInvalid(testNamespace.functionWithoutReturn())
       m.assertFalse(getGlobalAA().wasCalled)
 
@@ -337,6 +350,15 @@ namespace tests
 
     @it("stubs global and then cleans it")
     function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(globalFunctionWithReturn, function()
+        m.wasCalled = true
+        return true
+      end function)
+
+      m.assertTrue(globalFunctionWithReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+
       getGlobalAA().wasCalled = false
       m.stubCall(globalFunctionWithoutReturn, sub()
         m.wasCalled = true
@@ -347,6 +369,10 @@ namespace tests
 
       m.cleanMocks()
 
+      m.assertFalse(globalFunctionWithReturn())
+      m.assertFalse(getGlobalAA().wasCalled)
+
+      getGlobalAA().wasCalled = true
       m.assertInvalid(globalFunctionWithoutReturn())
       m.assertFalse(getGlobalAA().wasCalled)
 
