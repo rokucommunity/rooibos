@@ -102,11 +102,13 @@ describe('RooibosPlugin', () => {
                             c++
                             RBS_CC_1_reportLine(7, 1)
                             c += 1
-                            if RBS_CC_1_reportLine(8, 3) and c = 2
+                            if RBS_CC_1_reportLine(8, 2) and (c = 2)
+                                RBS_CC_1_reportLine(8, 3)
                                 RBS_CC_1_reportLine(9, 1)
                                 ? "is true"
                             end if
-                            if RBS_CC_1_reportLine(12, 3) and c = 3
+                            if RBS_CC_1_reportLine(12, 2) and (c = 3)
+                                RBS_CC_1_reportLine(12, 3)
                                 RBS_CC_1_reportLine(13, 1)
                                 ? "free"
                             else
@@ -185,11 +187,13 @@ describe('RooibosPlugin', () => {
                             c++
                             RBS_CC_1_reportLine(7, 1)
                             c += 1
-                            if RBS_CC_1_reportLine(8, 3) and c = 2
+                            if RBS_CC_1_reportLine(8, 2) and (c = 2)
+                                RBS_CC_1_reportLine(8, 3)
                                 RBS_CC_1_reportLine(9, 1)
                                 ? "is true"
                             end if
-                            if RBS_CC_1_reportLine(12, 3) and c = 3
+                            if RBS_CC_1_reportLine(12, 2) and (c = 3)
+                                RBS_CC_1_reportLine(12, 3)
                                 RBS_CC_1_reportLine(13, 1)
                                 ? "free"
                             else
@@ -281,11 +285,13 @@ describe('RooibosPlugin', () => {
                             c++
                             RBS_CC_1_reportLine(11, 1)
                             c += 1
-                            if RBS_CC_1_reportLine(12, 3) and c = 2
+                            if RBS_CC_1_reportLine(12, 2) and (c = 2)
+                                RBS_CC_1_reportLine(12, 3)
                                 RBS_CC_1_reportLine(13, 1)
                                 ? "is true"
                             end if
-                            if RBS_CC_1_reportLine(16, 3) and c = 3
+                            if RBS_CC_1_reportLine(16, 2) and (c = 3)
+                                RBS_CC_1_reportLine(16, 3)
                                 RBS_CC_1_reportLine(17, 1)
                                 ? "free"
                             else
@@ -350,7 +356,8 @@ describe('RooibosPlugin', () => {
                     sub foo()
                         RBS_CC_1_reportLine(1, 1)
                         x = function(y)
-                            if RBS_CC_1_reportLine(2, 3) and (true) then
+                            if RBS_CC_1_reportLine(2, 2) and ((true)) then
+                                RBS_CC_1_reportLine(2, 3)
                                 RBS_CC_1_reportLine(3, 1)
                                 return 1
                             end if
@@ -397,7 +404,6 @@ describe('RooibosPlugin', () => {
                         else if action = "action3" then
                             print "action3"
                         else if action = "action4" then
-                            print "action4"
                         else if action = "action5" then
                             print "action5"
                         else if action = "action6" then
@@ -410,6 +416,7 @@ describe('RooibosPlugin', () => {
                             print "action9"
                         else if action = "action10" then
                             print "action10"
+                        else
                         end if
                     end sub
                 `;
@@ -422,36 +429,46 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     sub foo(action as string)
-                        if RBS_CC_1_reportLine(2, 3) and action = "action1" then
+                        if RBS_CC_1_reportLine(2, 2) and (action = "action1") then
+                            RBS_CC_1_reportLine(2, 3)
                             RBS_CC_1_reportLine(3, 1)
                             print "action1"
-                        else if (RBS_CC_1_reportLine(4, 3) and action = "action2") or (RBS_CC_1_reportLine(4, 3) and action = "action2") then
+                        else if RBS_CC_1_reportLine(4, 2) and (action = "action2" or action = "action2") then
+                            RBS_CC_1_reportLine(4, 3)
                             RBS_CC_1_reportLine(5, 1)
                             print "action2"
-                        else if RBS_CC_1_reportLine(6, 3) and action = "action3" then
+                        else if RBS_CC_1_reportLine(6, 2) and (action = "action3") then
+                            RBS_CC_1_reportLine(6, 3)
                             RBS_CC_1_reportLine(7, 1)
                             print "action3"
-                        else if RBS_CC_1_reportLine(8, 3) and action = "action4" then
-                            RBS_CC_1_reportLine(9, 1)
-                            print "action4"
-                        else if RBS_CC_1_reportLine(10, 3) and action = "action5" then
-                            RBS_CC_1_reportLine(11, 1)
+                        else if RBS_CC_1_reportLine(8, 2) and (action = "action4") then
+                            RBS_CC_1_reportLine(8, 3)
+                        else if RBS_CC_1_reportLine(9, 2) and (action = "action5") then
+                            RBS_CC_1_reportLine(9, 3)
+                            RBS_CC_1_reportLine(10, 1)
                             print "action5"
-                        else if RBS_CC_1_reportLine(12, 3) and action = "action6" then
-                            RBS_CC_1_reportLine(13, 1)
+                        else if RBS_CC_1_reportLine(11, 2) and (action = "action6") then
+                            RBS_CC_1_reportLine(11, 3)
+                            RBS_CC_1_reportLine(12, 1)
                             print "action6"
-                        else if RBS_CC_1_reportLine(14, 3) and action = "action7" then
-                            RBS_CC_1_reportLine(15, 1)
+                        else if RBS_CC_1_reportLine(13, 2) and (action = "action7") then
+                            RBS_CC_1_reportLine(13, 3)
+                            RBS_CC_1_reportLine(14, 1)
                             print "action7"
-                        else if RBS_CC_1_reportLine(16, 3) and action = "action8" then
-                            RBS_CC_1_reportLine(17, 1)
+                        else if RBS_CC_1_reportLine(15, 2) and (action = "action8") then
+                            RBS_CC_1_reportLine(15, 3)
+                            RBS_CC_1_reportLine(16, 1)
                             print "action8"
-                        else if RBS_CC_1_reportLine(18, 3) and action = "action9" then
-                            RBS_CC_1_reportLine(19, 1)
+                        else if RBS_CC_1_reportLine(17, 2) and (action = "action9") then
+                            RBS_CC_1_reportLine(17, 3)
+                            RBS_CC_1_reportLine(18, 1)
                             print "action9"
-                        else if RBS_CC_1_reportLine(20, 3) and action = "action10" then
-                            RBS_CC_1_reportLine(21, 1)
+                        else if RBS_CC_1_reportLine(19, 2) and (action = "action10") then
+                            RBS_CC_1_reportLine(19, 3)
+                            RBS_CC_1_reportLine(20, 1)
                             print "action10"
+                        else
+                            RBS_CC_1_reportLine(21, 3)
                         end if
                     end sub
 
