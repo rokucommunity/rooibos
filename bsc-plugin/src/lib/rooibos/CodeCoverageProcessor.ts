@@ -20,24 +20,17 @@ export class CodeCoverageProcessor {
     private coverageBrsTemplate = `
         function RBS_CC_#ID#_reportLine(lineNumber, reportType = 1)
             _rbs_ccn = m._rbs_ccn
-            if _rbs_ccn = invalid
-                _rbs_ccn = m?.global?._rbs_ccn
-                if _rbs_ccn = invalid
-                    if m.global = invalid
-                        '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
-                        return true
-                    else
-                        '? "Coverage maps are not created - creating now"
-                        _rbs_ccn = createObject("roSGNode", "CodeCoverage")
-                        m.global.update({
-                            "_rbs_ccn": _rbs_ccn
-                        }, true)
-                    end if
-                end if
-                m._rbs_ccn = _rbs_ccn
+            if _rbs_ccn <> invalid
+                _rbs_ccn.entry = { "f": "#ID#", "l": lineNumber, "r": reportType }
+                return true
             end if
 
-            _rbs_ccn.entry = { "f": "#ID#", "l": lineNumber, "r": reportType }
+            _rbs_ccn = m?.global?._rbs_ccn
+            if _rbs_ccn <> invalid
+                _rbs_ccn.entry = { "f": "#ID#", "l": lineNumber, "r": reportType }
+                m._rbs_ccn = _rbs_ccn
+                return true
+            end if
             return true
         end function
     `;
@@ -66,9 +59,7 @@ export class CodeCoverageProcessor {
     private astEditor: Editor;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
-        if (isUsingCoverage) {
-            this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap);
-        }
+        this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap);
     }
 
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {

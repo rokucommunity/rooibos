@@ -91,55 +91,54 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     function new(a1, a2)
-                        RBS_CC_1_reportLine(2, 1)
+                        RBS_CC_1_reportLine("2", 1)
                         c = 0
-                        RBS_CC_1_reportLine(3, 1)
+                        RBS_CC_1_reportLine("3", 1)
                         text = ""
-                        RBS_CC_1_reportLine(4, 1): for i = 0 to 10
-                            RBS_CC_1_reportLine(5, 1)
+                        RBS_CC_1_reportLine("4", 1): for i = 0 to 10
+                            RBS_CC_1_reportLine("5", 1)
                             text = text + "hello"
-                            RBS_CC_1_reportLine(6, 1)
+                            RBS_CC_1_reportLine("6", 1)
                             c++
-                            RBS_CC_1_reportLine(7, 1)
+                            RBS_CC_1_reportLine("7", 1)
                             c += 1
-                            if RBS_CC_1_reportLine(8, 2) and (c = 2)
-                                RBS_CC_1_reportLine(8, 3)
-                                RBS_CC_1_reportLine(9, 1)
+                            if RBS_CC_1_reportLine("8", 2) and (c = 2)
+                                RBS_CC_1_reportLine("8", 3)
+                                RBS_CC_1_reportLine("9", 1)
                                 ? "is true"
                             end if
-                            if RBS_CC_1_reportLine(12, 2) and (c = 3)
-                                RBS_CC_1_reportLine(12, 3)
-                                RBS_CC_1_reportLine(13, 1)
+                            if RBS_CC_1_reportLine("12", 2) and (c = 3)
+                                RBS_CC_1_reportLine("12", 3)
+                                RBS_CC_1_reportLine("13", 1)
                                 ? "free"
                             else
-                                RBS_CC_1_reportLine(14, 3)
-                                RBS_CC_1_reportLine(15, 1)
+                                RBS_CC_1_reportLine("14", 3)
+                                RBS_CC_1_reportLine("15", 1)
                                 ? "not free"
                             end if
                         end for
                     end function
 
                     function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                        if m.global = invalid
-                            '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": "1"
+                                "l": lineNumber
+                                "r": reportType
+                            }
                             return true
-                        else
-                            if m._rbs_ccn = invalid
-                                '? "Coverage maps are not created - creating now"
-                                if m.global._rbs_ccn = invalid
-                                    '? "Coverage maps are not created - creating now"
-                                    m.global.addFields({
-                                        "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
-                                    })
-                                end if
-                                m._rbs_ccn = m.global._rbs_ccn
-                            end if
                         end if
-                        m._rbs_ccn.entry = {
-                            "f": "1"
-                            "l": stri(lineNumber)
-                            "r": reportType
-                        }
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": "1"
+                                "l": lineNumber
+                                "r": reportType
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
                         return true
                     end function
                 `);
@@ -176,55 +175,54 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     function new(a1, a2)
-                        RBS_CC_1_reportLine(2, 1)
+                        RBS_CC_1_reportLine("2", 1)
                         c = 0
-                        RBS_CC_1_reportLine(3, 1)
+                        RBS_CC_1_reportLine("3", 1)
                         text = ""
-                        RBS_CC_1_reportLine(4, 1): for i = 0 to 10
-                            RBS_CC_1_reportLine(5, 1)
+                        RBS_CC_1_reportLine("4", 1): for i = 0 to 10
+                            RBS_CC_1_reportLine("5", 1)
                             text = text + "hello"
-                            RBS_CC_1_reportLine(6, 1)
+                            RBS_CC_1_reportLine("6", 1)
                             c++
-                            RBS_CC_1_reportLine(7, 1)
+                            RBS_CC_1_reportLine("7", 1)
                             c += 1
-                            if RBS_CC_1_reportLine(8, 2) and (c = 2)
-                                RBS_CC_1_reportLine(8, 3)
-                                RBS_CC_1_reportLine(9, 1)
+                            if RBS_CC_1_reportLine("8", 2) and (c = 2)
+                                RBS_CC_1_reportLine("8", 3)
+                                RBS_CC_1_reportLine("9", 1)
                                 ? "is true"
                             end if
-                            if RBS_CC_1_reportLine(12, 2) and (c = 3)
-                                RBS_CC_1_reportLine(12, 3)
-                                RBS_CC_1_reportLine(13, 1)
+                            if RBS_CC_1_reportLine("12", 2) and (c = 3)
+                                RBS_CC_1_reportLine("12", 3)
+                                RBS_CC_1_reportLine("13", 1)
                                 ? "free"
                             else
-                                RBS_CC_1_reportLine(14, 3)
-                                RBS_CC_1_reportLine(15, 1)
+                                RBS_CC_1_reportLine("14", 3)
+                                RBS_CC_1_reportLine("15", 1)
                                 ? "not free"
                             end if
                         end for
                     end function
 
                     function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                        if m.global = invalid
-                            '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": "1"
+                                "l": lineNumber
+                                "r": reportType
+                            }
                             return true
-                        else
-                            if m._rbs_ccn = invalid
-                                '? "Coverage maps are not created - creating now"
-                                if m.global._rbs_ccn = invalid
-                                    '? "Coverage maps are not created - creating now"
-                                    m.global.addFields({
-                                        "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
-                                    })
-                                end if
-                                m._rbs_ccn = m.global._rbs_ccn
-                            end if
                         end if
-                        m._rbs_ccn.entry = {
-                            "f": "1"
-                            "l": stri(lineNumber)
-                            "r": reportType
-                        }
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": "1"
+                                "l": lineNumber
+                                "r": reportType
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
                         return true
                     end function
                 `);
@@ -274,29 +272,29 @@ describe('RooibosPlugin', () => {
                     instance.new = function(a1, a2)
                         m.field1 = invalid
                         m.field2 = invalid
-                        RBS_CC_1_reportLine(6, 1)
+                        RBS_CC_1_reportLine("6", 1)
                         c = 0
-                        RBS_CC_1_reportLine(7, 1)
+                        RBS_CC_1_reportLine("7", 1)
                         text = ""
-                        RBS_CC_1_reportLine(8, 1): for i = 0 to 10
-                            RBS_CC_1_reportLine(9, 1)
+                        RBS_CC_1_reportLine("8", 1): for i = 0 to 10
+                            RBS_CC_1_reportLine("9", 1)
                             text = text + "hello"
-                            RBS_CC_1_reportLine(10, 1)
+                            RBS_CC_1_reportLine("10", 1)
                             c++
-                            RBS_CC_1_reportLine(11, 1)
+                            RBS_CC_1_reportLine("11", 1)
                             c += 1
-                            if RBS_CC_1_reportLine(12, 2) and (c = 2)
-                                RBS_CC_1_reportLine(12, 3)
-                                RBS_CC_1_reportLine(13, 1)
+                            if RBS_CC_1_reportLine("12", 2) and (c = 2)
+                                RBS_CC_1_reportLine("12", 3)
+                                RBS_CC_1_reportLine("13", 1)
                                 ? "is true"
                             end if
-                            if RBS_CC_1_reportLine(16, 2) and (c = 3)
-                                RBS_CC_1_reportLine(16, 3)
-                                RBS_CC_1_reportLine(17, 1)
+                            if RBS_CC_1_reportLine("16", 2) and (c = 3)
+                                RBS_CC_1_reportLine("16", 3)
+                                RBS_CC_1_reportLine("17", 1)
                                 ? "free"
                             else
-                                RBS_CC_1_reportLine(18, 3)
-                                RBS_CC_1_reportLine(19, 1)
+                                RBS_CC_1_reportLine("18", 3)
+                                RBS_CC_1_reportLine("19", 1)
                                 ? "not free"
                             end if
                         end for
@@ -310,26 +308,25 @@ describe('RooibosPlugin', () => {
                 end function
 
                 function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                    if m.global = invalid
-                        '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+                    _rbs_ccn = m._rbs_ccn
+                    if _rbs_ccn <> invalid
+                        _rbs_ccn.entry = {
+                            "f": "1"
+                            "l": lineNumber
+                            "r": reportType
+                        }
                         return true
-                    else
-                        if m._rbs_ccn = invalid
-                            '? "Coverage maps are not created - creating now"
-                            if m.global._rbs_ccn = invalid
-                                '? "Coverage maps are not created - creating now"
-                                m.global.addFields({
-                                    "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
-                                })
-                            end if
-                            m._rbs_ccn = m.global._rbs_ccn
-                        end if
                     end if
-                    m._rbs_ccn.entry = {
-                        "f": "1"
-                        "l": stri(lineNumber)
-                        "r": reportType
-                    }
+                    _rbs_ccn = m?.global?._rbs_ccn
+                    if _rbs_ccn <> invalid
+                        _rbs_ccn.entry = {
+                            "f": "1"
+                            "l": lineNumber
+                            "r": reportType
+                        }
+                        m._rbs_ccn = _rbs_ccn
+                        return true
+                    end if
                     return true
                 end function
                 `);
@@ -354,39 +351,38 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     sub foo()
-                        RBS_CC_1_reportLine(1, 1)
+                        RBS_CC_1_reportLine("1", 1)
                         x = function(y)
-                            if RBS_CC_1_reportLine(2, 2) and ((true)) then
-                                RBS_CC_1_reportLine(2, 3)
-                                RBS_CC_1_reportLine(3, 1)
+                            if RBS_CC_1_reportLine("2", 2) and ((true)) then
+                                RBS_CC_1_reportLine("2", 3)
+                                RBS_CC_1_reportLine("3", 1)
                                 return 1
                             end if
-                            RBS_CC_1_reportLine(5, 1)
+                            RBS_CC_1_reportLine("5", 1)
                             return 0
                         end function
                     end sub
 
                     function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                        if m.global = invalid
-                            '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": "1"
+                                "l": lineNumber
+                                "r": reportType
+                            }
                             return true
-                        else
-                            if m._rbs_ccn = invalid
-                                '? "Coverage maps are not created - creating now"
-                                if m.global._rbs_ccn = invalid
-                                    '? "Coverage maps are not created - creating now"
-                                    m.global.addFields({
-                                        "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
-                                    })
-                                end if
-                                m._rbs_ccn = m.global._rbs_ccn
-                            end if
                         end if
-                        m._rbs_ccn.entry = {
-                            "f": "1"
-                            "l": stri(lineNumber)
-                            "r": reportType
-                        }
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": "1"
+                                "l": lineNumber
+                                "r": reportType
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
                         return true
                     end function
                 `);
@@ -429,70 +425,69 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     sub foo(action as string)
-                        if RBS_CC_1_reportLine(2, 2) and (action = "action1") then
-                            RBS_CC_1_reportLine(2, 3)
-                            RBS_CC_1_reportLine(3, 1)
+                        if RBS_CC_1_reportLine("2", 2) and (action = "action1") then
+                            RBS_CC_1_reportLine("2", 3)
+                            RBS_CC_1_reportLine("3", 1)
                             print "action1"
-                        else if RBS_CC_1_reportLine(4, 2) and (action = "action2" or action = "action2") then
-                            RBS_CC_1_reportLine(4, 3)
-                            RBS_CC_1_reportLine(5, 1)
+                        else if RBS_CC_1_reportLine("4", 2) and (action = "action2" or action = "action2") then
+                            RBS_CC_1_reportLine("4", 3)
+                            RBS_CC_1_reportLine("5", 1)
                             print "action2"
-                        else if RBS_CC_1_reportLine(6, 2) and (action = "action3") then
-                            RBS_CC_1_reportLine(6, 3)
-                            RBS_CC_1_reportLine(7, 1)
+                        else if RBS_CC_1_reportLine("6", 2) and (action = "action3") then
+                            RBS_CC_1_reportLine("6", 3)
+                            RBS_CC_1_reportLine("7", 1)
                             print "action3"
-                        else if RBS_CC_1_reportLine(8, 2) and (action = "action4") then
-                            RBS_CC_1_reportLine(8, 3)
-                        else if RBS_CC_1_reportLine(9, 2) and (action = "action5") then
-                            RBS_CC_1_reportLine(9, 3)
-                            RBS_CC_1_reportLine(10, 1)
+                        else if RBS_CC_1_reportLine("8", 2) and (action = "action4") then
+                            RBS_CC_1_reportLine("8", 3)
+                        else if RBS_CC_1_reportLine("9", 2) and (action = "action5") then
+                            RBS_CC_1_reportLine("9", 3)
+                            RBS_CC_1_reportLine("10", 1)
                             print "action5"
-                        else if RBS_CC_1_reportLine(11, 2) and (action = "action6") then
-                            RBS_CC_1_reportLine(11, 3)
-                            RBS_CC_1_reportLine(12, 1)
+                        else if RBS_CC_1_reportLine("11", 2) and (action = "action6") then
+                            RBS_CC_1_reportLine("11", 3)
+                            RBS_CC_1_reportLine("12", 1)
                             print "action6"
-                        else if RBS_CC_1_reportLine(13, 2) and (action = "action7") then
-                            RBS_CC_1_reportLine(13, 3)
-                            RBS_CC_1_reportLine(14, 1)
+                        else if RBS_CC_1_reportLine("13", 2) and (action = "action7") then
+                            RBS_CC_1_reportLine("13", 3)
+                            RBS_CC_1_reportLine("14", 1)
                             print "action7"
-                        else if RBS_CC_1_reportLine(15, 2) and (action = "action8") then
-                            RBS_CC_1_reportLine(15, 3)
-                            RBS_CC_1_reportLine(16, 1)
+                        else if RBS_CC_1_reportLine("15", 2) and (action = "action8") then
+                            RBS_CC_1_reportLine("15", 3)
+                            RBS_CC_1_reportLine("16", 1)
                             print "action8"
-                        else if RBS_CC_1_reportLine(17, 2) and (action = "action9") then
-                            RBS_CC_1_reportLine(17, 3)
-                            RBS_CC_1_reportLine(18, 1)
+                        else if RBS_CC_1_reportLine("17", 2) and (action = "action9") then
+                            RBS_CC_1_reportLine("17", 3)
+                            RBS_CC_1_reportLine("18", 1)
                             print "action9"
-                        else if RBS_CC_1_reportLine(19, 2) and (action = "action10") then
-                            RBS_CC_1_reportLine(19, 3)
-                            RBS_CC_1_reportLine(20, 1)
+                        else if RBS_CC_1_reportLine("19", 2) and (action = "action10") then
+                            RBS_CC_1_reportLine("19", 3)
+                            RBS_CC_1_reportLine("20", 1)
                             print "action10"
                         else
-                            RBS_CC_1_reportLine(21, 3)
+                            RBS_CC_1_reportLine("21", 3)
                         end if
                     end sub
 
                     function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                        if m.global = invalid
-                            '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": "1"
+                                "l": lineNumber
+                                "r": reportType
+                            }
                             return true
-                        else
-                            if m._rbs_ccn = invalid
-                                '? "Coverage maps are not created - creating now"
-                                if m.global._rbs_ccn = invalid
-                                    '? "Coverage maps are not created - creating now"
-                                    m.global.addFields({
-                                        "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
-                                    })
-                                end if
-                                m._rbs_ccn = m.global._rbs_ccn
-                            end if
                         end if
-                        m._rbs_ccn.entry = {
-                            "f": "1"
-                            "l": stri(lineNumber)
-                            "r": reportType
-                        }
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": "1"
+                                "l": lineNumber
+                                "r": reportType
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
                         return true
                     end function
                 `);
