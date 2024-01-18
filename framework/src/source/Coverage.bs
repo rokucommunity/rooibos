@@ -24,9 +24,9 @@ namespace rooibos.Coverage
           allLinesHit += resolvedCount
           resolvedPercent = (resolvedCount / expectedCount) * 100
           hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
-        else
-          missFiles.push(filename + ": MISS!")
         end if
+      else
+        missFiles.push(filename + ": MISS!")
       end if
     end for
     allLinesPercent = (allLinesHit / allLinesCount) * 100
