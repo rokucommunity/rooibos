@@ -19,23 +19,25 @@ export class CodeCoverageProcessor {
 
     private coverageBrsTemplate = `
         function RBS_CC_#ID#_reportLine(lineNumber, reportType = 1)
-            if m.global = invalid
-                '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
-                return true
-            else
-                if m._rbs_ccn = invalid
-                '? "Coverage maps are not created - creating now"
-                if m.global._rbs_ccn = invalid
-                    '? "Coverage maps are not created - creating now"
-                    m.global.addFields({
-                        "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
-                    })
+            _rbs_ccn = m._rbs_ccn
+            if _rbs_ccn = invalid
+                _rbs_ccn = m?.global?._rbs_ccn
+                if _rbs_ccn = invalid
+                    if m.global = invalid
+                        '? "global is not available in this scope!! it is not possible to record coverage: #FILE_PATH#(lineNumber)"
+                        return true
+                    else
+                        '? "Coverage maps are not created - creating now"
+                        _rbs_ccn = createObject("roSGNode", "CodeCoverage")
+                        m.global.update({
+                            "_rbs_ccn": _rbs_ccn
+                        }, true)
+                    end if
                 end if
-                m._rbs_ccn = m.global._rbs_ccn
-                end if
+                m._rbs_ccn = _rbs_ccn
             end if
 
-            m._rbs_ccn.entry = {"f":"#ID#", "l":stri(lineNumber), "r":reportType}
+            _rbs_ccn.entry = { "f": "#ID#", "l": lineNumber, "r": reportType }
             return true
         end function
     `;
@@ -195,6 +197,6 @@ export class CodeCoverageProcessor {
     }
 
     private getFuncCallText(lineNumber: number, lineType: CodeCoverageLineType) {
-        return `RBS_CC_${this.fileId}_reportLine(${lineNumber.toString().trim()}, ${lineType.toString().trim()})`;
+        return `RBS_CC_${this.fileId}_reportLine("${lineNumber.toString().trim()}", ${lineType.toString().trim()})`;
     }
 }

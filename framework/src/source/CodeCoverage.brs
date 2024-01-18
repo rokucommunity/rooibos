@@ -20,10 +20,9 @@ entry = m.top.entry
 
     if lineMap = invalid
       lineMap = {}
+      m.resolvedMap[entry.f] = lineMap
     end if
     lineMap[entry.l] = entry.r
-
-    m.resolvedMap[entry.f] = lineMap
   end if
 end function
 
