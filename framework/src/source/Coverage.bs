@@ -27,7 +27,11 @@ namespace rooibos.Coverage
         if resolvedMap[key] <> invalid
           resolvedCount = resolvedMap[key].count()
           allLinesHit += resolvedCount
-          resolvedPercent = (resolvedCount / expectedCount) * 100
+          if resolvedCount = 0
+            resolvedPercent = 0
+          else
+            resolvedPercent = (resolvedCount / expectedCount) * 100
+          end if
           hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
         else
           missFiles.push(filename + ": MISS!")
@@ -36,7 +40,11 @@ namespace rooibos.Coverage
         missFiles.push(filename + ": MISS!")
       end if
     end for
-    allLinesPercent = (allLinesHit / allLinesCount) * 100
+    if allLinesHit = 0
+      allLinesPercent = 0
+    else
+      allLinesPercent = (allLinesHit / allLinesCount) * 100
+    end if
     ? ""
     ? ""
     ? "+++++++++++++++++++++++++++++++++++++++++++"
