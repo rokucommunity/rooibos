@@ -267,7 +267,7 @@ namespace rooibos
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
           test.run()
-          if m.isAutoAssertingMocks = true
+          if m.isAutoAssertingMocks = true and not test.isAsync
             m.AssertMocks()
             m.CleanMocks()
             m.CleanStubs()
@@ -278,7 +278,7 @@ namespace rooibos
         end try
       else
         test.run()
-        if m.isAutoAssertingMocks = true
+        if m.isAutoAssertingMocks = true and not test.isAsync
           m.AssertMocks()
           m.CleanMocks()
           m.CleanStubs()
