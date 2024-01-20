@@ -10,7 +10,7 @@ import type { RooibosSession } from './RooibosSession';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
-import { functionRequiresReturnValue, getAllDottedGetParts } from './Utils';
+import { functionRequiresReturnValue, getAllDottedGetParts, getScopeForSuite } from './Utils';
 
 export class MockUtil {
 
@@ -172,7 +172,7 @@ export class MockUtil {
     private processGlobalStubbedMethod(callExpression: brighterscript.CallExpression, testSuite: TestSuite) {
         let isNotCalled = false;
         let isStubCall = false;
-        const scope = testSuite.file.program.getFirstScopeForFile(testSuite.file);
+        const scope = getScopeForSuite(testSuite);
         const namespaceLookup = this.session.namespaceLookup;
         if (brighterscript.isDottedGetExpression(callExpression.callee)) {
             const nameText = callExpression.callee.name.text;

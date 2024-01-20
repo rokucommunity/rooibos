@@ -267,7 +267,7 @@ namespace rooibos
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
           test.run()
-          if m.isAutoAssertingMocks = true
+          if m.isAutoAssertingMocks = true and not test.isAsync
             m.AssertMocks()
             m.CleanMocks()
             m.CleanStubs()
@@ -278,7 +278,7 @@ namespace rooibos
         end try
       else
         test.run()
-        if m.isAutoAssertingMocks = true
+        if m.isAutoAssertingMocks = true and not test.isAsync
           m.AssertMocks()
           m.CleanMocks()
           m.CleanStubs()
@@ -2268,10 +2268,6 @@ namespace rooibos
     '  * @description Cleans up all tracking data associated with mocks
     '  */
     function cleanMocks() as void
-      ' Clean up the global functions mocks as well
-      globalAa = getGlobalAa()
-      globalAa.__globalStubs = invalid
-
       if m.mocks = invalid
         return
       end if
@@ -2292,6 +2288,10 @@ namespace rooibos
     '  * @description Cleans up all tracking data associated with stubs
     '  */
     function cleanStubs() as void
+      ' Clean up the global functions mocks as well
+      globalAa = getGlobalAa()
+      globalAa.__globalStubs = invalid
+
       if m.stubs = invalid
         return
       end if

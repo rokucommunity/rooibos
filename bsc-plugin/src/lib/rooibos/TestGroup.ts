@@ -45,12 +45,11 @@ export class TestGroup extends TestBlock {
         return [...this.testCases.values()];
     }
 
-    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>) {
+    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         //for each method
         //if assertion
         //wrap with if is not fail
         //add line number as last param
-        let scope = this.file.program.getFirstScopeForFile(this.file);
         const transpileState = new BrsTranspileState(this.file);
         try {
             let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());

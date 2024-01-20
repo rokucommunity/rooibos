@@ -1,7 +1,8 @@
 import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, Expression, FunctionStatement } from 'brighterscript';
-import { TokenKind } from 'brighterscript';
+import { TokenKind, isXmlScope } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
+import type { TestSuite } from './TestSuite';
 
 export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
     let functionSource = `
@@ -101,5 +102,16 @@ export function getPathValuePartAsString(expr: Expression) {
         } else if (brighterscript.isVariableExpression(expr.index)) {
             return `${expr.index.name.text}`;
         }
+    }
+}
+
+export function getScopeForSuite(testSuite: TestSuite) {
+    if (testSuite.isNodeTest) {
+        return testSuite.file.program.getScopesForFile(testSuite.file).find((scope)=> {
+            return isXmlScope(scope) && scope.xmlFile.componentName.text === testSuite.generatedNodeName;
+        });
+
+    } else {
+        return testSuite.file.program.getFirstScopeForFile(testSuite.file);
     }
 }
