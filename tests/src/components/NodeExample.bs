@@ -1,3 +1,5 @@
+import "pkg:/source/Main.bs"
+
 function Init() as void
     m.nameText = m.top.findNode("nameText")
 end function
@@ -10,6 +12,30 @@ function UpdateState(newState) as void
     m.top.state = newState
 end function
 
-function SetLabelText(newText) as void
+function SetLabelText(newText = "") as void
     m.nameText.text = newText
+end function
+
+function delayCall(delay, callback) as void
+    timer = createObject("roSgNode", "Timer")
+    timer.update({
+        duration: delay
+        repeat: false
+        id: createObject("roDeviceInfo").getRandomUUID()
+    })
+
+    m[timer.id] = {
+        timer: timer
+        callback: callback
+    }
+
+    onDelayedFired = sub(event)
+        id = event.getNode()
+        callback  = m[id].callback
+        callback()
+        m.delete(id)
+    end sub
+
+    timer.observeFieldScoped("fire", onDelayedFired.toStr().tokenize(" ").peek())
+    timer.control = "start"
 end function
