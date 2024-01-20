@@ -1,7 +1,6 @@
 namespace tests
   @async(1000)
   @SGNode("NodeExample")
-  @only
   @suite
   class AsyncNodeTests extends rooibos.BaseTestSuite
 
@@ -11,7 +10,7 @@ namespace tests
 
     @beforeEach
     function beforeEachGroup()
-      m.cleanMocks()
+      m.cleanStubs()
     end function
 
     @async

@@ -327,7 +327,7 @@ namespace tests
       m.assertInvalid(testNamespace.functionWithoutReturn())
       m.assertTrue(getGlobalAA().wasCalled)
 
-      m.cleanMocks()
+      m.cleanStubs()
 
       m.assertInvalid(testNamespace.functionWithoutReturn())
       m.assertFalse(getGlobalAA().wasCalled)
@@ -345,7 +345,7 @@ namespace tests
       m.assertInvalid(globalFunctionWithoutReturn())
       m.assertTrue(getGlobalAA().wasCalled)
 
-      m.cleanMocks()
+      m.cleanStubs()
 
       m.assertInvalid(globalFunctionWithoutReturn())
       m.assertFalse(getGlobalAA().wasCalled)
