@@ -40,7 +40,7 @@ namespace rooibos
         end if
       end if
       if m.throwOnFailedAssertion
-         throw m.getMessage()
+        throw m.getMessage()
       end if
     end function
 
