@@ -22,7 +22,7 @@ function RBS_ReportCodeCoverage() as void
         resolvedCount = cc.resolvedMap[key].count()
         allLinesHit += resolvedCount
         resolvedPercent = (resolvedCount / expectedCount) * 100
-        hitFiles.push({percent:resolvedPercent, text:filename + ": " +str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")"})
+        hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
       else
         missFiles.push(filename + ": MISS!")
       end if
@@ -41,13 +41,13 @@ function RBS_ReportCodeCoverage() as void
   ? "HIT FILES"
   ? "---------"
   hitFiles.SortBy("percent")
-  for i = 0 to hitFiles.count() -1
+  for i = 0 to hitFiles.count() - 1
     ? hitFiles[i].text
   end for
   ? ""
   ? "MISSED FILES"
   ? "------------"
-  for i = 0 to missFiles.count() -1
+  for i = 0 to missFiles.count() - 1
     ? missFiles[i]
   end for
 

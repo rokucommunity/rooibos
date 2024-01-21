@@ -105,7 +105,6 @@ export class RooibosPlugin implements CompilerPlugin {
 
         const defaultGlobalMethodMockingExcluded = [
             '**/*.spec.bs',
-            '**/roku_modules/**/*',
             '**/source/main.bs',
             '**/source/rooibos/**/*'
         ];

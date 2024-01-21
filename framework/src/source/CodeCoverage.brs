@@ -6,15 +6,15 @@ function init()
 end function
 
 function setExpectedMap()
-  m.top.expectedMap = #EXPECTED_MAP#
+  m.top.expectedMap = "#EXPECTED_MAP#"
 end function
 
 function setFilePathMap()
-  m.top.filePathMap = #FILE_PATH_MAP#
+  m.top.filePathMap = "#FILE_PATH_MAP#"
 end function
 
 function onEntryChange()
-entry = m.top.entry
+  entry = m.top.entry
   ' defer till later
   m.results.push(entry)
 end function
