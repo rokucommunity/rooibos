@@ -102,8 +102,8 @@ export class FileFactory {
 
     public createCoverageComponent(program: Program, coverageMap: any, filepathMap: Map<number, string>) {
         let template = this.coverageComponentBrsTemplate;
-        template = template.replace(/\#EXPECTED_MAP\#/g, JSON.stringify(coverageMap ?? {}));
-        template = template.replace(/\#FILE_PATH_MAP\#/g, JSON.stringify(filepathMap ?? {}));
+        template = template.replace(/\"\#EXPECTED_MAP\#\"/g, JSON.stringify(coverageMap ?? {}));
+        template = template.replace(/\"\#FILE_PATH_MAP\#\"/g, JSON.stringify(filepathMap ?? {}));
 
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
