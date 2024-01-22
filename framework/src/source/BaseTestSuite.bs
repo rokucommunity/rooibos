@@ -313,6 +313,28 @@ namespace rooibos
       return false
     end function
 
+    ' /**
+    '  * @memberof module:BaseTestSuite
+    '  * @name failCrash
+    '  * @function
+    '  * @instance
+    '  * @description Fail immediately, with the given exception
+    '  * @param {Dynamic} [error] - exception to fail on
+    '  * @param {Dynamic} [msg=""] - message to display in the test report
+    '  * @returns {boolean} - true if failure was set, false if the test is already failed
+    '  */
+    function failCrash(error as dynamic, msg = "Error" as string) as dynamic
+      if m.currentResult.isFail
+        if m.throwOnFailedAssertion
+          throw m.currentResult.getMessage()
+        end if
+        return false
+      end if
+      m.currentResult.fail(msg, m.currentAssertLineNumber)
+      m.currentResult.crash(msg, error)
+      return true
+    end function
+
     function failBecauseOfTimeOut() as dynamic
       if m.currentResult.isFail
         return false
