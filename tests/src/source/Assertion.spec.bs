@@ -22,7 +22,6 @@ namespace tests
       m.assertTrue(isFail)
     end function
 
-    @only
     @it("FailCrash")
     function _()
 
