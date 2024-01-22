@@ -1,8 +1,5 @@
 
 function Main(args)
-
-  ? "here is my code"
-  ? "hello"
 end function
 
 function globalFunctionWithReturn() as dynamic

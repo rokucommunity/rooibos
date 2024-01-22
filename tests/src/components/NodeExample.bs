@@ -16,27 +16,6 @@ function SetLabelText(newText = "") as void
     m.nameText.text = newText
 end function
 
-
-function r_real_Init() as void
-  if m.top.stubs["init"] <> invalid
-    'mock call here
-  else
-    Init()
-  end if
-end function
-
-function r_real_HelloFromNode(name, age) as string
-  return "HELLO " + name + " age:" + stri(age)
-end function
-
-function r_real_UpdateState(newState) as void
-  m.top.state = newState
-end function
-
-function r_real_SetLabelText(newText) as void
-  m.nameText.text = newText
-end function
-
 function delayCall(delay, callback) as void
     timer = createObject("roSgNode", "Timer")
     timer.update({
