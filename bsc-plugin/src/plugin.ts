@@ -22,6 +22,7 @@ import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 import * as minimatch from 'minimatch';
 import { MockUtil } from './lib/rooibos/MockUtil';
+import { getScopeForSuite } from './lib/rooibos/Utils';
 
 export class RooibosPlugin implements CompilerPlugin {
 
@@ -147,6 +148,7 @@ export class RooibosPlugin implements CompilerPlugin {
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
         let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
         if (testSuite) {
+            const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
                 console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
@@ -155,11 +157,8 @@ export class RooibosPlugin implements CompilerPlugin {
             testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any, this.session.namespaceLookup);
+                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any, this.session.namespaceLookup, scope);
                 }
-            }
-            if (testSuite.isNodeTest) {
-                this.session.createNodeFile(event.program, testSuite);
             }
         }
 

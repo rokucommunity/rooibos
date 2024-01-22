@@ -1,5 +1,5 @@
-import type { AstEditor, CallExpression, DottedGetExpression } from 'brighterscript';
-import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser } from 'brighterscript';
+import type { AstEditor, CallExpression, DottedGetExpression, Expression, NamespaceContainer, Scope } from 'brighterscript';
+import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
@@ -8,7 +8,6 @@ import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
 import { TestBlock } from './TestSuite';
 import { getAllDottedGetParts, getRootObjectFromDottedGet, getStringPathFromDottedGet, sanitizeBsJsonString } from './Utils';
-import type { NamespaceContainer } from './RooibosSession';
 
 export class TestGroup extends TestBlock {
 
@@ -40,14 +39,13 @@ export class TestGroup extends TestBlock {
         } else {
             this.hasAsyncTests = testCase.isAsync;
         }
-
     }
 
     public getTestCases(): TestCase[] {
         return [...this.testCases.values()];
     }
 
-    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>) {
+    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         //for each method
         //if assertion
         //wrap with if is not fail
@@ -64,21 +62,22 @@ export class TestGroup extends TestBlock {
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.name.text)) {
                             if (dge.name.text === 'stubCall') {
-                                this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
+                                this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 return expressionStatement;
 
                             } else {
 
                                 if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
-                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
+                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 }
                                 if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
-                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup);
+                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 }
-                                const trailingLine = Parser.parse(`${noEarlyExit ? '' : `if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`}`).ast.statements[0];
 
-                                editor.arraySplice(owner, key + 1, 0, trailingLine);
-
+                                if (!noEarlyExit) {
+                                    const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
+                                    editor.arraySplice(owner, key + 1, 0, trailingLine);
+                                }
                                 const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.range.start.line}`).ast.statements[0];
                                 editor.arraySplice(owner, key, 0, leadingLine);
                             }
@@ -89,23 +88,30 @@ export class TestGroup extends TestBlock {
                 walkMode: brighterscript.WalkMode.visitStatementsRecursive
             });
         } catch (e) {
-            // console.log(e);
+            console.error(e);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(this.testSuite.file, e.message);
         }
     }
 
-    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>) {
+    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         let isNotCalled = false;
         let isStubCall = false;
-        if (isDottedGetExpression(callExpression.callee)) {
-            const nameText = callExpression.callee.name.text;
-            editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);
-            isNotCalled = nameText === 'expectNotCalled';
-            isStubCall = nameText === 'stubCall';
-        }
+
         //modify args
         let arg0 = callExpression.args[0];
+        let arg1 = callExpression.args[1];
+        if (isDottedGetExpression(callExpression.callee)) {
+            const nameText = callExpression.callee.name.text;
+            isNotCalled = nameText === 'expectNotCalled';
+            isStubCall = nameText === 'stubCall';
+
+            if (isStubCall && this.shouldNotModifyStubCall(arg0, namespaceLookup, scope)) {
+                return;
+            }
+            editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);
+        }
+
         if (brighterscript.isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
 
             //is it a namespace?
@@ -189,6 +195,20 @@ export class TestGroup extends TestBlock {
             editor.addToArray(callExpression.args, 0, brighterscript.createVariableExpression(functionName));
             this.testSuite.session.globalStubbedMethods.add(functionName);
         }
+    }
+
+    private shouldNotModifyStubCall(arg0: Expression, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+        if (brighterscript.isDottedGetExpression(arg0)) {
+            let nameParts = getAllDottedGetParts(arg0);
+            let functionName = nameParts.join('.');
+            return scope.getCallableByName(functionName);
+        } else if (brighterscript.isVariableExpression(arg0)) {
+            return (
+                scope.symbolTable.hasSymbol(arg0.getName(ParseMode.BrightScript)) ||
+                scope.getCallableByName(arg0.getName(ParseMode.BrighterScript))
+            );
+        }
+        return false;
     }
 
     public asText(): string {

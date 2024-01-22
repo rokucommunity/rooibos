@@ -1,6 +1,8 @@
-import type { BrsFile, ClassStatement, Expression, FunctionStatement, AnnotationExpression, AstEditor } from 'brighterscript';
+import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, Expression, FunctionStatement } from 'brighterscript';
+import { TokenKind, isXmlScope } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
+import type { TestSuite } from './TestSuite';
 
 export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
     let functionSource = `
@@ -36,6 +38,12 @@ export function sanitizeBsJsonString(text: string) {
     return `"${text ? text.replace(/"/g, '\'') : ''}"`;
 }
 
+export function functionRequiresReturnValue(statement: FunctionStatement) {
+    const returnTypeToken = statement.func.returnTypeToken;
+    const functionType = statement.func.functionType;
+    return !((functionType?.kind === TokenKind.Sub && (returnTypeToken === undefined || returnTypeToken?.kind === TokenKind.Void)) || returnTypeToken?.kind === TokenKind.Void);
+}
+
 export function getAllDottedGetParts(dg: brighterscript.DottedGetExpression) {
     let parts = [dg?.name?.text];
     let nextPart = dg.obj;
@@ -45,7 +53,6 @@ export function getAllDottedGetParts(dg: brighterscript.DottedGetExpression) {
     }
     return parts.reverse();
 }
-
 
 export function getRootObjectFromDottedGet(value: brighterscript.DottedGetExpression) {
     let root;
@@ -95,5 +102,16 @@ export function getPathValuePartAsString(expr: Expression) {
         } else if (brighterscript.isVariableExpression(expr.index)) {
             return `${expr.index.name.text}`;
         }
+    }
+}
+
+export function getScopeForSuite(testSuite: TestSuite) {
+    if (testSuite.isNodeTest) {
+        return testSuite.file.program.getScopesForFile(testSuite.file).find((scope)=> {
+            return isXmlScope(scope) && scope.xmlFile.componentName.text === testSuite.generatedNodeName;
+        });
+
+    } else {
+        return testSuite.file.program.getFirstScopeForFile(testSuite.file);
     }
 }

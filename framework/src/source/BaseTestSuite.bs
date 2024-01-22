@@ -267,7 +267,7 @@ namespace rooibos
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
           test.run()
-          if m.isAutoAssertingMocks = true
+          if m.isAutoAssertingMocks = true and not test.isAsync
             m.AssertMocks()
             m.CleanMocks()
             m.CleanStubs()
@@ -278,7 +278,7 @@ namespace rooibos
         end try
       else
         test.run()
-        if m.isAutoAssertingMocks = true
+        if m.isAutoAssertingMocks = true and not test.isAsync
           m.AssertMocks()
           m.CleanMocks()
           m.CleanStubs()
@@ -1802,8 +1802,25 @@ namespace rooibos
       return invalid
     end function
 
-    function stubCall(invocation as dynamic, returnValue = invalid as dynamic) as object
-      'mock function body - the plugin replaces this
+    function stubCall(invocation as dynamic, stubOrReturnValue = invalid as dynamic, functionName = "" as string) as object
+      ' When stubbing global functions this will be called. Other wise the test code will be updated to call m._stubCall()
+      if type(invocation).endsWith("Function") and functionName = ""
+        functionName = invocation.toStr().tokenize(" ").peek()
+      else
+        throw "Did not provide a function to be stubbed"
+      end if
+
+      if not type(stubOrReturnValue).endsWith("Function")
+        throw "Did not provide a stub function"
+      end if
+
+      ' Store the stub on the component scope
+      globalAa = getGlobalAa()
+      if type(globalAa?.__globalStubs) <> "roAssociativeArray"
+        globalAa.__globalStubs = {}
+      end if
+
+      globalAa.__globalStubs[lCase(functionName)] = stubOrReturnValue
       return invalid
     end function
 
@@ -2262,6 +2279,7 @@ namespace rooibos
       rooibos.resetMocksByFunctionName()
     end function
 
+
     ' /**
     '  * @memberof module:BaseTestSuite
     '  * @name cleanStubs
@@ -2270,6 +2288,10 @@ namespace rooibos
     '  * @description Cleans up all tracking data associated with stubs
     '  */
     function cleanStubs() as void
+      ' Clean up the global functions mocks as well
+      globalAa = getGlobalAa()
+      globalAa.__globalStubs = invalid
+
       if m.stubs = invalid
         return
       end if

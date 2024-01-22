@@ -165,6 +165,195 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall global functions with new runtime functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stubs global with inline anon with return value")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(globalFunctionWithReturn, function()
+        m.wasCalled = true
+        return true
+      end function)
+
+      m.assertTrue(globalFunctionWithReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global with anon from variable with return value")
+    function _()
+      getGlobalAA().wasCalled = false
+      stub = function()
+        m.wasCalled = true
+        return true
+      end function
+      m.stubCall(globalFunctionWithReturn, stub)
+
+      m.assertTrue(globalFunctionWithReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global with inline anon without return value")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(globalFunctionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(globalFunctionWithoutReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global with anon from variable without return value")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(globalFunctionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(globalFunctionWithoutReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall namespace functions with new runtime functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stubs namespace with inline anon with return value")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(testNamespace.functionWithReturn, function()
+        m.wasCalled = true
+        return true
+      end function)
+      m.assertTrue(testNamespace.functionWithReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs namespace with anon from variable with return value")
+    function _()
+      getGlobalAA().wasCalled = false
+      stub = function()
+        m.wasCalled = true
+        return true
+      end function
+      m.stubCall(testNamespace.functionWithReturn, stub)
+
+      m.assertTrue(testNamespace.functionWithReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs namespace with inline anon without return value")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs namespace with anon from variable without return value")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall global or namespace functions multiple times in a test")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stubs namespace multiple times in one test")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = 1
+      end sub)
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertEqual(getGlobalAA().wasCalled, 1)
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global multiple times in one test")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = 1
+      end sub)
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertEqual(getGlobalAA().wasCalled, 1)
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("stubCall global can be cleaned")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stubs namespace and then cleans it")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(testNamespace.functionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+
+      m.cleanStubs()
+
+      m.assertInvalid(testNamespace.functionWithoutReturn())
+      m.assertFalse(getGlobalAA().wasCalled)
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    @it("stubs global and then cleans it")
+    function _()
+      getGlobalAA().wasCalled = false
+      m.stubCall(globalFunctionWithoutReturn, sub()
+        m.wasCalled = true
+      end sub)
+
+      m.assertInvalid(globalFunctionWithoutReturn())
+      m.assertTrue(getGlobalAA().wasCalled)
+
+      m.cleanStubs()
+
+      m.assertInvalid(globalFunctionWithoutReturn())
+      m.assertFalse(getGlobalAA().wasCalled)
+
+      m.assertRunningTestIsPassed()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("stubCall callFunc functions")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
