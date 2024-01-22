@@ -109,80 +109,88 @@ export class RooibosAnnotation {
                     diagnosticMultipleDescribeAnnotations(file, a);
                 }
             }
-            for (let annotation of statement.annotations) {
-                const annotationType = getAnnotationType(annotation.name);
-                switch (annotationType) {
-                    case AnnotationType.NoEarlyExit:
-                        noEarlyExit = true;
-                        break;
-                    case AnnotationType.Async:
-                        async = true;
-                        //ensure the arg is an integer, if not set to 2000
-                        asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : -1;
-                        break;
-                    case AnnotationType.NoCatch:
-                        noCatch = true;
-                        break;
-                    case AnnotationType.Solo:
-                        isSolo = true;
-                        break;
-                    case AnnotationType.NodeTest:
-                        nodeName = annotation.getArguments()[0] as string;
-                        break;
-                    case AnnotationType.Tags:
-                        tags = annotation.getArguments().map((a) => a.toString());
-                        break;
-                    case AnnotationType.Ignore:
-                        isIgnore = true;
-                        break;
-                    case AnnotationType.BeforeEach:
-                    case AnnotationType.AfterEach:
-                    case AnnotationType.Setup:
-                    case AnnotationType.TearDown:
-                        testAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, annotation.name);
-                        break;
-                    case AnnotationType.Describe:
-                    case AnnotationType.TestSuite:
-                        const groupName = annotation.getArguments()[0] as string;
-                        blockAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch, noEarlyExit);
-                        blockAnnotation.isAsync = async;
-                        blockAnnotation.asyncTimeout = asyncTimeout === -1 ? 60000 : asyncTimeout;
-                        nodeName = null;
-                        isSolo = false;
-                        isIgnore = false;
-                        async = false;
-                        asyncTimeout = -1;
-                        break;
-                    case AnnotationType.It:
-                        const testName = annotation.getArguments()[0] as string;
-                        if (!testName || testName.trim() === '') {
-                            diagnosticNoTestNameDefined(file, annotation);
-                        }
-                        let newAnnotation = new RooibosAnnotation(file, annotation, annotationType, annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
-                        newAnnotation.isAsync = async;
-                        newAnnotation.asyncTimeout = asyncTimeout === -1 ? 2000 : asyncTimeout;
-                        if (testAnnotation) {
-                            diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
-                        } else {
-                            testAnnotation = newAnnotation;
-                        }
-                        isSolo = false;
-                        isIgnore = false;
-                        async = false;
-                        asyncTimeout = -1;
-                        break;
-                    case AnnotationType.Params:
-                    case AnnotationType.SoloParams:
-                    case AnnotationType.IgnoreParams:
-                        if (testAnnotation) {
-                            testAnnotation.parseParams(file, annotation, annotationType, noCatch);
-                        } else {
-                            //error
-                        }
-                        break;
-                    case AnnotationType.None:
-                    default:
-                        continue;
+
+            // Break up the annotations grouped by Describes
+            let blocks: AnnotationExpression[][] = [];
+            let currentBlock: AnnotationExpression[] = [];
+            for (const annotation of statement.annotations) {
+                currentBlock.push(annotation);
+                if (getAnnotationType(annotation.name) === AnnotationType.Describe) {
+                    blocks.push(currentBlock);
+                    currentBlock = [];
+                }
+            }
+            // Make sure to push the last block as the last annotation likely wasn't a Describe
+            if (blocks[blocks.length - 1] !== currentBlock) {
+                blocks.push(currentBlock);
+            }
+
+            for (const annotationBlock of blocks) {
+                // eslint-disable-next-line no-inner-declarations
+                function getAnnotationsOfType(...names: string[]) {
+                    return annotationBlock.filter(a => names.includes(a.name.toLowerCase()));
+                }
+
+                noEarlyExit = getAnnotationsOfType(AnnotationType.NoEarlyExit).length > 0;
+                noCatch = getAnnotationsOfType(AnnotationType.NoCatch).length > 0;
+                isSolo = getAnnotationsOfType(AnnotationType.Solo).length > 0;
+                isIgnore = getAnnotationsOfType(AnnotationType.Ignore).length > 0;
+
+                for (const annotation of getAnnotationsOfType(AnnotationType.Async)) {
+                    async = true;
+                    asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : -1;
+                }
+
+                for (const annotation of getAnnotationsOfType(AnnotationType.NodeTest)) {
+                    nodeName = annotation.getArguments()[0] as string;
+                }
+
+                for (const annotation of getAnnotationsOfType(AnnotationType.Tags)) {
+                    tags = annotation.getArguments().map((a) => a?.toString());
+                }
+
+
+                for (const annotation of getAnnotationsOfType(AnnotationType.BeforeEach, AnnotationType.AfterEach, AnnotationType.Setup, AnnotationType.TearDown)) {
+                    testAnnotation = new RooibosAnnotation(file, annotation, getAnnotationType(annotation.name), annotation.name, annotation.name);
+                }
+
+                for (const annotation of getAnnotationsOfType(AnnotationType.Describe, AnnotationType.TestSuite)) {
+                    const groupName = annotation.getArguments()[0] as string;
+                    blockAnnotation = new RooibosAnnotation(file, annotation, getAnnotationType(annotation.name), annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch, noEarlyExit);
+                    blockAnnotation.isAsync = async;
+                    blockAnnotation.asyncTimeout = asyncTimeout === -1 ? 60000 : asyncTimeout;
+                    nodeName = null;
+                    isSolo = false;
+                    isIgnore = false;
+                    async = false;
+                    asyncTimeout = -1;
+                }
+
+                for (const annotation of getAnnotationsOfType(AnnotationType.It)) {
+                    const testName = annotation.getArguments()[0] as string;
+                    if (!testName || testName.trim() === '') {
+                        diagnosticNoTestNameDefined(file, annotation);
+                    }
+                    let newAnnotation = new RooibosAnnotation(file, annotation, getAnnotationType(annotation.name), annotation.name, testName, isIgnore, isSolo, undefined, undefined, tags, noCatch);
+                    newAnnotation.isAsync = async;
+                    newAnnotation.asyncTimeout = asyncTimeout === -1 ? 2000 : asyncTimeout;
+                    if (testAnnotation) {
+                        diagnosticMultipleTestOnFunctionDefined(file, newAnnotation.annotation);
+                    } else {
+                        testAnnotation = newAnnotation;
+                    }
+                    isSolo = false;
+                    isIgnore = false;
+                    async = false;
+                    asyncTimeout = -1;
+                }
+
+                for (const annotation of getAnnotationsOfType(AnnotationType.Params, AnnotationType.SoloParams, AnnotationType.IgnoreParams)) {
+                    if (testAnnotation) {
+                        testAnnotation.parseParams(file, annotation, getAnnotationType(annotation.name), noCatch);
+                    } else {
+                        //error
+                    }
                 }
             }
         }
