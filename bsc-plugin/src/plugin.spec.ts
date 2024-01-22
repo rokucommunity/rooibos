@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
-import * as trim from 'trim-whitespace';
 import undent from 'undent';
 import { SourceMapConsumer } from 'source-map';
 let tmpPath = s`${process.cwd()}/tmp`;

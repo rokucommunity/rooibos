@@ -16,7 +16,7 @@ describe('MockUtil', () => {
     let plugin: RooibosPlugin;
     let options;
 
-    function getContents(filename: string, trim = true) {
+    function getContents(filename: string) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         let contents = fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString();
         return contents;
