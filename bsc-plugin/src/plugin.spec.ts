@@ -638,7 +638,7 @@ describe('RooibosPlugin', () => {
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
 
-        describe.skip('expectCalled transpilation', () => {
+        describe('expectCalled transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -657,40 +657,46 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
-                    "getFunction"
+                        "getFunction"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
-                    "getFunction"
+                        "getFunction"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
-                    "getFunction"
-                    "a"
-                    "b"
+                        "getFunction"
+                        "a"
+                        "b"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
-                    "getFunction"
-                    "a"
-                    "b"
+                        "getFunction"
+                        "a"
+                        "b"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
 
@@ -715,12 +721,16 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid)
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid, "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
 
@@ -742,34 +752,40 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
             it('does not produce crashing code for subs', async () => {
@@ -790,34 +806,39 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                let a = getTestSubContents(true);
                 expect(
-                    getTestSubContents(true)
+                    getTestSubContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
-                    if m.currentResult?.isFail = true then m.done() : return
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
                 `);
             });
             it('does not break when validating again after a transpile', async () => {
@@ -839,34 +860,40 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
 
@@ -891,19 +918,22 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 // expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     b = {
-                    someValue: "value"
+                        someValue: "value"
                     }
-
                     m.currentAssertLineNumber = 12
                     m.assertEqual(b, {
-                    someValue: "value"
+                        someValue: "value"
                     })
-                    if m.currentResult?.isFail = true then m.done() : return invalid`);
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
@@ -925,38 +955,43 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     item = {
-                    id: "item"
+                        id: "item"
                     }
-
                     m.currentAssertLineNumber = 7
                     m._expectCalled(item, "getFunction", item, "item", [])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectCalled(item, "getFunction", item, "item", [], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectCalled(item, "getFunction", item, "item", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ])
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 10
                     m._expectCalled(item, "getFunction", item, "item", [
-                    "arg1"
-                    "arg2"
+                        "arg1"
+                        "arg2"
                     ], "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
             it('correctly transpiles global function calls', async () => {
@@ -984,56 +1019,66 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testText = getTestFunctionContents(true);
+                const testText = getTestFunctionContents();
                 expect(
                     testText
                 ).to.eql(undent`
                 item = {
-                id: "item"
+                    id: "item"
                 }
-
                 m.currentAssertLineNumber = 7
                 m._expectCalled(sayHello, "sayHello", invalid, invalid, [
-                "arg1"
-                "arg2"
+                    "arg1"
+                    "arg2"
                 ], "return")
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                if m.currentResult?.isFail = true then
+                    m.done()
+                    return invalid
+                end if
                 m.currentAssertLineNumber = 8
                 m._expectCalled(sayHello, "sayHello", invalid, invalid, [])
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                if m.currentResult?.isFail = true then
+                    m.done()
+                    return invalid
+                end if
                 m.currentAssertLineNumber = 9
                 m._expectCalled(sayHello, "sayHello", invalid, invalid, [], "return")
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                if m.currentResult?.isFail = true then
+                    m.done()
+                    return invalid
+                end if
                 m.currentAssertLineNumber = 10
                 m._expectCalled(sayHello, "sayHello", invalid, invalid, [
-                "arg1"
-                "arg2"
+                    "arg1"
+                    "arg2"
                 ])
-                if m.currentResult?.isFail = true then m.done() : return invalid
+                if m.currentResult?.isFail = true then
+                    m.done()
+                    return invalid
+                end if
 `);
 
                 let codeText = getContents('code.brs');
                 expect(codeText).to.equal(undent`
                 function sayHello(firstName = "", lastName = "")
+                    __stubs_globalAa = getGlobalAa()
                     if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                        result = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName,lastName)
-                        return result
+                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
+                        return __stubOrMockResult
+                    else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
+                        __stubFunction = __stubs_globalAa.__globalStubs.sayhello
+                        __stubOrMockResult = __stubFunction(firstName, lastName)
+                        return __stubOrMockResult
                     end if
                     print firstName + " " + lastName
                 end function
 
-                    function RBS_SM_1_getMocksByFunctionName()
-                        if m._rMocksByFunctionName = invalid
+                function RBS_SM_1_getMocksByFunctionName()
+                    if m._rMocksByFunctionName = invalid
                         m._rMocksByFunctionName = {}
-                        end if
-                        return m._rMocksByFunctionName
-                    end function`);
+                    end if
+                    return m._rMocksByFunctionName
+                end function`);
             });
             it('correctly transpiles namespaced function calls', async () => {
                 plugin.config.isGlobalMethodMockingEnabled = true;
@@ -1062,59 +1107,71 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testText = getTestFunctionContents(true);
+                const testText = getTestFunctionContents();
                 expect(
                     testText
                 ).to.eql(undent`
-                item = {
-                id: "item"
-                }
+                    item = {
+                        id: "item"
+                    }
+                    m.currentAssertLineNumber = 7
+                    m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
+                        "arg1"
+                        "arg2"
+                    ], "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [], "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 10
+                    m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
+                        "arg1"
+                        "arg2"
+                    ])
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
 
-                m.currentAssertLineNumber = 7
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
-                "arg1"
-                "arg2"
-                ], "return")
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
-                m.currentAssertLineNumber = 8
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
-                m.currentAssertLineNumber = 9
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [], "return")
-                if m.currentResult?.isFail = true then m.done() : return invalid
-
-
-                m.currentAssertLineNumber = 10
-                m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
-                "arg1"
-                "arg2"
-                ])
-                if m.currentResult?.isFail = true then m.done() : return invalid
-`);
-
-                let codeText = trimLeading(getContents('code.brs'));
-                expect(codeText).to.equal(trimLeading(`function utils_sayHello(firstName = "", lastName = "")
-                if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
-                result = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName,lastName)
-                return result
-                end if
-                print firstName + " " + lastName
+                let codeText = getContents('code.brs');
+                expect(codeText).to.equal(undent(`
+                function utils_sayHello(firstName = "", lastName = "")
+                    __stubs_globalAa = getGlobalAa()
+                    if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
+                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
+                        return __stubOrMockResult
+                    else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
+                        __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
+                        __stubOrMockResult = __stubFunction(firstName, lastName)
+                        return __stubOrMockResult
+                    end if
+                    print firstName + " " + lastName
                 end function
 
                 function RBS_SM_1_getMocksByFunctionName()
-                if m._rMocksByFunctionName = invalid
-                m._rMocksByFunctionName = {}
-                end if
-                return m._rMocksByFunctionName
-                end function`));
+                    if m._rMocksByFunctionName = invalid
+                        m._rMocksByFunctionName = {}
+                    end if
+                    return m._rMocksByFunctionName
+                end function
+            `));
             });
         });
 
-        describe.skip('stubCall transpilation', () => {
+        describe('stubCall transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1254,9 +1311,311 @@ describe('RooibosPlugin', () => {
                     m._stubCall(item, "getFunction", item, "item", "return")
                 `);
             });
+
+            it('correctly transpiles global function and inline anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with inline anon with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          m.stubCall(globalFunctionWithReturn, function()
+                            m.wasCalled = true
+                            return true
+                          end function)
+
+                          m.assertTrue(globalFunctionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    function globalFunctionWithReturn() as dynamic
+                        m.wasCalled = false
+                        return false
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    m.stubCall(globalFunctionWithReturn, function()
+                        m.wasCalled = true
+                        return true
+                    end function)
+                    m.currentAssertLineNumber = 12
+                    m.assertTrue(globalFunctionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('correctly transpiles namespace function and inline anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with inline anon with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          m.stubCall(testNamespace.functionWithReturn, function()
+                            m.wasCalled = true
+                            return true
+                          end function)
+
+                          m.assertTrue(testNamespace.functionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    namespace testNamespace
+                        function functionWithReturn() as dynamic
+                            m.wasCalled = false
+                            return false
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    m.stubCall(testNamespace_functionWithReturn, function()
+                        m.wasCalled = true
+                        return true
+                    end function)
+                    m.currentAssertLineNumber = 12
+                    m.assertTrue(testNamespace_functionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('correctly transpiles namespace function and variable anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with anon from variable with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          stub = function()
+                            m.wasCalled = true
+                            return true
+                          end function
+                          m.stubCall(testNamespace.functionWithReturn, stub)
+
+                          m.assertTrue(testNamespace.functionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    namespace testNamespace
+                        function functionWithReturn() as dynamic
+                            m.wasCalled = false
+                            return false
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    stub = function()
+                        m.wasCalled = true
+                        return true
+                    end function
+                    m.stubCall(testNamespace_functionWithReturn, stub)
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(testNamespace_functionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 15
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('correctly transpiles namespace function by brightscript name and inline anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with inline anon with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          m.stubCall(testNamespace_functionWithReturn, function()
+                            m.wasCalled = true
+                            return true
+                          end function)
+
+                          m.assertTrue(testNamespace_functionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    namespace testNamespace
+                        function functionWithReturn() as dynamic
+                            m.wasCalled = false
+                            return false
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    m.stubCall(testNamespace_functionWithReturn, function()
+                        m.wasCalled = true
+                        return true
+                    end function)
+                    m.currentAssertLineNumber = 12
+                    m.assertTrue(testNamespace_functionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('correctly transpiles namespace function by brightscript name and variable anon function param', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("stubs global with anon from variable with return value")
+                        function _()
+                          getGlobalAA().wasCalled = false
+                          stub = function()
+                            m.wasCalled = true
+                            return true
+                          end function
+                          m.stubCall(testNamespace_functionWithReturn, stub)
+
+                          m.assertTrue(testNamespace_functionWithReturn())
+                          m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed()
+                        end function
+                    end class
+
+                    namespace testNamespace
+                        function functionWithReturn() as dynamic
+                            m.wasCalled = false
+                            return false
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const result = getTestFunctionContents();
+                expect(
+                    result
+                ).to.eql(undent`
+                    getGlobalAA().wasCalled = false
+                    stub = function()
+                        m.wasCalled = true
+                        return true
+                    end function
+                    m.stubCall(testNamespace_functionWithReturn, stub)
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(testNamespace_functionWithReturn())
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 14
+                    m.assertTrue(getGlobalAA().wasCalled)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 15
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
         });
 
-        describe.skip('expectNotCalled transpilation', () => {
+        describe('expectNotCalled transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1280,22 +1639,28 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
 
@@ -1320,15 +1685,18 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents()
                 ).to.eql(undent`
                     thing = {}
-
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
                 const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
@@ -1365,7 +1733,10 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "getFunctionField", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
                 const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
@@ -1399,23 +1770,28 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 6
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 9
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-                `);
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if                `);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
@@ -1435,22 +1811,25 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 await builder.transpile();
-                const testContents = getTestFunctionContents(true);
+                const testContents = getTestFunctionContents();
                 expect(
                     testContents
                 ).to.eql(undent`
                     item = {
-                    id: "item"
+                        id: "item"
                     }
-
                     m.currentAssertLineNumber = 7
                     m._expectNotCalled(item, "getFunction", item, "item")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
-
-
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                     m.currentAssertLineNumber = 8
                     m._expectNotCalled(item, "getFunction", item, "item")
-                    if m.currentResult?.isFail = true then m.done() : return invalid
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
                 `);
             });
         });
@@ -1832,14 +2211,13 @@ function getContents(filename: string) {
 
 function getTestFunctionContents(trimEveryLine = false) {
     const contents = getContents('test.spec.brs');
-    const [, body] = /\= function\(\)([\S\s]*|.*)(?=end function)/gim.exec(contents);
-    let result = undent(
-        body.split('end function')[0]
-    );
+
+    let [, result] = /instance.[\w_]+\s?\= function\(\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents);
+
     if (trimEveryLine) {
         result = trim(result);
     }
-    return result;
+    return undent(result);
 }
 
 function getTestSubContents(trimEveryLine = false) {

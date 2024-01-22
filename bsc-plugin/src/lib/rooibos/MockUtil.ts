@@ -1,18 +1,16 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, ProgramBuilder } from 'brighterscript';
-import { Position, isClassStatement } from 'brighterscript';
+import type { BrsFile, Editor, NamespaceStatement, ProgramBuilder, Scope } from 'brighterscript';
+import { ParseMode, Parser, isClassStatement, isNamespaceStatement } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
-import { RawCodeStatement } from './RawCodeStatement';
-import { Range } from 'vscode-languageserver-types';
 import type { FileFactory } from './FileFactory';
 import undent from 'undent';
 import type { RooibosSession } from './RooibosSession';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
-import { getAllDottedGetParts } from './Utils';
+import { functionRequiresReturnValue, getAllDottedGetParts, getScopeForSuite } from './Utils';
 
 export class MockUtil {
 
@@ -26,13 +24,13 @@ export class MockUtil {
     session: RooibosSession;
 
     private brsFileAdditions = `
-    function RBS_SM_#ID#_getMocksByFunctionName()
-        if m._rMocksByFunctionName = invalid
-        m._rMocksByFunctionName = {}
-        end if
-        return m._rMocksByFunctionName
-    end function
-`;
+        function RBS_SM_#ID#_getMocksByFunctionName()
+            if m._rMocksByFunctionName = invalid
+            m._rMocksByFunctionName = {}
+            end if
+            return m._rMocksByFunctionName
+        end function
+    `;
 
     private config: RooibosConfig;
     private fileId: number;
@@ -52,8 +50,8 @@ export class MockUtil {
         this.processedStatements = new Set<brighterscript.FunctionStatement>();
         this.astEditor = astEditor;
         // console.log('processing global methods on ', file.pkgPath);
-        for (let fs of file.parser.references.functionStatements) {
-            this.enableMockOnFunction(fs);
+        for (let functionStatement of file.parser.references.functionStatements) {
+            this.enableMockOnFunction(file, functionStatement);
         }
 
         this.filePathMap[this.fileId] = file.pkgPath;
@@ -62,7 +60,7 @@ export class MockUtil {
         }
     }
 
-    private enableMockOnFunction(functionStatement: brighterscript.FunctionStatement) {
+    private enableMockOnFunction(file: BrsFile, functionStatement: brighterscript.FunctionStatement) {
         if (isClassStatement(functionStatement.parent?.parent)) {
             // console.log('skipping class', functionStatement.parent?.parent?.name?.text);
             return;
@@ -79,29 +77,53 @@ export class MockUtil {
             return;
         }
 
+        let isDisabledFoMocking = functionStatement.annotations?.find(x => x.name.toLowerCase() === 'disablemocking');
+        let parentNamespace = functionStatement.findAncestor<NamespaceStatement>(isNamespaceStatement);
+        while (parentNamespace && !isDisabledFoMocking) {
+            if (parentNamespace) {
+                isDisabledFoMocking = parentNamespace.annotations?.find(x => x.name.toLowerCase() === 'disablemocking');
+                parentNamespace = parentNamespace.findAncestor<NamespaceStatement>(isNamespaceStatement);
+            }
+        }
+        if (isDisabledFoMocking) {
+            // The developer has stated that this function is not safe to be mocked
+            return;
+        }
+
         // console.log('processing  stubbed method', methodName);
         // TODO check if the user has actually mocked or stubbed this function, otherwise leave it alone!
 
         for (let param of functionStatement.func.parameters) {
             param.asToken = null;
         }
-        const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
 
-        const returnStatement = ((functionStatement.func.functionType?.kind === brighterscript.TokenKind.Sub && (functionStatement.func.returnTypeToken === undefined || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void)) || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
-        this.astEditor.addToArray(functionStatement.func.body.statements, 0, new RawCodeStatement(undent`
+        const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
+        const requiresReturnValue = functionRequiresReturnValue(functionStatement);
+        const globalAaName = '__stubs_globalAa';
+        const resultName = '__stubOrMockResult';
+        const storageName = '__globalStubs';
+
+        const template = undent`
+            ${globalAaName} = getGlobalAa()
             if RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
-                result = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
-                ${returnStatement}
+                ${resultName} = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
+                return${requiresReturnValue ? ` ${resultName}` : '' }
+            else if type(${globalAaName}?.${storageName}?.${methodName}).endsWith("Function")
+                __stubFunction = ${globalAaName}.${storageName}.${methodName}
+                ${resultName} = __stubFunction(${paramNames})
+                return${requiresReturnValue ? ` ${resultName}` : ''}
             end if
-            `));
+        `;
+        const astCodeToInject = Parser.parse(template).ast.statements;
+        this.astEditor.arrayUnshift(functionStatement.func.body.statements, ...astCodeToInject);
 
         this.processedStatements.add(functionStatement);
+        file.needsTranspiled = true;
     }
 
     addBrsAPIText(file: BrsFile) {
-        //TODO should use ast editor!
-        const func = new RawCodeStatement(this.brsFileAdditions.replace(/\#ID\#/g, this.fileId.toString().trim()), file, Range.create(Position.create(1, 1), Position.create(1, 1)));
-        file.ast.statements.push(func);
+        const func = Parser.parse(this.brsFileAdditions.replace(/\#ID\#/g, this.fileId.toString().trim())).ast.statements;
+        this.astEditor.arrayPush(file.ast.statements, ...func);
     }
 
 
@@ -125,13 +147,13 @@ export class MockUtil {
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.name.text)) {
                             if (dge.name.text === 'stubCall') {
-                                this.processGlobalStubbedMethod(callExpression);
+                                this.processGlobalStubbedMethod(callExpression, testSuite);
                                 return expressionStatement;
 
                             } else {
 
                                 if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
-                                    this.processGlobalStubbedMethod(callExpression);
+                                    this.processGlobalStubbedMethod(callExpression, testSuite);
                                 }
                             }
                         }
@@ -147,9 +169,10 @@ export class MockUtil {
         }
     }
 
-    private processGlobalStubbedMethod(callExpression: brighterscript.CallExpression) {
+    private processGlobalStubbedMethod(callExpression: brighterscript.CallExpression, testSuite: TestSuite) {
         let isNotCalled = false;
         let isStubCall = false;
+        const scope = getScopeForSuite(testSuite);
         const namespaceLookup = this.session.namespaceLookup;
         if (brighterscript.isDottedGetExpression(callExpression.callee)) {
             const nameText = callExpression.callee.name.text;
@@ -158,32 +181,46 @@ export class MockUtil {
         }
         //modify args
         let arg0 = callExpression.args[0];
-        if (brighterscript.isCallExpression(arg0) && brighterscript.isDottedGetExpression(arg0.callee)) {
+        let arg1 = callExpression.args[1];
 
-            //is it a namespace?
-            let dg = arg0.callee;
-            let nameParts = getAllDottedGetParts(dg);
-            let name = nameParts.pop();
-
-            // console.log('found expect with name', name);
-            if (name) {
-                //is a namespace?
-                if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
-                    //then this must be a namespace method
-                    let fullPathName = nameParts.join('.').toLowerCase();
-                    let ns = namespaceLookup.get(fullPathName);
-                    if (!ns) {
-                        //TODO this is an error condition!
-                    }
-                    nameParts.push(name);
-                    let functionName = nameParts.join('_').toLowerCase();
-                    this.session.globalStubbedMethods.add(functionName);
-                }
+        if (isStubCall) {
+            let functionName = this.getGlobalFunctionName(arg0, scope);
+            if (functionName) {
+                this.session.globalStubbedMethods.add(functionName.toLowerCase());
+                return;
             }
-        } else if (brighterscript.isCallExpression(arg0) && brighterscript.isVariableExpression(arg0.callee)) {
-            let functionName = arg0.callee.getName(brighterscript.ParseMode.BrightScript).toLowerCase();
-            this.session.globalStubbedMethods.add(functionName);
+        }
+
+        if (brighterscript.isCallExpression(arg0)) {
+            let functionName = this.getGlobalFunctionName(arg0.callee, scope);
+            if (functionName) {
+                this.session.globalStubbedMethods.add(functionName.toLowerCase());
+            }
         }
     }
 
+
+    private getGlobalFunctionName(expression: brighterscript.Expression, scope: Scope) {
+        let result: string;
+        if (brighterscript.isDottedGetExpression(expression)) {
+            let nameParts = getAllDottedGetParts(expression);
+            let functionName = nameParts.join('.');
+            let callable = scope.getCallableByName(functionName);
+            if (callable) {
+                result = callable.getName(ParseMode.BrightScript);
+            }
+        } else if (brighterscript.isVariableExpression(expression)) {
+            let functionName = expression.getName(ParseMode.BrightScript);
+            if (scope.symbolTable.hasSymbol(functionName)) {
+                result = functionName;
+            }
+
+            functionName = expression.getName(ParseMode.BrighterScript);
+            if (scope.getCallableByName(functionName)) {
+                result = functionName;
+            }
+        }
+
+        return result;
+    }
 }

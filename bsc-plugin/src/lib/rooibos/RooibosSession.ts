@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
+import type { BrsFile, ClassStatement, FunctionStatement, NamespaceContainer, NamespaceStatement, Program, ProgramBuilder, Scope } from 'brighterscript';
 import { isBrsFile, isCallExpression, isVariableExpression, ParseMode, WalkMode } from 'brighterscript';
 import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
@@ -15,18 +15,6 @@ import type { MockUtil } from './MockUtil';
 
 // eslint-disable-next-line
 const pkg = require('../../../package.json');
-
-
-export interface NamespaceContainer {
-    file: BscFile;
-    fullName: string;
-    nameRange: Range;
-    lastPartName: string;
-    statements: Statement[];
-    classStatements: Record<string, ClassStatement>;
-    functionStatements: Record<string, FunctionStatement>;
-    namespaces: Record<string, NamespaceContainer>;
-}
 
 export class RooibosSession {
 
@@ -58,6 +46,9 @@ export class RooibosSession {
             console.log('Efficient global stubbing is enabled');
             this.namespaceLookup = this.getNamespaces(program);
             for (let testSuite of this.sessionInfo.testSuitesToRun) {
+                if (testSuite.isNodeTest) {
+                    this.createNodeFile(program, testSuite);
+                }
                 mockUtil.gatherGlobalMethodMocks(testSuite);
             }
 
