@@ -1,11 +1,10 @@
 import * as path from 'path';
 import type { BrsFile, ClassStatement, FunctionStatement, NamespaceContainer, NamespaceStatement, Program, ProgramBuilder, Scope } from 'brighterscript';
-import { isBrsFile, isCallExpression, isVariableExpression, ParseMode, WalkMode } from 'brighterscript';
+import { isBrsFile, isCallExpression, isVariableExpression, ParseMode, Parser, WalkMode } from 'brighterscript';
 import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
-import { RawCodeStatement } from './RawCodeStatement';
 import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
 import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoStagingDir } from '../utils/Diagnostics';
@@ -83,7 +82,7 @@ export class RooibosSession {
                 walkMode: WalkMode.visitAllRecursive
             });
             if (!initCall) {
-                editor.addToArray(mainFunction.func.body.statements, 0, new RawCodeStatement(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`));
+                editor.addToArray(mainFunction.func.body.statements, 0, Parser.parse(`Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")`).ast.statements[0]);
             }
         }
     }
@@ -130,7 +129,7 @@ export class RooibosSession {
             editor.addToArray(
                 method.func.body.statements,
                 method.func.body.statements.length,
-                new RawCodeStatement(undent`
+                Parser.parse(undent`
                     return {
                         "reporter": "${this.config.reporter || ''}"
                         "failFast": ${this.config.failFast ? 'true' : 'false'}
@@ -144,8 +143,8 @@ export class RooibosSession {
                         "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
                         "throwOnFailedAssertion": ${this.config.throwOnFailedAssertion ? 'true' : 'false'}
                         "keepAppOpen": ${this.config.keepAppOpen === undefined || this.config.keepAppOpen ? 'true' : 'false'}
-                    }`
-                )
+                    }
+                `).ast.statements[0]
             );
         }
     }
@@ -156,7 +155,7 @@ export class RooibosSession {
             editor.addToArray(
                 method.func.body.statements,
                 method.func.body.statements.length,
-                new RawCodeStatement(`return "${pkg.version}"`)
+                Parser.parse(`return "${pkg.version}"`).ast.statements[0]
             );
         }
     }
@@ -164,24 +163,24 @@ export class RooibosSession {
     updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
         if (method) {
-            editor.arrayPush(method.func.body.statements, new RawCodeStatement(undent`
+            editor.arrayPush(method.func.body.statements, ...Parser.parse(undent`
                 if false
                     ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
                 else if name = "${suite.name}"
                     return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('')}
                 end if
-            `));
+            `).ast.statements);
         }
     }
 
     updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
         if (method) {
-            editor.arrayPush(method.func.body.statements, new RawCodeStatement([
+            editor.arrayPush(method.func.body.statements, ...Parser.parse([
                 'return [',
                 ...this.sessionInfo.testSuitesToRun.map((s) => `    "${s.name}"`),
                 ']'
-            ].join('\n')));
+            ].join('\n')).ast.statements);
         }
     }
 
@@ -204,10 +203,10 @@ export class RooibosSession {
             bsFile.needsTranspiled = true;
         }
         let brsFile = this.fileFactory.addFile(program, bsPath, undent`
-        import "pkg:/${suite.file.pkgPath}"
-        function init()
-        nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
-        m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
+            import "pkg:/${suite.file.pkgPath}"
+            function init()
+                nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
+                m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
             end function
         `);
         brsFile.parser.invalidateReferences();
@@ -248,14 +247,14 @@ export class RooibosSession {
     private createIgnoredTestsInfoFunction(cs: ClassStatement, editor: AstEditor) {
         let method = cs.methods.find((m) => m.name.text === 'getIgnoredTestInfo');
         if (method) {
-            editor.arrayPush(method.func.body.statements, new RawCodeStatement([
+            editor.arrayPush(method.func.body.statements, ...Parser.parse([
                 'return {',
                 `    "count": ${this.sessionInfo.ignoredCount}`,
                 `    "items": [`,
-                ...this.sessionInfo.ignoredTestNames.map((name) => `        "${name}"`),
+                ...this.sessionInfo.ignoredTestNames.map((name) => `"${name}"`),
                 `    ]`,
                 `}`
-            ].join('\n')));
+            ].join('\n')).ast.statements);
         }
     }
 }

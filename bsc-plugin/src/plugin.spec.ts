@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
-import * as trim from 'trim-whitespace';
 import undent from 'undent';
 import { SourceMapConsumer } from 'source-map';
 let tmpPath = s`${process.cwd()}/tmp`;
@@ -2004,24 +2003,24 @@ describe('RooibosPlugin', () => {
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
 
             await builder.transpile();
-            let testContents = getTestFunctionContents(true);
+            let testContents = getTestFunctionContents();
             expect(
                 testContents
             ).to.eql(undent`
                 item = {
-                id: "item"
+                    id: "item"
                 }
                 m.currentAssertLineNumber = 7
                 m._expectNotCalled(item, "getFunction", item, "item")
                 if m.currentResult?.isFail = true then
-                m.done()
-                return invalid
+                    m.done()
+                    return invalid
                 end if
                 m.currentAssertLineNumber = 8
                 m._expectNotCalled(item, "getFunction", item, "item")
                 if m.currentResult?.isFail = true then
-                m.done()
-                return invalid
+                    m.done()
+                    return invalid
                 end if
             `);
 
@@ -2070,8 +2069,7 @@ describe('RooibosPlugin', () => {
                     instance.getIgnoredTestInfo = function()
                         return {
                             "count": 0
-                            "items": [
-                            ]
+                            "items": []
                         }
                     end function
                     return instance
@@ -2209,29 +2207,20 @@ function getContents(filename: string) {
     );
 }
 
-function getTestFunctionContents(trimEveryLine = false) {
+function getTestFunctionContents() {
     const contents = getContents('test.spec.brs');
 
     let [, result] = /instance.[\w_]+\s?\= function\(\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents);
 
-    if (trimEveryLine) {
-        result = trim(result);
-    }
     return undent(result);
 }
 
-function getTestSubContents(trimEveryLine = false) {
+function getTestSubContents() {
     const contents = getContents('test.spec.brs');
     const [, body] = /groupA_test1 \= sub\(\)([\S\s]*|.*)(?=end sub)/gim.exec(contents);
     let result = undent(
         body.split('end sub')[0]
     );
-    if (trimEveryLine) {
-        result = trim(result);
-    }
     return result;
 }
 
-function trimLeading(text: string) {
-    return text.split('\n').map((line) => line.trimStart()).join('\n');
-}
