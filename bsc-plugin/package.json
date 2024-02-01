@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "5.10.0",
+    "version": "5.11.0",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "repository": {
         "type": "git",
