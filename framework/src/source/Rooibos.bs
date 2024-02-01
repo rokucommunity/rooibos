@@ -18,7 +18,10 @@ namespace rooibos
     screen.show()
 
     m.global = screen.getGlobalNode()
-    m.global.addFields({ "testsScene": scene })
+    m.global.addFields({
+      "testsScene": scene
+      "_rbs_ccn": createObject("roSGNode", "CodeCoverage")' bs:disable-line
+    })
 
     if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false
       ? "The scene is not ready yet - waiting for it to set isReadyToStartTests to true"
