@@ -189,17 +189,17 @@ describe('RooibosPlugin', () => {
 
         it('ignores a test', () => {
             program.setFile('source/test.spec.bs', `
-            @suite
-            class ATest
-            @describe("groupA")
+                @suite
+                class ATest
+                    @describe("groupA")
 
-            @ignore
-            @it("is test1")
+                    @ignore
+                    @it("is test1")
                     function Test()
                     end function
 
-                    end class
-                    `);
+                end class
+            `);
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
@@ -210,21 +210,21 @@ describe('RooibosPlugin', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
-                @describe("groupA")
+                    @describe("groupA")
 
-                @it("is test1")
-                function Test_1()
-                end function
+                    @it("is test1")
+                    function Test_1()
+                    end function
 
-                @describe("groupB")
+                    @describe("groupB")
 
-                @it("is test1")
-                function Test_2()
-                end function
+                    @it("is test1")
+                    function Test_2()
+                    end function
 
-                @it("is test2")
-                function Test_3()
-                end function
+                    @it("is test2")
+                    function Test_3()
+                    end function
 
                 end class
             `);
@@ -1614,6 +1614,58 @@ describe('RooibosPlugin', () => {
             });
         });
 
+        describe('currentAssertLineNumber transpilation', () => {
+            it('correctly transpiles currentAssertLineNumber with out duplications', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        @describe("tests AssertArrayContainsOnlyValuesOfType")
+                        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                        @it("pass")
+                        @params(["one", "two", "three"], "String")
+                        @params([1, 2, 3], "Integer")
+                        @params([true, true, false], "Boolean")
+                        @params([[true, true], [false, false]], "Array")
+                        @params([{ "test": 1 }, { "test": 1 }], "AssociativeArray")
+                        function _(values, typeName)
+
+                            m.assertArrayContainsOnlyValuesOfType(values, typeName)
+                            isFail = m.currentResult.isFail
+
+                            m.currentResult.Reset()
+
+                            m.assertFalse(isFail)
+
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m.currentAssertLineNumber = 15
+                    m.assertArrayContainsOnlyValuesOfType(values, typeName)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    isFail = m.currentResult.isFail
+                    m.currentResult.Reset()
+                    m.currentAssertLineNumber = 20
+                    m.assertFalse(isFail)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+        });
+
         describe('expectNotCalled transpilation', () => {
             it('correctly transpiles call funcs', async () => {
                 program.setFile('source/test.spec.bs', `
@@ -2210,7 +2262,7 @@ function getContents(filename: string) {
 function getTestFunctionContents() {
     const contents = getContents('test.spec.brs');
 
-    let [, result] = /instance.[\w_]+\s?\= function\(\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents);
+    let [, result] = /instance.[\w_]+\s?\= function\((?:[\w,\s]*)\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents);
 
     return undent(result);
 }

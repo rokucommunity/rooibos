@@ -154,10 +154,16 @@ export class RooibosPlugin implements CompilerPlugin {
                 console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
             }
 
+            const modifiedTestCases = new Set();
             testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any, this.session.namespaceLookup, scope);
+                    let caseName = group.testSuite.generatedNodeName + group.file.pkgPath + testCase.funcName;
+                    if (!modifiedTestCases.has(caseName)) {
+                        group.modifyAssertions(testCase, noEarlyExit, event.editor as any, this.session.namespaceLookup, scope);
+                        modifiedTestCases.add(caseName);
+                    }
+
                 }
             }
         }
