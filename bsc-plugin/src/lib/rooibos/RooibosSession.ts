@@ -45,14 +45,16 @@ export class RooibosSession {
             console.log('Efficient global stubbing is enabled');
             this.namespaceLookup = this.getNamespaces(program);
             for (let testSuite of this.sessionInfo.testSuitesToRun) {
-                if (testSuite.isNodeTest) {
-                    this.createNodeFile(program, testSuite);
-                }
                 mockUtil.gatherGlobalMethodMocks(testSuite);
             }
 
         } else {
             this.namespaceLookup = new Map<string, NamespaceContainer>();
+        }
+        for (let testSuite of this.sessionInfo.testSuitesToRun) {
+            if (testSuite.isNodeTest) {
+                this.createNodeFile(program, testSuite);
+            }
         }
     }
 
