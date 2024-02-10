@@ -157,8 +157,11 @@ export class CodeCoverageProcessor {
             }
         }), { walkMode: WalkMode.visitAllRecursive });
 
-
-        this.expectedCoverageMap[this.fileId.toString().trim()] = Array.from(this.coverageMap);
+        const coverageMapObject = {};
+        for (let key of this.coverageMap.keys()) {
+            coverageMapObject[key] = this.coverageMap.get(key);
+        }
+        this.expectedCoverageMap[this.fileId.toString().trim()] = coverageMapObject;
         this.filePathMap[this.fileId] = file.pkgPath;
         this.addBrsAPIText(file, astEditor);
     }
@@ -188,6 +191,7 @@ export class CodeCoverageProcessor {
     }
 
     private getFuncCallText(lineNumber: number, lineType: CodeCoverageLineType) {
+        this.coverageMap.set(lineNumber, lineType);
         return `RBS_CC_${this.fileId}_reportLine("${lineNumber.toString().trim()}", ${lineType.toString().trim()})`;
     }
 }
