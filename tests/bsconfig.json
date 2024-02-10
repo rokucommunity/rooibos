@@ -32,7 +32,8 @@
     "failFast": false,
     "sendHomeOnFinish": false,
     "keepAppOpen": true,
-    "isGlobalMethodMockingEnabled": true
+    "isGlobalMethodMockingEnabled": true,
+    "isRecordingCodeCoverage": false
   },
   "sourceMap": true
 }

@@ -1,0 +1,15 @@
+namespace tests
+
+  @suite
+  class CodeCovTests extends rooibos.BaseTestSuite
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("Samples for validating code coverage")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("tests statements for code coverage")
+    function _()
+      m.assertFalse(hitAllStatements())
+    end function
+
+  end class
+end namespace
