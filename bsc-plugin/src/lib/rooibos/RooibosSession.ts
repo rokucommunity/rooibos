@@ -41,6 +41,15 @@ export class RooibosSession {
     prepareForTranspile(editor: AstEditor, program: Program, mockUtil: MockUtil) {
         this.addTestRunnerMetadata(editor);
         this.addLaunchHookToExistingMain(editor);
+        
+        // Make sure to create the node files before running the global mock logic
+        // We realy on them in order to check the component scope for the global functions
+        for (let testSuite of this.sessionInfo.testSuitesToRun) {
+            if (testSuite.isNodeTest) {
+                this.createNodeFile(program, testSuite);
+            }
+        }
+
         if (this.config.isGlobalMethodMockingEnabled && this.config.isGlobalMethodMockingEfficientMode) {
             console.log('Efficient global stubbing is enabled');
             this.namespaceLookup = this.getNamespaces(program);
@@ -50,11 +59,6 @@ export class RooibosSession {
 
         } else {
             this.namespaceLookup = new Map<string, NamespaceContainer>();
-        }
-        for (let testSuite of this.sessionInfo.testSuitesToRun) {
-            if (testSuite.isNodeTest) {
-                this.createNodeFile(program, testSuite);
-            }
         }
     }
 
