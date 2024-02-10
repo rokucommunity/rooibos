@@ -372,7 +372,8 @@ describe('RooibosPlugin', () => {
                 sub main()
                     Rooibos_init("RooibosScene")
                     print "hello"
-                end sub'//# sourceMappingURL=./test.spec.bs.map
+                end sub
+                '//# sourceMappingURL=./test.spec.brs.map
             `, [
                 // print "h|ello" => print |"hello"
                 { dest: [2, 12], src: [2, 26] }
@@ -408,7 +409,8 @@ describe('RooibosPlugin', () => {
                     instance = __ATest_builder()
                     instance.new()
                     return instance
-                end function'//# sourceMappingURL=./test.spec.bs.map
+                end function
+                '//# sourceMappingURL=./test.spec.brs.map
             `, [
                 // m.assert|Equal("123", ("alpha-" + bslib_toString(number) + "-beta"))    =>    m.|assertEqual("123", `alpha-${number}-beta`)
                 { dest: [6, 16], src: [8, 26] },
