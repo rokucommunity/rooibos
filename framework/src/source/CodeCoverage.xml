@@ -11,5 +11,6 @@
         <field id="resolvedMap" type="assocarray" />
         <field id="resolvedTestMap" type="assocarray" />
         <field id="filePathMap" type="assocarray" />
+        <field id="functionMap" type="array" />
     </interface>
 </component>

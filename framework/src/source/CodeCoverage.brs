@@ -17,6 +17,10 @@ function setFilePathMap()
   m.top.filePathMap = "#FILE_PATH_MAP#"
 end function
 
+function setFunctionMap()
+  m.top.functionMap = "#FUNCTION_MAP#"
+end function
+
 function onEntryChange()
   entry = m.top.entry
   ' defer till later
@@ -45,7 +49,15 @@ function onSave()
         lineMap = {}
         m.resolvedMap[fileId] = lineMap
       end if
-      lineMap[entry.l] = entry.r
+
+      if lineMap[entry.l] = invalid
+        lineMap[entry.l] = []
+      end if
+
+      lineMap[entry.l].push({
+        r: entry.r
+        fn: entry.fn
+      })
     end if
   end for
   m.top.resolvedMap = m.resolvedMap
@@ -71,4 +83,5 @@ function onSave()
   #end if
   setExpectedMap()
   setFilePathMap()
+  setFunctionMap()
 end function
