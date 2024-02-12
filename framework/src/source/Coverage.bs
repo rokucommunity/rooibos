@@ -1,4 +1,56 @@
 namespace rooibos.Coverage
+
+  function saveResults() as void
+    m.global._rbs_ccn.save = true
+    cc = m.global._rbs_ccn
+    resolved = cc.resolved
+    coverageMap = cc.baseCoverageMap
+
+    ? "Saving hit counts..."
+    for each entry in resolved
+      if entry <> invalid
+        if entry.r = 4 ' CodeCoverageLineType.function
+          coverageMap.files[entry.f].functions[entry.fn].totalHit ++
+        else if entry.r = 3 ' CodeCoverageLineType.branch
+          for each branch in coverageMap.files[entry.f].blocks[entry.bl].branches
+            if branch.id = entry.br
+              branch.totalHit ++
+              exit for
+            end if
+          end for
+        else if entry.r = 1 ' CodeCoverageLineType.code
+          for each line in coverageMap.files[entry.f].lines
+            if line.lineNumber = entry.l
+              line.totalHit ++
+              exit for
+            end if
+          end for
+        end if
+      end if
+    end for
+
+    ? "Saving totals per file..."
+    for each file in coverageMap.files
+      for each func in file.functions
+        if func.totalHit > 0 then file.functionTotalHit ++
+      end for
+
+      for each block in file.blocks
+        for each branch in block.branches
+          if branch.totalHit > 0 then file.branchTotalHit ++
+        end for
+      end for
+
+      for each line in file.lines
+        if line.totalHit > 0 then file.lineTotalHit ++
+      end for
+    end for
+
+    ? "Done saving results..."
+
+    cc.results = coverageMap
+  end function
+
   function reportCodeCoverage() as void
 
     if m.global._rbs_ccn = invalid
@@ -9,33 +61,26 @@ namespace rooibos.Coverage
     ? ""
     ? "...Generating code coverage report"
     ? ""
-    m.global._rbs_ccn.save = true
+    ' m.global._rbs_ccn.save = true
     cc = m.global._rbs_ccn
-    expectedMap = cc.expectedMap
-    filePathMap = cc.filePathMap
-    resolvedMap = cc.resolvedMap
+    results = cc.results
 
     hitFiles = []
     missFiles = []
     allLinesCount = 0
     allLinesHit = 0
-    for each key in expectedMap
-      filename = filePathMap[key]
-      expectedCount = expectedMap[key].count()
+    for each file in results.files
+      filename = file.sourceFile
+      expectedCount = file.lineTotalFound
       allLinesCount += expectedCount
+      allLinesHit += file.lineTotalHit
       if expectedCount > 0
-        if resolvedMap[key] <> invalid
-          resolvedCount = resolvedMap[key].count()
-          allLinesHit += resolvedCount
-          if resolvedCount = 0
-            resolvedPercent = 0
-          else
-            resolvedPercent = (resolvedCount / expectedCount) * 100
-          end if
-          hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
+        if file.lineTotalHit = 0
+          resolvedPercent = 0
         else
-          missFiles.push(filename + ": MISS!")
+          resolvedPercent = (file.lineTotalHit / expectedCount) * 100
         end if
+        hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(file.lineTotalHit).trim() + "/" + stri(expectedCount).trim() + ")" })
       else
         missFiles.push(filename + ": MISS!")
       end if
@@ -52,7 +97,7 @@ namespace rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
     ? ""
     ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
-    ? "Files: " ; resolvedMap.count(); "/" ; expectedMap.count()
+    ? "Files: " ; hitFiles.count(); "/" ; results.files.count()
     ? ""
     ? "HIT FILES"
     ? "---------"
@@ -129,6 +174,57 @@ namespace rooibos.Coverage
     return results.join(chr(10))
   end function
 
+
+  function createCovMap()
+    ? "Generating lcov.info file..."
+    cc = m.global._rbs_ccn
+    results = cc.results
+
+    for each file in results.files
+      buffer = `TN:\n`
+      buffer += `SF:${file.sourceFile}\n`
+      ' buffer += `VER:\n`
+
+      ' Add all the found functions for the file
+      for each func in file.functions
+        buffer += `FN:${func.startLine},${func.endLine},${func.name}\n`
+      end for
+
+      ' Write function related data
+      for each func in file.functions
+        if func.totalHit > 0
+          buffer += `FNDA:${func.totalHit},${func.name}\n`
+        end if
+      end for
+
+      buffer += `FNF:${file.functionTotalFound}\n`
+      buffer += `FNH:${file.functionTotalHit}\n`
+
+      ' Write branch related data
+      for each block in file.blocks
+          for each branch in block.branches
+              if branch.totalHit > 0
+                buffer += `BRDA:${branch.line},${block.id},${branch.id},${branch.totalHit}\n`
+              end if
+          end for
+      end for
+
+      buffer += `BRF:${file.branchTotalFound}\n`
+      buffer += `BRH:${file.branchTotalHit}\n`
+
+      ' Write the per line related data
+      for each line in file.lines
+        buffer += `DA:${line.lineNumber},${line.totalHit}\n`
+      end for
+
+      buffer += `LF:${file.lineTotalFound}\n`
+      buffer += `LH:${file.lineTotalHit}\n`
+      buffer += `end_of_record\n`
+      ? buffer
+      sleep(30)
+    end for
+  end function
+
   function printLCovInfo()
 
     ?
@@ -137,7 +233,8 @@ namespace rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
     ?
     ? "+-=-coverage:start"
-    rooibos.coverage.createLCovOutput()
+    rooibos.coverage.createCovMap()
+    ' rooibos.coverage.createLCovOutput()
     ? "+-=-coverage:end"
   end function
 

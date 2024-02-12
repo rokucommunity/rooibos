@@ -114,6 +114,7 @@ namespace rooibos
       'bs:disable-next-line
       if rooibos.common.isFunction(rooibos.Coverage.reportCodeCoverage)
         'bs:disable-next-line
+        rooibos.Coverage.saveResults()
         rooibos.Coverage.reportCodeCoverage()
 
         if m.config.printLcov = true

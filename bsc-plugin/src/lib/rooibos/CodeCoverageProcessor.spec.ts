@@ -125,7 +125,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -134,7 +134,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -148,7 +148,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -158,7 +158,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -173,7 +173,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -182,7 +182,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -259,7 +259,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -268,7 +268,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -282,7 +282,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -292,7 +292,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -307,7 +307,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -316,7 +316,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -413,7 +413,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -422,7 +422,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -436,7 +436,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -446,7 +446,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -461,7 +461,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -470,7 +470,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -519,7 +519,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -528,7 +528,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -542,7 +542,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -552,7 +552,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -567,7 +567,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -576,7 +576,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -673,7 +673,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -682,7 +682,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "l": lineNumber
                                 "r": 1
                             }
@@ -696,7 +696,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -706,7 +706,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "bl": blockId
                                 "br": branchId
                                 "r": 3
@@ -721,7 +721,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }
@@ -730,7 +730,7 @@ describe('RooibosPlugin', () => {
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "0"
+                                "f": 0
                                 "fn": functionId
                                 "r": 4
                             }

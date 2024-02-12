@@ -17,71 +17,101 @@ function setFilePathMap()
   m.top.filePathMap = "#FILE_PATH_MAP#"
 end function
 
-function setFunctionMap()
-  m.top.functionMap = "#FUNCTION_MAP#"
+function getBaseCoverageMap()
+  return "#BASE_COVERAGE_REPORT#"
 end function
 
 function onEntryChange()
   entry = m.top.entry
   ' defer till later
-
-  #if rooibos_poc_enhanced_lcov_support
-    testName = m.top.testName
-    if testName <> ""
-      if not m.resultsByTest.doesExist(testName)
-        m.resultsByTest[testName] = []
-      end if
-      m.resultsByTest[testName].push(entry)
-    end if
-  #end if
-
   m.results.push(entry)
 end function
 
+' enum CodeCoverageLineType
+'     noCode = 0
+'     code = 1
+'     condition = 2
+'     branch = 3
+'     function = 4
+' end enum
+
 function onSave()
   ? "saving data"
-  for each entry in m.results
-    if entry <> invalid
-      fileId = entry.f
-      lineMap = m.resolvedMap[fileId]
 
-      if lineMap = invalid
-        lineMap = {}
-        m.resolvedMap[fileId] = lineMap
-      end if
+  ' coverageMap = getBaseCoverageMap()
+  m.top.baseCoverageMap = getBaseCoverageMap()
+  m.top.resolved = m.results
 
-      if lineMap[entry.l] = invalid
-        lineMap[entry.l] = []
-      end if
+  ' for each entry in m.results
+  '   if entry <> invalid
+  '     if entry.r = 4 ' CodeCoverageLineType.function
+  '       coverageMap.files[entry.f].functions[entry.fn].totalHit ++
+  '     else if entry.r = 3 ' CodeCoverageLineType.branch
+  '       for each branch in coverageMap.files[entry.f].blocks[entry.bl].branches
+  '         if branch.id = entry.br
+  '           branch.totalHit ++
+  '           exit for
+  '         end if
+  '       end for
+  '     else if entry.r = 1 ' CodeCoverageLineType.code
+  '       for each line in coverageMap.files[entry.f].lines
+  '         if line.lineNumber = entry.l
+  '           line.totalHit ++
+  '           exit for
+  '         end if
+  '       end for
+  '     end if
+  '   end if
+  ' end for
 
-      lineMap[entry.l].push({
-        r: entry.r
-        fn: entry.fn
-      })
-    end if
-  end for
-  m.top.resolvedMap = m.resolvedMap
+  ' for each file in coverageMap.files
+  '   for each func in file.functions
+  '     if func.totalHit > 0 then file.functionTotalHit ++
+  '   end for
 
-  #if rooibos_poc_enhanced_lcov_support
-    for each testName in m.resultsByTest
-      resolvedTest = m.resultsByTest[testName]
-      m.resolvedTestMap[testName] = {}
-      for each entry in resolvedTest
-        if entry <> invalid
-          fileId = entry.f
-          lineMap = m.resolvedTestMap[testName][fileId]
+  '   for each block in file.blocks
+  '     for each branch in block.branches
+  '       if branch.totalHit > 0 then file.branchTotalHit ++
+  '     end for
+  '   end for
 
-          if lineMap = invalid
-            lineMap = {}
-            m.resolvedTestMap[testName][fileId] = lineMap
-          end if
-          lineMap[entry.l] = entry.r
-        end if
-      end for
-    end for
-    m.top.resolvedTestMap = m.resolvedTestMap
-  #end if
-  setExpectedMap()
-  setFilePathMap()
-  setFunctionMap()
+  '   for each line in file.lines
+  '     if line.totalHit > 0 then file.lineTotalHit ++
+  '   end for
+  ' end for
+
+  ' m.top.results = coverageMap
+  ' m.top.resolvedMap = m.resolvedMap
+
+  ' setExpectedMap()
+  ' setFilePathMap()
 end function
+
+#if false
+sub test()
+  player = m.player
+
+  report = false
+  if player = invalid or (player.duration > 0 and player.state = "playing") then
+    report = true
+  end if
+
+  if report = true then
+    player.control = "stop"
+  end if
+end sub
+
+
+sub test()
+  player = m.player
+
+  report = false
+  if RBS_CC_0_reportCondition(109, 1, player = invalid) or RBS_CC_0_reportCondition(109, 2, (RBS_CC_0_reportCondition(109, 3, player.duration > 0) and RBS_CC_0_reportCondition(109, 4, player.state = "playing"))) then
+    report = true
+  end if
+
+  if report = true then
+    player.control = "stop"
+  end if
+end sub
+#end if

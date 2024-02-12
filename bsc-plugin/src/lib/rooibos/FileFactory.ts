@@ -3,6 +3,7 @@ import { standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
+import type { CoverageMap } from './CodeCoverageProcessor';
 
 export class FileFactory {
     private coverageComponentXmlTemplate;
@@ -100,11 +101,11 @@ export class FileFactory {
         return contents;
     }
 
-    public createCoverageComponent(program: Program, coverageMap: any, filepathMap: Map<number, string>, functionMap: Array<Array<string>>) {
+    public createCoverageComponent(program: Program, coverageMap: any, filepathMap: Map<number, string>, baseCoverageReport: CoverageMap) {
         let template = this.coverageComponentBrsTemplate;
         template = template.replace(/\"\#EXPECTED_MAP\#\"/g, JSON.stringify(coverageMap ?? {}));
         template = template.replace(/\"\#FILE_PATH_MAP\#\"/g, JSON.stringify(filepathMap ?? {}));
-        template = template.replace(/\"\#FUNCTION_MAP\#\"/g, JSON.stringify(functionMap ?? []));
+        template = template.replace(/\"\#BASE_COVERAGE_REPORT\#\"/g, JSON.stringify(baseCoverageReport ?? []));
 
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);

@@ -22,13 +22,13 @@ export class CodeCoverageProcessor {
         function RBS_CC_#ID#_reportLine(lineNumber)
             _rbs_ccn = m._rbs_ccn
             if _rbs_ccn <> invalid
-                _rbs_ccn.entry = { "f": "#ID#", "l": lineNumber, "r": ${CodeCoverageLineType.code} }
+                _rbs_ccn.entry = { "f": #ID#, "l": lineNumber, "r": ${CodeCoverageLineType.code} }
                 return true
             end if
 
             _rbs_ccn = m?.global?._rbs_ccn
             if _rbs_ccn <> invalid
-            _rbs_ccn.entry = { "f": "#ID#", "l": lineNumber, "r": ${CodeCoverageLineType.code} }
+            _rbs_ccn.entry = { "f": #ID#, "l": lineNumber, "r": ${CodeCoverageLineType.code} }
                 m._rbs_ccn = _rbs_ccn
                 return true
             end if
@@ -38,13 +38,13 @@ export class CodeCoverageProcessor {
         function RBS_CC_#ID#_reportBranch(blockId, branchId)
             _rbs_ccn = m._rbs_ccn
             if _rbs_ccn <> invalid
-                _rbs_ccn.entry = { "f": "#ID#", "bl": blockId, "br": branchId, "r": ${CodeCoverageLineType.branch} }
+                _rbs_ccn.entry = { "f": #ID#, "bl": blockId, "br": branchId, "r": ${CodeCoverageLineType.branch} }
                 return true
             end if
 
             _rbs_ccn = m?.global?._rbs_ccn
             if _rbs_ccn <> invalid
-                _rbs_ccn.entry = { "f": "#ID#", "bl": blockId, "br": branchId, "r": ${CodeCoverageLineType.branch} }
+                _rbs_ccn.entry = { "f": #ID#, "bl": blockId, "br": branchId, "r": ${CodeCoverageLineType.branch} }
                 m._rbs_ccn = _rbs_ccn
                 return true
             end if
@@ -54,13 +54,13 @@ export class CodeCoverageProcessor {
         function RBS_CC_#ID#_reportFunction(functionId)
             _rbs_ccn = m._rbs_ccn
             if _rbs_ccn <> invalid
-                _rbs_ccn.entry = { "f": "#ID#", "fn": functionId, "r": ${CodeCoverageLineType.function} }
+                _rbs_ccn.entry = { "f": #ID#, "fn": functionId, "r": ${CodeCoverageLineType.function} }
                 return true
             end if
 
             _rbs_ccn = m?.global?._rbs_ccn
             if _rbs_ccn <> invalid
-                _rbs_ccn.entry = { "f": "#ID#", "fn": functionId, "r": ${CodeCoverageLineType.function} }
+                _rbs_ccn.entry = { "f": #ID#, "fn": functionId, "r": ${CodeCoverageLineType.function} }
                 m._rbs_ccn = _rbs_ccn
                 return true
             end if
@@ -108,7 +108,7 @@ export class CodeCoverageProcessor {
     private foundBlocks: Array<BranchCoverage>;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
-        this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap, this.functionMap);
+        this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap, this.baseCoverageReport);
     }
 
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {
@@ -141,8 +141,17 @@ export class CodeCoverageProcessor {
                     const lineNumber = statement.range.start.line;
                     const parsed = Parser.parse(this.getReportBranchHitFuncCallText(this.blockId, this.branchId, statement, owner, key)).ast.statements[0] as ExpressionStatement;
                     this.astEditor.addToArray(statement.statements, 0, parsed);
+                    this.foundBlocks.push({
+                        id: this.branchId,
+                        branches: [{
+                            id: this.branchId,
+                            line: lineNumber,
+                            totalHit: 0
+                        }]
+                    });
                     this.blockId++;
                     this.branchId++;
+
                 }
             },
             ForStatement: (ds, parent, owner, key) => {
@@ -249,7 +258,7 @@ export class CodeCoverageProcessor {
             branchTotalFound: this.foundBlocks.reduce((currentCount, block) => currentCount + block.branches.length, 0),
             branchTotalHit: 0
         };
-        console.log(this.baseCoverageReport);
+        // console.log(this.baseCoverageReport);
     }
 
     private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
@@ -341,7 +350,7 @@ export class CodeCoverageProcessor {
 }
 
 
-interface CoverageMap {
+export interface CoverageMap {
     files: Array<FileCoverage>;
 }
 
@@ -359,7 +368,7 @@ interface FileCoverage {
 }
 
 interface BranchCoverage {
-    id: string;
+    id: number;
     branches: Array<{
         id: number;
         totalHit: number;
@@ -429,3 +438,197 @@ function createCovMap(files: Array<FileCoverage>) {
     }
 }
 
+
+
+
+// function write_info($$$) {
+//     my $self = $_[0];
+//     local *INFO_HANDLE = $_[1];
+//     my $checksum = defined($_[2]) ? $_[2] : 0;
+//     my $br_found;
+//     my $br_hit;
+//     my $ln_total_found = 0;
+//     my $ln_total_hit = 0;
+//     my $fn_total_found = 0;
+//     my $fn_total_hit = 0;
+//     my $br_total_found = 0;
+//     my $br_total_hit = 0;
+
+//     my $srcReader = ReadCurrentSource->new()
+//       if (lcovutil::is_filter_enabled());
+
+//     foreach my $source_file (sort($self->files())) {
+//       next if lcovutil::is_external($source_file);
+//       my $entry = $self->data($source_file);
+//       die("expected TraceInfo, got '" . ref($entry) . "'")
+//         unless('TraceInfo' eq ref($entry));
+
+//       my ($testdata, $sumcount, $funcdata, $checkdata, $testfncdata,
+//           $testbrdata, $sumbrcount, $found, $hit,
+//           $f_found, $f_hit, $br_found, $br_hit) = $entry->get_info();
+
+//       # munge the source file name, if requested
+//       $source_file = lcovutil::subst_file_name($source_file);
+//       # Add to totals
+//       $ln_total_found += $found;
+//       $ln_total_hit += $hit;
+//       $fn_total_found += $f_found;
+//       $fn_total_hit += $f_hit;
+//       $br_total_found += $br_found;
+//       $br_total_hit += $br_hit;
+
+//       foreach my $testname (sort($testdata->keylist())) {
+//         my $testcount = $testdata->value($testname);
+//         my $testfnccount = $testfncdata->value($testname);
+//         my $testbrcount = $testbrdata->value($testname);
+//         $found = 0;
+//         $hit   = 0;
+
+//         print(INFO_HANDLE "TN:$testname\n");
+//         print(INFO_HANDLE "SF:$source_file\n");
+//         print(INFO_HANDLE "VER:" . $entry->version() . "\n")
+//           if defined($entry->version());
+//         if (defined($srcReader)) {
+//           $srcReader->close();
+//           if (is_c_file($source_file)) {
+//             lcovutil::debug("reading $source_file for lcov filtering\n");
+//             if (-e $source_file) {
+//               $srcReader->open($source_file);
+//             } else {
+//               lcovutil::ignorable_error($lcovutil::ERROR_SOURCE,
+//                                         "'$source_file' not found (for filtering)")
+//                 if (lcovutil::warn_once($source_file));
+//             }
+//           } else {
+//             lcovutil::debug("not reading $source_file: no ext match\n");
+//           }
+//         }
+//         my $functionMap = $testfncdata->{$testname};
+//         # Write function related data - sort  by line number
+//         foreach my $key ( sort({$functionMap->findKey($a)->line() <=> $functionMap->findKey($b)->line()}
+//                                 $functionMap->keylist())) {
+//           my $data = $functionMap->findKey($key);
+//           my $aliases = $data->aliases();
+//           foreach my $alias (keys %$aliases) {
+//             print(INFO_HANDLE "FN:" . $data->line(). ",$alias\n");
+//           }
+//         }
+//         my $f_found = 0;
+//         my $f_hit = 0;
+//         foreach my $key ($functionMap->keylist()) {
+//           my $data = $functionMap->findKey($key);
+//           my $aliases = $data->aliases();
+//           foreach my $alias (keys %$aliases) {
+//             my $hit = $aliases->{$alias};
+//             ++ $f_found;
+//             ++ $f_hit if $hit > 0;
+//             print(INFO_HANDLE "FNDA:$hit,$alias\n");
+//           }
+//         }
+//         print(INFO_HANDLE "FNF:$f_found\n");
+//         print(INFO_HANDLE "FNH:$f_hit\n");
+
+//         # Write branch related data
+//         $br_found = 0;
+//         $br_hit = 0;
+//         my $currentBranchLine;
+//         my $skipBranch = 0;
+//         my $reader = $srcReader
+//           if (defined($srcReader) && $srcReader->notEmpty());
+//         my $branchHistogram = $cov_filter[$FILTER_BRANCH_NO_COND]
+//           if $reader;
+
+//         foreach my $line (sort({$a <=> $b}
+//                                $testbrcount->keylist())) {
+
+//           # omit if line excluded or branches excluded on this line
+//           next
+//             if (defined($reader) &&
+//                 ($reader->isOutOfRange($line, 'branch') ||
+//                  $reader->isExcluded($line, 1)));
+
+//           my $brdata = $testbrcount->value($line);
+//           if (defined($branchHistogram)) {
+//             $skipBranch = ! $reader->containsConditional($line);
+//             if ($skipBranch) {
+//               ++ $branchHistogram->[0]; # one line where we skip
+//               $branchHistogram->[1] += scalar($brdata->blocks());
+//               lcovutil::info(2, "skip BRDA '" .
+//                              $reader->getLine($line) .
+//                              "' $source_file:$line\n");
+//               next;
+//             }
+//           }
+//           # want the block_id to be treated as 32-bit unsigned integer
+//           #  (need masking to match regression tests)
+//           my $mask =  (1<<32) -1;
+//           foreach my $block_id ($brdata->blocks()) {
+//             my $blockData = $brdata->getBlock($block_id);
+//             $block_id &= $mask;
+//             foreach my $br (@$blockData) {
+//               my $taken = $br->data();
+//               my $branch_id = $br->id();
+//               my $branch_expr = $br->expr();
+//               # mostly for Verilog:  if there is a branch expression: use it.
+//               printf(INFO_HANDLE "BRDA:%u,%u,%s,%s\n",
+//                      $line, $block_id,
+//                      defined($branch_expr) ? $branch_expr : $branch_id, $taken);
+//               $br_found++;
+//               $br_hit++
+//                 if ($taken ne '-' && $taken > 0);
+//             }
+//           }
+//         }
+//         if ($br_found > 0) {
+//           print(INFO_HANDLE "BRF:$br_found\n");
+//           print(INFO_HANDLE "BRH:$br_hit\n");
+//         }
+
+//         # Write line related data
+//         my ($brace_histogram, $blank_histogram);
+//         if (defined($reader)) {
+//           $brace_histogram = $cov_filter[$FILTER_LINE_CLOSE_BRACE];
+//           $blank_histogram = $cov_filter[$FILTER_BLANK_LINE];
+//         }
+//         foreach my $line (sort({$a <=> $b} $testcount->keylist())) {
+//           next
+//             if (defined($reader) &&
+//                 ($reader->isOutOfRange($line, 'line') || $reader->isExcluded($line)));
+
+//           my $l_hit = $testcount->value($line);
+//           if ( ! defined($sumbrcount->value($line))) {
+//             # don't suppresss if this line has associated branch data
+
+//             if ($brace_histogram &&
+//                 $reader->suppressCloseBrace($line, $l_hit, $testcount)) {
+//               lcovutil::info(2, "skip DA '" . $reader->getLine($line)
+//                              . "' $source_file:$line\n");
+//               ++$brace_histogram->[0]; # one location where this applied
+//               ++$brace_histogram->[1]; # one coverpoint suppressed
+//               next;
+//             } elsif ($blank_histogram &&
+//                      $l_hit == 0 &&
+//                      $reader->isBlank($line)) {
+//               lcovutil::info(2, "skip DA (empty) $source_file:$line\n");
+//               ++ $blank_histogram->[0]; # one location where this applied
+//               ++ $blank_histogram->[1]; # one coverpoint suppressed
+//               next;
+//             }
+//           }
+//           my $chk = $checkdata->{$line};
+//           print(INFO_HANDLE "DA:$line,$l_hit" .
+//                 (defined($chk) && $checksum ? ",". $chk : "")
+//                 ."\n");
+//           $found++;
+//           $hit++
+//             if ($l_hit > 0);
+//         }
+//         print(INFO_HANDLE "LF:$found\n");
+//         print(INFO_HANDLE "LH:$hit\n");
+//         print(INFO_HANDLE "end_of_record\n");
+//       }
+//     }
+
+//     return ($ln_total_found, $ln_total_hit, $fn_total_found, $fn_total_hit,
+//             $br_total_found, $br_total_hit);
+//   }
