@@ -5,12 +5,11 @@
     <script type="text/brightscript" uri="CodeCoverage.brs" />
     <interface>
         <field id="entry" type="assocarray" />
+        <field id="results" type="assocarray" />
+        <field id="baseCoverageMap" type="assocarray" />
+        <field id="resolved" type="array" />
+
         <field id="save" type="boolean" />
         <field id="testName" type="string" />
-        <field id="expectedMap" type="assocarray" />
-        <field id="resolvedMap" type="assocarray" />
-        <field id="resolvedTestMap" type="assocarray" />
-        <field id="filePathMap" type="assocarray" />
-        <field id="functionMap" type="array" />
     </interface>
 </component>
