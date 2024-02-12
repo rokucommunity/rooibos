@@ -22,7 +22,7 @@ describe('RooibosPlugin', () => {
         return undent(contents);
     }
 
-    describe.only('CodeCoverageProcessor', () => {
+    describe('CodeCoverageProcessor', () => {
         beforeEach(() => {
             plugin = new RooibosPlugin();
             options = {
