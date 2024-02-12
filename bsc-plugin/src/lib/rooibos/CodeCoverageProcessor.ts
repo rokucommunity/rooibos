@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, ExpressionStatement, FunctionExpression, Identifier, Program, ProgramBuilder, Statement } from 'brighterscript';
+import type { BrsFile, Editor, ExpressionStatement, FunctionExpression, Program, ProgramBuilder, Statement } from 'brighterscript';
 import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
@@ -89,6 +89,8 @@ export class CodeCoverageProcessor {
     private baseCoverageReport: CoverageMap;
     private config: RooibosConfig;
     private fileId: number;
+    private blockId: number;
+    private branchId: number;
     private functionId: number;
     private filePathMap: any;
     private functionMap: Array<Array<string>>;
@@ -112,6 +114,8 @@ export class CodeCoverageProcessor {
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {
         if (this.config.isRecordingCodeCoverage) {
             this.transpileState = new BrsTranspileState(file);
+            this.blockId = 0;
+            this.branchId = 0;
             this._processFile(file, astEditor);
             this.fileId++;
         }
@@ -131,6 +135,16 @@ export class CodeCoverageProcessor {
             FunctionStatement: (statement, parent, owner, key) => {
                 this.getFunctionIdInFile(statement, ParseMode.BrighterScript, owner, key);
             },
+            Block: (statement, parent, owner, key) => {
+                if (!isFunctionExpression(parent)) {
+
+                    const lineNumber = statement.range.start.line;
+                    const parsed = Parser.parse(this.getReportBranchHitFuncCallText(this.blockId, this.branchId, statement, owner, key)).ast.statements[0] as ExpressionStatement;
+                    this.astEditor.addToArray(statement.statements, 0, parsed);
+                    this.blockId++;
+                    this.branchId++;
+                }
+            },
             ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds, ds.range.start.line);
                 ds.forToken.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds, owner, key)}: for`;
@@ -146,18 +160,18 @@ export class CodeCoverageProcessor {
                     }, ifStatement.condition)
                 );
 
-                let blockStatements = ifStatement?.thenBranch?.statements;
-                if (blockStatements) {
-                    let coverageStatement = new RawCodeStatement(this.getReportLineHitFuncCallText(ifStatement.range.start.line, CodeCoverageLineType.branch, ifStatement, owner, key));
-                    blockStatements.splice(0, 0, coverageStatement);
-                }
+                // let blockStatements = ifStatement?.thenBranch?.statements;
+                // if (blockStatements) {
+                //     let coverageStatement = new RawCodeStatement(this.getReportLineHitFuncCallText(ifStatement.range.start.line, CodeCoverageLineType.branch, ifStatement, owner, key));
+                //     blockStatements.splice(0, 0, coverageStatement);
+                // }
 
-                // Handle the else blocks
-                let elseBlock = ifStatement.elseBranch;
-                if (isBlock(elseBlock) && elseBlock.statements) {
-                    let coverageStatement = new RawCodeStatement(this.getReportLineHitFuncCallText(elseBlock.range.start.line - 1, CodeCoverageLineType.branch, elseBlock, owner, key));
-                    elseBlock.statements.splice(0, 0, coverageStatement);
-                }
+                // // Handle the else blocks
+                // let elseBlock = ifStatement.elseBranch;
+                // if (isBlock(elseBlock) && elseBlock.statements) {
+                //     let coverageStatement = new RawCodeStatement(this.getReportLineHitFuncCallText(elseBlock.range.start.line - 1, CodeCoverageLineType.branch, elseBlock, owner, key));
+                //     elseBlock.statements.splice(0, 0, coverageStatement);
+                // }
 
             },
             GotoStatement: (ds, parent, owner, key) => {

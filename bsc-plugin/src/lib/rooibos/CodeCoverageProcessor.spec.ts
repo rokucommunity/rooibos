@@ -97,6 +97,7 @@ describe('RooibosPlugin', () => {
                         RBS_CC_0_reportLine(3)
                         text = ""
                         RBS_CC_0_reportLine(4): for i = 0 to 10
+                            RBS_CC_0_reportBranch(0, 0)
                             RBS_CC_0_reportLine(5)
                             text = text + "hello"
                             RBS_CC_0_reportLine(6)
@@ -104,16 +105,16 @@ describe('RooibosPlugin', () => {
                             RBS_CC_0_reportLine(7)
                             c += 1
                             if RBS_CC_0_reportLine(8) and (c = 2)
-                                RBS_CC_0_reportLine(8)
+                                RBS_CC_0_reportBranch(1, 1)
                                 RBS_CC_0_reportLine(9)
                                 ? "is true"
                             end if
                             if RBS_CC_0_reportLine(12) and (c = 3)
-                                RBS_CC_0_reportLine(12)
+                                RBS_CC_0_reportBranch(2, 2)
                                 RBS_CC_0_reportLine(13)
                                 ? "free"
                             else
-                                RBS_CC_0_reportLine(14)
+                                RBS_CC_0_reportBranch(3, 3)
                                 RBS_CC_0_reportLine(15)
                                 ? "not free"
                             end if
@@ -230,6 +231,7 @@ describe('RooibosPlugin', () => {
                         RBS_CC_0_reportLine(3)
                         text = ""
                         RBS_CC_0_reportLine(4): for i = 0 to 10
+                            RBS_CC_0_reportBranch(0, 0)
                             RBS_CC_0_reportLine(5)
                             text = text + "hello"
                             RBS_CC_0_reportLine(6)
@@ -237,16 +239,16 @@ describe('RooibosPlugin', () => {
                             RBS_CC_0_reportLine(7)
                             c += 1
                             if RBS_CC_0_reportLine(8) and (c = 2)
-                                RBS_CC_0_reportLine(8)
+                                RBS_CC_0_reportBranch(1, 1)
                                 RBS_CC_0_reportLine(9)
                                 ? "is true"
                             end if
                             if RBS_CC_0_reportLine(12) and (c = 3)
-                                RBS_CC_0_reportLine(12)
+                                RBS_CC_0_reportBranch(2, 2)
                                 RBS_CC_0_reportLine(13)
                                 ? "free"
                             else
-                                RBS_CC_0_reportLine(14)
+                                RBS_CC_0_reportBranch(3, 3)
                                 RBS_CC_0_reportLine(15)
                                 ? "not free"
                             end if
@@ -376,6 +378,7 @@ describe('RooibosPlugin', () => {
                             RBS_CC_0_reportLine(7)
                             text = ""
                             RBS_CC_0_reportLine(8): for i = 0 to 10
+                                RBS_CC_0_reportBranch(0, 0)
                                 RBS_CC_0_reportLine(9)
                                 text = text + "hello"
                                 RBS_CC_0_reportLine(10)
@@ -383,16 +386,16 @@ describe('RooibosPlugin', () => {
                                 RBS_CC_0_reportLine(11)
                                 c += 1
                                 if RBS_CC_0_reportLine(12) and (c = 2)
-                                    RBS_CC_0_reportLine(12)
+                                    RBS_CC_0_reportBranch(1, 1)
                                     RBS_CC_0_reportLine(13)
                                     ? "is true"
                                 end if
                                 if RBS_CC_0_reportLine(16) and (c = 3)
-                                    RBS_CC_0_reportLine(16)
+                                    RBS_CC_0_reportBranch(2, 2)
                                     RBS_CC_0_reportLine(17)
                                     ? "free"
                                 else
-                                    RBS_CC_0_reportLine(18)
+                                    RBS_CC_0_reportBranch(3, 3)
                                     RBS_CC_0_reportLine(19)
                                     ? "not free"
                                 end if
@@ -503,7 +506,7 @@ describe('RooibosPlugin', () => {
                         x = function(y)
                             RBS_CC_0_reportFunction(1)
                             if RBS_CC_0_reportLine(2) and ((true)) then
-                                RBS_CC_0_reportLine(2)
+                                RBS_CC_0_reportBranch(0, 0)
                                 RBS_CC_0_reportLine(3)
                                 return 1
                             end if
@@ -624,45 +627,45 @@ describe('RooibosPlugin', () => {
                     sub foo(action as string)
                         RBS_CC_0_reportFunction(0)
                         if RBS_CC_0_reportLine(2) and (action = "action1") then
-                            RBS_CC_0_reportLine(2)
+                            RBS_CC_0_reportBranch(0, 0)
                             RBS_CC_0_reportLine(3)
                             print "action1"
                         else if RBS_CC_0_reportLine(4) and (action = "action2" or action = "action2") then
-                            RBS_CC_0_reportLine(4)
+                            RBS_CC_0_reportBranch(1, 1)
                             RBS_CC_0_reportLine(5)
                             print "action2"
                         else if RBS_CC_0_reportLine(6) and (action = "action3") then
-                            RBS_CC_0_reportLine(6)
+                            RBS_CC_0_reportBranch(2, 2)
                             RBS_CC_0_reportLine(7)
                             print "action3"
                         else if RBS_CC_0_reportLine(8) and (action = "action4") then
-                            RBS_CC_0_reportLine(8)
+                            RBS_CC_0_reportBranch(3, 3)
                         else if RBS_CC_0_reportLine(9) and (action = "action5") then
-                            RBS_CC_0_reportLine(9)
+                            RBS_CC_0_reportBranch(4, 4)
                             RBS_CC_0_reportLine(10)
                             print "action5"
                         else if RBS_CC_0_reportLine(11) and (action = "action6") then
-                            RBS_CC_0_reportLine(11)
+                            RBS_CC_0_reportBranch(5, 5)
                             RBS_CC_0_reportLine(12)
                             print "action6"
                         else if RBS_CC_0_reportLine(13) and (action = "action7") then
-                            RBS_CC_0_reportLine(13)
+                            RBS_CC_0_reportBranch(6, 6)
                             RBS_CC_0_reportLine(14)
                             print "action7"
                         else if RBS_CC_0_reportLine(15) and (action = "action8") then
-                            RBS_CC_0_reportLine(15)
+                            RBS_CC_0_reportBranch(7, 7)
                             RBS_CC_0_reportLine(16)
                             print "action8"
                         else if RBS_CC_0_reportLine(17) and (action = "action9") then
-                            RBS_CC_0_reportLine(17)
+                            RBS_CC_0_reportBranch(8, 8)
                             RBS_CC_0_reportLine(18)
                             print "action9"
                         else if RBS_CC_0_reportLine(19) and (action = "action10") then
-                            RBS_CC_0_reportLine(19)
+                            RBS_CC_0_reportBranch(9, 9)
                             RBS_CC_0_reportLine(20)
                             print "action10"
                         else
-                            RBS_CC_0_reportLine(21)
+                            RBS_CC_0_reportBranch(10, 10)
                         end if
                     end sub
 
