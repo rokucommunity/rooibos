@@ -113,12 +113,11 @@ namespace rooibos
 
       'bs:disable-next-line
       if rooibos.common.isFunction(rooibos.Coverage.reportCodeCoverage)
-        'bs:disable-next-line
-        rooibos.Coverage.saveResults()
-        rooibos.Coverage.reportCodeCoverage()
+        coverageResults = rooibos.Coverage.saveResults()
+        rooibos.Coverage.reportCodeCoverage(coverageResults)
 
         if m.config.printLcov = true
-          rooibos.Coverage.printLCovInfo()
+          rooibos.Coverage.printLCovInfo(coverageResults)
         end if
       else
         ? "rooibos.Coverage.reportCodeCoverage is not a function"

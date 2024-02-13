@@ -1,44 +1,89 @@
-#const rooibos_poc_enhanced_lcov_support = false
-
 function init()
-  m.resolvedMap = {}
-  m.resolvedTestMap = {}
-  m.top.observeField("entry", "onEntryChange")
-  m.top.observeField("save", "onSave")
-  m.resultsByTest = {}
-  m.results = []
+  m.coverageMap = "#BASE_COVERAGE_REPORT#"
+  m.port = createObject("roMessagePort")
+  m.top.observeFieldScoped("entry", m.port)
+  m.top.functionName = "runTaskThread"
+  m.top.control = "RUN"
 end function
 
-function setExpectedMap()
-  m.top.expectedMap = "#EXPECTED_MAP#"
+function runTaskThread()
+  events = []
+  while true
+    message = getMessage(m.port)
+    if message <> invalid
+      events.push(message)
+    end if
+
+    if m.top.save = true
+      'Get All the unprocessed messages
+      while true
+        message = getMessage(m.port)
+        if message = invalid
+          exit while
+        else
+          events.push(message)
+        end if
+      end while
+    end if
+
+    ' enum CodeCoverageLineType
+    '     noCode = 0
+    '     code = 1
+    '     condition = 2
+    '     branch = 3
+    '     function = 4
+    ' end enum
+
+    for each event in events
+      entry = event.getData()
+      if entry <> invalid
+        file = m.coverageMap.files[entry.f]
+        if entry.r = 4 ' CodeCoverageLineType.function
+          if file.functions[entry.fn].totalHit = 0
+            file.functionTotalHit ++
+          end if
+          file.functions[entry.fn].totalHit ++
+        else if entry.r = 3 ' CodeCoverageLineType.branch
+          for each branch in file.blocks[entry.bl].branches
+            if branch.id = entry.br
+              if branch.totalHit = 0
+                file.branchTotalHit ++
+              end if
+              branch.totalHit ++
+              exit for
+            end if
+          end for
+        else if entry.r = 1 ' CodeCoverageLineType.code
+          for each line in file.lines
+            if line.lineNumber = entry.l
+              if line.totalHit = 0
+                file.lineTotalHit ++
+              end if
+              line.totalHit ++
+              exit for
+            end if
+          end for
+        end if
+      end if
+    end for
+
+    if m.top.save = true
+      m.top.coverageResults = m.coverageMap
+    end if
+  end while
+
 end function
 
-function setFilePathMap()
-  m.top.filePathMap = "#FILE_PATH_MAP#"
-end function
 
-function getBaseCoverageMap()
-  return "#BASE_COVERAGE_REPORT#"
-end function
-
-function onEntryChange()
-  entry = m.top.entry
-  ' defer till later
-  m.results.push(entry)
-end function
-
-' enum CodeCoverageLineType
-'     noCode = 0
-'     code = 1
-'     condition = 2
-'     branch = 3
-'     function = 4
-' end enum
-
-function onSave()
-  ? "saving data"
-  m.top.baseCoverageMap = getBaseCoverageMap()
-  m.top.resolved = m.results
+' Gets the next message from the message port and applies a short sleep if no message was returned.
+' @param {roMessagePort} port - The active message port to get messages from.
+' @param {Integer} [sleepInterval] - How long to sleep if there was no message returned.
+' @return {Dynamic} Any resulting message from the message port.
+function getMessage(port as object, sleepInterval = 20 as integer) as dynamic
+  message = port.getMessage()
+  ' I know I will always get something from the port so no need for the uninitialized check in isInvalid
+  if message = invalid then sleep(sleepInterval)
+  return message
 end function
 
 #if false
