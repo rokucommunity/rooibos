@@ -6,10 +6,8 @@
     <interface>
         <field id="entry" type="assocarray" />
         <field id="save" type="boolean" />
-        <field id="testName" type="string" />
         <field id="expectedMap" type="assocarray" />
         <field id="resolvedMap" type="assocarray" />
-        <field id="resolvedTestMap" type="assocarray" />
         <field id="filePathMap" type="assocarray" />
     </interface>
 </component>

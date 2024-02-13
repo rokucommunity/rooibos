@@ -262,7 +262,6 @@ namespace rooibos
       ? `  Location: file://${test.testSuite.filePath.trim()}:${test.lineNumber}`
       ? ""
 
-      m.global._rbs_ccn.testName = test.name
       m.currentResult = test.result
       m.currentResult.throwOnFailedAssertion = m.throwOnFailedAssertion
       if m.catchCrashes and not test.noCatch and not m.noCatch
