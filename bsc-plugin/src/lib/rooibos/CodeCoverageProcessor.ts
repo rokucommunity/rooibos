@@ -108,7 +108,7 @@ export class CodeCoverageProcessor {
     private foundBlocks: Array<BranchCoverage>;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
-        this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap, this.baseCoverageReport);
+        this.fileFactory.createCoverageComponent(program, this.baseCoverageReport);
     }
 
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {

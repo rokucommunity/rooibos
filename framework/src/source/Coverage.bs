@@ -1,57 +1,24 @@
 namespace rooibos.Coverage
 
-  function saveResults() as void
+  function saveResults() as dynamic
     m.global._rbs_ccn.save = true
     cc = m.global._rbs_ccn
-    resolved = cc.resolved
-    coverageMap = cc.baseCoverageMap
+    if cc.coverageResults = invalid
+      ' The results are still being formatted
+      ' Wait for them to be reported
+      port = createObject("roMessagePort")
+      cc.observeFieldScoped("coverageResults", port)
+      msg = wait(0, port)
+      coverageResults = msg.getData()
+    else
+      ' Results are ready to go
+      coverageResults = cc.coverageResults
+    end if
 
-    ? "Saving hit counts..." resolved.count()
-    for each entry in resolved
-      if entry <> invalid
-        if entry.r = 4 ' CodeCoverageLineType.function
-          coverageMap.files[entry.f].functions[entry.fn].totalHit ++
-        else if entry.r = 3 ' CodeCoverageLineType.branch
-          for each branch in coverageMap.files[entry.f].blocks[entry.bl].branches
-            if branch.id = entry.br
-              branch.totalHit ++
-              exit for
-            end if
-          end for
-        else if entry.r = 1 ' CodeCoverageLineType.code
-          for each line in coverageMap.files[entry.f].lines
-            if line.lineNumber = entry.l
-              line.totalHit ++
-              exit for
-            end if
-          end for
-        end if
-      end if
-    end for
-
-    ? "Saving totals per file..."
-    for each file in coverageMap.files
-      for each func in file.functions
-        if func.totalHit > 0 then file.functionTotalHit ++
-      end for
-
-      for each block in file.blocks
-        for each branch in block.branches
-          if branch.totalHit > 0 then file.branchTotalHit ++
-        end for
-      end for
-
-      for each line in file.lines
-        if line.totalHit > 0 then file.lineTotalHit ++
-      end for
-    end for
-
-    ? "Done saving results..."
-
-    cc.results = coverageMap
+    return coverageResults
   end function
 
-  function reportCodeCoverage() as void
+  function reportCodeCoverage(coverageResults as dynamic) as void
 
     if m.global._rbs_ccn = invalid
       ? "There was no rooibos code coverage component - not generating coverage report"
@@ -62,14 +29,11 @@ namespace rooibos.Coverage
     ? "...Generating code coverage report"
     ? ""
 
-    cc = m.global._rbs_ccn
-    results = cc.results
-
     hitFiles = []
     missFiles = []
     allLinesCount = 0
     allLinesHit = 0
-    for each file in results.files
+    for each file in coverageResults.files
       filename = "pkg:/" + file.sourceFile
       expectedCount = file.lineTotalFound
       allLinesCount += expectedCount
@@ -97,7 +61,7 @@ namespace rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
     ? ""
     ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
-    ? "Files: " ; hitFiles.count(); "/" ; results.files.count()
+    ? "Files: " ; hitFiles.count(); "/" ; coverageResults.files.count()
     ? ""
     ? "HIT FILES"
     ? "---------"
@@ -117,14 +81,11 @@ namespace rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
   end function
 
-  function createLCovOutput(logToConsole = true)
+  function createLCovOutput(coverageResults as dynamic, logToConsole = true)
     ? "Generating lcov.info file..."
-    cc = m.global._rbs_ccn
-    results = cc.results
-
     fileResults = []
 
-    for each file in results.files
+    for each file in coverageResults.files
       buffer = `TN:\n`
       buffer += `SF:${file.sourceFile}\n`
       ' buffer += `VER:\n`
@@ -182,7 +143,7 @@ namespace rooibos.Coverage
     end if
   end function
 
-  function printLCovInfo()
+  function printLCovInfo(coverageResults as dynamic)
 
     ?
     ? "+++++++++++++++++++++++++++++++++++++++++++"
@@ -190,7 +151,7 @@ namespace rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
     ?
     ? "+-=-coverage:start"
-    rooibos.coverage.createLCovOutput()
+    rooibos.coverage.createLCovOutput(coverageResults)
     ? "+-=-coverage:end"
   end function
 
