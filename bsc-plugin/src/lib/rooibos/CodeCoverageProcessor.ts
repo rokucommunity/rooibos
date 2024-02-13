@@ -70,11 +70,8 @@ export class CodeCoverageProcessor {
 
     constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
         this.config = (builder.options as any).rooibos as RooibosConfig || {};
-        this.expectedCoverageMap = {};
-        this.filePathMap = {};
         this.functionMap = [];
         this.fileId = 0;
-        this.functionId = 0;
         this.fileFactory = fileFactory;
         this.processedFunctions = new Set<FunctionExpression>();
         this.baseCoverageReport = {
@@ -91,13 +88,9 @@ export class CodeCoverageProcessor {
     private fileId: number;
     private blockId: number;
     private branchId: number;
-    private functionId: number;
-    private filePathMap: any;
     private functionMap: Array<Array<string>>;
-    private expectedCoverageMap: any;
     private executableLines: Map<number, Statement>;
     private transpileState: BrsTranspileState;
-    private coverageMap: Map<number, number>;
     private fileFactory: FileFactory;
     private processedStatements: Set<Statement>;
     private processedFunctions: Set<FunctionExpression>;
@@ -126,7 +119,6 @@ export class CodeCoverageProcessor {
         this.foundFunctions = [];
         this.foundBlocks = [];
 
-        this.coverageMap = new Map<number, number>();
         this.executableLines = new Map<number, Statement>();
         this.processedStatements = new Set<Statement>();
         this.astEditor = astEditor;
@@ -238,12 +230,6 @@ export class CodeCoverageProcessor {
             }
         }), { walkMode: WalkMode.visitAllRecursive });
 
-        const coverageMapObject = {};
-        for (let key of this.coverageMap.keys()) {
-            coverageMapObject[key] = this.coverageMap.get(key);
-        }
-        this.expectedCoverageMap[this.fileId.toString().trim()] = coverageMapObject;
-        this.filePathMap[this.fileId] = file.pkgPath;
         this.addBrsAPIText(file, astEditor);
 
         this.baseCoverageReport.files[this.fileId] = {
@@ -258,7 +244,6 @@ export class CodeCoverageProcessor {
             branchTotalFound: this.foundBlocks.reduce((currentCount, block) => currentCount + block.branches.length, 0),
             branchTotalHit: 0
         };
-        // console.log(this.baseCoverageReport);
     }
 
     private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
@@ -267,7 +252,6 @@ export class CodeCoverageProcessor {
         }
 
         const lineNumber = statement.range.start.line;
-        this.coverageMap.set(lineNumber, coverageType);
         const parsed = Parser.parse(this.getReportLineHitFuncCallText(lineNumber, coverageType, statement, owner, key)).ast.statements[0] as ExpressionStatement;
         this.astEditor.arraySplice(owner, key, 0, parsed);
         // store the statement in a set to avoid handling again after inserting statement above
@@ -292,7 +276,6 @@ export class CodeCoverageProcessor {
 
     private getReportLineHitFuncCallText(lineNumber: number, lineType: CodeCoverageLineType, statement: Statement, owner: any, key: any) {
         const funcId = this.getFunctionIdInFile(statement, ParseMode.BrighterScript, owner, key);
-        this.coverageMap.set(lineNumber, lineType);
         return `RBS_CC_${this.fileId}_reportLine(${lineNumber})`;
     }
 
