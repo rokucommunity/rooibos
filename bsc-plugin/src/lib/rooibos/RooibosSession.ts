@@ -41,7 +41,7 @@ export class RooibosSession {
     prepareForTranspile(editor: AstEditor, program: Program, mockUtil: MockUtil) {
         this.addTestRunnerMetadata(editor);
         this.addLaunchHookToExistingMain(editor);
-        
+
         // Make sure to create the node files before running the global mock logic
         // We realy on them in order to check the component scope for the global functions
         for (let testSuite of this.sessionInfo.testSuitesToRun) {
@@ -149,6 +149,7 @@ export class RooibosSession {
                         "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
                         "throwOnFailedAssertion": ${this.config.throwOnFailedAssertion ? 'true' : 'false'}
                         "keepAppOpen": ${this.config.keepAppOpen === undefined || this.config.keepAppOpen ? 'true' : 'false'}
+                        "isRecordingCodeCoverage": ${this.config.isRecordingCodeCoverage ? 'true' : 'false'}
                     }
                 `).ast.statements[0]
             );

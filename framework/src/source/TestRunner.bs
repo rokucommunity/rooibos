@@ -111,8 +111,7 @@ namespace rooibos
       }
       m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
 
-      'bs:disable-next-line
-      if rooibos.common.isFunction(rooibos.Coverage.reportCodeCoverage)
+      if m.config.isRecordingCodeCoverage
         coverageResults = rooibos.Coverage.saveResults()
         rooibos.Coverage.reportCodeCoverage(coverageResults)
 
