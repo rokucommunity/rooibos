@@ -16,6 +16,7 @@ function runTaskThread() as void
     end if
     if m.top.save = true
       saving = true
+      ? "Saving unprocessed code cov events..."
       'Get All the unprocessed messages
       while true
         message = getMessage(m.port, 3)
@@ -25,6 +26,8 @@ function runTaskThread() as void
           events.push(message)
         end if
       end while
+
+      ? "Found" events.count() " unprocessed events..."
     end if
 
     ' enum CodeCoverageLineType
