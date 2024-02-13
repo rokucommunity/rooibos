@@ -2103,6 +2103,7 @@ describe('RooibosPlugin', () => {
                             "catchCrashes": true
                             "throwOnFailedAssertion": false
                             "keepAppOpen": true
+                            "isRecordingCodeCoverage": false
                         }
                     end function
                     instance.getTestSuiteClassWithName = function(name)
