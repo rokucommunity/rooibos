@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ExpressionStatement, FunctionExpression, Program, ProgramBuilder, Statement } from 'brighterscript';
-import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
-import { RawCodeStatement } from './RawCodeStatement';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
