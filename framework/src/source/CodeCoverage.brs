@@ -6,18 +6,19 @@ function init()
   m.top.control = "RUN"
 end function
 
-function runTaskThread()
-  events = []
+function runTaskThread() as void
   while true
+    events = []
+    saving = false
     message = getMessage(m.port)
     if message <> invalid
       events.push(message)
     end if
-
     if m.top.save = true
+      saving = true
       'Get All the unprocessed messages
       while true
-        message = getMessage(m.port)
+        message = getMessage(m.port, 3)
         if message = invalid
           exit while
         else
@@ -64,11 +65,13 @@ function runTaskThread()
             end if
           end for
         end if
+        m.coverageMap.files[entry.f] = file
       end if
     end for
 
-    if m.top.save = true
+    if saving = true
       m.top.coverageResults = m.coverageMap
+      return
     end if
   end while
 
