@@ -34,7 +34,9 @@ namespace rooibos
 
       if runner.config.keepAppOpen = false
         ? "keepAppOpen is false; exiting Rooibos"
-        return
+        ' End statement will also exit the caller of this function
+        ' leading to an instant exit of the application
+        end
       end if
     end if
 
