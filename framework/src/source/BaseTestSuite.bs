@@ -1908,7 +1908,7 @@ namespace rooibos
       '   m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
       '   return false
       ' end try
-      return false
+      ' return false
     end function
 
     ' /**
