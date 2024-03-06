@@ -399,8 +399,8 @@ You can control the timeout behavior by passing delay and maxAttempts, as follow
 
 ```
   '2 second time out, 3 tries
-  netTask = createObject("roSGNode", "NetworkTask", 2000, 3)
-  m.assertAsyncField(netTask, "output")
+  netTask = createObject("roSGNode", "NetworkTask")
+  m.assertAsyncField(netTask, "output", 2000, 3)
 ```
 
 If the field does not change during the retry period, the assertion will fail.
