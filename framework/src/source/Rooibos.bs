@@ -36,6 +36,9 @@ namespace rooibos
         ? "keepAppOpen is false; exiting Rooibos"
         ' End statement will also exit the caller of this function
         ' leading to an instant exit of the application
+
+        ' Give the io port time to finish sending all the logs
+        sleep(200)
         end
       end if
     end if
