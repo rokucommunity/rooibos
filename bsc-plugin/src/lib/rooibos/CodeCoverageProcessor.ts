@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ExpressionStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
-import { Parser, isIfStatement, Position, WalkMode, createVisitor } from 'brighterscript';
-import * as brighterscript from 'brighterscript';
+import {
+    Parser, isIfStatement, Position, WalkMode, createVisitor,
+    createToken, BinaryExpression, TokenKind, isForStatement
+} from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement, RawCodeExpression } from './RawCodeStatement';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { Range } from 'vscode-languageserver-types';
 import type { FileFactory } from './FileFactory';
+
 
 export enum CodeCoverageLineType {
     noCode = 0,
@@ -87,14 +90,18 @@ end function
         file.ast.walk(createVisitor({
             ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                ds.forToken.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: for`;
+                ds.tokens.for.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: for`;
             },
             IfStatement: (ds, parent, owner, key) => {
                 let ifStatement = ds;
                 while (isIfStatement(ifStatement)) {
                     this.addStatement(ds);
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    (ifStatement as any).condition = new brighterscript.BinaryExpression(new RawCodeExpression(this.getFuncCallText(ds.condition.range.start.line, CodeCoverageLineType.branch)), brighterscript.createToken(brighterscript.TokenKind.And), (ifStatement as any).condition);
+                    (ifStatement as any).condition = new BinaryExpression({
+                        left: new RawCodeExpression(this.getFuncCallText(ds.condition.range.start.line, CodeCoverageLineType.branch)),
+                        operator: createToken(TokenKind.And),
+                        right: (ifStatement as any).condition
+                    });
                     ifStatement = ifStatement.elseBranch as any;
                 }
                 let blockStatements = (ifStatement as any)?.statements as any[] ?? [];
@@ -143,7 +150,7 @@ end function
 
             },
             AssignmentStatement: (ds, parent, owner, key) => {
-                if (!brighterscript.isForStatement(parent)) {
+                if (!isForStatement(parent)) {
                     this.addStatement(ds);
                     this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
                 }
@@ -156,8 +163,8 @@ end function
         }), { walkMode: WalkMode.visitAllRecursive });
 
 
-        this.expectedCoverageMap[this.fileId.toString().trim()] = Array.from(this.coverageMap);
-        this.filePathMap[this.fileId] = file.pkgPath;
+        this.expectedCoverageMap[ this.fileId.toString().trim() ] = Array.from(this.coverageMap);
+        this.filePathMap[ this.fileId ] = file.pkgPath;
         this.addBrsAPIText(file);
     }
 
@@ -168,7 +175,7 @@ end function
 
         const lineNumber = statement.range.start.line;
         this.coverageMap.set(lineNumber, coverageType);
-        const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
+        const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[ 0 ] as ExpressionStatement;
         this.editor.arraySplice(owner, key, 0, parsed);
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);

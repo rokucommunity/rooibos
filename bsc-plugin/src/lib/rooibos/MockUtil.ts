@@ -1,19 +1,22 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ProgramBuilder } from 'brighterscript';
-import { Position, isClassStatement, isVariableExpression } from 'brighterscript';
-import * as brighterscript from 'brighterscript';
+import {
+    Position, isClassStatement, isVariableExpression,
+    isFunctionStatement, FunctionStatement, ParseMode,
+    FunctionExpression, FunctionParameterExpression, createVisitor,
+    isCallExpression, isDottedGetExpression, CallExpression, WalkMode
+} from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
 import { Range } from 'vscode-languageserver-types';
 import type { FileFactory } from './FileFactory';
 import undent from 'undent';
 import type { RooibosSession } from './RooibosSession';
-import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
-import { getAllDottedGetParts, getRootObjectFromDottedGet, getStringPathFromDottedGet, overrideAstTranspile } from './Utils';
+import { getAllDottedGetParts } from './Utils';
 
 export class MockUtil {
 
@@ -39,7 +42,7 @@ export class MockUtil {
     private fileId: number;
     private filePathMap: any;
     private fileFactory: FileFactory;
-    private processedStatements: Set<brighterscript.FunctionStatement>;
+    private processedStatements: Set<FunctionStatement>;
     private editor: Editor;
 
     enableGlobalMethodMocks(file: BrsFile, editor: Editor) {
@@ -50,20 +53,20 @@ export class MockUtil {
 
     _processFile(file: BrsFile, editor: Editor) {
         this.fileId++;
-        this.processedStatements = new Set<brighterscript.FunctionStatement>();
+        this.processedStatements = new Set<FunctionStatement>();
         this.editor = editor;
         // console.log('processing global methods on ', file.pkgPath);
-        for (let fs of file.parser.references.functionStatements) {
+        for (let fs of file[ '_cachedLookups' ].functionStatements) {
             this.enableMockOnFunction(fs);
         }
 
-        this.filePathMap[this.fileId] = file.pkgPath;
+        this.filePathMap[ this.fileId ] = file.pkgPath;
         if (this.processedStatements.size > 0) {
             this.addBrsAPIText(file);
         }
     }
 
-    private enableMockOnFunction(functionStatement: brighterscript.FunctionStatement) {
+    private enableMockOnFunction(functionStatement: FunctionStatement) {
         if (isClassStatement(functionStatement.parent?.parent)) {
             // console.log('skipping class', functionStatement.parent?.parent?.name?.text);
             return;
@@ -73,7 +76,7 @@ export class MockUtil {
             return;
         }
 
-        const methodName = functionStatement?.getName(brighterscript.ParseMode.BrightScript).toLowerCase() || '';
+        const methodName = functionStatement?.getName(ParseMode.BrightScript).toLowerCase() || '';
         // console.log('MN', methodName);
         if (this.config.isGlobalMethodMockingEfficientMode && !this.session.globalStubbedMethods.has(methodName)) {
             // console.log('skipping method that is not stubbed', methodName);
@@ -82,16 +85,34 @@ export class MockUtil {
 
         // console.log('processing  stubbed method', methodName);
         // TODO check if the user has actually mocked or stubbed this function, otherwise leave it alone!
-
-        for (let param of functionStatement.func.parameters) {
-            param.asToken = null;
-        }
-        const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
+        let functionExpression = new FunctionExpression({
+            parameters: functionStatement.func.parameters.map(parameter => {
+                return new FunctionParameterExpression({
+                    name: parameter.tokens.name,
+                    equals: parameter.tokens.equals,
+                    defaultValue: parameter.defaultValue,
+                    as: null,
+                });
+            }),
+            body: functionStatement.func.body,
+            functionType: functionStatement.func.tokens.functionType,
+            endFunctionType: functionStatement.func.tokens.endFunctionType,
+            leftParen: functionStatement.func.tokens.leftParen,
+            rightParen: functionStatement.func.tokens.rightParen,
+            as: functionStatement.func.tokens.as,
+            returnTypeExpression: functionStatement.func.returnTypeExpression,
+        });
+        functionStatement = new FunctionStatement({
+            name: functionStatement.tokens.name,
+            func: functionExpression
+        })
+        functionStatement.func = functionExpression;
+        const paramNames = functionStatement.func.parameters.map((param) => param.tokens.name.text).join(',');
 
         // const returnStatement = ((functionStatement.func.functionType?.kind === brighterscript.TokenKind.Sub && (functionStatement.func.returnTypeToken === undefined || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void)) || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
         let returnStatement = 'return';
         if (isVariableExpression(functionStatement?.func?.returnTypeExpression?.expression)) {
-            if ((functionStatement.func.returnTypeExpression.expression).name.text.toLowerCase() !== 'void') {
+            if (functionStatement.func.returnTypeExpression.expression.getName() !== 'void') {
                 returnStatement = 'return result';
             }
         }
@@ -114,8 +135,8 @@ export class MockUtil {
 
     gatherGlobalMethodMocks(testSuite: TestSuite) {
         // console.log('gathering global method mocks for testSuite', testSuite.name);
-        for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
-            for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
+        for (let group of [ ...testSuite.testGroups.values() ].filter((tg) => tg.isIncluded)) {
+            for (let testCase of [ ...group.testCases.values() ].filter((tc) => tc.isIncluded)) {
                 this.gatherMockedGlobalMethods(testSuite, testCase);
             }
         }
@@ -123,21 +144,21 @@ export class MockUtil {
     }
     private gatherMockedGlobalMethods(testSuite: TestSuite, testCase: TestCase) {
         try {
-            let func = testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
-            func.walk(brighterscript.createVisitor({
+            let func = testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+            func.walk(createVisitor({
                 ExpressionStatement: (expressionStatement, parent, owner) => {
-                    let callExpression = expressionStatement.expression as brighterscript.CallExpression;
-                    if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
+                    let callExpression = expressionStatement.expression as CallExpression;
+                    if (isCallExpression(callExpression) && isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
-                        if (dge && assertRegex.test(dge.name.text)) {
-                            if (dge.name.text === 'stubCall') {
+                        if (dge && assertRegex.test(dge.tokens.name.text)) {
+                            if (dge.tokens.name.text === 'stubCall') {
                                 this.processGlobalStubbedMethod(callExpression);
                                 return expressionStatement;
 
                             } else {
 
-                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                if (dge.tokens.name.text === 'expectCalled' || dge.tokens.name.text === 'expectNotCalled') {
                                     this.processGlobalStubbedMethod(callExpression);
                                 }
                             }
@@ -145,7 +166,7 @@ export class MockUtil {
                     }
                 }
             }), {
-                walkMode: brighterscript.WalkMode.visitStatementsRecursive
+                walkMode: WalkMode.visitStatementsRecursive
             });
         } catch (e) {
             console.log(e);
@@ -154,18 +175,18 @@ export class MockUtil {
         }
     }
 
-    private processGlobalStubbedMethod(callExpression: brighterscript.CallExpression) {
+    private processGlobalStubbedMethod(callExpression: CallExpression) {
         let isNotCalled = false;
         let isStubCall = false;
         const namespaceLookup = this.session.namespaceLookup;
-        if (brighterscript.isDottedGetExpression(callExpression.callee)) {
-            const nameText = callExpression.callee.name.text;
+        if (isDottedGetExpression(callExpression.callee)) {
+            const nameText = callExpression.callee.tokens.name.text;
             isNotCalled = nameText === 'expectNotCalled';
             isStubCall = nameText === 'stubCall';
         }
         //modify args
-        let arg0 = callExpression.args[0];
-        if (brighterscript.isCallExpression(arg0) && brighterscript.isDottedGetExpression(arg0.callee)) {
+        let arg0 = callExpression.args[ 0 ];
+        if (isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
 
             //is it a namespace?
             let dg = arg0.callee;
@@ -175,7 +196,7 @@ export class MockUtil {
             // console.log('found expect with name', name);
             if (name) {
                 //is a namespace?
-                if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
+                if (nameParts[ 0 ] && namespaceLookup.has(nameParts[ 0 ].toLowerCase())) {
                     //then this must be a namespace method
                     let fullPathName = nameParts.join('.').toLowerCase();
                     let ns = namespaceLookup.get(fullPathName);
@@ -187,8 +208,8 @@ export class MockUtil {
                     this.session.globalStubbedMethods.add(functionName);
                 }
             }
-        } else if (brighterscript.isCallExpression(arg0) && brighterscript.isVariableExpression(arg0.callee)) {
-            let functionName = arg0.callee.getName(brighterscript.ParseMode.BrightScript).toLowerCase();
+        } else if (isCallExpression(arg0) && isVariableExpression(arg0.callee)) {
+            let functionName = arg0.callee.getName(ParseMode.BrightScript).toLowerCase();
             this.session.globalStubbedMethods.add(functionName);
         }
     }

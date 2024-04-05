@@ -1,6 +1,6 @@
 import * as path from 'path';
-import type { AfterSerializeProgramEvent, BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
-import { isBrsFile, ParseMode, util } from 'brighterscript';
+import type { AfterSerializeProgramEvent, BrsFile, BscFile, ClassStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
+import { isBrsFile, isFunctionStatement, FunctionStatement, ParseMode } from 'brighterscript';
 import type { Editor } from 'brighterscript/dist/astUtils/Editor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -10,8 +10,6 @@ import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
 import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoStagingDir } from '../utils/Diagnostics';
 import undent from 'undent';
-import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
-import * as fsExtra from 'fs-extra';
 import type { MockUtil } from './MockUtil';
 
 // eslint-disable-next-line
@@ -81,7 +79,8 @@ export class RooibosSession {
         const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
             if (isBrsFile(file)) {
-                const mainFunc = file.parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
+                const functionStatements = file.parser.ast.statements.filter(s => isFunctionStatement(s)) as FunctionStatement[];
+                const mainFunc = functionStatements.find((f) => f.tokens.name.text.toLowerCase() === 'main');
                 if (mainFunc) {
                     mainFunction = mainFunc;
                     break;
@@ -97,7 +96,8 @@ export class RooibosSession {
         const files = this._builder.program.getScopeByName('source').getOwnFiles();
         for (let file of files) {
             if (isBrsFile(file)) {
-                const mainFunc = file.parser.references.functionStatements.find((f) => f.name.text.toLowerCase() === 'main');
+                const functionStatements = file.parser.ast.statements.filter(s => isFunctionStatement(s)) as FunctionStatement[];
+                const mainFunc = functionStatements.find((f) => f.tokens.name.text.toLowerCase() === 'main');
                 if (mainFunc) {
                     mainFunction = mainFunc;
                     break;
@@ -125,7 +125,7 @@ export class RooibosSession {
     addTestRunnerMetadata(editor: Editor) {
         let runtimeConfig = this._builder.program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
-            let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
+            let classStatement = (runtimeConfig.ast.statements[ 0 ] as NamespaceStatement).body.statements[ 0 ] as ClassStatement;
             this.updateRunTimeConfigFunction(classStatement, editor);
             this.updateVersionTextFunction(classStatement, editor);
             this.updateClassLookupFunction(classStatement, editor);
@@ -135,7 +135,7 @@ export class RooibosSession {
     }
 
     updateRunTimeConfigFunction(classStatement: ClassStatement, editor: Editor) {
-        let method = classStatement.methods.find((m) => m.name.text === 'getRuntimeConfig');
+        let method = classStatement.methods.find((m) => m.tokens.name.text === 'getRuntimeConfig');
         if (method) {
             editor.addToArray(
                 method.func.body.statements,
@@ -159,7 +159,7 @@ export class RooibosSession {
     }
 
     updateVersionTextFunction(classStatement: ClassStatement, editor: Editor) {
-        let method = classStatement.methods.find((m) => m.name.text === 'getVersionText');
+        let method = classStatement.methods.find((m) => m.tokens.name.text === 'getVersionText');
         if (method) {
             editor.addToArray(
                 method.func.body.statements,
@@ -170,7 +170,7 @@ export class RooibosSession {
     }
 
     updateClassLookupFunction(classStatement: ClassStatement, editor: Editor) {
-        let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
+        let method = classStatement.methods.find((m) => m.tokens.name.text === 'getTestSuiteClassWithName');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement(undent`
                 if false
@@ -183,7 +183,7 @@ export class RooibosSession {
     }
 
     updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: Editor) {
-        let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
+        let method = classStatement.methods.find((m) => m.tokens.name.text === 'getAllTestSuitesNames');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement([
                 'return [',
@@ -227,7 +227,7 @@ export class RooibosSession {
 
     private getNamespaceLookup(scope: Scope): Map<string, NamespaceContainer> {
         // eslint-disable-next-line @typescript-eslint/dot-notation
-        return scope['cache'].getOrAdd('namespaceLookup', () => scope.buildNamespaceLookup() as any);
+        return scope[ 'cache' ].getOrAdd('namespaceLookup', () => scope.buildNamespaceLookup() as any);
     }
 
     private getNamespaces(program: Program) {
@@ -243,7 +243,7 @@ export class RooibosSession {
                 }
                 let scopeMap = this.getNamespaceLookup(scope);
                 // scopeNamespaces = new Map<string, NamespaceContainer>([...Array.from(scopeMap.entries())]);
-                for (let [key, value] of scopeMap.entries()) {
+                for (let [ key, value ] of scopeMap.entries()) {
                     scopeNamespaces.set(key, value);
                 }
                 processedScopes.add(scope.dependencyGraphKey);
@@ -254,7 +254,7 @@ export class RooibosSession {
 
 
     private createIgnoredTestsInfoFunction(cs: ClassStatement, editor: Editor) {
-        let method = cs.methods.find((m) => m.name.text === 'getIgnoredTestInfo');
+        let method = cs.methods.find((m) => m.tokens.name.text === 'getIgnoredTestInfo');
         if (method) {
             editor.arrayPush(method.func.body.statements, new RawCodeStatement([
                 'return {',

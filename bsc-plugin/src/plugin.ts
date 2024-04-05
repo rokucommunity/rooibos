@@ -1,22 +1,13 @@
 import type {
     BscFile,
     CompilerPlugin,
-    Program,
     ProgramBuilder,
-    TranspileObj,
-    Editor,
     BeforePrepareProgramEvent,
     AfterProgramCreateEvent,
     BeforeProgramCreateEvent,
     AfterProgramValidateEvent,
-    BeforeSerializeFileEvent,
-    File,
-    PluginHandler,
-    BeforePrepareFileEvent,
     AfterSerializeProgramEvent,
-    AfterProvideFileEvent,
     AfterFileAddEvent,
-    BeforeWriteProgramEvent,
     AfterPrepareFileEvent
 } from 'brighterscript';
 import {

@@ -1,4 +1,4 @@
-import type { BrsFile, ClassStatement, FunctionStatement, Statement, File, AnnotationExpression, XmlFile } from 'brighterscript';
+import type { BrsFile, ClassStatement, FunctionStatement, Statement, AnnotationExpression, XmlFile } from 'brighterscript';
 import { DiagnosticSeverity, Range } from 'brighterscript';
 
 import type { AnnotationType, RooibosAnnotation } from '../rooibos/Annotation';
@@ -14,7 +14,7 @@ function addDiagnostic(
     severity: DiagnosticSeverity = DiagnosticSeverity.Error
 ) {
     endLine = endLine === -1 ? startLine : endLine;
-    file.addDiagnostics([createDiagnostic(file, code, message, startLine, startCol, endLine, endCol, severity)]);
+    file.addDiagnostics([ createDiagnostic(file, code, message, startLine, startCol, endLine, endCol, severity) ]);
 }
 
 function addDiagnosticForStatement(
@@ -26,7 +26,7 @@ function addDiagnosticForStatement(
 ) {
     let line = statement.range.start.line;
     let col = statement.range.start.character;
-    file.addDiagnostics([createDiagnostic(file, code, message, line, col, line, 999999, severity)]);
+    file.addDiagnostics([ createDiagnostic(file, code, message, line, col, line, 999999, severity) ]);
 }
 
 function addDiagnosticForAnnotation(
@@ -40,7 +40,7 @@ function addDiagnosticForAnnotation(
     let line = annotation.range.start.line;
     let col = annotation.range.start.character;
 
-    file.addDiagnostics([createDiagnostic(file, code, message, line, col, annotation.range.end.line, annotation.range.end.character + 9999, severity)]);
+    file.addDiagnostics([ createDiagnostic(file, code, message, line, col, annotation.range.end.line, annotation.range.end.character + 9999, severity) ]);
 }
 
 function createDiagnostic(
@@ -89,7 +89,7 @@ export function diagnosticWrongParameterCount(file: BrsFile, statement: Function
     addDiagnosticForStatement(
         file,
         2202,
-        `Function ${statement.name} defined with wrong number of params: expected ${expectedParamCount}`,
+        `Function ${statement.tokens.name} defined with wrong number of params: expected ${expectedParamCount}`,
         statement
     );
 }

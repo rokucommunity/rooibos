@@ -5,6 +5,7 @@ import type {
     ClassStatement
 } from 'brighterscript';
 import {
+    isClassStatement,
     isMethodStatement
 } from 'brighterscript';
 
@@ -44,7 +45,7 @@ export class TestSuiteBuilder {
         this.file = file;
         let suites = [];
         try {
-            for (let cs of file.parser.references.classStatements) {
+            for (let cs of file.parser.ast.statements.filter((s) => isClassStatement(s)) as ClassStatement[]) {
 
                 //a test is comprised of a comment block; followed by a class
                 let annotation = RooibosAnnotation.getAnnotation(file, cs)?.blockAnnotation;
@@ -156,25 +157,25 @@ export class TestSuiteBuilder {
                     this.createTestCases(statement, this.annotation);
                     break;
                 case AnnotationType.Setup:
-                    this.currentGroup.setupFunctionName = statement.name.text;
+                    this.currentGroup.setupFunctionName = statement.tokens.name.text;
                     if (statement.func.parameters.length > 0) {
                         diagnosticWrongParameterCount(this.file, statement, 0);
                     }
                     break;
                 case AnnotationType.TearDown:
-                    this.currentGroup.tearDownFunctionName = statement.name.text;
+                    this.currentGroup.tearDownFunctionName = statement.tokens.name.text;
                     if (statement.func.parameters.length > 0) {
                         diagnosticWrongParameterCount(this.file, statement, 0);
                     }
                     break;
                 case AnnotationType.BeforeEach:
-                    this.currentGroup.beforeEachFunctionName = statement.name.text;
+                    this.currentGroup.beforeEachFunctionName = statement.tokens.name.text;
                     if (statement.func.parameters.length > 0) {
                         diagnosticWrongParameterCount(this.file, statement, 0);
                     }
                     break;
                 case AnnotationType.AfterEach:
-                    this.currentGroup.afterEachFunctionName = statement.name.text;
+                    this.currentGroup.afterEachFunctionName = statement.tokens.name.text;
                     if (statement.func.parameters.length > 0) {
                         diagnosticWrongParameterCount(this.file, statement, 0);
                     }
@@ -199,8 +200,8 @@ export class TestSuiteBuilder {
         }
 
         let sanitizedTestName = this.sanitizeFunctionName(this.currentGroup.name) + '_' + this.sanitizeFunctionName(annotation.name);
-        statement.name.text = sanitizedTestName;
-        statement.func.functionStatement.name.text = sanitizedTestName;
+        statement.tokens.name.text = sanitizedTestName;
+        statement.func.functionStatement.tokens.name.text = sanitizedTestName;
 
         if (numberOfParams > 0) {
             let index = 0;
@@ -209,7 +210,7 @@ export class TestSuiteBuilder {
                     let isSolo = annotation.hasSoloParams ? param.isSolo : annotation.isSolo;
                     let isIgnore = annotation.isIgnore ? true : param.isIgnore;
                     this.currentGroup.addTestCase(
-                        new TestCase(annotation, annotation.name, statement.name.text, isSolo, isIgnore, lineNumber, param.params, index, param.lineNumber, numberOfArgs)
+                        new TestCase(annotation, annotation.name, statement.tokens.name.text, isSolo, isIgnore, lineNumber, param.params, index, param.lineNumber, numberOfArgs)
                     );
                 } else {
                     diagnosticWrongTestParameterCount(this.file, param.annotation, param.params.length, numberOfArgs);
@@ -221,7 +222,7 @@ export class TestSuiteBuilder {
         } else if (numberOfParams === 0) {
             if (numberOfArgs === 0) {
                 this.currentGroup.addTestCase(
-                    new TestCase(annotation, annotation.name, statement.name.text, annotation.isSolo, annotation.isIgnore, lineNumber)
+                    new TestCase(annotation, annotation.name, statement.tokens.name.text, annotation.isSolo, annotation.isIgnore, lineNumber)
                 );
             } else {
                 diagnosticTestWithArgsButNoParams(this.file, annotation.annotation, numberOfArgs);

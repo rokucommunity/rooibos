@@ -68,7 +68,7 @@ export class TestSuite extends TestBlock {
         this.isNodeTest = annotation.nodeName && annotation.nodeName.trim() !== '';
         this.nodeName = annotation.nodeName?.trim();
         if (!this.name) {
-            this.annotation.name = classStatement.name.text;
+            this.annotation.name = classStatement.tokens.name.text;
         }
         this.generatedNodeName = (this.name || 'ERROR').replace(/[^a-zA-Z0-9]/g, '_');
 
@@ -107,7 +107,7 @@ export class TestSuite extends TestBlock {
     }
 
     public getTestGroups(): TestGroup[] {
-        return [...this.testGroups.values()];
+        return [ ...this.testGroups.values() ];
     }
 
 
@@ -122,7 +122,7 @@ export class TestSuite extends TestBlock {
     }
 
     public asText(): string {
-        let testGroups = this.isIncluded ? [...this.testGroups.values()].filter((testGroup) => testGroup.isIncluded)
+        let testGroups = this.isIncluded ? [ ...this.testGroups.values() ].filter((testGroup) => testGroup.isIncluded)
             .map((testGroup) => testGroup.asText()) : '';
         return `{
       name: ${sanitizeBsJsonString(this.name)}
