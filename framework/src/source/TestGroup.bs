@@ -26,10 +26,13 @@ namespace rooibos
     nodeName = invalid
     testsData = invalid
     tests = []
+    isAsync = false
+    asyncTimeout = 0
 
     private testRunner
     private testTimer
     private currentTest
+    private isTestFailedDueToEarlyExit = false
 
     function new(testSuite, data)
       m.testSuite = testSuite
@@ -91,7 +94,7 @@ namespace rooibos
           end if
 
           m.runSuiteFunction(m.afterEachFunctionName, "afterEach", test)
-
+          'bs:disable-next-line
           m.stats.appendTestResult(test.result)
 
           if m.stats.hasFailures and m.testSuite.isFailingFast

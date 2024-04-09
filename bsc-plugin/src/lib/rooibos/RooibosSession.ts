@@ -1,6 +1,6 @@
 import * as path from 'path';
-import type { AfterSerializeProgramEvent, BrsFile, BscFile, ClassStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
-import { isBrsFile, isFunctionStatement, FunctionStatement, ParseMode } from 'brighterscript';
+import type { AfterSerializeProgramEvent, BrsFile, BscFile, ClassStatement, FunctionStatement, NamespaceStatement, Program, ProgramBuilder, Scope, Statement } from 'brighterscript';
+import { isBrsFile, isFunctionStatement, ParseMode } from 'brighterscript';
 import type { Editor } from 'brighterscript/dist/astUtils/Editor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -125,7 +125,7 @@ export class RooibosSession {
     addTestRunnerMetadata(editor: Editor) {
         let runtimeConfig = this._builder.program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
         if (runtimeConfig) {
-            let classStatement = (runtimeConfig.ast.statements[ 0 ] as NamespaceStatement).body.statements[ 0 ] as ClassStatement;
+            let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
             this.updateRunTimeConfigFunction(classStatement, editor);
             this.updateVersionTextFunction(classStatement, editor);
             this.updateClassLookupFunction(classStatement, editor);
@@ -227,7 +227,7 @@ export class RooibosSession {
 
     private getNamespaceLookup(scope: Scope): Map<string, NamespaceContainer> {
         // eslint-disable-next-line @typescript-eslint/dot-notation
-        return scope[ 'cache' ].getOrAdd('namespaceLookup', () => scope.buildNamespaceLookup() as any);
+        return scope['cache'].getOrAdd('namespaceLookup', () => scope.buildNamespaceLookup() as any);
     }
 
     private getNamespaces(program: Program) {
@@ -243,7 +243,7 @@ export class RooibosSession {
                 }
                 let scopeMap = this.getNamespaceLookup(scope);
                 // scopeNamespaces = new Map<string, NamespaceContainer>([...Array.from(scopeMap.entries())]);
-                for (let [ key, value ] of scopeMap.entries()) {
+                for (let [key, value] of scopeMap.entries()) {
                     scopeNamespaces.set(key, value);
                 }
                 processedScopes.add(scope.dependencyGraphKey);

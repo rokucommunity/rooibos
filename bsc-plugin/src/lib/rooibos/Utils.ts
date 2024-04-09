@@ -1,8 +1,8 @@
-import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression, Editor } from 'brighterscript';
+import type { BrsFile, ClassStatement, Expression, FunctionStatement, Statement, AnnotationExpression, Editor, DottedGetExpression } from 'brighterscript';
 import {
-    Parser, ParseMode, DottedGetExpression, isDottedGetExpression,
+    Parser, ParseMode, isDottedGetExpression,
     isVariableExpression, isIndexedGetExpression, TokenKind, MethodStatement, isCallExpression,
-    isCallfuncExpression, createStringLiteral, isLiteralExpression, createToken, createIdentifier,
+    isCallfuncExpression, createStringLiteral, isLiteralExpression, createToken, createIdentifier
 } from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import { SourceNode } from 'source-map';
@@ -14,12 +14,12 @@ export function overrideAstTranspile(editor: Editor, node: Expression | Statemen
             return state.newline + state.indent();
         });
 
-        return [ new SourceNode(
+        return [new SourceNode(
             this.range.start.line + 1,
             this.range.start.character,
             state.srcPath,
             source
-        ) ];
+        )];
     });
 }
 
@@ -33,7 +33,7 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
     let { statements, diagnostics } = Parser.parse(functionSource, { mode: ParseMode.BrighterScript });
     let error = '';
     if (statements && statements.length > 0) {
-        let statement = statements[ 0 ] as FunctionStatement;
+        let statement = statements[0] as FunctionStatement;
         if (statement.func.body.statements.length > 0) {
             let p = createToken(TokenKind.Public, 'public', target.range);
             let o = createToken(TokenKind.Override, 'override', target.range);
@@ -47,13 +47,13 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
             //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
             //trigger that functionality BEFORE performing Editor operations. TODO remove this whenever bsc stops doing this.
             // eslint-disable-next-line @typescript-eslint/dot-notation
-            target[ 'ensureConstructorFunctionExists' ]?.();
+            target['ensureConstructorFunctionExists']?.();
             editor.addToArray(target.body, target.body.length, method);
             return true;
         }
 
     }
-    error = diagnostics?.length > 0 ? diagnostics[ 0 ].message : 'unknown error';
+    error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
     diagnosticCorruptTestProduced(file, annotation, error, functionSource);
     return false;
 }
@@ -63,7 +63,7 @@ export function sanitizeBsJsonString(text: string) {
 }
 
 export function getAllDottedGetParts(dg: DottedGetExpression) {
-    let parts = [ dg?.tokens.name?.text ];
+    let parts = [dg?.tokens.name?.text];
     let nextPart = dg.obj;
     while (isDottedGetExpression(nextPart) || isVariableExpression(nextPart)) {
         parts.push(nextPart?.tokens.name?.text);
@@ -89,7 +89,7 @@ export function getRootObjectFromDottedGet(value: DottedGetExpression) {
 }
 
 export function getStringPathFromDottedGet(value: DottedGetExpression) {
-    let parts = [ getPathValuePartAsString(value) ];
+    let parts = [getPathValuePartAsString(value)];
     let root;
     root = value.obj;
     while (root) {
@@ -116,10 +116,10 @@ export function getPathValuePartAsString(expr: Expression) {
     if (isDottedGetExpression(expr)) {
         return expr.tokens.name.text;
     } else if (isIndexedGetExpression(expr)) {
-        if (isLiteralExpression(expr.indexes[ 0 ])) {
-            return `${expr.indexes[ 0 ].tokens.value.text.replace(/^"/, '').replace(/"$/, '')}`;
-        } else if (isVariableExpression(expr.indexes[ 0 ])) {
-            return `${expr.indexes[ 0 ].tokens.name.text}`;
+        if (isLiteralExpression(expr.indexes[0])) {
+            return `${expr.indexes[0].tokens.value.text.replace(/^"/, '').replace(/"$/, '')}`;
+        } else if (isVariableExpression(expr.indexes[0])) {
+            return `${expr.indexes[0].tokens.name.text}`;
         }
     }
 }

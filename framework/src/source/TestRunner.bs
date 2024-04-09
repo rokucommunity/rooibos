@@ -20,6 +20,9 @@ namespace rooibos
     private stats = invalid
     private top = invalid
     private testRunner = invalid
+    private groups = []
+    private nodeTestName = ""
+    private isTestFailedDueToEarlyExit = false
 
     public function new(testScene, nodeContext)
       m.testScene = testScene

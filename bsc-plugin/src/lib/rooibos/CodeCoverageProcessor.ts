@@ -100,7 +100,7 @@ end function
                     (ifStatement as any).condition = new BinaryExpression({
                         left: new RawCodeExpression(this.getFuncCallText(ds.condition.range.start.line, CodeCoverageLineType.branch)),
                         operator: createToken(TokenKind.And),
-                        right: (ifStatement as any).condition
+                        right: ifStatement.condition
                     });
                     ifStatement = ifStatement.elseBranch as any;
                 }
@@ -163,8 +163,8 @@ end function
         }), { walkMode: WalkMode.visitAllRecursive });
 
 
-        this.expectedCoverageMap[ this.fileId.toString().trim() ] = Array.from(this.coverageMap);
-        this.filePathMap[ this.fileId ] = file.pkgPath;
+        this.expectedCoverageMap[this.fileId.toString().trim()] = Array.from(this.coverageMap);
+        this.filePathMap[this.fileId] = file.pkgPath;
         this.addBrsAPIText(file);
     }
 
@@ -175,7 +175,7 @@ end function
 
         const lineNumber = statement.range.start.line;
         this.coverageMap.set(lineNumber, coverageType);
-        const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[ 0 ] as ExpressionStatement;
+        const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
         this.editor.arraySplice(owner, key, 0, parsed);
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
@@ -183,7 +183,7 @@ end function
 
     public addBrsAPIText(file: BrsFile) {
         const func = new RawCodeStatement(this.coverageBrsTemplate.replace(/\#ID\#/g, this.fileId.toString().trim()), file, Range.create(Position.create(1, 1), Position.create(1, 1)));
-        file.ast.statements.push(func);
+        this.editor.arrayPush(file.ast.statements, func);
     }
 
     private addStatement(statement: Statement, lineNumber?: number) {

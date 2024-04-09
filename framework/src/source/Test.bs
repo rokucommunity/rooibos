@@ -10,6 +10,8 @@ namespace rooibos
     public paramLineNumber
     public testSuite = invalid
     public testGroup = invalid
+    public isAsync = false
+    public asyncTimeout = 0
 
     public rawParams
     public paramTestIndex

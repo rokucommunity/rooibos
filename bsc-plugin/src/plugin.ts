@@ -150,6 +150,9 @@ export class RooibosPlugin implements CompilerPlugin {
         if (!isBrsFile(file) && !isXmlFile(file)) {
             return;
         }
+        if (file.srcPath.includes('bslib')) {
+            return;
+        }
         let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
         if (testSuite) {
             let noEarlyExit = testSuite.annotation.noEarlyExit;

@@ -103,8 +103,8 @@ export class SessionInfo {
                                 this.ignoredTestNames.push(ignoredTestCase.name);
                             } else if (ignoredTestCase.paramTestIndex === 0) {
                                 let testCaseName = ignoredTestCase.name;
-                                if (testCaseName.length > 1 && testCaseName.substr(testCaseName.length - 1) === '0') {
-                                    testCaseName = testCaseName.substr(0, testCaseName.length - 1);
+                                if (testCaseName.length > 1 && testCaseName.endsWith('0')) {
+                                    testCaseName = testCaseName.substring(0, testCaseName.length - 1);
                                 }
                                 this.ignoredTestNames.push(testCaseName);
                             }

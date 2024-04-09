@@ -45,7 +45,8 @@ export class TestSuiteBuilder {
         this.file = file;
         let suites = [];
         try {
-            for (let cs of file.parser.ast.statements.filter((s) => isClassStatement(s)) as ClassStatement[]) {
+            // eslint-disable-next-line @typescript-eslint/dot-notation
+            for (let cs of file['_cachedLookups'].classStatements) {
 
                 //a test is comprised of a comment block; followed by a class
                 let annotation = RooibosAnnotation.getAnnotation(file, cs)?.blockAnnotation;

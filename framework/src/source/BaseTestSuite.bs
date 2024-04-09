@@ -37,6 +37,8 @@ namespace rooibos
     protected __stubId = -1
     protected __mockId = -1
     protected __mockTargetId = -1
+    protected generatedNodeName = ""
+    protected isTestFailedDueToEarlyExit = false
 
     'special values
     protected invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
@@ -57,6 +59,7 @@ namespace rooibos
     protected global = invalid
     protected catchCrashes = false
     protected isAsync = false
+    protected asyncTimeout = 0
     protected testRunner as rooibos.TestRunner
     protected errorToThrow
     protected top
@@ -154,8 +157,9 @@ namespace rooibos
         end if
 
       end for
-
+      'bs:disable-next-line
       if m.isNodeTest and m.testRunner.top <> invalid
+        'bs:disable-next-line
         m.testRunner.top.addFields({ asyncRooibosTestResult: {
             stats: m.stats
             tests: m.tests
@@ -191,6 +195,7 @@ namespace rooibos
         m.finishAsyncGroups()
       else
         group = m.currentGroup
+        'bs:disable-next-line
         m.testRunner.top.rooibosGroupFinished = false
 
         ? ""
@@ -198,13 +203,14 @@ namespace rooibos
         'bs:disable-next-line
         ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
         ? ""
-
+        'bs:disable-next-line
         m.testRunner.top.observeFieldScoped("rooibosGroupFinished", "rooibos_onGroupComplete")
 
         group.run()
 
         if group.stats.hasFailures
           ? "Group failed before any async code could be executed"
+          'bs:disable-next-line
           m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
           ' m.testGroupDone()
           m.onAsyncGroupComplete(group)
@@ -215,6 +221,7 @@ namespace rooibos
 
     private function onAsyncGroupComplete(group = invalid) as void
       ' ? "++ CURRENT GROUP COMPLETED"
+      'bs:disable-next-line
       m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
 
       group = group = invalid ? m.currentGroup : group
@@ -236,8 +243,9 @@ namespace rooibos
     end function
 
     private function finishAsyncGroups()
+      'bs:disable-next-line
       m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
-
+      'bs:disable-next-line
       m.testRunner.top.addFields({ asyncRooibosTestResult: {
           stats: m.stats
           tests: m.tests
@@ -267,13 +275,17 @@ namespace rooibos
 
     function runTest(test as rooibos.Test)
       ? ""
+      'bs:disable-next-line
       ? rooibos.common.fillText(">>>>>> It: " + test.name, ">", 80)
+      'bs:disable-next-line
       ? `  Location: file://${test.testSuite.filePath.trim()}:${test.lineNumber}`
       ? ""
-
+      'bs:disable-next-line
       m.currentResult = test.result
+      'bs:disable-next-line
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
+          'bs:disable-next-line
           test.run()
           if m.isAutoAssertingMocks = true
             m.AssertMocks()
@@ -285,6 +297,7 @@ namespace rooibos
           m.currentResult.crash("test crashed!", error)
         end try
       else
+        'bs:disable-next-line
         test.run()
         if m.isAutoAssertingMocks = true
           m.AssertMocks()
@@ -292,7 +305,7 @@ namespace rooibos
           m.CleanStubs()
         end if
       end if
-
+      'bs:disable-next-line
       ? rooibos.common.fillText("<<<< END It: " + test.name + " (" + m.currentResult.getStatusText() + ") ", "<", 80)
 
     end function
@@ -2720,6 +2733,7 @@ namespace rooibos
       'bs:disable-next-line
       ids = mv_getIdsFromStyleJson(mc_getArray(bundle, viewsPath))
       for each id in ids
+        'bs:disable-next-line
         instance[id] = { id: id }
       end for
     end function

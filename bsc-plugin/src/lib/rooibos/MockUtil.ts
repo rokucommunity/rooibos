@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, ProgramBuilder } from 'brighterscript';
+import type { BrsFile, Editor, ProgramBuilder, CallExpression } from 'brighterscript';
 import {
     Position, isClassStatement, isVariableExpression,
-    isFunctionStatement, FunctionStatement, ParseMode,
-    FunctionExpression, FunctionParameterExpression, createVisitor,
-    isCallExpression, isDottedGetExpression, CallExpression, WalkMode
+    FunctionStatement, ParseMode,
+    FunctionExpression, FunctionParameterExpression, createVisitor, TokenKind,
+    isCallExpression, isDottedGetExpression, WalkMode, SymbolTypeFlag
 } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
@@ -56,11 +56,12 @@ export class MockUtil {
         this.processedStatements = new Set<FunctionStatement>();
         this.editor = editor;
         // console.log('processing global methods on ', file.pkgPath);
-        for (let fs of file[ '_cachedLookups' ].functionStatements) {
+        // eslint-disable-next-line @typescript-eslint/dot-notation
+        for (let fs of file['_cachedLookups'].functionStatements) {
             this.enableMockOnFunction(fs);
         }
 
-        this.filePathMap[ this.fileId ] = file.pkgPath;
+        this.filePathMap[this.fileId] = file.pkgPath;
         if (this.processedStatements.size > 0) {
             this.addBrsAPIText(file);
         }
@@ -91,7 +92,7 @@ export class MockUtil {
                     name: parameter.tokens.name,
                     equals: parameter.tokens.equals,
                     defaultValue: parameter.defaultValue,
-                    as: null,
+                    as: null
                 });
             }),
             body: functionStatement.func.body,
@@ -100,18 +101,17 @@ export class MockUtil {
             leftParen: functionStatement.func.tokens.leftParen,
             rightParen: functionStatement.func.tokens.rightParen,
             as: functionStatement.func.tokens.as,
-            returnTypeExpression: functionStatement.func.returnTypeExpression,
+            returnTypeExpression: functionStatement.func.returnTypeExpression
         });
         functionStatement = new FunctionStatement({
             name: functionStatement.tokens.name,
             func: functionExpression
-        })
-        functionStatement.func = functionExpression;
+        });
         const paramNames = functionStatement.func.parameters.map((param) => param.tokens.name.text).join(',');
 
-        // const returnStatement = ((functionStatement.func.functionType?.kind === brighterscript.TokenKind.Sub && (functionStatement.func.returnTypeToken === undefined || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void)) || functionStatement.func.returnTypeToken?.kind === brighterscript.TokenKind.Void) ? 'return' : 'return result';
-        let returnStatement = 'return';
+        let returnStatement = (functionStatement.func.tokens.functionType?.kind === TokenKind.Sub && (functionStatement.func.returnTypeExpression?.getType({ flags: SymbolTypeFlag.typetime }) === undefined || functionStatement.func?.returnTypeExpression?.getName().toLowerCase() === 'void')) ? 'return' : 'return result';
         if (isVariableExpression(functionStatement?.func?.returnTypeExpression?.expression)) {
+            functionStatement.func.returnTypeExpression.expression.getName();
             if (functionStatement.func.returnTypeExpression.expression.getName() !== 'void') {
                 returnStatement = 'return result';
             }
@@ -124,19 +124,19 @@ export class MockUtil {
             `));
 
         this.processedStatements.add(functionStatement);
+        return functionStatement;
     }
 
     addBrsAPIText(file: BrsFile) {
-        //TODO should use ast editor!
         const func = new RawCodeStatement(this.brsFileAdditions.replace(/\#ID\#/g, this.fileId.toString().trim()), file, Range.create(Position.create(1, 1), Position.create(1, 1)));
-        file.ast.statements.push(func);
+        this.editor.arrayPush(file.ast.statements, func);
     }
 
 
     gatherGlobalMethodMocks(testSuite: TestSuite) {
         // console.log('gathering global method mocks for testSuite', testSuite.name);
-        for (let group of [ ...testSuite.testGroups.values() ].filter((tg) => tg.isIncluded)) {
-            for (let testCase of [ ...group.testCases.values() ].filter((tc) => tc.isIncluded)) {
+        for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
+            for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
                 this.gatherMockedGlobalMethods(testSuite, testCase);
             }
         }
@@ -185,7 +185,7 @@ export class MockUtil {
             isStubCall = nameText === 'stubCall';
         }
         //modify args
-        let arg0 = callExpression.args[ 0 ];
+        let arg0 = callExpression.args[0];
         if (isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
 
             //is it a namespace?
@@ -196,7 +196,7 @@ export class MockUtil {
             // console.log('found expect with name', name);
             if (name) {
                 //is a namespace?
-                if (nameParts[ 0 ] && namespaceLookup.has(nameParts[ 0 ].toLowerCase())) {
+                if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
                     //then this must be a namespace method
                     let fullPathName = nameParts.join('.').toLowerCase();
                     let ns = namespaceLookup.get(fullPathName);
