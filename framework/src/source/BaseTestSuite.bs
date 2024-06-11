@@ -199,6 +199,8 @@ namespace rooibos
           m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
           ' m.testGroupDone()
           m.onAsyncGroupComplete(group)
+        else if m.testRunner.top.rooibosGroupFinished
+          m.onAsyncGroupComplete(group)
         end if
 
       end if
