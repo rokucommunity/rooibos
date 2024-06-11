@@ -1833,7 +1833,7 @@ namespace rooibos
       end if
 
       if not type(stubOrReturnValue).endsWith("Function")
-        throw "Did not provide a stub function"
+        ' throw "Did not provide a stub function"
       end if
 
       ' Store the stub on the component scope
