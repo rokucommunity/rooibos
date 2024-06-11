@@ -2013,7 +2013,7 @@ describe('RooibosPlugin', () => {
         });
     });
 
-    describe('does not break class extending', () => {
+    describe('does not prevent component scope validation of node tests', () => {
         it('does not prevent valid scope based diagnostics for node tests', () => {
             program.setFile('components/customComponent.xml', `
                 <component name="CustomComponent" extends="Group" />
