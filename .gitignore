@@ -41,7 +41,6 @@ out
 rooibosDist.brs
 
 # Yarn
-yarn.lock
 yarn-error.log
 /outRun/
 node_modules/
