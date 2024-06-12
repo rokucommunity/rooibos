@@ -4,7 +4,7 @@
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "repository": {
         "type": "git",
-        "url": "https://github.com/georgejecook/rooibos.git"
+        "url": "https://github.com/rokucommunity/rooibos.git"
     },
     "files": [
         "dist/**/!(*.spec.*)*"
