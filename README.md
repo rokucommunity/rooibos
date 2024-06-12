@@ -41,8 +41,8 @@ https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#getting-start
 
 ### Is Rooibos ready for production use?
 
-Yes, it's been used in production by quite a few folks, I'll provide a list in due-course; but there are 10'000's of tests in production in some very respectable companies.
+Yes, it's been used in production by quite a few respectable companies. There are 10,000's of tests in production.
 
 ### Is Rooibos actively maintained?
 
-I love rooibos, and always keep it up to date. I use it all the time.
+We at RokuCommunity love rooibos, and regularly keep it up to date.
