@@ -2,6 +2,10 @@
   "name": "rooibos",
   "version": "1.0.0",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
+  "scripts": {
+    "build": "npx bsc",
+    "test": "npx bsc --project ./bsconfig-tests.json"
+  },
   "files": [
     "dist/**/!(manifest)*"
   ],
@@ -31,9 +35,5 @@
     "rootDir": "src",
     "packageRootDir": "dist"
   },
-  "homepage": "https://github.com/rokucommunity/rooibos#readme",
-  "scripts": {
-    "build": "npx bsc",
-    "test": "npx bsc --project ./bsconfig-tests.json"
-  }
+  "homepage": "https://github.com/rokucommunity/rooibos#readme"
 }

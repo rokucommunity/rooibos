@@ -40,10 +40,10 @@ jobs:
           node-version: "16.20.2"
           architecture: 'x64' # fix for macos-latest
       - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ./.npmrc
-      - run: npm ci
-      - run: npm run build
+      - run: cd bsc-plugin && npm ci
+      - run: cd bsc-plugin && npm run build
       #create npm package
-      - run: npm pack
+      - run: cd bsc-plugin && npm pack
 
       #create GitHub release
       - name: Create GitHub Release
@@ -63,9 +63,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_paths: '["./*.tgz"]'
+          asset_paths: '["./bsc-plugin/*.tgz"]'
 
       #If there's a dash followed by an alpha character, this is a prerelease and should be tagged "next". Otherwise tag as "latest"
       - run: if [[ "${{ github.ref }}" =~ -[a-zA-Z] ]]; then echo "DIST_TAG=next" >> $GITHUB_ENV; else echo "DIST_TAG=latest" >> $GITHUB_ENV; fi
+
       #upload to npm
-      - run: npm publish --tag ${{env.DIST_TAG}}
+      - run: cd bsc-plugin && npm publish --tag ${{env.DIST_TAG}}
