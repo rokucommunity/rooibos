@@ -1063,6 +1063,9 @@ describe('RooibosPlugin', () => {
                         __stubFunction = __stubs_globalAa.__globalStubs.sayhello
                         __stubOrMockResult = __stubFunction(firstName, lastName)
                         return __stubOrMockResult
+                    else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
+                        value = __stubs_globalAa.__globalStubs.sayhello
+                        return value
                     end if
                     print firstName + " " + lastName
                 end function
@@ -1151,6 +1154,9 @@ describe('RooibosPlugin', () => {
                         __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
                         __stubOrMockResult = __stubFunction(firstName, lastName)
                         return __stubOrMockResult
+                    else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("utils_sayhello")
+                        value = __stubs_globalAa.__globalStubs.utils_sayhello
+                        return value
                     end if
                     print firstName + " " + lastName
                 end function
