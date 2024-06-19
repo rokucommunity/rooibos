@@ -334,7 +334,9 @@ namespace rooibos.common
         'bs:disable-next-line
         isFirst = false
       end if
-      for each key in input
+      keys = input.keys()
+      keys.sort()
+      for each key in keys
         if rooibos.common.canSafelyIterateAAKey(input, key)
           text = text + key + ":" + rooibos.common.asString(input[key], includeType)
         end if
