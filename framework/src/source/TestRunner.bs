@@ -163,6 +163,7 @@ namespace rooibos
           ? "Running suite asynchronously!"
           m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
           testSuite.run()
+          return invalid
         else
           ? "Running suite synchronously!"
           testSuite.run()

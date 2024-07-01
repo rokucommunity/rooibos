@@ -112,6 +112,9 @@ export class MockUtil {
                 __stubFunction = ${globalAaName}.${storageName}.${methodName}
                 ${resultName} = __stubFunction(${paramNames})
                 return${requiresReturnValue ? ` ${resultName}` : ''}
+            else if ${globalAaName}?.${storageName} <> invalid and ${globalAaName}.${storageName}.doesExist("${methodName}")
+                value = ${globalAaName}.${storageName}.${methodName}
+                return${requiresReturnValue ? ` value` : ''}
             end if
         `;
         const astCodeToInject = Parser.parse(template).ast.statements;
