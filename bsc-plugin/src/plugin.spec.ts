@@ -2031,8 +2031,7 @@ describe('RooibosPlugin', () => {
             //the methods should be empty by default
             expect(findMethod('getVersionText').func.body.statements).to.be.empty;
             expect(findMethod('getRuntimeConfig').func.body.statements).to.be.empty;
-            expect(findMethod('getTestSuiteClassWithName').func.body.statements).to.be.empty;
-            expect(findMethod('getAllTestSuitesNames').func.body.statements).to.be.empty;
+            expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.empty;
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
 
             await builder.transpile();
@@ -2062,8 +2061,9 @@ describe('RooibosPlugin', () => {
             ).to.eql(undent`
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
-                    instance.new = sub()
-                    end sub
+                    instance.new = function()
+                        m.testSuites = m.getTestSuiteClassMap()
+                    end function
                     instance.getVersionText = function()
                         return "${version}"
                     end function
@@ -2086,20 +2086,17 @@ describe('RooibosPlugin', () => {
                             "isRecordingCodeCoverage": false
                         }
                     end function
+                    instance.getTestSuiteClassMap = function()
+                        return {
+                            "ATest1": ATest1
+                            "ATest2": ATest2
+                        }
+                    end function
                     instance.getTestSuiteClassWithName = function(name)
-                        if false
-                            ? "noop"
-                        else if name = "ATest1"
-                            return ATest1
-                        else if name = "ATest2"
-                            return ATest2
-                        end if
+                        return m.testSuites[name]
                     end function
                     instance.getAllTestSuitesNames = function()
-                        return [
-                            "ATest1"
-                            "ATest2"
-                        ]
+                        return m.testSuites.keys()
                     end function
                     instance.getIgnoredTestInfo = function()
                         return {
@@ -2119,8 +2116,7 @@ describe('RooibosPlugin', () => {
             //the methods should be empty again after transpile has finished
             expect(findMethod('getVersionText').func.body.statements).to.be.empty;
             expect(findMethod('getRuntimeConfig').func.body.statements).to.be.empty;
-            expect(findMethod('getTestSuiteClassWithName').func.body.statements).to.be.empty;
-            expect(findMethod('getAllTestSuitesNames').func.body.statements).to.be.empty;
+            expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.empty;
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
         });
 
@@ -2152,8 +2148,9 @@ describe('RooibosPlugin', () => {
                 ).to.eql(undent`
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}
-                        instance.new = sub()
-                        end sub
+                        instance.new = function()
+                            m.testSuites = m.getTestSuiteClassMap()
+                        end function
                         instance.getVersionText = function()
                             return "${version}"
                         end function
@@ -2176,13 +2173,14 @@ describe('RooibosPlugin', () => {
                                 "isRecordingCodeCoverage": false
                             }
                         end function
+                        instance.getTestSuiteClassMap = function()
+                            return {}
+                        end function
                         instance.getTestSuiteClassWithName = function(name)
-                            if false
-                                ? "noop"
-                            end if
+                            return m.testSuites[name]
                         end function
                         instance.getAllTestSuitesNames = function()
-                            return []
+                            return m.testSuites.keys()
                         end function
                         instance.getIgnoredTestInfo = function()
                             return {
