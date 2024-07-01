@@ -34,8 +34,8 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Controlling which tests run](#controlling-which-tests-run)
  - [Integrating with your app setup and util methods](#integrating-with-your-app-and-utils)
  - [Using mocks and stubs](#using-mocks-and-stubs)
- - [API reference](https://georgejecook.github.io/rooibos)
- - [assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html)
+ - [API reference](https://rokucommunity.github.io/rooibos)
+ - [assertion reference](https://rokucommunity.github.io/rooibos/module-BaseTestSuite.html)
  - [Integrating with your CI](#integrating-with-your-ci)
  - [Advanced Setup](#advanced-setup)
  - [Code coverage](#generate-code-coverage)
@@ -87,7 +87,7 @@ Roku will perform poorly if roku's rendezvous tracking is enabled, when launchin
 
 ### I do not have a project that uses the brighterscript transpiler
 
-You will need to setup a bsc project to use rooibos 4. Here is an [example project](https://github.com/georgejecook/rooibos-roku-sample) you can clone.
+You will need to setup a bsc project to use rooibos 4. Here is an [example project](https://github.com/rokucommunity/rooibos-roku-sample) you can clone.
 
 The easiest thing to do is to clone that project and
  - copy bsconfig.json
@@ -105,7 +105,7 @@ You can do the setup from scratch as followes:
     "build-tests": "npx bsc"
   }
 ```
-5. Add a bsconfig.json file. The easiest thing to do is copy the file from the [example project](https://github.com/georgejecook/rooibos-roku-sample)
+5. Add a bsconfig.json file. The easiest thing to do is copy the file from the [example project](https://github.com/rokucommunity/rooibos-roku-sample)
 6. Setup a task to run `npm run build-tests`, in `.vscode/tasks.json`
 7. Setup a launch task to run the build-tests task, from the previous step, in `.vscode/launch.json`
 8. Create some tests
@@ -176,7 +176,7 @@ Here is the information converted into a Markdown table:
 | reporters? <sup>2</sup>            | string[]        | An array of factory functions/classes which implement `rooibos.BaseTestReporter`. Built-in reporters include `console` and `junit`. Defaults to `["console"]`.                                     |
 
 **<sup>1</sup>** This parameter is deprecated, use `reporters` instead. When specified, the reporter will be appended to the list of `reporters`.
-**<sup>2</sup>** Custom reporters are not currently supported on [node-based tests](#testing-nodes), because rooibos does not know which files it should include in the generated test components. This will be addressed in a future Rooibos version (see issue [#266](https://github.com/georgejecook/rooibos/issues/266)).
+**<sup>2</sup>** Custom reporters are not currently supported on [node-based tests](#testing-nodes), because rooibos does not know which files it should include in the generated test components. This will be addressed in a future Rooibos version (see issue [#266](https://github.com/rokucommunity/rooibos/issues/266)).
 
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
@@ -549,7 +549,7 @@ If a test case has a `@only` or `@ignore` annotation, the _params_ will execute 
 
 ### Node specific asserts
 <a name="node-specific-assertions"></a>
-Rooibos adds some node specifc asserts, which are fully described in the   [assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html). These are:
+Rooibos adds some node specifc asserts, which are fully described in the   [assertion reference](https://rokucommunity.github.io/rooibos/module-BaseTestSuite.html). These are:
 
  - assertNodeCount
  - assertNodeNotCount
@@ -562,7 +562,7 @@ Rooibos adds some node specifc asserts, which are fully described in the   [asse
 
 
 ### Full list of asserts
-The full list of asserts can be found in the documentation  - [assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html)
+The full list of asserts can be found in the documentation  - [assertion reference](https://rokucommunity.github.io/rooibos/module-BaseTestSuite.html)
 
 ## Understanding test output
 Rooibos reports test output in an easy to read hierarchical manner.
@@ -1014,8 +1014,8 @@ namespace Tests
     @it("HelloFromNode")
     function helloFromNode_simple()
       'bs:disable-next-line
-      text = HelloFromNode("georgejecook", 12)
-      m.assertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      text = HelloFromNode("rokucommunity", 12)
+      m.assertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
     end function
 ...
 ```
@@ -1078,8 +1078,8 @@ namespace tests
     @it("HelloFromNode")
     function _()
       'bs:disable-next-line
-      text = HelloFromNode("georgejecook", 12)
-      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      text = HelloFromNode("rokucommunity", 12)
+      m.AssertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
       m.done()
     end function
 
@@ -1266,4 +1266,3 @@ The report is contained after the LCOV.INFO file. Given that that the console ou
 e.g.
 
 ![coverage output](images/lcov.png)
-

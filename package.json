@@ -2,6 +2,10 @@
   "name": "rooibos",
   "version": "1.0.0",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
+  "scripts": {
+    "build": "npx bsc",
+    "test": "npx bsc --project ./bsconfig-tests.json"
+  },
   "files": [
     "dist/**/!(manifest)*"
   ],
@@ -12,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/georgejecook/rooibos.git"
+    "url": "https://github.com/rokucommunity/rooibos.git"
   },
   "keywords": [
     "ropm",
@@ -25,15 +29,11 @@
   "author": "George Cook",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/georgejecook/rooibos/issues"
+    "url": "https://github.com/rokucommunity/rooibos/issues"
   },
   "ropm": {
     "rootDir": "src",
     "packageRootDir": "dist"
   },
-  "homepage": "https://github.com/georgejecook/rooibos#readme",
-  "scripts": {
-    "build": "npx bsc",
-    "test": "npx bsc --project ./bsconfig-tests.json"
-  }
+  "homepage": "https://github.com/rokucommunity/rooibos#readme"
 }

@@ -271,7 +271,7 @@ namespace rooibos
             testSuite.stats.merge(nodeResults.stats)
             m.mergeGroups(testSuite, nodeResults.groups)
           else
-            ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+            ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
           end if
           m.testScene.removeChild(node)
           return

@@ -18,8 +18,8 @@ namespace tests
     @it("HelloFromNode")
     function _()
       'bs:disable-next-line
-      text = HelloFromNode("georgejecook", 12)
-      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      text = HelloFromNode("rokucommunity", 12)
+      m.AssertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
       m.done()
     end function
 
