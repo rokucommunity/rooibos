@@ -27,7 +27,7 @@
   ],
   "rooibos": {
     "showOnlyFailures": true,
-    "catchCrashes": true,
+    "catchCrashes": false,
     "lineWidth": 70,
     "failFast": false,
     "sendHomeOnFinish": false,
