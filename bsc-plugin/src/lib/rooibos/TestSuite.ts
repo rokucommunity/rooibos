@@ -1,4 +1,4 @@
-import * as  path from 'path';
+import * as path from 'path';
 import type { AstEditor, BrsFile, ClassStatement } from 'brighterscript';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';

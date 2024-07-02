@@ -2019,7 +2019,7 @@ describe('RooibosPlugin', () => {
             `);
             program.validate();
             let files = [...Object.values(program.files)].map(x => ({ src: x.srcPath, dest: x.pkgPath }));
-            expect(program.getDiagnostics().map(x=> x.message)).to.eql([`Cannot find name 'BaseTestClass'`]);
+            expect(program.getDiagnostics().map(x => x.message)).to.eql([`Cannot find name 'BaseTestClass'`]);
         });
     });
 
@@ -2366,4 +2366,3 @@ function getTestSubContents() {
     );
     return result;
 }
-
