@@ -199,6 +199,8 @@ namespace rooibos
           m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
           ' m.testGroupDone()
           m.onAsyncGroupComplete(group)
+        else if m.testRunner.top.rooibosGroupFinished
+          m.onAsyncGroupComplete(group)
         end if
 
       end if
@@ -1833,7 +1835,7 @@ namespace rooibos
       end if
 
       if not type(stubOrReturnValue).endsWith("Function")
-        throw "Did not provide a stub function"
+        ' throw "Did not provide a stub function"
       end if
 
       ' Store the stub on the component scope
@@ -1906,7 +1908,7 @@ namespace rooibos
       '   m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
       '   return false
       ' end try
-      return false
+      ' return false
     end function
 
     ' /**

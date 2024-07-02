@@ -123,8 +123,7 @@ export class RooibosSession {
             let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
             this.updateRunTimeConfigFunction(classStatement, editor);
             this.updateVersionTextFunction(classStatement, editor);
-            this.updateClassLookupFunction(classStatement, editor);
-            this.updateGetAllTestSuitesNames(classStatement, editor);
+            this.updateClassMapFunction(classStatement, editor);
             this.createIgnoredTestsInfoFunction(classStatement, editor);
         }
     }
@@ -137,7 +136,7 @@ export class RooibosSession {
                 method.func.body.statements.length,
                 Parser.parse(undent`
                     return {
-                        "reporter": "${this.config.reporter || ''}"
+                        "reporters": ${this.getReportersList()}
                         "failFast": ${this.config.failFast ? 'true' : 'false'}
                         "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
                         "logLevel": ${this.config.logLevel ?? 0}
@@ -156,6 +155,30 @@ export class RooibosSession {
         }
     }
 
+    getReportersList() {
+        let reporters = this.config.reporters;
+        if (!Array.isArray(reporters)) {
+            reporters = [];
+        }
+        if (this.config.reporter) {
+            // @todo: warn that `reporter` is deprecated and to use `reporters` instead
+            reporters.push(this.config.reporter);
+        }
+        if (reporters.length < 1) {
+            reporters.push('console');
+        }
+        return `[${reporters.map(this.sanitiseReporterName).toString()}]`;
+    }
+
+    sanitiseReporterName(name: string) {
+        switch (name.toLowerCase()) {
+            case 'console': return 'rooibos_ConsoleTestReporter';
+            case 'junit': return 'rooibos_JUnitTestReporter';
+        }
+        // @todo: check if function name is valid
+        return name;
+    }
+
     updateVersionTextFunction(classStatement: ClassStatement, editor: AstEditor) {
         let method = classStatement.methods.find((m) => m.name.text === 'getVersionText');
         if (method) {
@@ -167,32 +190,18 @@ export class RooibosSession {
         }
     }
 
-    updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
-        let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
+    updateClassMapFunction(classStatement: ClassStatement, editor: AstEditor) {
+        let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassMap');
         if (method) {
             editor.arrayPush(method.func.body.statements, ...Parser.parse(undent`
-                if false
-                    ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
-                else if name = "${suite.name}"
-                    return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('')}
-                end if
+                return {${this.sessionInfo.testSuitesToRun.map(suite => `
+                    "${suite.name}": ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('')}
+                }
             `).ast.statements);
         }
     }
 
-    updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
-        let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
-        if (method) {
-            editor.arrayPush(method.func.body.statements, ...Parser.parse([
-                'return [',
-                ...this.sessionInfo.testSuitesToRun.map((s) => `    "${s.name}"`),
-                ']'
-            ].join('\n')).ast.statements);
-        }
-    }
-
     createNodeFiles(program: Program) {
-
         for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
             this.createNodeFile(program, suite);
         }

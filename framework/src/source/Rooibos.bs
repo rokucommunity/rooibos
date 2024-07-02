@@ -34,7 +34,12 @@ namespace rooibos
 
       if runner.config.keepAppOpen = false
         ? "keepAppOpen is false; exiting Rooibos"
-        return
+        ' End statement will also exit the caller of this function
+        ' leading to an instant exit of the application
+
+        ' Give the io port time to finish sending all the logs
+        sleep(400)
+        end
       end if
     end if
 
