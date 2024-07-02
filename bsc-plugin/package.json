@@ -2,9 +2,24 @@
     "name": "rooibos-roku",
     "version": "5.12.0",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
+    "scripts": {
+        "preversion": "npm run build && npm run lint && npm run test",
+        "clean": "rm -rf ./dist && mkdir dist",
+        "compile": "npm run clean && tsc -p .",
+        "prepublishOnly": "npm run build",
+        "lint": "eslint \"src/**\"",
+        "build": "npm run compile && cp -r ../framework/src/source ./dist/lib/framework",
+        "test": "nyc mocha",
+        "test:nocover": "mocha",
+        "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
+        "publish-npm": "npm run test && npm publish",
+        "publish-npm:beta": "npm run test && npm publish --tag=beta",
+        "local": "ts-node scripts/install-local.js",
+        "remote": "ts-node scripts/install-npm.js"
+    },
     "repository": {
         "type": "git",
-        "url": "https://github.com/georgejecook/rooibos.git"
+        "url": "https://github.com/rokucommunity/rooibos.git"
     },
     "files": [
         "dist/**/!(*.spec.*)*"
@@ -43,21 +58,6 @@
         "trim-whitespace": "^1.3.3",
         "ts-node": "^9.0.0",
         "typescript": "^4.9.5"
-    },
-    "scripts": {
-        "preversion": "npm run build && npm run lint && npm run test",
-        "clean": "rm -rf ./dist && mkdir dist",
-        "compile": "npm run clean && tsc -p .",
-        "prepublishOnly": "npm run build",
-        "lint": "eslint \"src/**\"",
-        "build": "npm run compile && cp -r ../framework/src/source ./dist/lib/framework",
-        "test": "nyc mocha",
-        "test:nocover": "mocha",
-        "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
-        "publish-npm": "npm run test && npm publish",
-        "publish-npm:beta": "npm run test && npm publish --tag=beta",
-        "local": "ts-node scripts/install-local.js",
-        "remote": "ts-node scripts/install-npm.js"
     },
     "preferGlobal": true,
     "keywords": [
