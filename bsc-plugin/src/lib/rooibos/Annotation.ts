@@ -206,7 +206,7 @@ export class RooibosAnnotation {
         }
         try {
             if (rawParams) {
-                this.params.push(new AnnotationParams(annotation, rawParams, annotation.range.start.line, annotation.getArguments() as any, isIgnore, isSolo, noCatch));
+                this.params.push(new AnnotationParams(annotation, rawParams, annotation.location.range.start.line, annotation.getArguments() as any, isIgnore, isSolo, noCatch));
             } else {
                 diagnosticIllegalParams(file, annotation);
             }

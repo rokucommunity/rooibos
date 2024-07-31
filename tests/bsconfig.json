@@ -3,7 +3,8 @@
   "files": [
     "manifest",
     "source/**/*.*",
-    "components/**/*.*"
+    "components/**/*.*",
+    { "src": "../../framework/src/source/**/*", "dest": "source/rooibos" }
   ],
   "autoImportComponentScript": true,
   "createPackage": false,

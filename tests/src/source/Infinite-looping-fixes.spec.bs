@@ -8,7 +8,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("should ignore __mocks on both sides")
-    function _()
+     function _()  'bs:disable-line 1026
 
       a = {
         __mocks: {
@@ -32,7 +32,7 @@ namespace tests
     end function
 
     @it("should ignore __stubs on both sides")
-    function _()
+     function _()  'bs:disable-line 1026
 
       a = {
         __stubs: {
@@ -56,7 +56,7 @@ namespace tests
     end function
 
     @it("should account for __rooibosSkipFields on both sides - one field")
-    function _()
+     function _()  'bs:disable-line 1026
 
       a = {
         top: {
@@ -82,7 +82,7 @@ namespace tests
     end function
 
     @it("should account for __rooibosSkipFields on both sides - two fields")
-    function _()
+     function _()  'bs:disable-line 1026
 
       a = {
         top: {
@@ -118,7 +118,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("ignores special fields in output, and skipped fields")
-    function _()
+     function _()  'bs:disable-line 1026
 
       a = {
         top: {

@@ -79,29 +79,30 @@ export class CodeCoverageProcessor {
         file.ast.walk(createVisitor({
             ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                ds.forToken.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: for`;
+                ds.tokens.for.text = `${this.getFuncCallText(ds.location.range.start.line, CodeCoverageLineType.code)}: for`;
             },
             IfStatement: (ifStatement, parent, owner, key) => {
                 this.addStatement(ifStatement);
-                (ifStatement as any).condition = new BinaryExpression(
-                    new RawCodeExpression(this.getFuncCallText(ifStatement.condition.range.start.line, CodeCoverageLineType.condition)),
-                    createToken(TokenKind.And),
-                    new GroupingExpression({
-                        left: createToken(TokenKind.LeftParen),
-                        right: createToken(TokenKind.RightParen)
-                    }, ifStatement.condition)
-                );
+                (ifStatement as any).condition = new BinaryExpression({
+                    left: new RawCodeExpression(this.getFuncCallText(ifStatement.condition.location.range.start.line, CodeCoverageLineType.condition)),
+                    operator: createToken(TokenKind.And),
+                    right: new GroupingExpression({
+                        leftParen: createToken(TokenKind.LeftParen),
+                        rightParen: createToken(TokenKind.RightParen),
+                        expression: ifStatement.condition
+                    })
+                });
 
                 let blockStatements = ifStatement?.thenBranch?.statements;
                 if (blockStatements) {
-                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(ifStatement.range.start.line, CodeCoverageLineType.branch));
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(ifStatement.location.range.start.line, CodeCoverageLineType.branch));
                     blockStatements.splice(0, 0, coverageStatement);
                 }
 
                 // Handle the else blocks
                 let elseBlock = ifStatement.elseBranch;
                 if (isBlock(elseBlock) && elseBlock.statements) {
-                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(elseBlock.range.start.line - 1, CodeCoverageLineType.branch));
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(elseBlock.location.range.start.line - 1, CodeCoverageLineType.branch));
                     elseBlock.statements.splice(0, 0, coverageStatement);
                 }
 
@@ -112,7 +113,7 @@ export class CodeCoverageProcessor {
 
             },
             WhileStatement: (ds, parent, owner, key) => {
-                ds.tokens.while.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: while`;
+                ds.tokens.while.text = `${this.getFuncCallText(ds.location.range.start.line, CodeCoverageLineType.code)}: while`;
             },
             ReturnStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
@@ -120,7 +121,7 @@ export class CodeCoverageProcessor {
             },
             ForEachStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                ds.tokens.forEach.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: for each`;
+                ds.tokens.forEach.text = `${this.getFuncCallText(ds.location.range.start.line, CodeCoverageLineType.code)}: for each`;
             },
             ExitWhileStatement: (ds, parent, owner, key) => {
 
@@ -171,7 +172,7 @@ export class CodeCoverageProcessor {
             return;
         }
 
-        const lineNumber = statement.range.start.line;
+        const lineNumber = statement.location.range.start.line;
         this.coverageMap.set(lineNumber, coverageType);
         const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
         this.astEditor.arraySplice(owner, key, 0, parsed);

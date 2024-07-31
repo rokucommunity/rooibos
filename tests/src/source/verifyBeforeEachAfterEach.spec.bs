@@ -32,7 +32,7 @@ namespace tests
     end function
 
     @it("2")
-    function _()
+    function _() 'bs:disable-line 1026
       m.assertEqual(m.beforeEachValue, 1)
     end function
 
@@ -40,7 +40,7 @@ namespace tests
     @params("a")
     @params("b")
     @params("c")
-    function _(values)
+    function _(values) 'bs:disable-line 1026
       m.assertEqual(m.beforeEachValue, 1)
     end function
 
@@ -60,12 +60,12 @@ namespace tests
     end function
 
     @it("1 ")
-    function _()
+    function _() 'bs:disable-line 1026
       m.assertEqual(m.beforeEachValue, 2)
     end function
 
     @it("2")
-    function _()
+    function _() 'bs:disable-line 1026
       m.assertEqual(m.beforeEachValue, 2)
     end function
 
@@ -73,7 +73,7 @@ namespace tests
     @params("a")
     @params("b")
     @params("c")
-    function _(values)
+    function _(values) 'bs:disable-line 1026
       m.assertEqual(m.beforeEachValue, 2)
     end function
 
@@ -82,12 +82,12 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("1 ")
-    function _()
+    function _() 'bs:disable-line 1026
       m.assertEqual(m.beforeEachValue, 1)
     end function
 
     @it("2")
-    function _()
+    function _() 'bs:disable-line 1026
       m.assertEqual(m.beforeEachValue, 1)
     end function
 
@@ -95,7 +95,7 @@ namespace tests
     @params("a")
     @params("b")
     @params("c")
-    function _(values)
+    function _(values) 'bs:disable-line 1026
       m.assertEqual(m.beforeEachValue, 1)
     end function
 

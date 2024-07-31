@@ -49,11 +49,11 @@ describe('RooibosPlugin', () => {
             builder.plugins = new PluginInterface([plugin], { logger: builder.logger });
             program.plugins = new PluginInterface([plugin], { logger: builder.logger });
             program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProgramCreate(builder);
+            plugin.beforeProgramCreate({ builder: builder });
 
         });
         afterEach(() => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ builder: builder, program: program });
             fsExtra.ensureDirSync(tmpPath);
             fsExtra.emptyDirSync(tmpPath);
             builder.dispose();

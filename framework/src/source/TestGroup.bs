@@ -8,7 +8,7 @@ namespace rooibos
     'test state
     name = "Unnamed Suite"
 
-    testSuite = invalid
+    testSuite as BaseTestSuite = invalid
     setupFunctionName = invalid
     tearDownFunctionName = invalid
     beforeEachFunctionName = invalid
@@ -19,23 +19,27 @@ namespace rooibos
     stats = invalid
     scene = invalid
     lineNumber = 00
-    top = invalid
-    valid = false
+    top as NodeWithRooibosFields = invalid
     hasFailures = false
     isNodeTest = false
     nodeName = invalid
-    testsData = invalid
-    tests = []
+    testsData as TestCaseData[] = invalid
+    tests as Test[] = []
 
-    function new(testSuite, data)
+    private isTestFailedDueToEarlyExit = false
+
+    currentTest as Test = invalid
+    protected testTimer as roTimespan = invalid
+
+
+    testRunner as TestRunner
+
+    function new(testSuite as BaseTestSuite, data as TestGroupData)
       m.testSuite = testSuite
       m.name = data.name
-      m.valid = data.valid
       m.hasFailures = testSuite.hasFailures
       m.isSolo = data.isSolo
       m.isIgnored = data.isIgnored
-      m.isAsync = data.isAsync
-      m.asyncTimeout = data.asyncTimeout
       m.testsData = data.testCases
       m.isNodeTest = false
       m.nodeName = invalid
@@ -48,7 +52,7 @@ namespace rooibos
       'bs:disable-next-line
       m.global = testSuite.global
       m.top = testSuite.top
-      m.scene = testSuite.scene
+
       m.stats = new rooibos.Stats()
     end function
 
@@ -77,18 +81,18 @@ namespace rooibos
 
       if isOk
         for each testData in m.testsData
-          test = new rooibos.Test(m, testData)
-          m.tests.push(test)
+          rooibosTest = new rooibos.Test(m, testData)
+          m.tests.push(rooibosTest)
 
-          isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", test)
+          isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", rooibosTest)
 
           if isOk
             m.testSuite.runTest(test)
           end if
 
-          m.runSuiteFunction(m.afterEachFunctionName, "afterEach", test)
+          m.runSuiteFunction(m.afterEachFunctionName, "afterEach", rooibosTest)
 
-          m.stats.appendTestResult(test.result)
+          m.stats.appendTestResult(rooibosTest.result)
 
           if m.stats.hasFailures and m.testSuite.isFailingFast
             ? "Terminating group due to failed test"
@@ -135,20 +139,20 @@ namespace rooibos
         isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
         if isOk
           'TODO - set a timeout here
-          test = m.currentTest
-          if test.isAsync <> true
+          currentTest = m.currentTest
+          if currentTest.isAsync <> true
             ? "Executing test synchronously"
             m.testSuite.runTest(test)
             m.testRunner.top.rooibosTestFinished = true
             m.onAsyncTestComplete()
           else
             m.testRunner.top.observeFieldScoped("rooibosTestFinished", "rooibos_onTestComplete")
-            if test.isAsync = true
-              m.testSuite.setTestTimer(test.asyncTimeout)
+            if currentTest.isAsync = true
+              m.testSuite.setTestTimer(currentTest.asyncTimeout)
             end if
             m.testSuite.runTest(test)
 
-            if test.result.isFail
+            if currentTest.result.isFail
               ? "Test failed before any async code could be executed"
               m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
               m.testRunner.top.rooibosTestFinished = true

@@ -1,4 +1,4 @@
-import type { BrsFile, CallExpression, ClassMethodStatement, ClassStatement, ExpressionStatement, FunctionStatement } from 'brighterscript';
+import type { BrsFile, CallExpression, MethodStatement, ClassStatement, ExpressionStatement, FunctionStatement } from 'brighterscript';
 import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
@@ -6,12 +6,13 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import undent from 'undent';
 import { SourceMapConsumer } from 'source-map';
+import { getFileLookups } from './lib/rooibos/Utils';
 let tmpPath = s`${process.cwd()}/tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
 
-describe('RooibosPlugin', () => {
+describe.only('RooibosPlugin', () => {
     let program: Program;
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
@@ -29,9 +30,9 @@ describe('RooibosPlugin', () => {
         program = builder.program;
         program.plugins.add(plugin);
         program.createSourceScope(); //ensure source scope is created
-        plugin.beforeProgramCreate(builder);
+        plugin.beforeProgramCreate({ builder: builder });
         plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
-        plugin.afterProgramCreate(program);
+        plugin.afterProgramCreate({ program: program, builder: builder });
     }
 
     function destroyProgram() {
@@ -428,7 +429,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('test full transpile', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/test.spec.bs', `
                 @suite
@@ -440,7 +441,7 @@ describe('RooibosPlugin', () => {
                 end class
             `);
             program.validate();
-            await builder.transpile();
+            await builder.build();
             console.log(builder.getDiagnostics());
             expect(builder.getDiagnostics()).to.have.length(1);
             expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
@@ -497,7 +498,7 @@ describe('RooibosPlugin', () => {
                                     isSolo: false
                                     isIgnored: false
                                     filename: "${s`source/test.spec.bs`}"
-                                    lineNumber: "3"
+                                    lineNumber: 3
                                     setupFunctionName: ""
                                     tearDownFunctionName: ""
                                     beforeEachFunctionName: ""
@@ -537,13 +538,13 @@ describe('RooibosPlugin', () => {
 
             //verify the AST was restored after transpile
             const cls = file.ast.statements[0] as ClassStatement;
-            expect(cls.body.find((x: ClassMethodStatement) => {
-                return x.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            expect(cls.body.find((x: MethodStatement) => {
+                return x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
         });
 
         it('test full transpile with complex params', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -556,7 +557,7 @@ describe('RooibosPlugin', () => {
                 end class
             `);
             program.validate();
-            await builder.transpile();
+            await builder.build();
             console.log(builder.getDiagnostics());
             expect(builder.getDiagnostics()).to.have.length(1);
             expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
@@ -575,7 +576,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('adds launch hook to existing main function', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/main.bs', `
                 sub main()
@@ -583,7 +584,7 @@ describe('RooibosPlugin', () => {
                 end sub
             `);
             program.validate();
-            await builder.transpile();
+            await builder.build();
 
             expect(
                 getContents('main.brs')
@@ -594,7 +595,7 @@ describe('RooibosPlugin', () => {
                 end sub
             `);
             //the AST should not have been permanently modified
-            const statements = (file.parser.statements[0] as FunctionStatement).func.body.statements;
+            const statements = (file.parser.ast.statements[0] as FunctionStatement).func.body.statements;
             expect(statements).to.be.lengthOf(1);
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
@@ -616,7 +617,7 @@ describe('RooibosPlugin', () => {
                 end sub
             `);
             program.validate();
-            await builder.transpile();
+            await builder.build();
 
             expect(
                 getContents('main.brs')
@@ -627,7 +628,7 @@ describe('RooibosPlugin', () => {
                 end sub
             `);
             //the AST should not have been permanently modified
-            const statements = (file.parser.statements[0] as FunctionStatement).func.body.statements;
+            const statements = (file.parser.ast.statements[0] as FunctionStatement).func.body.statements;
             expect(statements).to.be.lengthOf(1);
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
@@ -650,7 +651,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const testContents = getTestFunctionContents();
                 expect(
                     testContents
@@ -709,7 +710,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -743,7 +744,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 const testContents = getTestFunctionContents();
@@ -797,7 +798,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(
@@ -850,7 +851,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 program.validate();
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
@@ -911,7 +912,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 // expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const testContents = getTestFunctionContents();
                 expect(
                     testContents
@@ -948,7 +949,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const testContents = getTestFunctionContents();
                 expect(
                     testContents
@@ -1012,7 +1013,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const testText = getTestFunctionContents();
                 expect(
                     testText
@@ -1103,7 +1104,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const testText = getTestFunctionContents();
                 expect(
                     testText
@@ -1189,7 +1190,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1215,7 +1216,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1240,7 +1241,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1269,7 +1270,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1298,7 +1299,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1339,7 +1340,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const result = getTestFunctionContents();
                 expect(
                     result
@@ -1399,7 +1400,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const result = getTestFunctionContents();
                 expect(
                     result
@@ -1460,7 +1461,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const result = getTestFunctionContents();
                 expect(
                     result
@@ -1521,7 +1522,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const result = getTestFunctionContents();
                 expect(
                     result
@@ -1582,7 +1583,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const result = getTestFunctionContents();
                 expect(
                     result
@@ -1645,7 +1646,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1685,7 +1686,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1732,7 +1733,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1751,17 +1752,17 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
-                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
+                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as MethodStatement);
 
                 const call1 = (testMethod.func.body.statements[1] as ExpressionStatement).expression as CallExpression;
                 expect(call1.args).to.be.lengthOf(1);
                 expect(call1.args[0]).to.be.instanceof(CallfuncExpression);
-                expect((call1.args[0] as CallfuncExpression).methodName.text).to.eql('getFunction');
+                expect((call1.args[0] as CallfuncExpression).tokens.methodName.text).to.eql('getFunction');
 
                 const call2 = (testMethod.func.body.statements[2] as ExpressionStatement).expression as CallExpression;
                 expect(call2.args).to.be.lengthOf(1);
                 expect(call2.args[0]).to.be.instanceof(CallfuncExpression);
-                expect((call2.args[0] as CallfuncExpression).methodName.text).to.eql('getFunction');
+                expect((call2.args[0] as CallfuncExpression).tokens.methodName.text).to.eql('getFunction');
 
             });
 
@@ -1779,7 +1780,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1791,12 +1792,12 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
-                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
+                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as MethodStatement);
                 const call = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
                 const arg0 = call.args[0] as DottedGetExpression;
                 expect(call.args).to.be.lengthOf(1);
                 expect(arg0).to.be.instanceof(DottedGetExpression);
-                expect(arg0.name.text).to.eql('getFunctionField');
+                expect(arg0.tokens.name.text).to.eql('getFunctionField');
             });
 
             it('correctly transpiles function invocations', async () => {
@@ -1816,7 +1817,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
@@ -1862,7 +1863,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.transpile();
+                await builder.build();
                 const testContents = getTestFunctionContents();
                 expect(
                     testContents
@@ -1921,7 +1922,7 @@ describe('RooibosPlugin', () => {
                 plugin.session.sessionInfo.includeTags = ['one'];
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.have.length(1);
                 expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
@@ -1934,7 +1935,7 @@ describe('RooibosPlugin', () => {
                 plugin.session.sessionInfo.includeTags = ['two'];
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.have.length(1);
                 expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
@@ -1946,7 +1947,7 @@ describe('RooibosPlugin', () => {
                 plugin.session.sessionInfo.includeTags = ['three'];
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.have.length(1);
                 expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
@@ -1958,7 +1959,7 @@ describe('RooibosPlugin', () => {
                 plugin.session.sessionInfo.excludeTags = ['exclude'];
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.have.length(1);
                 expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
@@ -1971,7 +1972,7 @@ describe('RooibosPlugin', () => {
                 plugin.session.sessionInfo.excludeTags = ['exclude'];
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.have.length(1);
                 expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
@@ -1982,7 +1983,7 @@ describe('RooibosPlugin', () => {
                 plugin.session.sessionInfo.includeTags = ['one', 'two'];
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
-                await builder.transpile();
+                await builder.build();
                 console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.have.length(1);
                 expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
@@ -2054,8 +2055,8 @@ describe('RooibosPlugin', () => {
 
             function findMethod(methodName: string) {
                 const file = program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
-                let classStatement = file.parser.references.classStatementLookup.get('rooibos.runtimeconfig');
-                const method = classStatement.methods.find(x => x.name.text.toLowerCase() === methodName.toLowerCase());
+                let classStatement = getFileLookups(file).classStatementMap.get('rooibos.runtimeconfig');
+                const method = classStatement.methods.find(x => x.tokens.name.text.toLowerCase() === methodName.toLowerCase());
                 return method;
             }
 
@@ -2065,7 +2066,7 @@ describe('RooibosPlugin', () => {
             expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.empty;
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
 
-            await builder.transpile();
+            await builder.build();
 
             expect(
                 getTestFunctionContents()
@@ -2172,7 +2173,7 @@ describe('RooibosPlugin', () => {
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
 
-                await builder.transpile();
+                await builder.build();
 
                 expect(
                     getContents('rooibos/RuntimeConfig.brs')
@@ -2312,7 +2313,7 @@ describe('RooibosPlugin', () => {
 
         program.validate();
         //build the project
-        await builder.transpile();
+        await builder.build();
 
         const actualContents = getContents('test.spec.brs');
         expect(actualContents).to.eql(undent`${expectedText}`);

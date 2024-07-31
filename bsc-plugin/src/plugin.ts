@@ -4,12 +4,18 @@ import type {
     Program,
     ProgramBuilder,
     TranspileObj,
-    AstEditor,
-    BeforeFileTranspileEvent,
-    XmlFile
+    Editor,
+    XmlFile,
+    BeforeProgramCreateEvent,
+    AfterProgramCreateEvent,
+    AfterFileParseEvent,
+    AfterProgramValidateEvent,
+    OnPrepareFileEvent
 } from 'brighterscript';
 import {
-    isBrsFile
+    isBrsFile,
+    isXmlFile,
+    util
 } from 'brighterscript';
 import { RooibosSession } from './lib/rooibos/RooibosSession';
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
@@ -30,7 +36,8 @@ export class RooibosPlugin implements CompilerPlugin {
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
 
-    beforeProgramCreate(builder: ProgramBuilder): void {
+    beforeProgramCreate(event: BeforeProgramCreateEvent): void {
+        const builder = event.builder;
         this._builder = builder;
 
         this.config = this.getConfig((builder.options as any).rooibos || {});
@@ -111,8 +118,8 @@ export class RooibosPlugin implements CompilerPlugin {
         return config;
     }
 
-    afterProgramCreate(program: Program) {
-        this.fileFactory.addFrameworkFiles(program);
+    afterProgramCreate(event: AfterProgramCreateEvent) {
+        this.fileFactory.addFrameworkFiles(event.program);
     }
 
     afterFileDispose(file: BscFile) {
@@ -124,9 +131,13 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    afterFileParse(file: BscFile): void {
+    afterFileParse(event: AfterFileParseEvent): void {
+        const file = event.file;
+        if (!(isBrsFile(file) || isXmlFile(file))) {
+            return;
+        }
         // console.log('afp', file.pkgPath);
-        if (file.pathAbsolute.includes('/rooibos/bsc-plugin/dist/framework')) {
+        if (util.pathToUri(event.file.srcPath).includes('/rooibos/bsc-plugin/dist/framework')) {
             // eslint-disable-next-line @typescript-eslint/dot-notation
             file['diagnostics'] = [];
             return;
@@ -151,16 +162,8 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.prepareForTranspile(editor, program, this.mockUtil);
-    }
-
-    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.addLaunchHookFileIfNotPresent();
-        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
-    }
-
-    beforeFileTranspile(event: BeforeFileTranspileEvent) {
+    prepareFile(event: OnPrepareFileEvent) {
+        this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
         let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
         if (testSuite) {
             const scope = getScopeForSuite(testSuite);
@@ -193,7 +196,12 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    afterProgramValidate(program: Program) {
+    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: Editor) {
+        this.session.addLaunchHookFileIfNotPresent();
+        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
+    }
+
+    afterProgramValidate(event: AfterProgramValidateEvent) {
         // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
@@ -210,7 +218,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.includeFilters) {
-                if (!minimatch(file.pathAbsolute, filter)) {
+                if (!minimatch(file.srcPath, filter)) {
                     return false;
                 }
             }

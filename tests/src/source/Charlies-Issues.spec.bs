@@ -29,7 +29,7 @@ namespace tests
 
 		@it("globalMockExample2_crashing_due_to_returnValue")
 		@params("stubCall dynamic title")
-		function _(manifestValue as string)
+		function _(manifestValue as string)  'bs:disable-line 1026
 			m.stubCall(getManifestValue, manifestValue)
 			m.SUT.globalMockExample()
 			m.assertEqual(m.SUT.appTitle, manifestValue)
@@ -37,7 +37,7 @@ namespace tests
 
 		@it("stubExample1_passing")
 		@params({ configSetVia_config: true }, { configSetViaStub: true })
-		function _(config1 as object, config2 as object)
+		function _(config1 as object, config2 as object)  'bs:disable-line 1026
 			m.SUT._config = config1
 			m.stub(m.SUT, "_getConfig", config2)
 			m.SUT.setUpdatedConfig1()
@@ -49,7 +49,7 @@ namespace tests
     @ignore("this is not supported - we do not support mocking singleton objects between test runs")
 		@it("stubExample2_crashing_stub_from_stubExample1_persisting")
 		@params({ configSetVia_config: true }, { configSetViaStub: true })
-		function _(config1 as object, config2 as object)
+		function _(config1 as object, config2 as object)  'bs:disable-line 1026
 			m.SUT._config = config1
 			m.SUT.setUpdatedConfig2()
 			expectedKeyNameConfig1 = config1.keys()[0]

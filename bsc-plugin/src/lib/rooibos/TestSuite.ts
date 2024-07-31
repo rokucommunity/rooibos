@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { AstEditor, BrsFile, ClassStatement } from 'brighterscript';
+import type { Editor, BrsFile, ClassStatement } from 'brighterscript';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
 
@@ -26,7 +26,7 @@ export class TestBlock {
     }
 
     public get filePath(): string {
-        return this.file.pathAbsolute;
+        return this.file.srcPath;
     }
 
     public get name(): string {
@@ -71,7 +71,7 @@ export class TestSuite extends TestBlock {
         this.isNodeTest = annotation.nodeName && annotation.nodeName.trim() !== '';
         this.nodeName = annotation.nodeName?.trim();
         if (!this.name) {
-            this.annotation.name = classStatement.name.text;
+            this.annotation.name = classStatement.tokens.name.text;
         }
         this.generatedNodeName = (this.name || 'ERROR').replace(/[^a-zA-Z0-9]/g, '_');
         let pathBase = path.join('components', 'rooibos', 'generated');
@@ -105,7 +105,7 @@ export class TestSuite extends TestBlock {
         this.isValid = true;
     }
 
-    public addDataFunctions(editor: AstEditor) {
+    public addDataFunctions(editor: Editor) {
         if (this.isIncluded) {
             addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`, editor);
         }
@@ -136,7 +136,7 @@ export class TestSuite extends TestBlock {
       isIgnored: ${this.isIgnored}
       pkgPath: "${this.pkgPath}"
       filePath: "${this.filePath}"
-      lineNumber: ${this.classStatement.range.start.line + 1}
+      lineNumber: ${this.classStatement.location.range.start.line + 1}
       valid: ${this.isValid}
       hasFailures: ${this.hasFailures}
       hasSoloTests: ${this.hasSoloTests}

@@ -7,7 +7,7 @@
     "watch": "npx bsc --project bsconfig.json --watch"
   },
   "devDependencies": {
-    "brighterscript": "^0.65.22",
+    "brighterscript": "^1.0.0.alpha-35",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.4"
   },

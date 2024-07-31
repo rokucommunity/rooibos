@@ -1,29 +1,37 @@
 namespace rooibos
   class RuntimeConfig
 
+    private testSuites as roAssociativeArray = {}
+
     function new()
       m.testSuites = m.getTestSuiteClassMap()
     end function
 
-    function getVersionText()
+    function getVersionText() as string
     end function
 
     function getRuntimeConfig()
     end function
 
-    function getTestSuiteClassMap()
+    function getTestSuiteClassMap() as roAssociativeArray
     end function
 
-    function getTestSuiteClassWithName(name)
+    function getTestSuiteClassWithName(name) as BaseTestSuite
       return m.testSuites[name]
     end function
 
-    function getAllTestSuitesNames()
+    function getAllTestSuitesNames() as string[]
       return m.testSuites.keys()
     end function
 
-    function getIgnoredTestInfo()
+    function getIgnoredTestInfo() as IgnoredTestInfo
     end function
 
   end class
+
+  interface IgnoredTestInfo
+    count as integer
+    items as roArray
+  end interface
+
 end namespace

@@ -140,7 +140,7 @@ export class FileFactory {
     public addFileToRootDir(program: Program, filePath: string, contents: string) {
         try {
             fse.outputFileSync(
-                path.join(program.options.stagingFolderPath ?? program.options.stagingDir ?? program.options.sourceRoot, filePath),
+                path.join(program.options.stagingDir ?? program.options.sourceRoot, filePath),
                 contents
             );
         } catch (error) {

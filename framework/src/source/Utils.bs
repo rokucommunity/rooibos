@@ -45,13 +45,13 @@ namespace rooibos.utils
     end function
 
     function addFields(fields)
-      m.append(fields)
+      (m as roAssociativeArray).append(fields)
     end function
     function setField(field, value)
       m[field] = value
     end function
     function setFields(fields)
-      m.append(fields)
+      (m as roAssociativeArray).append(fields)
     end function
     function observeField(field, callback)
     end function

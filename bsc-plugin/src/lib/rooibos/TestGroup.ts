@@ -52,25 +52,25 @@ export class TestGroup extends TestBlock {
         //add line number as last param
         const transpileState = new BrsTranspileState(this.file);
         try {
-            let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+            let func = this.testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(brighterscript.createVisitor({
                 ExpressionStatement: (expressionStatement, parent, owner, key) => {
                     let callExpression = expressionStatement.expression as CallExpression;
                     if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
-                        let isSub = isFunctionExpression(callExpression.parent.parent.parent) && callExpression.parent.parent.parent.functionType.kind === TokenKind.Sub;
+                        let isSub = isFunctionExpression(callExpression.parent.parent.parent) && callExpression.parent.parent.parent.tokens.functionType.kind === TokenKind.Sub;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
-                        if (dge && assertRegex.test(dge.name.text)) {
-                            if (dge.name.text === 'stubCall') {
+                        if (dge && assertRegex.test(dge.tokens.name.text)) {
+                            if (dge.tokens.name.text === 'stubCall') {
                                 this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 return expressionStatement;
 
                             } else {
 
-                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                if (dge.tokens.name.text === 'expectCalled' || dge.tokens.name.text === 'expectNotCalled') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 }
-                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                if (dge.tokens.name.text === 'expectCalled' || dge.tokens.name.text === 'expectNotCalled') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 }
 
@@ -78,7 +78,7 @@ export class TestGroup extends TestBlock {
                                     const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
                                     editor.arraySplice(owner, key + 1, 0, trailingLine);
                                 }
-                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.range.start.line}`).ast.statements[0];
+                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.location.range.start.line}`).ast.statements[0];
                                 editor.arraySplice(owner, key, 0, leadingLine);
                             }
                         }
@@ -102,14 +102,14 @@ export class TestGroup extends TestBlock {
         let arg0 = callExpression.args[0];
         let arg1 = callExpression.args[1];
         if (isDottedGetExpression(callExpression.callee)) {
-            const nameText = callExpression.callee.name.text;
+            const nameText = callExpression.callee.tokens.name.text;
             isNotCalled = nameText === 'expectNotCalled';
             isStubCall = nameText === 'stubCall';
 
             if (isStubCall && this.shouldNotModifyStubCall(arg0, namespaceLookup, scope)) {
                 return;
             }
-            editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);
+            editor.setProperty(callExpression.callee.tokens.name, 'text', `_${nameText}`);
         }
 
         if (brighterscript.isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
@@ -132,7 +132,11 @@ export class TestGroup extends TestBlock {
                     let functionName = nameParts.join('_').toLowerCase();
                     editor.removeFromArray(callExpression.args, 0);
                     if (!isNotCalled && !isStubCall) {
-                        const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                        const expectedArgs = new ArrayLiteralExpression({
+                            elements: arg0.args,
+                            open: createToken(TokenKind.LeftSquareBracket),
+                            close: createToken(TokenKind.RightSquareBracket)
+                        });
                         editor.addToArray(callExpression.args, 0, expectedArgs);
                     }
                     editor.addToArray(callExpression.args, 0, createInvalidLiteral());
@@ -141,11 +145,15 @@ export class TestGroup extends TestBlock {
                     editor.addToArray(callExpression.args, 0, brighterscript.createVariableExpression(functionName));
                     this.testSuite.session.globalStubbedMethods.add(functionName);
                 } else {
-                    let functionName = arg0.callee.name.text;
+                    let functionName = arg0.callee.tokens.name.text;
                     let fullPath = getStringPathFromDottedGet(arg0.callee.obj as DottedGetExpression);
                     editor.removeFromArray(callExpression.args, 0);
                     if (!isNotCalled && !isStubCall) {
-                        const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                        const expectedArgs = new ArrayLiteralExpression({
+                            elements: arg0.args,
+                            open: createToken(TokenKind.LeftSquareBracket),
+                            close: createToken(TokenKind.RightSquareBracket)
+                        });
                         editor.addToArray(callExpression.args, 0, expectedArgs);
                     }
                     editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
@@ -155,7 +163,7 @@ export class TestGroup extends TestBlock {
                 }
             }
         } else if (brighterscript.isDottedGetExpression(arg0)) {
-            let functionName = arg0.name.text;
+            let functionName = arg0.tokens.name.text;
             let fullPath = getStringPathFromDottedGet(arg0.obj as DottedGetExpression);
             arg0 = callExpression.args[0] as DottedGetExpression;
             editor.removeFromArray(callExpression.args, 0);
@@ -167,14 +175,18 @@ export class TestGroup extends TestBlock {
             editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
             editor.addToArray(callExpression.args, 0, (arg0 as DottedGetExpression).obj);
         } else if (brighterscript.isCallfuncExpression(arg0)) {
-            let functionName = arg0.methodName.text;
+            let functionName = arg0.tokens.methodName.text;
             editor.removeFromArray(callExpression.args, 0);
             if (isNotCalled || isStubCall) {
                 //TODO in future we can improve is notCalled to know which callFunc function it is
                 // const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName)], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 // editor.addToArray(callExpression.args, 0, expectedArgs);
             } else {
-                const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName), ...arg0.args], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                const expectedArgs = new ArrayLiteralExpression({
+                    elements: [createStringLiteral(functionName), ...arg0.args],
+                    open: createToken(TokenKind.LeftSquareBracket),
+                    close: createToken(TokenKind.RightSquareBracket)
+                });
                 editor.addToArray(callExpression.args, 0, expectedArgs);
             }
             let fullPath = getStringPathFromDottedGet(arg0.callee as DottedGetExpression);
@@ -186,7 +198,11 @@ export class TestGroup extends TestBlock {
             let functionName = arg0.callee.getName(brighterscript.ParseMode.BrightScript);
             editor.removeFromArray(callExpression.args, 0);
             if (!isNotCalled && !isStubCall) {
-                const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                const expectedArgs = new ArrayLiteralExpression({
+                    elements: arg0.args,
+                    open: createToken(TokenKind.LeftSquareBracket),
+                    close: createToken(TokenKind.RightSquareBracket)
+                });
                 editor.addToArray(callExpression.args, 0, expectedArgs);
             }
             editor.addToArray(callExpression.args, 0, createInvalidLiteral());
@@ -204,7 +220,7 @@ export class TestGroup extends TestBlock {
             return scope.getCallableByName(functionName);
         } else if (brighterscript.isVariableExpression(arg0)) {
             return (
-                scope.symbolTable.hasSymbol(arg0.getName(ParseMode.BrightScript)) ||
+                scope.symbolTable.hasSymbol(arg0.getName(ParseMode.BrightScript), brighterscript.SymbolTypeFlag.runtime) ||
                 scope.getCallableByName(arg0.getName(ParseMode.BrighterScript))
             );
         }
@@ -220,7 +236,7 @@ export class TestGroup extends TestBlock {
                 isSolo: ${this.isSolo}
                 isIgnored: ${this.isIgnored}
                 filename: "${this.pkgPath}"
-                lineNumber: "${this.annotation.annotation.range.start.line}"
+                lineNumber: ${this.annotation.annotation.location.range.start.line}
                 setupFunctionName: "${this.setupFunctionName || ''}"
                 tearDownFunctionName: "${this.tearDownFunctionName || ''}"
                 beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"

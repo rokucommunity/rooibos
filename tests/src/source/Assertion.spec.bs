@@ -1,5 +1,6 @@
 import "pkg:/source/rooibos/BaseTestSuite.bs"
 
+
 namespace tests
 
   @noEarlyExit
@@ -11,7 +12,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("Fail")
-    function _()
+    function _() 'bs:disable-line 1026
 
       m.Fail("reason")
 
@@ -23,7 +24,7 @@ namespace tests
     end function
 
     @it("FailCrash")
-    function _()
+    function _() 'bs:disable-line 1026
 
       try
         result = 2 / 0
@@ -46,7 +47,7 @@ namespace tests
     @params(0, false)
     @params(1, false)
     @params("test", false)
-    function _(value, expectedAssertResult)
+    function _(value, expectedAssertResult) 'bs:disable-line 1026
 
       m.assertTrue(value)
       isFail = m.currentResult.isFail
@@ -64,7 +65,7 @@ namespace tests
     @params(0, false)
     @params(1, false)
     @params("test", false)
-    function _(value, expectedAssertResult)
+    function _(value, expectedAssertResult) 'bs:disable-line 1026
 
       m.assertFalse(value)
 
@@ -80,23 +81,23 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("Fail")
-    @params([{ "one": 1 }], [{ "one": 2 }])
-    @params([{ "one": 1 }], [{ "one": "a" }])
-    @params([{ "one": 1 }], [{}])
-    @params([{ "one": 1 }], [invalid])
-    @params([{ "one": 1 }], [])
-    @params([{ "one": 1 }], invalid)
-    @params([{ "one": 1 }], [[]])
-    @params([{ "one": 1 }], ["wrong"])
-    @params([{ "one": 1 }], [2])
-    @params([{ "one": "a" }], [{ "one": 1 }])
-    @params([{ "two": 1 }], [{ "one": 1 }])
-    @params([invalid], [{ "one": 1 }])
-    @params(invalid, [{ "one": 1 }])
-    @params([{ "one": 1, "two": 2 }], [{ "one": "1" }])
-    @params([{ "one": 1 }, { "two": 2 }], [{ "one": "1" }, { "two": "a" }])
-    @params([{ "one": 1 }, { "two": 2 }], [{ "a": 1 }, { "a": 1 }, { "a": 1 }])
-    function _(expectedAAs, items)
+    @params([{"one": 1}], [{"one": 2}])
+    @params([{"one": 1}], [{"one": "a"}])
+    @params([{"one": 1}], [{}])
+    @params([{"one": 1}], [invalid])
+    @params([{"one": 1}], [])
+    @params([{"one": 1}], invalid)
+    @params([{"one": 1}], [[]])
+    @params([{"one": 1}], ["wrong"])
+    @params([{"one": 1}], [2])
+    @params([{"one": "a"}], [{"one": 1}])
+    @params([{"two": 1}], [{"one": 1}])
+    @params([invalid], [{"one": 1}])
+    @params(invalid, [{"one": 1}])
+    @params([{"one": 1, "two": 2}], [{"one": "1"}])
+    @params([{"one": 1}, {"two": 2}], [{"one": "1"}, {"two": "a"}])
+    @params([{"one": 1}, {"two": 2}], [{"a": 1}, {"a": 1}, {"a": 1}])
+    function _(expectedAAs, items) 'bs:disable-line 1026
 
       m.assertArrayContainsAAs(items, expectedAAs)
 
@@ -111,12 +112,12 @@ namespace tests
     @it("pass")
     @params([], [])
     @params([{}], [{}])
-    @params([{ "one": 1 }], [{ "one": 1 }])
-    @params([{ "one": 1, "two": 2 }], [{ "one": 1, "two": 2 }])
-    @params([{ "one": 1, "two": 2 }], [{ "two": 2, "one": 1 }])
-    @params([{ "one": 1, "two": 2 }, { "one": 1 }], [{ "one": 1 }, { "two": 2, "one": 1 }])
-    @params([{ "one": 1, "two": 2 }, { "one": 1 }, { "three": 3 }], [{ "one": 1 }, { "three": 3 }, { "two": 2, "one": 1 }])
-    function _(expectedAAs, items)
+    @params([{"one": 1}], [{"one": 1}])
+    @params([{"one": 1, "two": 2}], [{"one": 1, "two": 2}])
+    @params([{"one": 1, "two": 2}], [{"two": 2, "one": 1}])
+    @params([{"one": 1, "two": 2}, {"one": 1}], [{"one": 1}, {"two": 2, "one": 1}])
+    @params([{"one": 1, "two": 2}, {"one": 1}, {"three": 3}], [{"one": 1}, {"three": 3}, {"two": 2, "one": 1}])
+    function _(expectedAAs, items) 'bs:disable-line 1026
 
       m.assertArrayContainsAAs(items, expectedAAs)
 
@@ -142,12 +143,12 @@ namespace tests
     end function
 
     @it("global is in test")
-    function _()
+    function _() 'bs:disable-line 1026
       m.assertNotInvalid(m.global)
     end function
 
     @it("global is in before each and after each")
-    function _()
+    function _() 'bs:disable-line 1026
       m.assertNotInvalid(m.global)
       m.assertNotInvalid(m.beforeEachGlobal)
       m.assertNotInvalid(m.afterEachGlobal)
@@ -162,8 +163,8 @@ namespace tests
     @params([1, 2, 3], "Integer")
     @params([true, true, false], "Boolean")
     @params([[true, true], [false, false]], "Array")
-    @params([{ "test": 1 }, { "test": 1 }], "AssociativeArray")
-    function _(values, typeName)
+    @params([{"test": 1}, {"test": 1}], "AssociativeArray")
+    function _(values, typeName) 'bs:disable-line 1026
 
       m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
@@ -179,14 +180,14 @@ namespace tests
     @params([1, "two", 3], "Integer")
     @params([true, "true", false], "Boolean")
     @params([[true, true], false, false], "Array")
-    @params([{ "test": 1 }, "notAA"], "AssociativeArray")
+    @params([{"test": 1}, "notAA"], "AssociativeArray")
     @params(["one", "two", "three"], "UnknownType")
     @params(["one", "two", "three"], "Integer")
     @params([1, 2, 3], "String")
     @params([true, true, false], "String")
     @params([[true, true], [false, false]], "AssociativeArray")
-    @params([{ "test": 1 }, { "test": 1 }], "Array")
-    function _(values, typeName)
+    @params([{"test": 1}, {"test": 1}], "Array")
+    function _(values, typeName) 'bs:disable-line 1026
 
       m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
@@ -207,10 +208,10 @@ namespace tests
     @params([1, 2, 3])
     @params([true])
     @params([[true, true], [false, false]])
-    @params([{ "test": 1 }])
+    @params([{"test": 1}])
     @params("not empty")
     @params([invalid])
-    function _(values)
+    function _(values) 'bs:disable-line 1026
 
       m.assertNotEmpty(values)
       isFail = m.currentResult.isFail
@@ -227,7 +228,7 @@ namespace tests
     @params({})
     @params(1)
     @params("")
-    function _(values)
+    function _(values) 'bs:disable-line 1026
 
       m.assertNotEmpty(values)
       isFail = m.currentResult.isFail
@@ -246,7 +247,7 @@ namespace tests
     @params([])
     @params({})
     @params("")
-    function _(values)
+    function _(values) 'bs:disable-line 1026
 
       m.assertEmpty(values)
       isFail = m.currentResult.isFail
@@ -264,10 +265,10 @@ namespace tests
     @params([1, 2, 3])
     @params([true])
     @params([[true, true], [false, false]])
-    @params([{ "test": 1 }])
+    @params([{"test": 1}])
     @params("not empty")
     @params([invalid])
-    function _(values)
+    function _(values) 'bs:disable-line 1026
 
       m.assertEmpty(values)
       isFail = m.currentResult.isFail
@@ -283,9 +284,9 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("multi return values")
-    function _()
+    function _() 'bs:disable-line 1026
       obj = {}
-      m.expect(obj, "mockMethod", 5, invalid, { "multiResult": ["one", 2, invalid, "last"] }, true)
+      m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
 
       result = obj.mockMethod()
       m.assertEqual(result, "one")
@@ -315,7 +316,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple test")
-    function _()
+    function _() 'bs:disable-line 1026
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -346,7 +347,7 @@ namespace tests
 
 
     @it("can set up multi expects on same method - one invocation with any args")
-    function _()
+    function _() 'bs:disable-line 1026
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -377,7 +378,7 @@ namespace tests
     end function
 
     @it("can set up multi expects on same method - multi params")
-    function _()
+    function _() 'bs:disable-line 1026
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -408,7 +409,7 @@ namespace tests
     end function
 
     @it("multi test, multi params with other expects")
-    function _()
+    function _() 'bs:disable-line 1026
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -447,7 +448,7 @@ namespace tests
     end function
 
     @it("multi test, multi params with other expects - fail others")
-    function _()
+    function _() 'bs:disable-line 1026
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -492,7 +493,7 @@ namespace tests
     @params("arg1", "arg2", "arg3")
     @params("arg1", "arg2", "arg3")
     @params("arg1", invalid, "arg3")
-    function _(call1, call2, call3)
+    function _(call1, call2, call3) 'bs:disable-line 1026
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -526,7 +527,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("success")
-    function _()
+    function _() 'bs:disable-line 1026
       obj = {}
       obj2 = {}
       arg1 = "arg1"
@@ -558,7 +559,7 @@ namespace tests
     end function
 
     @it("fail to match")
-    function _()
+    function _() 'bs:disable-line 1026
       obj = {}
       obj2 = {}
       arg1 = "arg1"

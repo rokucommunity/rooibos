@@ -19,7 +19,7 @@ namespace tests
     @params([1, 2, 3], [1, 2, 3], true)
     @params([1, invalid, "3"], [1, invalid, "3"], true)
     @params([3, 2, 1], [1, 2, 3], false)
-    function _(values, values2, expected)
+    function _(values, values2, expected)  'bs:disable-line 1026
 
       result = rooibos.common.eqArray(values, values2)
       m.assertEqual(result, expected)
@@ -30,7 +30,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("makes a simple path stubbable")
-    function _()
+    function _()  'bs:disable-line 1026
       manager = invalid
 
       newManager = rooibos.common.makePathStubbable(manager, "manager")
@@ -39,7 +39,7 @@ namespace tests
     end function
 
     @it("makes a simple node stubbable")
-    function _()
+    function _()  'bs:disable-line 1026
       manager = createObject("roSGnode", "ContentNode")
 
       newManager = rooibos.common.makePathStubbable(manager, "manager")
@@ -48,7 +48,7 @@ namespace tests
     end function
 
     @it("makes a path on an existing object stubbable")
-    function _()
+    function _()  'bs:disable-line 1026
       manager = { id: "man" }
 
       newManager = rooibos.common.makePathStubbable(manager, "manager.item.data")
@@ -67,7 +67,7 @@ namespace tests
     end function
 
     @it("makes a path including an aa on an existing object stubbable")
-    function _()
+    function _()  'bs:disable-line 1026
       manager = {
         id: "man"
         item: {

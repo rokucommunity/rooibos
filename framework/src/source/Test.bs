@@ -19,6 +19,9 @@ namespace rooibos
 
     public result = invalid
 
+    public isAsync = false
+    public asyncTimeout = 0
+
     function new(testGroup, data)
       m.testGroup = testGroup
       m.testSuite = testGroup.testSuite
