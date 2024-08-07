@@ -10,7 +10,7 @@ namespace tests
     @params("#RBSNode", "ContentNode")
     @params("#RBSNode|Group", "Group")
     @params("#RBSNode|Label", "Label")
-    function _(node, expectedNodeType)  'bs:disable-line 1026
+    function _(node, expectedNodeType)
       m.assertSubType(node, expectedNodeType)
     end function
 
@@ -18,7 +18,7 @@ namespace tests
     @params(1, 2, 3, "#RBSNode", "ContentNode")
     @params(1, 2, 3, "#RBSNode|Group", "Group")
     @params(1, 2, 3, "#RBSNode|Label", "Label")
-    function _(arg1, arg2, arg3, node, expectedNodeType)  'bs:disable-line 1026
+    function _(arg1, arg2, arg3, node, expectedNodeType)
       m.assertSubType(node, expectedNodeType)
       m.assertEqual(arg1, 1)
       m.assertEqual(arg2, 2)
@@ -28,8 +28,8 @@ namespace tests
     @it("does not affect regular params")
     @params("#someValue", "#someValue")
     @params(22, 22)
-    @params([1,2,3], [1,2,3])
-    function _(arg1, expectedValue)  'bs:disable-line 1026
+    @params([1, 2, 3], [1, 2, 3])
+    function _(arg1, expectedValue)
       m.assertEqual(arg1, expectedValue)
     end function
   end class

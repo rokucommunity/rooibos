@@ -3,8 +3,8 @@
     "inline-if-style": "no-then",
     "block-if-style": "no-then",
     "condition-style": "no-group",
-    "named-function-style": "no-sub",
-    "anon-function-style": "no-sub",
+    "named-function-style": "off",
+    "anon-function-style": "off",
     "type-annotations": "off",
     "assign-all-paths": "off",
     "unsafe-path-loop": "error",
@@ -12,6 +12,8 @@
     "unreachable-code": "warn",
     "case-sensitivity": "warn",
     "unused-variable": "warn",
-    "consistent-return": "error"
+    "consistent-return": "error",
+    "eol-last": "off",
+    "aa-comma-style": "off"
   }
 }

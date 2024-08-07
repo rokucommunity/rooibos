@@ -12,7 +12,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("Fail")
-    function _() 'bs:disable-line 1026
+    function _()
 
       m.Fail("reason")
 
@@ -24,7 +24,7 @@ namespace tests
     end function
 
     @it("FailCrash")
-    function _() 'bs:disable-line 1026
+    function _()
 
       try
         result = 2 / 0
@@ -47,7 +47,7 @@ namespace tests
     @params(0, false)
     @params(1, false)
     @params("test", false)
-    function _(value, expectedAssertResult) 'bs:disable-line 1026
+    function _(value, expectedAssertResult)
 
       m.assertTrue(value)
       isFail = m.currentResult.isFail
@@ -65,7 +65,7 @@ namespace tests
     @params(0, false)
     @params(1, false)
     @params("test", false)
-    function _(value, expectedAssertResult) 'bs:disable-line 1026
+    function _(value, expectedAssertResult)
 
       m.assertFalse(value)
 
@@ -97,7 +97,7 @@ namespace tests
     @params([{"one": 1, "two": 2}], [{"one": "1"}])
     @params([{"one": 1}, {"two": 2}], [{"one": "1"}, {"two": "a"}])
     @params([{"one": 1}, {"two": 2}], [{"a": 1}, {"a": 1}, {"a": 1}])
-    function _(expectedAAs, items) 'bs:disable-line 1026
+    function _(expectedAAs, items)
 
       m.assertArrayContainsAAs(items, expectedAAs)
 
@@ -117,7 +117,7 @@ namespace tests
     @params([{"one": 1, "two": 2}], [{"two": 2, "one": 1}])
     @params([{"one": 1, "two": 2}, {"one": 1}], [{"one": 1}, {"two": 2, "one": 1}])
     @params([{"one": 1, "two": 2}, {"one": 1}, {"three": 3}], [{"one": 1}, {"three": 3}, {"two": 2, "one": 1}])
-    function _(expectedAAs, items) 'bs:disable-line 1026
+    function _(expectedAAs, items)
 
       m.assertArrayContainsAAs(items, expectedAAs)
 
@@ -143,12 +143,12 @@ namespace tests
     end function
 
     @it("global is in test")
-    function _() 'bs:disable-line 1026
+    function _()
       m.assertNotInvalid(m.global)
     end function
 
     @it("global is in before each and after each")
-    function _() 'bs:disable-line 1026
+    function _()
       m.assertNotInvalid(m.global)
       m.assertNotInvalid(m.beforeEachGlobal)
       m.assertNotInvalid(m.afterEachGlobal)
@@ -164,7 +164,7 @@ namespace tests
     @params([true, true, false], "Boolean")
     @params([[true, true], [false, false]], "Array")
     @params([{"test": 1}, {"test": 1}], "AssociativeArray")
-    function _(values, typeName) 'bs:disable-line 1026
+    function _(values, typeName)
 
       m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
@@ -187,7 +187,7 @@ namespace tests
     @params([true, true, false], "String")
     @params([[true, true], [false, false]], "AssociativeArray")
     @params([{"test": 1}, {"test": 1}], "Array")
-    function _(values, typeName) 'bs:disable-line 1026
+    function _(values, typeName)
 
       m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
@@ -211,7 +211,7 @@ namespace tests
     @params([{"test": 1}])
     @params("not empty")
     @params([invalid])
-    function _(values) 'bs:disable-line 1026
+    function _(values)
 
       m.assertNotEmpty(values)
       isFail = m.currentResult.isFail
@@ -228,7 +228,7 @@ namespace tests
     @params({})
     @params(1)
     @params("")
-    function _(values) 'bs:disable-line 1026
+    function _(values)
 
       m.assertNotEmpty(values)
       isFail = m.currentResult.isFail
@@ -247,7 +247,7 @@ namespace tests
     @params([])
     @params({})
     @params("")
-    function _(values) 'bs:disable-line 1026
+    function _(values)
 
       m.assertEmpty(values)
       isFail = m.currentResult.isFail
@@ -268,7 +268,7 @@ namespace tests
     @params([{"test": 1}])
     @params("not empty")
     @params([invalid])
-    function _(values) 'bs:disable-line 1026
+    function _(values)
 
       m.assertEmpty(values)
       isFail = m.currentResult.isFail
@@ -284,7 +284,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("multi return values")
-    function _() 'bs:disable-line 1026
+    function _()
       obj = {}
       m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
 
@@ -316,7 +316,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple test")
-    function _() 'bs:disable-line 1026
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -347,7 +347,7 @@ namespace tests
 
 
     @it("can set up multi expects on same method - one invocation with any args")
-    function _() 'bs:disable-line 1026
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -378,7 +378,7 @@ namespace tests
     end function
 
     @it("can set up multi expects on same method - multi params")
-    function _() 'bs:disable-line 1026
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -409,7 +409,7 @@ namespace tests
     end function
 
     @it("multi test, multi params with other expects")
-    function _() 'bs:disable-line 1026
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -448,7 +448,7 @@ namespace tests
     end function
 
     @it("multi test, multi params with other expects - fail others")
-    function _() 'bs:disable-line 1026
+    function _()
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -493,7 +493,7 @@ namespace tests
     @params("arg1", "arg2", "arg3")
     @params("arg1", "arg2", "arg3")
     @params("arg1", invalid, "arg3")
-    function _(call1, call2, call3) 'bs:disable-line 1026
+    function _(call1, call2, call3)
       obj = {}
       arg1 = "arg1"
       arg2 = "arg2"
@@ -527,7 +527,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("success")
-    function _() 'bs:disable-line 1026
+    function _()
       obj = {}
       obj2 = {}
       arg1 = "arg1"
@@ -559,7 +559,7 @@ namespace tests
     end function
 
     @it("fail to match")
-    function _() 'bs:disable-line 1026
+    function _()
       obj = {}
       obj2 = {}
       arg1 = "arg1"

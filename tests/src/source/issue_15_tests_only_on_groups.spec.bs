@@ -7,7 +7,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("it test one")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
 
@@ -16,7 +16,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("it test two")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
 
@@ -26,7 +26,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("it test three")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
   end class

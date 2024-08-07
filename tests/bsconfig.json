@@ -21,8 +21,10 @@
     1001
   ],
   "plugins": [
+    "@rokucommunity/bslint",
     "../bsc-plugin/src/plugin.ts"
   ],
+  "lintConfig": "../bslint.json",
   "require": [
     "ts-node/register"
   ],

@@ -8,7 +8,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("should ignore __mocks on both sides")
-     function _()  'bs:disable-line 1026
+    function _()
 
       a = {
         __mocks: {
@@ -32,7 +32,7 @@ namespace tests
     end function
 
     @it("should ignore __stubs on both sides")
-     function _()  'bs:disable-line 1026
+    function _()
 
       a = {
         __stubs: {
@@ -56,13 +56,13 @@ namespace tests
     end function
 
     @it("should account for __rooibosSkipFields on both sides - one field")
-     function _()  'bs:disable-line 1026
+    function _()
 
       a = {
         top: {
           "id": "not"
         }
-        __rooibosSkipFields: { top: true }
+        __rooibosSkipFields: {top: true}
         id: "equal"
       }
 
@@ -70,7 +70,7 @@ namespace tests
         top: {
           "id": "equal"
         }
-        __rooibosSkipFields: { top: true }
+        __rooibosSkipFields: {top: true}
         id: "equal"
       }
       m.assertEqual(a, b)
@@ -82,7 +82,7 @@ namespace tests
     end function
 
     @it("should account for __rooibosSkipFields on both sides - two fields")
-     function _()  'bs:disable-line 1026
+    function _()
 
       a = {
         top: {
@@ -91,7 +91,7 @@ namespace tests
         top2: {
           "id": "not2"
         }
-        __rooibosSkipFields: { top: true, top2: true }
+        __rooibosSkipFields: {top: true, top2: true}
         id: "equal"
       }
 
@@ -102,7 +102,7 @@ namespace tests
         top2: {
           "id": "equal2"
         }
-        __rooibosSkipFields: { top: true, top2: true }
+        __rooibosSkipFields: {top: true, top2: true}
         id: "equal"
       }
       m.assertEqual(a, b)
@@ -118,7 +118,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("ignores special fields in output, and skipped fields")
-     function _()  'bs:disable-line 1026
+    function _()
 
       a = {
         top: {
@@ -130,7 +130,7 @@ namespace tests
         __stubs: {
           "id": "not"
         }
-        __rooibosSkipFields: { top: true }
+        __rooibosSkipFields: {top: true}
         id: "equal"
       }
 

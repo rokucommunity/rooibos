@@ -16,7 +16,7 @@ namespace tests
 
     @async
     @it("HelloFromNode")
-    function _() 'bs:disable-line 1026
+    function _()
       'bs:disable-next-line
       text = HelloFromNode("rokucommunity", 12)
       m.AssertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
@@ -35,7 +35,7 @@ namespace tests
     @params("ringo", 24)
     @params("george", 40)
     @params("paul", 50)
-    function _(name, age) 'bs:disable-line 1026
+    function _(name, age)
       'bs:disable-next-line
       text = HelloFromNode(name, age)
       m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
@@ -53,7 +53,7 @@ namespace tests
     @params("ringo", 24)
     @params("george", 40)
     @params("paul", 50)
-    function _(name, age) 'bs:disable-line 1026
+    function _(name, age)
       m.age = age
 
       callback = function()
@@ -73,9 +73,9 @@ namespace tests
     @params("start")
     @params("stop")
     @params("error")
-    function _(state) 'bs:disable-line 1026
+    function _(state)
       m.node.top.state = ""
-      UpdateState(state) 'bs:disable-line 1140
+      UpdateState(state) 'bs:disable-line 1140  LINT1001
       m.assertEqual(m.node.top.state, state)
     end function
 
@@ -86,9 +86,9 @@ namespace tests
     @params("ringo")
     @params("george")
     @params("paul")
-    function _(text) 'bs:disable-line 1026
+    function _(text)
       m.node.nameText.text = ""
-      SetLabelText(text) 'bs:disable-line 1140
+      SetLabelText(text) 'bs:disable-line 1140 LINT1001
       m.assertEqual(m.node.nameText.text, text)
     end function
   end class

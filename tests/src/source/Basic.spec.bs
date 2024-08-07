@@ -9,10 +9,9 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("tests aa's with a mock will not crash the box!")
-    function _() 'bs:disable-line 1026
+    function _()
       aa = {"test": "value"}
       m.expectOnce(aa, "getStubbedObject", [aa])
-
       aa.getStubbedObject(aa)
     end function
 
@@ -21,7 +20,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("tests aa's that get printed as failures don't crash box")
-    function _() 'bs:disable-line 1026
+    function _()
       aa = {"test": "value"}
       bb = {"other": "value"}
       m.expectOnce(bb, "getStubbedObject", [aa])
@@ -37,7 +36,7 @@ namespace tests
 
     @it("works for simple case")
     @params("http://101.rooibos.com")
-    function _(url) 'bs:disable-line 1026
+    function _(url)
       m.assertEqual(url, "http://101.rooibos.com")
     end function
 
@@ -56,7 +55,7 @@ namespace tests
 
     @ignore("takes ages")
     @it("times out")
-    function _() 'bs:disable-line 1026
+    function _()
       item = {"id": "item"}
 
       m.assertAsyncField(item, "id")
@@ -73,7 +72,7 @@ namespace tests
     @params(invalid)
     @params([])
     @params("wrong")
-    function _(value) 'bs:disable-line 1026
+    function _(value)
       m.assertClass(value, "myClass")
       isFail = m.currentResult.isFail
 
@@ -86,7 +85,7 @@ namespace tests
     @params({})
     @params({__classname: invalid})
     @params({__classname: "other"})
-    function _(value) 'bs:disable-line 1026
+    function _(value)
       m.assertClass(value, "myClass")
       isFail = m.currentResult.isFail
 
@@ -96,7 +95,7 @@ namespace tests
     end function
 
     @it("passes If Is correct Class")
-    function _() 'bs:disable-line 1026
+    function _()
       m.assertClass({
         __classname: "myClass"
       }, "myClass")
@@ -108,7 +107,7 @@ namespace tests
     end function
 
     @it("passes If Is correct Class - with namespace")
-    function _() 'bs:disable-line 1026
+    function _()
       m.assertClass({
         __classname: "namespace.myClass"
       }, "namespace.myClass")
@@ -120,7 +119,7 @@ namespace tests
     end function
 
     @it("passes If Is correct Class as reference")
-    function _() 'bs:disable-line 1026
+    function _()
       m.assertClass({
         __classname: "rooibos.BaseTestSuite"
       }, rooibos.BaseTestSuite)
@@ -138,7 +137,7 @@ namespace tests
     @params(invalid)
     @params([])
     @params("wrong")
-    function _(value) 'bs:disable-line 1026
+    function _(value)
       m.assertAAContainsSubset(value, {a: 1})
       isFail = m.currentResult.isFail
 
@@ -151,7 +150,7 @@ namespace tests
     @params(invalid)
     @params([])
     @params("wrong")
-    function _(value) 'bs:disable-line 1026
+    function _(value)
       m.assertAAContainsSubset({a: 1}, value)
       isFail = m.currentResult.isFail
 
@@ -161,7 +160,7 @@ namespace tests
     end function
 
     @it("passes if subset is present")
-    function _() 'bs:disable-line 1026
+    function _()
       m.assertAAContainsSubset({
         a: 1
       }, {a: 1})
@@ -177,7 +176,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("prints strings for failed array tests - simple")
-    function _() 'bs:disable-line 1026
+    function _()
       arr1 = [
         "one", "two", "three"
       ]
@@ -201,7 +200,7 @@ namespace tests
     @params({id: 10}, {id: 10.0})
     @params([10], [10.0])
     @params(10, 10.0)
-    function _(value1, value2) 'bs:disable-line 1026
+    function _(value1, value2)
       m.assertLike(value1, value2)
     end function
 
@@ -214,7 +213,7 @@ namespace tests
     @params(10, "10.0")
     @params({id: "10"}, {id: 10})
     @params({id: "10"}, {id: 10.0})
-    function _(value1, value2) 'bs:disable-line 1026
+    function _(value1, value2)
       m.assertLike(value1, value2)
       isFail = m.currentResult.isFail
       msg = m.currentResult.getMessage()

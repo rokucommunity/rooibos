@@ -10,7 +10,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
 
@@ -19,7 +19,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
 
@@ -29,7 +29,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple2")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
 
@@ -39,7 +39,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
 
@@ -48,12 +48,12 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
 
     @it("simple2")
-    function _()  'bs:disable-line 1026
+    function _()
       m.assertTrue(true)
     end function
   end class

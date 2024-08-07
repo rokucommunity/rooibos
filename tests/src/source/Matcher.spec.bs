@@ -18,9 +18,9 @@ namespace tests
     @params(false, true, true)
     @params(false, false, true)
     @params(true, true, true)
-    function _(v1, v2, expectedFail)  'bs:disable-line 1026
+    function _(v1, v2, expectedFail)
       returnValue = "notBroken"
-      m.expectOnce(m.myClass, "doWork", [{ "matcher": m.match_true }, { "matcher": m.match_false }], returnValue)
+      m.expectOnce(m.myClass, "doWork", [{"matcher": m.match_true}, {"matcher": m.match_false}], returnValue)
 
       m.assertEqual(m.myClass.doWork(v1, v2), returnValue)
 
@@ -40,13 +40,13 @@ namespace tests
     @params(false, true, true)
     @params(false, false, true)
     @params(true, true, true)
-    function _(v1, v2, expectedFail)  'bs:disable-line 1026
+    function _(v1, v2, expectedFail)
       returnValue = "notBroken"
-      m.expectOnce(m.myClass, "doWork", [{ "matcher": function(value)
+      m.expectOnce(m.myClass, "doWork", [{"matcher": function(value)
           return value = true
-      end function }, { "matcher": function(value)
+      end function}, {"matcher": function(value)
           return value = false
-      end function }], returnValue)
+      end function}], returnValue)
 
       m.assertEqual(m.myClass.doWork(v1, v2), returnValue)
 
@@ -70,7 +70,7 @@ namespace tests
     @params([], true)
     @params(false, false)
     @params(true, false)
-    function _(v1, expectedFail)  'bs:disable-line 1026
+    function _(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyBoolMatcher], returnValue)
 
@@ -92,7 +92,7 @@ namespace tests
     @params([], true)
     @params(false, true)
     @params(true, true)
-    function _(v1, expectedFail)  'bs:disable-line 1026
+    function _(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyStringMatcher], returnValue)
 
@@ -117,7 +117,7 @@ namespace tests
     @params([], true)
     @params(false, true)
     @params(true, true)
-    function _(v1, expectedFail)  'bs:disable-line 1026
+    function _(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyNumberMatcher], returnValue)
 
@@ -139,7 +139,7 @@ namespace tests
     @params([], true)
     @params(false, true)
     @params(true, true)
-    function _(v1, expectedFail)  'bs:disable-line 1026
+    function _(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyAAMatcher], returnValue)
 
@@ -161,7 +161,7 @@ namespace tests
     @params([], false)
     @params(false, true)
     @params(true, true)
-    function _(v1, expectedFail)  'bs:disable-line 1026
+    function _(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyArrayMatcher], returnValue)
 
@@ -184,7 +184,7 @@ namespace tests
     @params([], true)
     @params(false, true)
     @params(true, true)
-    function _(v1, expectedFail)  'bs:disable-line 1026
+    function _(v1, expectedFail)
       returnValue = "notBroken"
       m.expectOnce(m.myClass, "doWork", [m.anyNodeMatcher], returnValue)
 

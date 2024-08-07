@@ -7,13 +7,19 @@ namespace rooibos
       m.testSuites = m.getTestSuiteClassMap()
     end function
 
+    ' bs:disable-next-line LINT2004
     function getVersionText() as string
+      ' filled in by plugin
     end function
 
+    ' bs:disable-next-line LINT2004
     function getRuntimeConfig() as RuntimeConfigData
+      ' filled in by plugin
     end function
 
+    ' bs:disable-next-line LINT2004
     function getTestSuiteClassMap() as roAssociativeArray
+      ' filled in by plugin
     end function
 
     function getTestSuiteClassWithName(name as string) as BaseTestSuite
@@ -24,7 +30,9 @@ namespace rooibos
       return m.testSuites.keys()
     end function
 
+    ' bs:disable-next-line LINT2004
     function getIgnoredTestInfo() as IgnoredTestInfo
+      ' filled in by plugin
     end function
 
   end class
