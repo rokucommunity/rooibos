@@ -6,6 +6,7 @@ namespace rooibos
     noCatch as boolean
     isIgnored as boolean
     pkgPath as string
+    destPath as string
     filePath as string
     lineNumber as integer
     valid as boolean
@@ -29,7 +30,7 @@ namespace rooibos
     name as string
     isSolo as boolean
     isIgnored as boolean
-    filename as string
+    fileName as string
     lineNumber as integer
     setupFunctionName as string
     tearDownFunctionName as string
@@ -55,6 +56,23 @@ namespace rooibos
     paramTestIndex as integer
     expectedNumberOfParams as integer
     isParamsValid as boolean
+  end interface
+
+
+  interface RuntimeConfigData
+    reporters as string[]
+    failFast as boolean
+    sendHomeOnFinish as boolean
+    logLevel as integer
+    showOnlyFailures as boolean
+    printTestTimes as boolean
+    lineWidth as integer
+    printLcov as boolean
+    port as dynamic
+    catchCrashes as boolean
+    throwOnFailedAssertion as boolean
+    keepAppOpen as boolean
+    isRecordingCodeCoverage as boolean
   end interface
 
 end namespace

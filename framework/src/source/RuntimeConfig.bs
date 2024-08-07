@@ -10,13 +10,13 @@ namespace rooibos
     function getVersionText() as string
     end function
 
-    function getRuntimeConfig()
+    function getRuntimeConfig() as RuntimeConfigData
     end function
 
     function getTestSuiteClassMap() as roAssociativeArray
     end function
 
-    function getTestSuiteClassWithName(name) as BaseTestSuite
+    function getTestSuiteClassWithName(name as string) as BaseTestSuite
       return m.testSuites[name]
     end function
 

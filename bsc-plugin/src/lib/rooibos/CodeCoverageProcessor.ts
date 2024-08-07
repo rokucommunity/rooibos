@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ExpressionStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
-import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock, InternalWalkMode } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
@@ -12,7 +12,8 @@ export enum CodeCoverageLineType {
     noCode = 0,
     code = 1,
     condition = 2,
-    branch = 3
+    branch = 3,
+    conditionalCompile = 4
 }
 
 export class CodeCoverageProcessor {
@@ -102,7 +103,12 @@ export class CodeCoverageProcessor {
                 // Handle the else blocks
                 let elseBlock = ifStatement.elseBranch;
                 if (isBlock(elseBlock) && elseBlock.statements) {
-                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(elseBlock.location.range.start.line - 1, CodeCoverageLineType.branch));
+                    let startRangeLine = elseBlock.location.range.start.line;
+                    if (elseBlock.statements.length > 0) {
+                        // if the else block has statements, then the coverage statement should be inserted before the first statement
+                        startRangeLine -= 1;
+                    }
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(startRangeLine, CodeCoverageLineType.branch));
                     elseBlock.statements.splice(0, 0, coverageStatement);
                 }
 
@@ -150,13 +156,38 @@ export class CodeCoverageProcessor {
                     this.addStatement(ds);
                     this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
                 }
-
+            },
+            AugmentedAssignmentStatement: (ds, parent, owner, key) => {
+                this.addStatement(ds);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
             },
             ExpressionStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
                 this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+            },
+            ConditionalCompileStatement: (ccStmt, parent, owner, key) => {
+                this.addStatement(ccStmt);
+
+                let blockStatements = ccStmt.thenBranch?.statements;
+                if (blockStatements) {
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(ccStmt.location.range.start.line, CodeCoverageLineType.conditionalCompile));
+                    blockStatements.splice(0, 0, coverageStatement);
+                }
+
+                // Handle the else blocks
+                let elseBlock = ccStmt.elseBranch;
+                if (isBlock(elseBlock) && elseBlock.statements) {
+                    let startRangeLine = elseBlock.location.range.start.line;
+                    if (elseBlock.statements.length > 0) {
+                        // if the else block has statements, then the coverage statement should be inserted before the first statement
+                        startRangeLine -= 1;
+                    }
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(startRangeLine, CodeCoverageLineType.conditionalCompile));
+                    elseBlock.statements.splice(0, 0, coverageStatement);
+                }
             }
-        }), { walkMode: WalkMode.visitAllRecursive });
+            // eslint-disable-next-line no-bitwise
+        }), { walkMode: WalkMode.visitAllRecursive | InternalWalkMode.visitFalseConditionalCompilationBlocks });
 
         const coverageMapObject = {};
         for (let key of this.coverageMap.keys()) {

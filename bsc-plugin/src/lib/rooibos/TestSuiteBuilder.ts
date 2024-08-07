@@ -1,8 +1,8 @@
 
 import type {
     BrsFile,
-    MethodStatement,
-    ClassStatement
+    ClassStatement,
+    MethodStatement
 } from 'brighterscript';
 import {
     isMethodStatement,
@@ -30,7 +30,7 @@ import {
     diagnosticTestWithArgsButNoParams
 } from '../utils/Diagnostics';
 import type { RooibosSession } from './RooibosSession';
-import { getFileLookups } from './Utils';
+import { getFileLookups, getTypeExpressionFromBscType } from './Utils';
 
 export class TestSuiteBuilder {
     constructor(public session: RooibosSession) {
@@ -92,7 +92,6 @@ export class TestSuiteBuilder {
             suite.isValid = false;
             isDuplicate = true;
         }
-
         suites.push(suite);
         if (isDuplicate) {
             diagnosticDuplicateSuite(file, suite.classStatement, suite.annotation);

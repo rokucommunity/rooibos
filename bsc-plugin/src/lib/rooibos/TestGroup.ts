@@ -1,4 +1,4 @@
-import type { AstEditor, CallExpression, DottedGetExpression, Expression, NamespaceContainer, Scope } from 'brighterscript';
+import type { Editor, CallExpression, DottedGetExpression, Expression, NamespaceContainer, Scope } from 'brighterscript';
 import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
@@ -45,7 +45,7 @@ export class TestGroup extends TestBlock {
         return [...this.testCases.values()];
     }
 
-    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         //for each method
         //if assertion
         //wrap with if is not fail
@@ -70,9 +70,6 @@ export class TestGroup extends TestBlock {
                                 if (dge.tokens.name.text === 'expectCalled' || dge.tokens.name.text === 'expectNotCalled') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 }
-                                if (dge.tokens.name.text === 'expectCalled' || dge.tokens.name.text === 'expectNotCalled') {
-                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
-                                }
 
                                 if (!noEarlyExit) {
                                     const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
@@ -94,7 +91,7 @@ export class TestGroup extends TestBlock {
         }
     }
 
-    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         let isNotCalled = false;
         let isStubCall = false;
 
@@ -235,7 +232,7 @@ export class TestGroup extends TestBlock {
                 name: ${sanitizeBsJsonString(this.name)}
                 isSolo: ${this.isSolo}
                 isIgnored: ${this.isIgnored}
-                filename: "${this.pkgPath}"
+                fileName: "${this.destPath}"
                 lineNumber: ${this.annotation.annotation.location.range.start.line}
                 setupFunctionName: "${this.setupFunctionName || ''}"
                 tearDownFunctionName: "${this.tearDownFunctionName || ''}"

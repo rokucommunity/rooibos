@@ -111,8 +111,8 @@ export class RooibosSession {
                 diagnosticNoStagingDir(files[0] as BrsFile);
             } else {
                 const filePath = path.join(this._builder.options.stagingDir, 'source/rooibosMain.brs');
+                fsExtra.ensureDirSync(path.dirname(filePath));
                 fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
-
             }
         }
     }
@@ -131,9 +131,11 @@ export class RooibosSession {
     updateRunTimeConfigFunction(classStatement: ClassStatement, editor: Editor) {
         let method = classStatement.methods.find((m) => m.tokens.name.text === 'getRuntimeConfig');
         if (method) {
-            editor.addToArray(
+            if (method.func.body.statements.length > 0) {
+                editor.arrayPop(method.func.body.statements);
+            }
+            editor.arrayPush(
                 method.func.body.statements,
-                method.func.body.statements.length,
                 Parser.parse(undent`
                     return {
                         "reporters": ${this.getReportersList()}
@@ -182,9 +184,11 @@ export class RooibosSession {
     updateVersionTextFunction(classStatement: ClassStatement, editor: Editor) {
         let method = classStatement.methods.find((m) => m.tokens.name.text === 'getVersionText');
         if (method) {
-            editor.addToArray(
+            if (method.func.body.statements.length > 0) {
+                editor.arrayPop(method.func.body.statements);
+            }
+            editor.arrayPush(
                 method.func.body.statements,
-                method.func.body.statements.length,
                 Parser.parse(`return "${pkg.version}"`).ast.statements[0]
             );
         }
@@ -193,6 +197,9 @@ export class RooibosSession {
     updateClassMapFunction(classStatement: ClassStatement, editor: Editor) {
         let method = classStatement.methods.find((m) => m.tokens.name.text === 'getTestSuiteClassMap');
         if (method) {
+            if (method.func.body.statements.length > 0) {
+                editor.arrayPop(method.func.body.statements);
+            }
             editor.arrayPush(method.func.body.statements, ...Parser.parse(undent`
                 return {${this.sessionInfo.testSuitesToRun.map(suite => `
                     "${suite.name}": ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('')}
@@ -259,6 +266,9 @@ export class RooibosSession {
     private createIgnoredTestsInfoFunction(cs: ClassStatement, editor: Editor) {
         let method = cs.methods.find((m) => m.tokens.name.text === 'getIgnoredTestInfo');
         if (method) {
+            if (method.func.body.statements.length > 0) {
+                editor.arrayPop(method.func.body.statements);
+            }
             editor.arrayPush(method.func.body.statements, ...Parser.parse([
                 'return {',
                 `    "count": ${this.sessionInfo.ignoredCount}`,

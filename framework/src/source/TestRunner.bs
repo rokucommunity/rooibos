@@ -12,10 +12,10 @@ namespace rooibos
   class TestRunner
     public testScene as roSGNodeScene = invalid
     public testReporters as BaseTestReporter[] = []
-    public nodeContext = invalid
-    public config = invalid
+    public nodeContext as roAssociativeArray = invalid
+    public config as RuntimeConfigData = invalid
     public testSuites as BaseTestSuite[] = []
-    private runtimeConfig = invalid
+    private runtimeConfig as RuntimeConfig = invalid
     private stats as Stats = invalid
     public top as NodeWithRooibosFields = invalid
     private nodeTestName = ""

@@ -24,6 +24,9 @@ export class TestBlock {
     public get pkgPath(): string {
         return this.file.pkgPath;
     }
+    public get destPath(): string {
+        return this.file.destPath;
+    }
 
     public get filePath(): string {
         return this.file.srcPath;
@@ -135,6 +138,7 @@ export class TestSuite extends TestBlock {
       noCatch: ${this.annotation.noCatch}
       isIgnored: ${this.isIgnored}
       pkgPath: "${this.pkgPath}"
+      destPath: "${this.destPath}"
       filePath: "${this.filePath}"
       lineNumber: ${this.classStatement.location.range.start.line + 1}
       valid: ${this.isValid}

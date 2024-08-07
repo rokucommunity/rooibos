@@ -10,6 +10,7 @@ namespace rooibos
     protected name = "BaseTestSuite" 'set the name to the name of your test
     protected filePath = invalid
     protected pkgPath = invalid
+    protected destPath = invalid
     protected isValid = false
     protected hasSoloTests = false
     protected hasIgnoredTests = false
@@ -85,6 +86,7 @@ namespace rooibos
         m.name = data.name
         m.filePath = data.filePath
         m.pkgPath = data.pkgPath
+        m.destPath = data.destPath
         m.valid = data.valid
         m.hasFailures = data.hasFailures
         m.hasSoloTests = data.hasSoloTests
@@ -1825,10 +1827,20 @@ namespace rooibos
         mock = m.mocks[m.__mockId.toStr()]
         mock.toThrow(error)
       catch error
-        m.log.error("could not add throw to last call", error)
+        ? "could not add throw to last call"; error
       end try
     end function
 
+    ' /**
+    '  * @memberof module:BaseTestSuite
+    '  * @name expectCalled
+    '  * @function
+    '  * @instance
+    '  * @description Creates a stub to replace a real method with, which the framework will track. If the method was not invoked in the manner you expected (i.e. with the expected parameters and the expected number of invocations) then a unit test failure will result.
+    '  * @param {Dynamic} invocation - the expected call of the method
+    '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+    '  * @returns {Object} - mock that was wired into the real method
+    '  */
     function expectCalled(invocation as dynamic, returnValue = invalid as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid
@@ -1883,6 +1895,15 @@ namespace rooibos
       return false
     end function
 
+    ' /**
+    '  * @memberof module:BaseTestSuite
+    '  * @name expectNotCalled
+    '  * @function
+    '  * @instance
+    '  * @description Creates a stub to replace a real method with, which the framework will track. If the method was called then a unit test failure will result.
+    '  * @param {Dynamic} method - the method that should not be called
+    '  * @returns {Object} - mock that was wired into the real method
+    '  */
     function expectNotCalled(invocation as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid

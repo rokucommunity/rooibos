@@ -138,3 +138,23 @@ export function getFileLookups(file: BrsFile): CachedLookups {
 export function getMainFunctionStatement(file: BrsFile) {
     return getFileLookups(file).functionStatements.find((fs) => fs.tokens.name.text === 'main');
 }
+
+
+export function getTypeExpressionFromBscType(type: brighterscript.BscType) {
+    // This should probably exist in brighterscript
+    const typeName = type.toString();
+    const typeParts = typeName.split('.');
+    let i = 0;
+    let innerExpression: brighterscript.DottedGetExpression | brighterscript.VariableExpression;
+    while (i < typeParts.length) {
+        if (i === 0) {
+            innerExpression = new brighterscript.VariableExpression({ name: brighterscript.createIdentifier(typeParts[i]) });
+        } else {
+            innerExpression = new brighterscript.DottedGetExpression({ obj: innerExpression, name: brighterscript.createIdentifier(typeParts[i]) });
+        }
+        i++;
+    }
+    return new brighterscript.TypeExpression({
+        expression: innerExpression
+    });
+}

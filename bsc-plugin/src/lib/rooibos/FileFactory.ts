@@ -80,7 +80,7 @@ export class FileFactory {
 
         // Add the test spec file rather then relying on auto imports
         if (suite) {
-            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.pkgPath.replace(/\\/g, '/')}" />`);
+            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.destPath.replace(/\\/g, '/')}" />`);
         }
 
         let contents = `<?xml version="1.0" encoding="UTF-8" ?>

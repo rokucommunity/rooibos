@@ -14,7 +14,7 @@ function addDiagnostic(
     severity: DiagnosticSeverity = DiagnosticSeverity.Error
 ) {
     endLine = endLine === -1 ? startLine : endLine;
-    file.program.diagnostics.register(
+    file.program?.diagnostics.register(
         createDiagnostic(file, code, message, startLine, startCol, endLine, endCol, severity),
         { tags: ['rooibos'] }
     );
@@ -29,7 +29,7 @@ function addDiagnosticForStatement(
 ) {
     let line = statement.location.range.start.line;
     let col = statement.location.range.start.character;
-    file.program.diagnostics.register(
+    file.program?.diagnostics.register(
         createDiagnostic(file, code, message, line, col, line, 999999, severity),
         { tags: ['rooibos'] }
     );
@@ -46,7 +46,7 @@ function addDiagnosticForAnnotation(
     let line = annotation.location.range.start.line;
     let col = annotation.location.range.start.character;
 
-    file.program.diagnostics.register(
+    file.program?.diagnostics.register(
         createDiagnostic(file, code, message, line, col, annotation.location.range.end.line, annotation.location.range.end.character + 9999, severity),
         { tags: ['rooibos'] }
     );

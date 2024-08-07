@@ -35,15 +35,15 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectCalled(item.getText(), "test")
       m.assertEqual(item.getText(), "test")
     end function
 
     @it("expected param")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectCalled(item.getText("expected"), "test")
       m.assertEqual(item.getText("expected"), "test")
 
@@ -51,8 +51,8 @@ namespace tests
     end function
 
     @it("not matching on param")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectCalled(item.getText("expected"), "test")
 
       m.assertEqual(item.getText("not expected"), "test")
@@ -65,8 +65,8 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("supports function pointer - therefore ignoring the params")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
 
       'don't care about the args
       m.expectCalled(item.getText, "some return value I want")
@@ -95,15 +95,15 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectCalled(item@.getText(), "test")
       m.assertEqual(item@.getText(), "test")
     end function
 
     @it("expected param")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectCalled(item@.getText("expected"), "test")
       m.assertEqual(item@.getText("expected"), "test")
 
@@ -111,8 +111,8 @@ namespace tests
     end function
 
     @it("not matching on param")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectCalled(item@.getText("expected"), "test")
 
       m.assertEqual(item@.getText("not expected"), "test")
@@ -125,15 +125,15 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("simple")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.stubCall(item.getText(), "test")
       m.assertEqual(item.getText(), "test")
     end function
 
     @it("expected param")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.stubCall(item.getText("expected"), "test")
       m.assertEqual(item.getText("expected"), "test")
 
@@ -141,8 +141,8 @@ namespace tests
     end function
 
     @it("not matching on param")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.stubCall(item.getText("expected"), "test")
 
       m.assertEqual(item.getText("not expected"), "test")
@@ -155,8 +155,8 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("supports function pointer - therefore ignoring the params")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.stubCall(item.getText, "test")
 
       m.assertEqual(item.getText("any text"), "test")
@@ -169,7 +169,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("stubs global with inline anon with return value")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(globalFunctionWithReturn, function()
         m.wasCalled = true
@@ -182,7 +182,7 @@ namespace tests
     end function
 
     @it("stubs global with anon from variable with return value")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       stub = function()
         m.wasCalled = true
@@ -196,7 +196,7 @@ namespace tests
     end function
 
     @it("stubs global with inline anon without return value")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(globalFunctionWithoutReturn, sub()
         m.wasCalled = true
@@ -208,7 +208,7 @@ namespace tests
     end function
 
     @it("stubs global with anon from variable without return value")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(globalFunctionWithoutReturn, sub()
         m.wasCalled = true
@@ -224,7 +224,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("stubs namespace with inline anon with return value")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(testNamespace.functionWithReturn, function()
         m.wasCalled = true
@@ -236,7 +236,7 @@ namespace tests
     end function
 
     @it("stubs namespace with anon from variable with return value")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       stub = function()
         m.wasCalled = true
@@ -250,7 +250,7 @@ namespace tests
     end function
 
     @it("stubs namespace with inline anon without return value")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(testNamespace.functionWithoutReturn, sub()
         m.wasCalled = true
@@ -261,7 +261,7 @@ namespace tests
     end function
 
     @it("stubs namespace with anon from variable without return value")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(testNamespace.functionWithoutReturn, sub()
         m.wasCalled = true
@@ -276,7 +276,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("stubs namespace multiple times in one test")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(testNamespace.functionWithoutReturn, sub()
         m.wasCalled = true
@@ -295,11 +295,14 @@ namespace tests
     end function
 
     @it("stubs global multiple times in one test")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(testNamespace.functionWithoutReturn, sub()
         m.wasCalled = true
       end sub)
+
+
+
 
       m.assertInvalid(testNamespace.functionWithoutReturn())
       m.assertTrue(getGlobalAA().wasCalled)
@@ -318,7 +321,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("stubs namespace and then cleans it")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(testNamespace.functionWithReturn, function()
         m.wasCalled = true
@@ -349,7 +352,7 @@ namespace tests
     end function
 
     @it("stubs global and then cleans it")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       getGlobalAA().wasCalled = false
       m.stubCall(globalFunctionWithReturn, function()
         m.wasCalled = true
@@ -384,8 +387,8 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("not matching on param")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.stubCall(item@.getText("expected"), "test")
 
       m.assertEqual(item@.getText("not expected"), "test")
@@ -394,15 +397,15 @@ namespace tests
     end function
 
     @it("simple")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.stubCall(item@.getText(), "test")
       m.assertEqual(item@.getText(), "test")
     end function
 
     @it("expected param")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.stubCall(item@.getText("expected"), "test")
       m.assertEqual(item@.getText("expected"), "test")
 
@@ -414,15 +417,15 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("passes when not called")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item.getText())
       m.assertRunningTestIsPassed()
     end function
 
     @it("fails when called")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item.getText())
       item.getText()
 
@@ -430,8 +433,8 @@ namespace tests
     end function
 
     @it("fails when called, with params")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item.getText())
       item.getText("expected")
 
@@ -439,8 +442,8 @@ namespace tests
     end function
 
     @it("fails when called, with params on expect too")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item.getText("expected"))
       item.getText("not expected")
 
@@ -452,15 +455,15 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("passes when not called")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item@.getText())
       m.assertRunningTestIsPassed()
     end function
 
     @it("fails when called")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item@.getText())
       item@.getText()
 
@@ -468,8 +471,8 @@ namespace tests
     end function
 
     @it("fails when called, with params")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item@.getText())
       item@.getText("expected")
 
@@ -477,8 +480,8 @@ namespace tests
     end function
 
     @it("fails when called, with params on expect too")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item@.getText("expected"))
       item@.getText("not expected")
 
@@ -490,15 +493,15 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("passes when not called")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item.getText)
       m.assertRunningTestIsPassed()
     end function
 
     @it("fails when called")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item.getText)
       item.getText()
 
@@ -506,8 +509,8 @@ namespace tests
     end function
 
     @it("fails when called, with params")
-    function _()  'bs:disable-line 1026
-      item = { "id": "node" }
+    function _() 'bs:disable-line 1026
+      item = {"id": "node"}
       m.expectNotCalled(item.getText)
       item.getText("expected")
 
@@ -519,10 +522,10 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("throws exceptions")
-    function _()  'bs:disable-line 1026
-      thing = { "id": "thing" }
+    function _() 'bs:disable-line 1026
+      thing = {"id": "thing"}
 
-      error = { message: "error" }
+      error = {message: "error"}
       m.expectCalled(thing.thrownAnError())
       m.expectLastCallToThrowError(error)
 
@@ -539,55 +542,55 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("uses default implementation on global functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.assertEqual(utils.sayHello("John", "Lennon"), "John, Lennon")
     end function
 
     @it("uses default implementation on namespaced functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.assertEqual(globalSayHello("John", "Lennon"), "John, Lennon")
     end function
 
     @it("supports mocks on global functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.expectCalled(globalSayHello("John", "Lennon"), "john")
 
       m.assertEqual(globalSayHello("John", "Lennon"), "john")
     end function
 
     @it("supports mocks on namespaced functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul")
 
       m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul")
     end function
 
     @it("reports uncalled mocks on global functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.expectCalled(globalSayHello("John", "Lennon"), "john")
 
       m.assertRunningTestIsFailed()
     end function
 
     @it("reports uncalled mocks on namespaced functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul")
 
       m.assertRunningTestIsFailed()
     end function
 
     @it("resets to default implementation on global functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.assertEqual(utils.sayHello("John", "Lennon"), "John, Lennon")
     end function
 
     @it("resets to default implementation on namespaced functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.assertEqual(globalSayHello("John", "Lennon"), "John, Lennon")
     end function
 
     @it("supports overloaded mocks on global functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.expectCalled(globalSayHello("John", "Lennon"), "john")
       m.expectCalled(globalSayHello("John", "Lennon"), "john2")
 
@@ -596,7 +599,7 @@ namespace tests
     end function
 
     @it("supports overloaded mocks on namespaced functions")
-    function _()  'bs:disable-line 1026
+    function _() 'bs:disable-line 1026
       m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul1")
       m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul2")
 
