@@ -80,14 +80,14 @@ namespace rooibos
       isOk = m.runSuiteFunction(m.setupFunctionName, "setup")
 
       if isOk
-        for each testData in m.testsData
-          rooibosTest = new rooibos.Test(m, testData)
+        for each data in m.testsData
+          rooibosTest = new rooibos.Test(m, data)
           m.tests.push(rooibosTest)
 
           isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", rooibosTest)
 
           if isOk
-            m.testSuite.runTest(test)
+            m.testSuite.runTest(rooibosTest)
           end if
 
           m.runSuiteFunction(m.afterEachFunctionName, "afterEach", rooibosTest)
@@ -113,8 +113,8 @@ namespace rooibos
       if isOk
         m.testRunner.currentGroup = m
         for each testData in m.testsData
-          test = new rooibos.Test(m, testData)
-          m.tests.push(test)
+          testToRun = new rooibos.Test(m, testData)
+          m.tests.push(testToRun)
         end for
         m.currentTestIndex = -1
         m.runNextAsync()
@@ -140,9 +140,9 @@ namespace rooibos
         if isOk
           'TODO - set a timeout here
           currentTest = m.currentTest
-          if currentTest.isAsync <> true
+          if currentTest?.isAsync <> true
             ? "Executing test synchronously"
-            m.testSuite.runTest(test)
+            m.testSuite.runTest(currentTest)
             m.testRunner.top.rooibosTestFinished = true
             m.onAsyncTestComplete()
           else
@@ -150,7 +150,7 @@ namespace rooibos
             if currentTest.isAsync = true
               m.testSuite.setTestTimer(currentTest.asyncTimeout)
             end if
-            m.testSuite.runTest(test)
+            m.testSuite.runTest(currentTest)
 
             if currentTest.result.isFail
               ? "Test failed before any async code could be executed"

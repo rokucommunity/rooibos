@@ -1,15 +1,15 @@
 namespace rooibos
   class Test
 
-    public name
-    public isSolo
+    public name as string
+    public isSolo as boolean
     public noCatch = false
-    public funcName
-    public isIgnored
-    public lineNumber
-    public paramLineNumber
-    public testSuite = invalid
-    public testGroup = invalid
+    public funcName as string
+    public isIgnored as boolean
+    public lineNumber as integer
+    public paramLineNumber as integer
+    public testSuite as BaseTestSuite = invalid
+    public testGroup as TestGroup = invalid
 
     public rawParams
     public paramTestIndex
@@ -22,9 +22,9 @@ namespace rooibos
     public isAsync = false
     public asyncTimeout = 0
 
-    function new(testGroup, data)
-      m.testGroup = testGroup
-      m.testSuite = testGroup.testSuite
+    function new(group as TestGroup, data as TestCaseData)
+      m.testGroup = group
+      m.testSuite = group.testSuite
       m.isSolo = data.isSolo
       m.noCatch = data.noCatch
       m.funcName = data.funcName

@@ -4,7 +4,8 @@
     "manifest",
     "source/**/*.*",
     "components/**/*.*",
-    { "src": "../../framework/src/source/**/*", "dest": "source/rooibos" }
+    { "src": "../../framework/src/source/**/*", "dest": "source/rooibos" },
+    { "src": "../../framework/src/source/RooibosScene.xml", "dest": "components/rooibos/RooibosScene.xml" }
   ],
   "autoImportComponentScript": true,
   "createPackage": false,
@@ -24,7 +25,7 @@
     "@rokucommunity/bslint",
     "../bsc-plugin/src/plugin.ts"
   ],
-  "lintConfig": "../bslint.json",
+  "lintConfig": "../framework/bslint.json",
   "require": [
     "ts-node/register"
   ],

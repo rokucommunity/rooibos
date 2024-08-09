@@ -71,7 +71,7 @@ export class TestSuite extends TestBlock {
     constructor(annotation: RooibosAnnotation, classStatement: ClassStatement) {
         super(annotation);
         this.classStatement = classStatement;
-        this.isNodeTest = annotation.nodeName && annotation.nodeName.trim() !== '';
+        this.isNodeTest = !!(annotation.nodeName && annotation.nodeName.trim() !== '');
         this.nodeName = annotation.nodeName?.trim();
         if (!this.name) {
             this.annotation.name = classStatement.tokens.name.text;

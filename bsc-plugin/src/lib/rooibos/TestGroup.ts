@@ -85,7 +85,7 @@ export class TestGroup extends TestBlock {
                 walkMode: brighterscript.WalkMode.visitStatementsRecursive
             });
         } catch (e) {
-            console.error(e);
+            //console.error(e);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(this.testSuite.file, e.message);
         }

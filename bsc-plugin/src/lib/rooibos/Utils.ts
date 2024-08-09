@@ -136,7 +136,7 @@ export function getFileLookups(file: BrsFile): CachedLookups {
 }
 
 export function getMainFunctionStatement(file: BrsFile) {
-    return getFileLookups(file).functionStatements.find((fs) => fs.tokens.name.text === 'main');
+    return file.ast.statements.find((fs) => brighterscript.isFunctionStatement(fs) && fs.tokens.name.text.toLowerCase() === 'main') as FunctionStatement;
 }
 
 

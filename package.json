@@ -10,10 +10,10 @@
     "dist/**/!(manifest)*"
   ],
   "devDependencies": {
-    "@rokucommunity/bslint": "^1.0.0-alpha.35",
+    "@rokucommunity/bslint": "^1.0.0-alpha.36",
     "@types/chai": "^4.1.2",
     "@types/mocha": "^5.2.5",
-    "brighterscript": "^1.0.0-alpha.35",
+    "brighterscript": "^1.0.0-alpha.36",
     "chai": "^4.2.0",
     "ropm": "^0.5.0",
     "ts-node": "^10.9.2",

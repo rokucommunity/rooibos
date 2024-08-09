@@ -5,8 +5,11 @@
   "createPackage": false,
   "stagingDir": "build",
   "diagnosticFilters": [],
-  "plugins": ["@rokucommunity/bslint"],
-  "lintConfig": "../bslint.json",
-  "require": ["ts-node/register"],
+  "plugins": [
+    "../../bslint/src/index.ts"
+  ],
+  "require": [
+    "ts-node/register"
+  ],
   "sourceMap": true
 }

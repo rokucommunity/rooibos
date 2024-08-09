@@ -13,7 +13,9 @@ import type {
     OnPrepareFileEvent,
     BeforeBuildProgramEvent,
     AfterProvideFileEvent,
-    AfterFileRemoveEvent
+    AfterFileRemoveEvent,
+    AfterSerializeProgramEvent,
+    BeforeWriteFileEvent
 } from 'brighterscript';
 import {
     isBrsFile,
@@ -148,7 +150,7 @@ export class RooibosPlugin implements CompilerPlugin {
             if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
                 return;
             }
-            // console.log('processing ', file.pkgPath);
+            console.log('processing ', file.pkgPath);
 
             if (isBrsFile(file)) {
                 // Add the node test component so brighter script can validate the test files
@@ -161,13 +163,15 @@ export class RooibosPlugin implements CompilerPlugin {
                     }, this.session.getNodeTestXmlText(suite));
                     // eslint-disable-next-line @typescript-eslint/dot-notation
                     file['rooibosXmlFile'] = xmlFile;
+                    event.files.push(xmlFile);
                 }
             }
         }
     }
 
     beforeBuildProgram(event: BeforeBuildProgramEvent) {
-        this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
+        const createdFiles = this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
+        event.files.push(...createdFiles);
     }
 
     prepareFile(event: OnPrepareFileEvent) {
@@ -179,7 +183,7 @@ export class RooibosPlugin implements CompilerPlugin {
             const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
-                console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
+                event.program.logger.warn(`TestSuite "${testSuite.name}" is marked as noEarlyExit`);
             }
 
             const modifiedTestCases = new Set();
@@ -271,7 +275,6 @@ export class RooibosPlugin implements CompilerPlugin {
     private shouldSkipFile(file: BscFile) {
         return file.pkgPath.toLowerCase().includes('source/bslib.brs');
     }
-
 }
 
 export default () => {

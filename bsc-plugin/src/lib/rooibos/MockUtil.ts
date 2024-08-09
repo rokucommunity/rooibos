@@ -14,7 +14,7 @@ import { functionRequiresReturnValue, getAllDottedGetParts, getFileLookups, getS
 
 export class MockUtil {
 
-    constructor(builder: ProgramBuilder, fileFactory: FileFactory, session: RooibosSession) {
+    constructor(public builder: ProgramBuilder, fileFactory: FileFactory, session: RooibosSession) {
         this.config = (builder.options as any).rooibos as RooibosConfig || {};
         this.filePathMap = {};
         this.fileId = 0;
@@ -167,7 +167,7 @@ export class MockUtil {
                 walkMode: brighterscript.WalkMode.visitStatementsRecursive
             });
         } catch (e) {
-            console.log(e);
+            this.builder.program.logger.error('Error processing global method mocks', e);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(testSuite.file, e.message);
         }

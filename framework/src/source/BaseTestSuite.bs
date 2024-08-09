@@ -8,7 +8,7 @@ namespace rooibos
 
     'test state
     protected name = "BaseTestSuite" 'set the name to the name of your test
-    protected filePath = invalid
+    public filePath = invalid
     protected pkgPath = invalid
     protected destPath = invalid
     protected isValid = false

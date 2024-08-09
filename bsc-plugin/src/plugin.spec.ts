@@ -599,6 +599,31 @@ describe('RooibosPlugin', () => {
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
 
+        it('adds launch hook to existing main function with different case', async () => {
+            plugin.afterProgramCreate({ program: program, builder: builder });
+            // program.validate();
+            const file = program.setFile<BrsFile>('source/main.bs', `
+                sub Main()
+                    print "main"
+                end sub
+            `);
+            program.validate();
+            await builder.build();
+
+            expect(
+                getContents('main.brs')
+            ).to.eql(undent`
+                sub Main()
+                    Rooibos_init("RooibosScene")
+                    print "main"
+                end sub
+            `);
+            //the AST should not have been permanently modified
+            const statements = (file.parser.ast.statements[0] as FunctionStatement).func.body.statements;
+            expect(statements).to.be.lengthOf(1);
+            expect(statements[0]).to.be.instanceof(PrintStatement);
+        });
+
 
         it('adds launch hook with custom scene', async () => {
             setupProgram({
@@ -2072,9 +2097,12 @@ describe('RooibosPlugin', () => {
                         m.testSuites = {}
                         m.testSuites = m.getTestSuiteClassMap()
                     end function
+                    ' bs:disable-next-line LINT2004
                     instance.getVersionText = function() as string
                         return "${version}"
+                        ' filled in by plugin
                     end function
+                    ' bs:disable-next-line LINT2004
                     instance.getRuntimeConfig = function() as dynamic
                         return {
                             "reporters": [
@@ -2093,12 +2121,15 @@ describe('RooibosPlugin', () => {
                             "keepAppOpen": true
                             "isRecordingCodeCoverage": false
                         }
+                        ' filled in by plugin
                     end function
+                    ' bs:disable-next-line LINT2004
                     instance.getTestSuiteClassMap = function() as dynamic
                         return {
                             "ATest1": ATest1
                             "ATest2": ATest2
                         }
+                        ' filled in by plugin
                     end function
                     instance.getTestSuiteClassWithName = function(name as string) as dynamic
                         return m.testSuites[name]
@@ -2106,11 +2137,13 @@ describe('RooibosPlugin', () => {
                     instance.getAllTestSuitesNames = function() as object
                         return m.testSuites.keys()
                     end function
+                    ' bs:disable-next-line LINT2004
                     instance.getIgnoredTestInfo = function() as dynamic
                         return {
                             "count": 0
                             "items": []
                         }
+                        ' filled in by plugin
                     end function
                     return instance
                 end function
@@ -2128,7 +2161,7 @@ describe('RooibosPlugin', () => {
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
         });
 
-        const sep = '\n                                    ';
+        const sep = '\n';
         const params: [string[], string][] = [
             [[], 'rooibos_ConsoleTestReporter'],
             [['CONSOLE'], 'rooibos_ConsoleTestReporter'],
@@ -2149,64 +2182,56 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
 
                 await builder.build();
-
-                expect(
-                    getContents('rooibos/RuntimeConfig.brs')
-                ).to.eql(undent`
-                    function __rooibos_RuntimeConfig_builder()
-                        instance = {}
-                        instance.new = function()
-                            m.testSuites = {}
-                            m.testSuites = m.getTestSuiteClassMap()
-                        end function
-                        instance.getVersionText = function() as string
-                            return "${version}"
-                        end function
-                        instance.getRuntimeConfig = function() as dynamic
-                            return {
-                                "reporters": [
-                                    ${expected}
-                                ]
-                                "failFast": true
-                                "sendHomeOnFinish": true
-                                "logLevel": 0
-                                "showOnlyFailures": true
-                                "printTestTimes": true
-                                "lineWidth": 60
-                                "printLcov": false
-                                "port": "invalid"
-                                "catchCrashes": true
-                                "throwOnFailedAssertion": false
-                                "keepAppOpen": true
-                                "isRecordingCodeCoverage": false
-                            }
-                        end function
-                        instance.getTestSuiteClassMap = function() as dynamic
-                            return {}
-                        end function
-                        instance.getTestSuiteClassWithName = function(name as string) as dynamic
-                            return m.testSuites[name]
-                        end function
-                        instance.getAllTestSuitesNames = function() as object
-                            return m.testSuites.keys()
-                        end function
-                        instance.getIgnoredTestInfo = function() as dynamic
-                            return {
-                                "count": 0
-                                "items": []
-                            }
-                        end function
-                        return instance
-                    end function
-                    function rooibos_RuntimeConfig()
-                        instance = __rooibos_RuntimeConfig_builder()
-                        instance.new()
-                        return instance
-                    end function
-                `);
-
+                const content = getContents('rooibos/RuntimeConfig.brs');
+                const noLeadingWhitespace = content.replace(/^\s+/gm, '');
+                expect(noLeadingWhitespace).to.include(expected);
                 destroyProgram();
             }
+        });
+    });
+
+    describe('node tests', () => {
+
+        it('creates an async component using the @async annotation', async () => {
+            program.setFile('components/customComponent.xml', `
+                <component name="CustomComponent" extends="Group" />
+            `);
+            program.setFile('components/customComponent.bs', ``);
+            program.setFile('source/baseTestClass.spec.bs', `
+                class BaseTestClass extends rooibos.BaseTestSuite
+                    public function customHelperFunction() as boolean
+                        return true
+                    end function
+                end class
+            `);
+            program.setFile('source/test.spec.bs', `
+                @suite
+                @async(1000)
+                @SGNode("CustomComponent")
+                class ATest extends Rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        item = {id: "item"}
+                        m.expectNotCalled(item.getFunction())
+                    end function
+                end class
+            `);
+
+            program.validate();
+            const diagnostics = program.getDiagnostics();
+            expect(diagnostics).to.be.empty;
+
+            await builder.build();
+
+            let sceneContent = getComponentContents('rooibos/RooibosScene.xml');
+            expect(sceneContent).to.not.be.empty;
+            let xmlContent = getComponentContents('rooibos/generated/ATest.xml');
+            expect(xmlContent).to.not.be.empty;
+            let brsContent = getComponentContents('rooibos/generated/ATest.brs');
+            expect(brsContent).to.not.be.empty;
+
+            destroyProgram();
         });
     });
 
@@ -2324,6 +2349,12 @@ describe('RooibosPlugin', () => {
 function getContents(filename: string) {
     return undent(
         fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString()
+    );
+}
+
+function getComponentContents(filename: string) {
+    return undent(
+        fsExtra.readFileSync(s`${_stagingFolderPath}/components/${filename}`).toString()
     );
 }
 

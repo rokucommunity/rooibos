@@ -20,8 +20,8 @@ namespace rooibos
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
           m.printSuiteStart(testSuite)
 
-          for each testGroup in testSuite.groups
-            m.printGroup(testGroup)
+          for each group in testSuite.groups
+            m.printGroup(group)
           end for
         end if
       end for
@@ -58,17 +58,17 @@ namespace rooibos
       m.endReport()
     end function
 
-    function printGroup(testGroup)
+    function printGroup(group as TestGroup)
       isGroupPrinted = false
 
-      for each test in testGroup.tests
-        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
+      for each groupTest in group.tests
+        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or groupTest.result.isFail)
           if not isGroupPrinted
-            m.printGroupStart(testGroup)
+            m.printGroupStart(group)
             isGroupPrinted = true
           end if
 
-          m.printTest(test)
+          m.printTest(groupTest)
         end if
       end for
 
@@ -77,37 +77,37 @@ namespace rooibos
       end if
     end function
 
-    function printTest(test)
+    function printTest(rooibosTest as Test)
 
-      testLocationLine = StrI(test.lineNumber).trim()
+      testLocationLine = StrI(rooibosTest.lineNumber).trim()
 
       locationLine = invalid
       testChar = ""
-      if test.result.isCrash
+      if rooibosTest.result.isCrash
         testChar = "|"
-        locationLine = StrI(test.lineNumber).trim()
-      else if test.result.isFail
+        locationLine = StrI(rooibosTest.lineNumber).trim()
+      else if rooibosTest.result.isFail
         testChar = "-"
-        locationLine = StrI(test.result.lineNumber + 1).trim()
+        locationLine = StrI(rooibosTest.result.lineNumber + 1).trim()
       else
         testChar = "|"
-        locationLine = StrI(test.lineNumber).trim()
+        locationLine = StrI(rooibosTest.lineNumber).trim()
       end if
 
-      testLocationText = "file://" + test.testSuite.filePath.trim() + ":" + testLocationLine
+      testLocationText = "file://" + rooibosTest.testSuite.filePath.trim() + ":" + testLocationLine
 
       timeText = ""
       if m.config.printTestTimes = true
-        timeText = " (" + stri(test.result.time).trim() + "ms)"
+        timeText = " (" + stri(rooibosTest.result.time).trim() + "ms)"
       end if
 
       insetText = ""
-      if test.isParamTest <> true
-        messageLine = rooibos.common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
-        m.printLine(0, messageLine + test.result.getStatusText() + timeText)
+      if rooibosTest.isParamTest <> true
+        messageLine = rooibos.common.fillText(" " + testChar + " |--" + rooibosTest.name + " : ", ".", m.lineWidth)
+        m.printLine(0, messageLine + rooibosTest.result.getStatusText() + timeText)
         m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
-      else if test.paramTestIndex = 0
-        name = test.name
+      else if rooibosTest.paramTestIndex = 0
+        name = rooibosTest.name
         if len(name) > 1 and right(name, 1) = "0"
           name = left(name, len(name) - 1)
         end if
@@ -115,35 +115,35 @@ namespace rooibos
         m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
       end if
 
-      locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine
-      if test.isParamTest = true
+      locationText = "file://" + rooibosTest.testSuite.filePath.trim() + ":" + locationLine
+      if rooibosTest.isParamTest = true
         insetText = "  "
 
         rawParams = invalid
-        if type(test.rawParams) = "roAssociativeArray"
+        if type(rooibosTest.rawParams) = "roAssociativeArray"
           rawParams = {}
-          for each key in test.rawParams
-            if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
-              rawParams[key] = test.rawParams[key]
+          for each key in rooibosTest.rawParams
+            if type(rooibosTest.rawParams[key]) <> "Function" and type(rooibosTest.rawParams[key]) <> "roFunction"
+              rawParams[key] = rooibosTest.rawParams[key]
             end if
           end for
         else
-          rawParams = test.rawParams
+          rawParams = rooibosTest.rawParams
         end if
         messageLine = rooibos.common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", m.lineWidth)
-        m.printLine(0, messageLine + test.result.getStatusText() + timeText)
+        m.printLine(0, messageLine + rooibosTest.result.getStatusText() + timeText)
       end if
 
-      if test.result.isCrash
+      if rooibosTest.result.isCrash
         m.printLine(0, " | " + insetText + "  |--Crashed at: " + locationText)
-        m.printStackTrace(insetText, test.result.error)
+        m.printStackTrace(insetText, rooibosTest.result.error)
         m.printLine(0, " | ")
-      else if test.result.isFail
+      else if rooibosTest.result.isFail
         m.printLine(0, " | " + insetText + "  |--Failed at: " + locationText)
-        if test.isParamTest = true
-          m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(test.paramLineNumber - 1).trim())
+        if rooibosTest.isParamTest = true
+          m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(rooibosTest.paramLineNumber - 1).trim())
         end if
-        m.printLine(0, " | " + insetText + "  |--Error Message: " + test.result.message)
+        m.printLine(0, " | " + insetText + "  |--Error Message: " + rooibosTest.result.message)
         m.printLine(0, " | ")
       end if
     end function
@@ -178,8 +178,8 @@ namespace rooibos
 
     end function
 
-    function printGroupStart(testGroup)
-      m.printLine(0, " |-" + testGroup.name)
+    function printGroupStart(group)
+      m.printLine(0, " |-" + group.name)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

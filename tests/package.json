@@ -7,8 +7,8 @@
     "watch": "npx bsc --project bsconfig.json --watch"
   },
   "devDependencies": {
-    "brighterscript": "^1.0.0-alpha.35",
-    "@rokucommunity/bslint": "^1.0.0-alpha.35",
+    "brighterscript": "../brighetrscript",
+    "@rokucommunity/bslint": "^1.0.0-alpha.36",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.4"
   },

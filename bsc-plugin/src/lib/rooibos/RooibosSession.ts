@@ -1,6 +1,6 @@
 import * as path from 'path';
-import type { BrsFile, ClassStatement, Editor, FunctionStatement, NamespaceContainer, NamespaceStatement, Program, ProgramBuilder, Scope } from 'brighterscript';
-import { isBrsFile, isCallExpression, isVariableExpression, ParseMode, Parser, WalkMode } from 'brighterscript';
+import type { BrsFile, BscFile, ClassStatement, Editor, FunctionStatement, NamespaceContainer, NamespaceStatement, Program, ProgramBuilder, Scope } from 'brighterscript';
+import { isBrsFile, isCallExpression, isDottedGetExpression, isVariableExpression, ParseMode, Parser, WalkMode } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
@@ -44,14 +44,10 @@ export class RooibosSession {
 
         // Make sure to create the node files before running the global mock logic
         // We realy on them in order to check the component scope for the global functions
-        for (let testSuite of this.sessionInfo.testSuitesToRun) {
-            if (testSuite.isNodeTest) {
-                this.createNodeFile(program, testSuite);
-            }
-        }
+        const resultFiles = this.createNodeFiles(program);
 
         if (this.config.isGlobalMethodMockingEnabled && this.config.isGlobalMethodMockingEfficientMode) {
-            console.log('Efficient global stubbing is enabled');
+            program.logger.info('Efficient global stubbing is enabled');
             this.namespaceLookup = this.getNamespaces(program);
             for (let testSuite of this.sessionInfo.testSuitesToRun) {
                 mockUtil.gatherGlobalMethodMocks(testSuite);
@@ -60,6 +56,7 @@ export class RooibosSession {
         } else {
             this.namespaceLookup = new Map<string, NamespaceContainer>();
         }
+        return resultFiles;
     }
 
     updateSessionStats() {
@@ -84,7 +81,24 @@ export class RooibosSession {
             }
         }
         if (mainFunction) {
-            const initCall = mainFunction.func.body.findChild(f => isCallExpression(f) && isVariableExpression(f.callee) && f.callee.tokens.name.text.toLowerCase() === 'rooibos_init', {
+            const initCall = mainFunction.func.body.findChild(f => {
+                if (isCallExpression(f)) {
+                    const callee = f.callee;
+                    if (isVariableExpression(callee)) {
+                        if (callee.tokens.name.text.toLowerCase() === 'rooibos_init') {
+                            return true;
+                        }
+                    } else if (isDottedGetExpression(callee)) {
+                        if (isVariableExpression(callee.obj)) {
+                            if (callee.obj.tokens.name.text.toLowerCase() === 'rooibos') {
+                                if (callee.tokens.name.text.toLowerCase() === 'init') {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }, {
                 walkMode: WalkMode.visitAllRecursive
             });
             if (!initCall) {
@@ -107,7 +121,7 @@ export class RooibosSession {
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files[0] as BrsFile);
             if (!this._builder.options.stagingDir) {
-                console.error('this plugin requires that stagingDir bsconfig option is set');
+                this._builder.program.logger.error('Rooibos requires that stagingDir bsconfig option is set');
                 diagnosticNoStagingDir(files[0] as BrsFile);
             } else {
                 const filePath = path.join(this._builder.options.stagingDir, 'source/rooibosMain.brs');
@@ -209,26 +223,24 @@ export class RooibosSession {
     }
 
     createNodeFiles(program: Program) {
+        const createdFiles: BscFile[] = [];
         for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
-            this.createNodeFile(program, suite);
+            createdFiles.push(...this.createNodeFile(program, suite));
         }
+        return createdFiles;
     }
 
     createNodeFile(program: Program, suite: TestSuite) {
         let xmlText = this.getNodeTestXmlText(suite);
-        this.fileFactory.addFile(program, suite.xmlPkgPath, xmlText);
-        //let bsFile = program.getFile(suite.bsPkgPath);
-        //if (bsFile) {
-        //   (bsFile as BrsFile).parser.statements.push();
-        //   bsFile.needsTranspiled = true;
-        //}
-        let brsFile = this.fileFactory.addFile(program, suite.bsPkgPath, undent`
+        let xmlFile = this.fileFactory.addFile(program, suite.xmlPkgPath, xmlText);
+
+        let bsFile = this.fileFactory.addFile(program, suite.bsPkgPath, undent`
             function init()
                 nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
                 m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
             end function
         `);
-        brsFile.parser.invalidateReferences();
+        return [xmlFile, bsFile];
     }
 
     public getNodeTestXmlText(suite: TestSuite) {
