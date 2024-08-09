@@ -4,11 +4,16 @@
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - tests",
   "scripts": {
     "build": "bsc",
-    "watch": "npx bsc --project bsconfig.json --watch"
+    "watch": "npx bsc --project bsconfig.json --watch",
+    "test": "npm run build && npx ts-node ./scripts/runRooibosTests.ts --verbose"
   },
   "devDependencies": {
-    "brighterscript": "../brighetrscript",
     "@rokucommunity/bslint": "^1.0.0-alpha.36",
+    "brighterscript": "^1.0.0-alpha.36",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "roku-debug": "^0.21.10",
+    "roku-deploy": "^4.0.0-alpha.1",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.4"
   },

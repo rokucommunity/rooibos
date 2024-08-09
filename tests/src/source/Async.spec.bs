@@ -17,6 +17,7 @@ namespace tests
     @it("normal async test")
     function _()
       callbackFunction = sub()
+
         m.wasCalled = true
         m.testSuite.assertTrue(true)
         m.testSuite.done()

@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "scripts": {
-    "build": "npx bsc",
-    "test": "npx bsc --project ./bsconfig-tests.json"
+    "postinstall": "npm --prefix ./bsc-plugin install && npm --prefix ./tests install",
+    "build": "cd bsc-plugin && npm run build",
+    "test": "cd bsc-plugin && npm run test",
+    "rokutest": "cd tests && npm run test"
   },
   "files": [
     "dist/**/!(manifest)*"
