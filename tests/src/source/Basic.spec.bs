@@ -217,6 +217,7 @@ namespace tests
       m.assertLike(value1, value2)
       isFail = m.currentResult.isFail
       msg = m.currentResult.getMessage()
+      m.assertNotInvalid(msg)
       m.currentResult.Reset()
       m.assertTrue(isFail)
     end function

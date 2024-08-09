@@ -8,9 +8,6 @@
     },
     {
       "path": "tests"
-    },
-    {
-      "path": "../vsc/brighterscript"
     }
   ],
   "settings": {
