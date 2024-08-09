@@ -16,11 +16,17 @@ export class RawCodeExpression extends Expression {
         super();
     }
 
+    readonly kind = 'RawCodeExpression' as brighterscript.AstNodeKind;
+
+    get location() {
+        return brighterscript.util.createLocationFromFileRange(this.sourceFile, this.range);
+    }
+
     public transpile(state: BrsTranspileState) {
         return [new SourceNode(
             this.range.start.line + 1,
             this.range.start.character,
-            this.sourceFile ? this.sourceFile.pathAbsolute : state.srcPath,
+            this.sourceFile ? this.sourceFile.srcPath : state.srcPath,
             this.source
         )];
     }
