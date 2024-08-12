@@ -76,6 +76,7 @@ export class CodeCoverageProcessor {
         this.executableLines = new Map<number, Statement>();
         this.processedStatements = new Set<Statement>();
         this.astEditor = astEditor;
+        console.log('Processing file:', this.fileId, file.pkgPath);
 
         file.ast.walk(createVisitor({
             ForStatement: (ds, parent, owner, key) => {

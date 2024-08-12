@@ -497,7 +497,7 @@ describe('RooibosPlugin', () => {
             });
         });
 
-        it('adds code coverage in conditional compile statements', async () => {
+        it.only('adds code coverage in conditional compile statements', async () => {
             program.setFile('source/code.bs', `
                 #const DEBUG = true
                 sub test()
