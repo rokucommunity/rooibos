@@ -1,26 +1,21 @@
 import type {
     BscFile,
     CompilerPlugin,
-    Program,
     ProgramBuilder,
-    TranspileObj,
-    Editor,
     XmlFile,
     BeforeProgramCreateEvent,
     AfterProgramCreateEvent,
-    AfterFileParseEvent,
     AfterProgramValidateEvent,
     OnPrepareFileEvent,
     BeforeBuildProgramEvent,
     AfterProvideFileEvent,
-    AfterFileRemoveEvent,
-    AfterSerializeProgramEvent,
-    BeforeWriteFileEvent
+    AfterFileRemoveEvent
 } from 'brighterscript';
 import {
     isBrsFile,
     isXmlFile,
-    util
+    util,
+    standardizePath
 } from 'brighterscript';
 import { RooibosSession } from './lib/rooibos/RooibosSession';
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
@@ -273,7 +268,7 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     private shouldSkipFile(file: BscFile) {
-        return file.pkgPath.toLowerCase().includes('source/bslib.brs');
+        return file.pkgPath.toLowerCase().includes(standardizePath('source/bslib.brs'));
     }
 }
 
