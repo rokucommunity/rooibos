@@ -497,6 +497,7 @@ describe('RooibosPlugin', () => {
             });
         });
 
+        // eslint-disable-next-line no-only-tests/no-only-tests
         it.only('adds code coverage in conditional compile statements', async () => {
             program.setFile('source/code.bs', `
                 #const DEBUG = true
