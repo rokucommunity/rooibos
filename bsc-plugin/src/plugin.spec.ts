@@ -2168,8 +2168,8 @@ describe('RooibosPlugin', () => {
             [['MyCustomReporter'], 'MyCustomReporter'],
             [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
         ];
-        // eslint-disable-next-line no-only-tests/no-only-tests
-        it.only('adds custom test reporters', async () => {
+
+        it('adds custom test reporters', async () => {
             let i = 1;
             for (const [reporters, expected] of params) {
                 console.log('Program setup ', i);
