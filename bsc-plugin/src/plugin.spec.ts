@@ -2168,8 +2168,12 @@ describe('RooibosPlugin', () => {
             [['MyCustomReporter'], 'MyCustomReporter'],
             [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
         ];
-        it('adds custom test reporters', async () => {
+        // eslint-disable-next-line no-only-tests/no-only-tests
+        it.only('adds custom test reporters', async () => {
+            let i = 1;
             for (const [reporters, expected] of params) {
+                console.log('Program setup ', i);
+                console.log('Reporters: ', reporters);
                 setupProgram({
                     rootDir: _rootDir,
                     stagingDir: _stagingFolderPath,
@@ -2177,7 +2181,6 @@ describe('RooibosPlugin', () => {
                         reporters: reporters
                     }
                 });
-
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
 
@@ -2186,6 +2189,9 @@ describe('RooibosPlugin', () => {
                 const noLeadingWhitespace = content.replace(/^\s+/gm, '');
                 expect(noLeadingWhitespace).to.include(expected);
                 destroyProgram();
+                console.log('Program destroyed ', i);
+                i++;
+
             }
         });
     });
