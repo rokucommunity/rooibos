@@ -2170,10 +2170,7 @@ describe('RooibosPlugin', () => {
         ];
 
         it('adds custom test reporters', async () => {
-            let i = 1;
             for (const [reporters, expected] of params) {
-                console.log('Program setup ', i);
-                console.log('Reporters: ', reporters);
                 setupProgram({
                     rootDir: _rootDir,
                     stagingDir: _stagingFolderPath,
@@ -2189,9 +2186,6 @@ describe('RooibosPlugin', () => {
                 const noLeadingWhitespace = content.replace(/^\s+/gm, '');
                 expect(noLeadingWhitespace).to.include(expected);
                 destroyProgram();
-                console.log('Program destroyed ', i);
-                i++;
-
             }
         });
     });
