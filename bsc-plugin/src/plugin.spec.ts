@@ -2161,16 +2161,18 @@ describe('RooibosPlugin', () => {
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
         });
 
-        const sep = '\n';
-        const params: [string[], string][] = [
-            [[], 'rooibos_ConsoleTestReporter'],
-            [['CONSOLE'], 'rooibos_ConsoleTestReporter'],
-            [['MyCustomReporter'], 'MyCustomReporter'],
-            [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
-        ];
 
-        it('adds custom test reporters', async () => {
-            for (const [reporters, expected] of params) {
+        describe('test reporters', function runTests() {
+            this.timeout(5000);
+            const sep = '\n';
+            const params: [string[], string][] = [
+                [[], 'rooibos_ConsoleTestReporter'],
+                [['CONSOLE'], 'rooibos_ConsoleTestReporter'],
+                [['MyCustomReporter'], 'MyCustomReporter'],
+                [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
+            ];
+
+            async function runReporterTest(reporters: string[], expected: string[]) {
                 setupProgram({
                     rootDir: _rootDir,
                     stagingDir: _stagingFolderPath,
@@ -2184,9 +2186,29 @@ describe('RooibosPlugin', () => {
                 await builder.build();
                 const content = getContents('rooibos/RuntimeConfig.brs');
                 const noLeadingWhitespace = content.replace(/^\s+/gm, '');
-                expect(noLeadingWhitespace).to.include(expected);
+                const actualLines = noLeadingWhitespace.split(sep);
+                const start = actualLines.slice(actualLines.indexOf('"reporters": [') + 1);
+                const actualReporters = start.slice(0, start.indexOf(']'));
+
+                expect(actualReporters).to.include.members(expected);
                 destroyProgram();
             }
+
+            it('adds console reporter by default', async () => {
+                await runReporterTest([], ['rooibos_ConsoleTestReporter']);
+            });
+
+            it('recognizes console reporter, case insensitive', async () => {
+                await runReporterTest(['CONSOLE'], ['rooibos_ConsoleTestReporter']);
+            });
+
+            it('can add a custom reporter', async () => {
+                await runReporterTest(['MyCustomReporter'], ['MyCustomReporter']);
+            });
+
+            it('can add a multiple reporters, including Junit', async () => {
+                await runReporterTest(['Junit', 'MyCustomReporter'], ['rooibos_JUnitTestReporter', 'MyCustomReporter']);
+            });
         });
     });
 
