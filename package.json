@@ -1,6 +1,6 @@
 {
   "name": "rooibos",
-  "version": "1.0.0",
+  "version": "6.0.0-alpha.1",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "scripts": {
     "postinstall": "npm --prefix ./bsc-plugin install && npm --prefix ./tests install",
