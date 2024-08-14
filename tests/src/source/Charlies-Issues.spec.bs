@@ -1,61 +1,61 @@
 namespace tests
-	@suite
-	class MockExample extends rooibos.BaseTestSuite
+  @suite
+  class MockExample extends rooibos.BaseTestSuite
 
-		protected override function setUp()
-			super.setUp()
-		end function
+    protected override function setUp()
+      super.setUp()
+    end function
 
-		protected override function beforeEach()
-			m.SUT = SomeModel()
-		end function
+    protected override function beforeEach()
+      m.SUT = SomeModel()
+    end function
 
-		protected override function afterEach()
-			m.cleanMocks()
-			m.cleanStubs()
-			m.SUT = invalid
-		end function
+    protected override function afterEach()
+      m.cleanMocks()
+      m.cleanStubs()
+      m.SUT = invalid
+    end function
 
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		@describe("Example Tests on SomeModel public methods")
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("Example Tests on SomeModel public methods")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		@it("globalMockExample1_passing")
-		function _()
-			m.stubCall(getManifestValue, function(key) : return "stubCall hardcoded title" : end function)
-			m.SUT.globalMockExample()
-			m.assertEqual(m.SUT.appTitle, "stubCall hardcoded title")
-		end function
+    @it("globalMockExample1_passing")
+    function _()
+      m.stubCall(getManifestValue, function(key) : return "stubCall hardcoded title" : end function)
+      m.SUT.globalMockExample()
+      m.assertEqual(m.SUT.appTitle, "stubCall hardcoded title")
+    end function
 
-		@it("globalMockExample2_crashing_due_to_returnValue")
-		@params("stubCall dynamic title")
-		function _(manifestValue as string)
-			m.stubCall(getManifestValue, manifestValue)
-			m.SUT.globalMockExample()
-			m.assertEqual(m.SUT.appTitle, manifestValue)
-		end function
+    @it("globalMockExample2_crashing_due_to_returnValue")
+    @params("stubCall dynamic title")
+    function _(manifestValue as string)
+      m.stubCall(getManifestValue, manifestValue)
+      m.SUT.globalMockExample()
+      m.assertEqual(m.SUT.appTitle, manifestValue)
+    end function
 
-		@it("stubExample1_passing")
-		@params({ configSetVia_config: true }, { configSetViaStub: true })
-		function _(config1 as object, config2 as object)
-			m.SUT._config = config1
-			m.stub(m.SUT, "_getConfig", config2)
-			m.SUT.setUpdatedConfig1()
-			expectedKeyNameConfig2 = config2.keys()[0]
-			resultKeyName = m.SUT.updatedConfig.keys()[0]
-			m.assertEqual(expectedKeyNameConfig2, resultKeyName)
-		end function
+    @it("stubExample1_passing")
+    @params({configSetVia_config: true}, {configSetViaStub: true})
+    function _(config1 as object, config2 as object)
+      m.SUT._config = config1
+      m.stub(m.SUT, "_getConfig", config2)
+      m.SUT.setUpdatedConfig1()
+      expectedKeyNameConfig2 = config2.keys()[0]
+      resultKeyName = m.SUT.updatedConfig.keys()[0]
+      m.assertEqual(expectedKeyNameConfig2, resultKeyName)
+    end function
 
     @ignore("this is not supported - we do not support mocking singleton objects between test runs")
-		@it("stubExample2_crashing_stub_from_stubExample1_persisting")
-		@params({ configSetVia_config: true }, { configSetViaStub: true })
-		function _(config1 as object, config2 as object)
-			m.SUT._config = config1
-			m.SUT.setUpdatedConfig2()
-			expectedKeyNameConfig1 = config1.keys()[0]
-			resultKeyName = m.SUT.updatedConfig.keys()[0]
-			m.assertEqual(expectedKeyNameConfig1, resultKeyName)
-		end function
+    @it("stubExample2_crashing_stub_from_stubExample1_persisting")
+    @params({configSetVia_config: true}, {configSetViaStub: true})
+    function _(config1 as object, config2 as object)
+      m.SUT._config = config1
+      m.SUT.setUpdatedConfig2()
+      expectedKeyNameConfig1 = config1.keys()[0]
+      resultKeyName = m.SUT.updatedConfig.keys()[0]
+      m.assertEqual(expectedKeyNameConfig1, resultKeyName)
+    end function
 
-	end class
+  end class
 end namespace

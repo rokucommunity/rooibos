@@ -17,13 +17,14 @@ namespace tests
     @it("normal async test")
     function _()
       callbackFunction = sub()
+
         m.wasCalled = true
         m.testSuite.assertTrue(true)
         m.testSuite.done()
         ? "done one"
       end sub
 
-      delayCall(0.02, callbackFunction)
+      delayCall(0.02, callbackFunction) 'bs:disable-line 1140 LINT1001
     end function
 
     @async
@@ -37,13 +38,13 @@ namespace tests
         ? "done two"
       end function)
 
-      delayCall(0.02, globalFunctionWithoutReturn)
+      delayCall(0.02, globalFunctionWithoutReturn) 'bs:disable-line 1140  LINT1001
     end function
 
     @async
     @it("async with stub call for node function")
     function _()
-      m.stubCall(SetLabelText, function(text)
+      m.stubCall(SetLabelText, function(text) 'bs:disable-line LINT1001
         m.wasCalled = true
         m.testSuite.assertEqual(text, "")
         m.testSuite.assertTrue(true)
@@ -51,7 +52,7 @@ namespace tests
         ? "done three"
       end function)
 
-      delayCall(0.02, SetLabelText)
+      delayCall(0.02, SetLabelText) 'bs:disable-line 1140  LINT1001
     end function
   end class
 end namespace

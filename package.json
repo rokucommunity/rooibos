@@ -1,18 +1,25 @@
 {
   "name": "rooibos",
-  "version": "1.0.0",
+  "version": "6.0.0-alpha.1",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "scripts": {
-    "build": "npx bsc",
-    "test": "npx bsc --project ./bsconfig-tests.json"
+    "postinstall": "npm --prefix ./bsc-plugin install && npm --prefix ./tests install",
+    "build": "cd bsc-plugin && npm run build",
+    "test": "cd bsc-plugin && npm run test",
+    "rokutest": "cd tests && npm run test"
   },
   "files": [
     "dist/**/!(manifest)*"
   ],
   "devDependencies": {
-    "@rokucommunity/bslint": "^0.5.0",
-    "brighterscript": "^0.61.3",
-    "ropm": "^0.5.0"
+    "@rokucommunity/bslint": "^1.0.0-alpha.36",
+    "@types/chai": "^4.1.2",
+    "@types/mocha": "^5.2.5",
+    "brighterscript": "^1.0.0-alpha.36",
+    "chai": "^4.2.0",
+    "ropm": "^0.5.0",
+    "ts-node": "^10.9.2",
+    "undent": "^0.1.0"
   },
   "repository": {
     "type": "git",

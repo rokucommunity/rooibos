@@ -1,0 +1,15 @@
+{
+  "rootDir": "src",
+  "files": ["manifest", "source/**/*.*"],
+  "autoImportComponentScript": true,
+  "createPackage": false,
+  "stagingDir": "build",
+  "diagnosticFilters": [],
+  "plugins": [
+    "../../bslint/src/index.ts"
+  ],
+  "require": [
+    "ts-node/register"
+  ],
+  "sourceMap": true
+}

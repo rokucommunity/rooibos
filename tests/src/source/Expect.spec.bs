@@ -13,7 +13,7 @@ namespace tests
     '+  Helper
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function assertRunningTestIsFailed()
+    public function assertRunningTestIsFailed()
       m.isAutoAssertingMocks = false
       m.assertMocks()
 
@@ -23,7 +23,7 @@ namespace tests
       m.assertTrue(isFail)
     end function
 
-    private function assertRunningTestIsPassed()
+    public function assertRunningTestIsPassed()
       m.isAutoAssertingMocks = false
       m.assertMocks()
 

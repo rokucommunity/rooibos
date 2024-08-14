@@ -8,9 +8,9 @@
       "consoleOutput": "full",
       "internalConsoleOptions": "neverOpen",
       "preLaunchTask": "build-tests",
-      "envFile": "${workspaceFolder}/.vscode/.env",
-      "host": "${env:ROKU_DEV_TARGET}",
-      "password": "${env:ROKU_DEVPASSWORD}",
+      "envFile": "${workspaceFolder}/.env",
+      "host": "${env:ROKU_HOST}",
+      "password": "${env:ROKU_PASSWORD}",
       "retainStagingFolder": true,
       "stopOnEntry": false,
       "files": [
@@ -61,7 +61,7 @@
       "stopDebuggerOnAppExit": true,
       "enableVariablesPanel": false,
       "injectRaleTrackerTask": false,
-      "enableDebugProtocol": true,
+      "enableDebugProtocol": true
     }
   ]
 }

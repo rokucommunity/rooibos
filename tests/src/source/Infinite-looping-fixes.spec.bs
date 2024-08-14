@@ -62,7 +62,7 @@ namespace tests
         top: {
           "id": "not"
         }
-        __rooibosSkipFields: { top: true }
+        __rooibosSkipFields: {top: true}
         id: "equal"
       }
 
@@ -70,7 +70,7 @@ namespace tests
         top: {
           "id": "equal"
         }
-        __rooibosSkipFields: { top: true }
+        __rooibosSkipFields: {top: true}
         id: "equal"
       }
       m.assertEqual(a, b)
@@ -91,7 +91,7 @@ namespace tests
         top2: {
           "id": "not2"
         }
-        __rooibosSkipFields: { top: true, top2: true }
+        __rooibosSkipFields: {top: true, top2: true}
         id: "equal"
       }
 
@@ -102,7 +102,7 @@ namespace tests
         top2: {
           "id": "equal2"
         }
-        __rooibosSkipFields: { top: true, top2: true }
+        __rooibosSkipFields: {top: true, top2: true}
         id: "equal"
       }
       m.assertEqual(a, b)
@@ -130,7 +130,7 @@ namespace tests
         __stubs: {
           "id": "not"
         }
-        __rooibosSkipFields: { top: true }
+        __rooibosSkipFields: {top: true}
         id: "equal"
       }
 

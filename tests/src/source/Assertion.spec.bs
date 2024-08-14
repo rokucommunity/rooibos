@@ -1,5 +1,6 @@
 import "pkg:/source/rooibos/BaseTestSuite.bs"
 
+
 namespace tests
 
   @noEarlyExit
@@ -26,7 +27,9 @@ namespace tests
     function _()
 
       try
+        ' this will cause exception on purpose
         result = 2 / 0
+        print result
       catch e
         m.failCrash(e)
       end try
@@ -80,22 +83,22 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("Fail")
-    @params([{ "one": 1 }], [{ "one": 2 }])
-    @params([{ "one": 1 }], [{ "one": "a" }])
-    @params([{ "one": 1 }], [{}])
-    @params([{ "one": 1 }], [invalid])
-    @params([{ "one": 1 }], [])
-    @params([{ "one": 1 }], invalid)
-    @params([{ "one": 1 }], [[]])
-    @params([{ "one": 1 }], ["wrong"])
-    @params([{ "one": 1 }], [2])
-    @params([{ "one": "a" }], [{ "one": 1 }])
-    @params([{ "two": 1 }], [{ "one": 1 }])
-    @params([invalid], [{ "one": 1 }])
-    @params(invalid, [{ "one": 1 }])
-    @params([{ "one": 1, "two": 2 }], [{ "one": "1" }])
-    @params([{ "one": 1 }, { "two": 2 }], [{ "one": "1" }, { "two": "a" }])
-    @params([{ "one": 1 }, { "two": 2 }], [{ "a": 1 }, { "a": 1 }, { "a": 1 }])
+    @params([{"one": 1}], [{"one": 2}])
+    @params([{"one": 1}], [{"one": "a"}])
+    @params([{"one": 1}], [{}])
+    @params([{"one": 1}], [invalid])
+    @params([{"one": 1}], [])
+    @params([{"one": 1}], invalid)
+    @params([{"one": 1}], [[]])
+    @params([{"one": 1}], ["wrong"])
+    @params([{"one": 1}], [2])
+    @params([{"one": "a"}], [{"one": 1}])
+    @params([{"two": 1}], [{"one": 1}])
+    @params([invalid], [{"one": 1}])
+    @params(invalid, [{"one": 1}])
+    @params([{"one": 1, "two": 2}], [{"one": "1"}])
+    @params([{"one": 1}, {"two": 2}], [{"one": "1"}, {"two": "a"}])
+    @params([{"one": 1}, {"two": 2}], [{"a": 1}, {"a": 1}, {"a": 1}])
     function _(expectedAAs, items)
 
       m.assertArrayContainsAAs(items, expectedAAs)
@@ -111,11 +114,11 @@ namespace tests
     @it("pass")
     @params([], [])
     @params([{}], [{}])
-    @params([{ "one": 1 }], [{ "one": 1 }])
-    @params([{ "one": 1, "two": 2 }], [{ "one": 1, "two": 2 }])
-    @params([{ "one": 1, "two": 2 }], [{ "two": 2, "one": 1 }])
-    @params([{ "one": 1, "two": 2 }, { "one": 1 }], [{ "one": 1 }, { "two": 2, "one": 1 }])
-    @params([{ "one": 1, "two": 2 }, { "one": 1 }, { "three": 3 }], [{ "one": 1 }, { "three": 3 }, { "two": 2, "one": 1 }])
+    @params([{"one": 1}], [{"one": 1}])
+    @params([{"one": 1, "two": 2}], [{"one": 1, "two": 2}])
+    @params([{"one": 1, "two": 2}], [{"two": 2, "one": 1}])
+    @params([{"one": 1, "two": 2}, {"one": 1}], [{"one": 1}, {"two": 2, "one": 1}])
+    @params([{"one": 1, "two": 2}, {"one": 1}, {"three": 3}], [{"one": 1}, {"three": 3}, {"two": 2, "one": 1}])
     function _(expectedAAs, items)
 
       m.assertArrayContainsAAs(items, expectedAAs)
@@ -162,7 +165,7 @@ namespace tests
     @params([1, 2, 3], "Integer")
     @params([true, true, false], "Boolean")
     @params([[true, true], [false, false]], "Array")
-    @params([{ "test": 1 }, { "test": 1 }], "AssociativeArray")
+    @params([{"test": 1}, {"test": 1}], "AssociativeArray")
     function _(values, typeName)
 
       m.assertArrayContainsOnlyValuesOfType(values, typeName)
@@ -179,13 +182,13 @@ namespace tests
     @params([1, "two", 3], "Integer")
     @params([true, "true", false], "Boolean")
     @params([[true, true], false, false], "Array")
-    @params([{ "test": 1 }, "notAA"], "AssociativeArray")
+    @params([{"test": 1}, "notAA"], "AssociativeArray")
     @params(["one", "two", "three"], "UnknownType")
     @params(["one", "two", "three"], "Integer")
     @params([1, 2, 3], "String")
     @params([true, true, false], "String")
     @params([[true, true], [false, false]], "AssociativeArray")
-    @params([{ "test": 1 }, { "test": 1 }], "Array")
+    @params([{"test": 1}, {"test": 1}], "Array")
     function _(values, typeName)
 
       m.assertArrayContainsOnlyValuesOfType(values, typeName)
@@ -207,7 +210,7 @@ namespace tests
     @params([1, 2, 3])
     @params([true])
     @params([[true, true], [false, false]])
-    @params([{ "test": 1 }])
+    @params([{"test": 1}])
     @params("not empty")
     @params([invalid])
     function _(values)
@@ -264,7 +267,7 @@ namespace tests
     @params([1, 2, 3])
     @params([true])
     @params([[true, true], [false, false]])
-    @params([{ "test": 1 }])
+    @params([{"test": 1}])
     @params("not empty")
     @params([invalid])
     function _(values)
@@ -285,7 +288,7 @@ namespace tests
     @it("multi return values")
     function _()
       obj = {}
-      m.expect(obj, "mockMethod", 5, invalid, { "multiResult": ["one", 2, invalid, "last"] }, true)
+      m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
 
       result = obj.mockMethod()
       m.assertEqual(result, "one")
@@ -349,7 +352,7 @@ namespace tests
     function _()
       obj = {}
       arg1 = "arg1"
-      arg2 = "arg2"
+      ' not used arg2 = "arg2"
       arg3 = "arg3"
       result1 = 1
       result2 = 2

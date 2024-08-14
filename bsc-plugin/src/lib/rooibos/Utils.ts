@@ -1,25 +1,32 @@
-import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, Expression, FunctionStatement } from 'brighterscript';
+import type { AnnotationExpression, Editor, BrsFile, ClassStatement, Expression, FunctionStatement } from 'brighterscript';
+import type { CachedLookups } from 'brighterscript/dist/astUtils/CachedLookups';
 import { TokenKind, isXmlScope } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
 
-export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: Editor): boolean {
     let functionSource = `
         function ${name}()
             ${source}
         end function
     `;
 
-    let { statements, diagnostics } = brighterscript.Parser.parse(functionSource, { mode: brighterscript.ParseMode.BrighterScript });
+    let { ast, diagnostics } = brighterscript.Parser.parse(functionSource, { mode: brighterscript.ParseMode.BrighterScript });
+    let statements = ast.statements;
     let error = '';
     if (statements && statements.length > 0) {
         let statement = statements[0] as FunctionStatement;
         if (statement.func.body.statements.length > 0) {
-            let p = brighterscript.createToken(brighterscript.TokenKind.Public, 'public', target.range);
-            let o = brighterscript.createToken(brighterscript.TokenKind.Override, 'override', target.range);
-            let n = brighterscript.createIdentifier(name, target.range);
-            let method = new brighterscript.ClassMethodStatement(p, n, statement.func, o);
+            let p = brighterscript.createToken(brighterscript.TokenKind.Public, 'public', target.location);
+            let o = brighterscript.createToken(brighterscript.TokenKind.Override, 'override', target.location);
+            let n = brighterscript.createIdentifier(name, target.location);
+            let method = new brighterscript.MethodStatement({
+                modifiers: [p],
+                name: n,
+                func: statement.func,
+                override: o
+            });
             //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
             //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
             // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -39,22 +46,26 @@ export function sanitizeBsJsonString(text: string) {
 }
 
 export function functionRequiresReturnValue(statement: FunctionStatement) {
-    const returnTypeToken = statement.func.returnTypeToken;
-    const functionType = statement.func.functionType;
-    return !((functionType?.kind === TokenKind.Sub && (returnTypeToken === undefined || returnTypeToken?.kind === TokenKind.Void)) || returnTypeToken?.kind === TokenKind.Void);
+    const functionReturnType = statement.func.getType({ flags: brighterscript.SymbolTypeFlag.typetime }).returnType;
+    return !brighterscript.isVoidType(functionReturnType);
 }
 
 export function getAllDottedGetParts(dg: brighterscript.DottedGetExpression) {
-    let parts = [dg?.name?.text];
+
+    // TODO - Similar function in brighterscript.utils
+
+    let parts = [dg?.tokens.name?.text];
     let nextPart = dg.obj;
     while (brighterscript.isDottedGetExpression(nextPart) || brighterscript.isVariableExpression(nextPart)) {
-        parts.push(nextPart?.name?.text);
+        parts.push(nextPart?.tokens.name?.text);
         nextPart = brighterscript.isDottedGetExpression(nextPart) ? nextPart.obj : undefined;
     }
     return parts.reverse();
 }
 
 export function getRootObjectFromDottedGet(value: brighterscript.DottedGetExpression) {
+    // TODO - Similar function in brighterscript.utils
+
     let root;
     if (brighterscript.isDottedGetExpression(value) || brighterscript.isIndexedGetExpression(value)) {
 
@@ -70,6 +81,8 @@ export function getRootObjectFromDottedGet(value: brighterscript.DottedGetExpres
 }
 
 export function getStringPathFromDottedGet(value: brighterscript.DottedGetExpression) {
+    // TODO - Similar function in brighterscript.utils
+
     let parts = [getPathValuePartAsString(value)];
     let root;
     root = value.obj;
@@ -89,18 +102,19 @@ export function getPathValuePartAsString(expr: Expression) {
         return undefined;
     }
     if (brighterscript.isVariableExpression(expr)) {
-        return expr.name.text;
+        return expr.tokens.name.text;
     }
     if (!expr) {
         return undefined;
     }
     if (brighterscript.isDottedGetExpression(expr)) {
-        return expr.name.text;
+        return expr.tokens.name.text;
     } else if (brighterscript.isIndexedGetExpression(expr)) {
-        if (brighterscript.isLiteralExpression(expr.index)) {
-            return `${expr.index.token.text.replace(/^"/, '').replace(/"$/, '')}`;
-        } else if (brighterscript.isVariableExpression(expr.index)) {
-            return `${expr.index.name.text}`;
+        const firstIndex = expr.indexes[0];
+        if (brighterscript.isLiteralExpression(firstIndex)) {
+            return `${firstIndex.tokens.value.text.replace(/^"/, '').replace(/"$/, '')}`;
+        } else if (brighterscript.isVariableExpression(firstIndex)) {
+            return `${firstIndex.tokens.name.text}`;
         }
     }
 }
@@ -114,4 +128,33 @@ export function getScopeForSuite(testSuite: TestSuite) {
     } else {
         return testSuite.file.program.getFirstScopeForFile(testSuite.file);
     }
+}
+
+export function getFileLookups(file: BrsFile): CachedLookups {
+    // eslint-disable-next-line @typescript-eslint/dot-notation
+    return file['_cachedLookups'] as CachedLookups;
+}
+
+export function getMainFunctionStatement(file: BrsFile) {
+    return file.ast.statements.find((fs) => brighterscript.isFunctionStatement(fs) && fs.tokens.name.text.toLowerCase() === 'main') as FunctionStatement;
+}
+
+
+export function getTypeExpressionFromBscType(type: brighterscript.BscType) {
+    // This should probably exist in brighterscript
+    const typeName = type.toString();
+    const typeParts = typeName.split('.');
+    let i = 0;
+    let innerExpression: brighterscript.DottedGetExpression | brighterscript.VariableExpression;
+    while (i < typeParts.length) {
+        if (i === 0) {
+            innerExpression = new brighterscript.VariableExpression({ name: brighterscript.createIdentifier(typeParts[i]) });
+        } else {
+            innerExpression = new brighterscript.DottedGetExpression({ obj: innerExpression, name: brighterscript.createIdentifier(typeParts[i]) });
+        }
+        i++;
+    }
+    return new brighterscript.TypeExpression({
+        expression: innerExpression
+    });
 }

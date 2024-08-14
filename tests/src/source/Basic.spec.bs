@@ -10,9 +10,8 @@ namespace tests
 
     @it("tests aa's with a mock will not crash the box!")
     function _()
-      aa = { "test": "value" }
+      aa = {"test": "value"}
       m.expectOnce(aa, "getStubbedObject", [aa])
-
       aa.getStubbedObject(aa)
     end function
 
@@ -22,8 +21,8 @@ namespace tests
 
     @it("tests aa's that get printed as failures don't crash box")
     function _()
-      aa = { "test": "value" }
-      bb = { "other": "value" }
+      aa = {"test": "value"}
+      bb = {"other": "value"}
       m.expectOnce(bb, "getStubbedObject", [aa])
       m.assertEqual(aa, bb)
       'not crashing on printing the wrong output is a pass
@@ -42,9 +41,9 @@ namespace tests
     end function
 
     @it("on objects")
-    @params({ "url": "http://101.rooibos.com", "othervalue": 2 })
-    @params({ url: "http://101.rooibos.com", "othervalue": 2 })
-    @params({ url: "http://101.rooibos.com", othervalue: 2 })
+    @params({"url": "http://101.rooibos.com", "othervalue": 2})
+    @params({url: "http://101.rooibos.com", "othervalue": 2})
+    @params({url: "http://101.rooibos.com", othervalue: 2})
     function urlParams_objects(aa)
       m.assertEqual(aa.url, "http://101.rooibos.com")
       m.assertEqual(aa.othervalue, 2)
@@ -57,7 +56,7 @@ namespace tests
     @ignore("takes ages")
     @it("times out")
     function _()
-      item = { "id": "item" }
+      item = {"id": "item"}
 
       m.assertAsyncField(item, "id")
       isFail = m.currentResult.isFail
@@ -84,8 +83,8 @@ namespace tests
 
     @it("fails if wrong class name")
     @params({})
-    @params({ __classname: invalid })
-    @params({ __classname: "other" })
+    @params({__classname: invalid})
+    @params({__classname: "other"})
     function _(value)
       m.assertClass(value, "myClass")
       isFail = m.currentResult.isFail
@@ -139,7 +138,7 @@ namespace tests
     @params([])
     @params("wrong")
     function _(value)
-      m.assertAAContainsSubset(value, { a: 1 })
+      m.assertAAContainsSubset(value, {a: 1})
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
@@ -152,7 +151,7 @@ namespace tests
     @params([])
     @params("wrong")
     function _(value)
-      m.assertAAContainsSubset({ a: 1 }, value)
+      m.assertAAContainsSubset({a: 1}, value)
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
@@ -164,7 +163,7 @@ namespace tests
     function _()
       m.assertAAContainsSubset({
         a: 1
-      }, { a: 1 })
+      }, {a: 1})
       isFail = m.currentResult.isFail
 
       m.currentResult.Reset()
@@ -198,7 +197,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("does not fail on like values")
-    @params({ id: 10 }, { id: 10.0 })
+    @params({id: 10}, {id: 10.0})
     @params([10], [10.0])
     @params(10, 10.0)
     function _(value1, value2)
@@ -212,12 +211,13 @@ namespace tests
     @params(false, "false")
     @params(true, "true")
     @params(10, "10.0")
-    @params({ id: "10" }, { id: 10 })
-    @params({ id: "10" }, { id: 10.0 })
+    @params({id: "10"}, {id: 10})
+    @params({id: "10"}, {id: 10.0})
     function _(value1, value2)
       m.assertLike(value1, value2)
       isFail = m.currentResult.isFail
       msg = m.currentResult.getMessage()
+      m.assertNotInvalid(msg)
       m.currentResult.Reset()
       m.assertTrue(isFail)
     end function

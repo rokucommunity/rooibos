@@ -20,7 +20,7 @@ namespace tests
     @params(true, true, true)
     function _(v1, v2, expectedFail)
       returnValue = "notBroken"
-      m.expectOnce(m.myClass, "doWork", [{ "matcher": m.match_true }, { "matcher": m.match_false }], returnValue)
+      m.expectOnce(m.myClass, "doWork", [{"matcher": m.match_true}, {"matcher": m.match_false}], returnValue)
 
       m.assertEqual(m.myClass.doWork(v1, v2), returnValue)
 
@@ -42,11 +42,11 @@ namespace tests
     @params(true, true, true)
     function _(v1, v2, expectedFail)
       returnValue = "notBroken"
-      m.expectOnce(m.myClass, "doWork", [{ "matcher": function(value)
+      m.expectOnce(m.myClass, "doWork", [{"matcher": function(value)
           return value = true
-      end function }, { "matcher": function(value)
+      end function}, {"matcher": function(value)
           return value = false
-      end function }], returnValue)
+      end function}], returnValue)
 
       m.assertEqual(m.myClass.doWork(v1, v2), returnValue)
 
