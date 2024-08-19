@@ -29,7 +29,6 @@
       "titleBar.inactiveBackground": "#f1ee2f",
       "titleBar.inactiveForeground": "#000000"
     },
-    "cSpell.words": ["Inifnite"],
     "brightscript.bsdk": "node_modules/brighterscript"
   }
 }

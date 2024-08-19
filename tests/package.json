@@ -4,6 +4,7 @@
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - tests",
   "scripts": {
     "build": "bsc",
+    "clean": "rm -rf build && rm -rf out",
     "watch": "npx bsc --project bsconfig.json --watch",
     "test": "npm run build && npx ts-node ./scripts/runRooibosTests.ts --verbose"
   },

@@ -24,7 +24,6 @@ export class FileFactory {
                 this.options.frameworkSourcePath = s`${__dirname}/../framework`;
             }
         }
-
         this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.xml'), 'utf8');
         this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.brs'), 'utf8');
     }
