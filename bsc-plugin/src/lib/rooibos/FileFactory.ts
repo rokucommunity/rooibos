@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import type { TestSuite } from './TestSuite';
+import { RooibosLogPrefix } from '../utils/Diagnostics';
 
 export class FileFactory {
     private coverageComponentXmlTemplate: string;
@@ -24,7 +25,6 @@ export class FileFactory {
                 this.options.frameworkSourcePath = s`${__dirname}/../framework`;
             }
         }
-
         this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.xml'), 'utf8');
         this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.brs'), 'utf8');
     }
@@ -136,7 +136,7 @@ export class FileFactory {
             this.addedFrameworkFiles.push(file);
             return file;
         } catch (error) {
-            program.logger.error(`Error adding framework file: ${entry.dest} : ${error.message}`);
+            program.logger.error(RooibosLogPrefix, `Error adding framework file: ${entry.dest} : ${error.message}`);
         }
     }
 
@@ -147,7 +147,7 @@ export class FileFactory {
                 contents
             );
         } catch (error) {
-            program.logger.error(`Error adding framework file: ${path} : ${error.message}`);
+            program.logger.error(RooibosLogPrefix, `Error adding framework file: ${path} : ${error.message}`);
         }
     }
 }

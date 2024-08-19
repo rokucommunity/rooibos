@@ -1939,7 +1939,6 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.build();
-                console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
@@ -1950,7 +1949,6 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.build();
-                console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
@@ -1961,7 +1959,6 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.build();
-                console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
@@ -1973,7 +1970,6 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.build();
-                console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
             });
@@ -1983,7 +1979,6 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.build();
-                console.log(builder.getDiagnostics());
                 expect(builder.getDiagnostics()).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');

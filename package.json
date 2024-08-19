@@ -4,13 +4,11 @@
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "scripts": {
     "postinstall": "npm --prefix ./bsc-plugin install && npm --prefix ./tests install",
-    "build": "cd bsc-plugin && npm run build",
-    "test": "cd bsc-plugin && npm run test",
-    "rokutest": "cd tests && npm run test"
+    "clean": "npm --prefix ./bsc-plugin run clean && npm --prefix ./tests run clean",
+    "build": "npm --prefix ./bsc-plugin run build",
+    "test": "npm --prefix ./bsc-plugin run test",
+    "rokutest": "npm --prefix ./tests run test"
   },
-  "files": [
-    "dist/**/!(manifest)*"
-  ],
   "devDependencies": {
     "@rokucommunity/bslint": "^1.0.0-alpha.36",
     "@types/chai": "^4.1.2",
@@ -37,10 +35,6 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rokucommunity/rooibos/issues"
-  },
-  "ropm": {
-    "rootDir": "src",
-    "packageRootDir": "dist"
   },
   "homepage": "https://github.com/rokucommunity/rooibos#readme"
 }

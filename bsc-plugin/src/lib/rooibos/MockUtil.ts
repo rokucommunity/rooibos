@@ -7,7 +7,7 @@ import type { RooibosConfig } from './RooibosConfig';
 import type { FileFactory } from './FileFactory';
 import undent from 'undent';
 import type { RooibosSession } from './RooibosSession';
-import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
+import { diagnosticErrorProcessingFile, RooibosLogPrefix } from '../utils/Diagnostics';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
 import { functionRequiresReturnValue, getAllDottedGetParts, getFileLookups, getScopeForSuite } from './Utils';
@@ -167,7 +167,7 @@ export class MockUtil {
                 walkMode: brighterscript.WalkMode.visitStatementsRecursive
             });
         } catch (e) {
-            this.builder.program.logger.error('Error processing global method mocks', e);
+            this.builder.program.logger.error(RooibosLogPrefix, 'Error processing global method mocks', e);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(testSuite.file, e.message);
         }

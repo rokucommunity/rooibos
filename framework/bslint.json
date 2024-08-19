@@ -5,7 +5,6 @@
     "condition-style": "no-group",
     "named-function-style": "off",
     "anon-function-style": "off",
-    "type-annotations": "off",
     "assign-all-paths": "off",
     "unsafe-path-loop": "error",
     "unsafe-iterators": "error",

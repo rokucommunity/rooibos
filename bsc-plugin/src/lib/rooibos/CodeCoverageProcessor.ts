@@ -7,6 +7,7 @@ import { RawCodeStatement } from './RawCodeStatement';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
+import { RooibosLogPrefix } from '../utils/Diagnostics';
 
 export enum CodeCoverageLineType {
     noCode = 0,
@@ -44,7 +45,7 @@ export class CodeCoverageProcessor {
         this.fileFactory = fileFactory;
         try {
         } catch (e) {
-            console.log('Error:', e.stack);
+            builder.logger.error(RooibosLogPrefix, 'Error:', e.stack);
         }
     }
 
@@ -76,7 +77,7 @@ export class CodeCoverageProcessor {
         this.executableLines = new Map<number, Statement>();
         this.processedStatements = new Set<Statement>();
         this.astEditor = astEditor;
-        console.log('Processing file:', this.fileId, file.pkgPath);
+        file.program.logger.info(RooibosLogPrefix, 'Processing file for code coverage:', this.fileId, file.pkgPath);
 
         file.ast.walk(createVisitor({
             ForStatement: (ds, parent, owner, key) => {
