@@ -25,6 +25,7 @@ import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { MockUtil } from './lib/rooibos/MockUtil';
 import { getScopeForSuite } from './lib/rooibos/Utils';
+import { RooibosLogPrefix } from './lib/utils/Diagnostics';
 
 export class RooibosPlugin implements CompilerPlugin {
 
@@ -137,7 +138,6 @@ export class RooibosPlugin implements CompilerPlugin {
             if (!(isBrsFile(file) || isXmlFile(file)) || this.shouldSkipFile(file)) {
                 continue;
             }
-            // console.log('afp', file.pkgPath);
             if (util.pathToUri(file.srcPath).includes('/rooibos/bsc-plugin/dist/framework')) {
                 // eslint-disable-next-line @typescript-eslint/dot-notation
                 return;
@@ -145,7 +145,7 @@ export class RooibosPlugin implements CompilerPlugin {
             if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
                 return;
             }
-            console.log('processing ', file.pkgPath);
+            event.program.logger.log(RooibosLogPrefix, 'Processing test file', file.pkgPath);
 
             if (isBrsFile(file)) {
                 // Add the node test component so brighter script can validate the test files
@@ -178,7 +178,7 @@ export class RooibosPlugin implements CompilerPlugin {
             const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
-                event.program.logger.warn(`TestSuite "${testSuite.name}" is marked as noEarlyExit`);
+                event.program.logger.warn(RooibosLogPrefix, `TestSuite "${testSuite.name}" is marked as noEarlyExit`);
             }
 
             const modifiedTestCases = new Set();
@@ -211,7 +211,6 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     afterProgramValidate(event: AfterProgramValidateEvent) {
-        // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
             testSuite.validate();
@@ -233,7 +232,6 @@ export class RooibosPlugin implements CompilerPlugin {
                 }
             }
         }
-        // console.log('including ', file.pkgPath);
         return true;
     }
     shouldAddCodeCoverageToFile(file: BscFile) {

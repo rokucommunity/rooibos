@@ -3,6 +3,9 @@ import { DiagnosticSeverity, Range, util } from 'brighterscript';
 
 import type { AnnotationType, RooibosAnnotation } from '../rooibos/Annotation';
 
+
+export const RooibosLogPrefix = '[Rooibos]';
+
 function addDiagnostic(
     file: BrsFile,
     code: number,

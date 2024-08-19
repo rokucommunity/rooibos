@@ -6,7 +6,7 @@ import { SessionInfo } from './RooibosSessionInfo';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
 import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
-import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoStagingDir } from '../utils/Diagnostics';
+import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoStagingDir, RooibosLogPrefix } from '../utils/Diagnostics';
 import undent from 'undent';
 import * as fsExtra from 'fs-extra';
 import type { MockUtil } from './MockUtil';
@@ -47,7 +47,7 @@ export class RooibosSession {
         const resultFiles = this.createNodeFiles(program);
 
         if (this.config.isGlobalMethodMockingEnabled && this.config.isGlobalMethodMockingEfficientMode) {
-            program.logger.info('Efficient global stubbing is enabled');
+            program.logger.info(RooibosLogPrefix, 'Efficient global stubbing is enabled');
             this.namespaceLookup = this.getNamespaces(program);
             for (let testSuite of this.sessionInfo.testSuitesToRun) {
                 mockUtil.gatherGlobalMethodMocks(testSuite);
@@ -121,7 +121,7 @@ export class RooibosSession {
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files[0] as BrsFile);
             if (!this._builder.options.stagingDir) {
-                this._builder.program.logger.error('Rooibos requires that stagingDir bsconfig option is set');
+                this._builder.program.logger.error(RooibosLogPrefix, 'Rooibos requires that stagingDir bsconfig option is set');
                 diagnosticNoStagingDir(files[0] as BrsFile);
             } else {
                 const filePath = path.join(this._builder.options.stagingDir, 'source/rooibosMain.brs');
