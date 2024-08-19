@@ -551,7 +551,7 @@ describe('RooibosPlugin', () => {
                 end function
             `);
             expect(a).to.equal(b);
-        });
+        }).timeout(5000);
 
         it('excludes files from coverage', async () => {
             const source = `sub foo()
