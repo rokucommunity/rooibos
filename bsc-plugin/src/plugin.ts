@@ -6,7 +6,7 @@ import type {
     TranspileObj,
     AstEditor,
     BeforeFileTranspileEvent,
-    PluginHandler
+    XmlFile
 } from 'brighterscript';
 import {
     isBrsFile
@@ -16,12 +16,16 @@ import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 import * as minimatch from 'minimatch';
+import * as path from 'path';
+import { MockUtil } from './lib/rooibos/MockUtil';
+import { getScopeForSuite } from './lib/rooibos/Utils';
 
 export class RooibosPlugin implements CompilerPlugin {
 
     public name = 'rooibosPlugin';
     public session: RooibosSession;
     public codeCoverageProcessor: CodeCoverageProcessor;
+    public mockUtil: MockUtil;
     public fileFactory: FileFactory;
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
@@ -34,7 +38,8 @@ export class RooibosPlugin implements CompilerPlugin {
         this.fileFactory = new FileFactory(this.config);
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
-            this.codeCoverageProcessor = new CodeCoverageProcessor(builder);
+            this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
+            this.mockUtil = new MockUtil(builder, this.fileFactory, this.session);
         }
     }
     private getConfig(options: any) {
@@ -44,6 +49,9 @@ export class RooibosPlugin implements CompilerPlugin {
         }
         if (config.catchCrashes === undefined) {
             config.catchCrashes = true;
+        }
+        if (config.throwOnFailedAssertion === undefined) {
+            config.throwOnFailedAssertion = false;
         }
         if (config.sendHomeOnFinish === undefined) {
             config.sendHomeOnFinish = true;
@@ -55,7 +63,19 @@ export class RooibosPlugin implements CompilerPlugin {
             config.showOnlyFailures = true;
         }
         if (config.isRecordingCodeCoverage === undefined) {
-            config.isRecordingCodeCoverage = true;
+            config.isRecordingCodeCoverage = false;
+        }
+        if (config.isGlobalMethodMockingEnabled === undefined) {
+            config.isGlobalMethodMockingEnabled = false;
+        }
+        if (config.isGlobalMethodMockingEfficientMode === undefined) {
+            config.isGlobalMethodMockingEfficientMode = true;
+        }
+        if (config.keepAppOpen === undefined) {
+            config.keepAppOpen = true;
+        }
+        if (config.testSceneName === undefined) {
+            config.testSceneName = 'RooibosScene';
         }
         //ignore roku modules by default
         if (config.includeFilters === undefined) {
@@ -65,11 +85,43 @@ export class RooibosPlugin implements CompilerPlugin {
                 '!**/roku_modules/**/*'];
         }
 
+        const defaultCoverageExcluded = [
+            '**/*.spec.bs',
+            '**/roku_modules/**/*',
+            '**/source/main.bs',
+            '**/source/rooibos/**/*'
+        ];
+
+        // Set default coverage exclusions, or merge with defaults if available.
+        if (config.coverageExcludedFiles === undefined) {
+            config.coverageExcludedFiles = defaultCoverageExcluded;
+        } else {
+            config.coverageExcludedFiles.push(...defaultCoverageExcluded);
+        }
+
+        const defaultGlobalMethodMockingExcluded = [
+            '**/*.spec.bs',
+            '**/source/main.bs',
+            '**/source/rooibos/**/*'
+        ];
+        if (config.globalMethodMockingExcludedFiles === undefined) {
+            config.globalMethodMockingExcludedFiles = defaultGlobalMethodMockingExcluded;
+        }
+
         return config;
     }
 
     afterProgramCreate(program: Program) {
         this.fileFactory.addFrameworkFiles(program);
+    }
+
+    afterFileDispose(file: BscFile) {
+        // eslint-disable-next-line @typescript-eslint/dot-notation
+        const xmlFile = file['rooibosXmlFile'] as XmlFile;
+        if (xmlFile) {
+            // Remove the old generated xml files
+            this._builder.program.removeFile(xmlFile.srcPath);
+        }
     }
 
     afterFileParse(file: BscFile): void {
@@ -82,42 +134,61 @@ export class RooibosPlugin implements CompilerPlugin {
         if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
             return;
         }
+        // console.log('processing ', file.pkgPath);
 
-        console.log('processing ', file.pkgPath);
         if (isBrsFile(file)) {
-            if (this.session.processFile(file)) {
-                //
-            } else {
-                this.codeCoverageProcessor.addCodeCoverage(file);
+            // Add the node test component so brighter script can validate the test files
+            let suites = this.session.processFile(file);
+            let nodeSuites = suites.filter((ts) => ts.isNodeTest);
+            for (const suite of nodeSuites) {
+                const xmlFile = this._builder.program.setFile({
+                    src: path.resolve(suite.xmlPkgPath),
+                    dest: suite.xmlPkgPath
+                }, this.session.getNodeTestXmlText(suite));
+                // eslint-disable-next-line @typescript-eslint/dot-notation
+                file['rooibosXmlFile'] = xmlFile;
             }
         }
     }
 
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.addTestRunnerMetadata(editor);
-        this.session.addLaunchHookToExistingMain(editor);
+        this.session.prepareForTranspile(editor, program, this.mockUtil);
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addLaunchHookFileIfNotPresent();
+        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
     }
 
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
         let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
         if (testSuite) {
+            const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
                 console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
             }
 
+            const modifiedTestCases = new Set();
             testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
-                    group.modifyAssertions(testCase, noEarlyExit, event.editor as any);
+                    let caseName = group.testSuite.generatedNodeName + group.file.pkgPath + testCase.funcName;
+                    if (!modifiedTestCases.has(caseName)) {
+                        group.modifyAssertions(testCase, noEarlyExit, event.editor as any, this.session.namespaceLookup, scope);
+                        modifiedTestCases.add(caseName);
+                    }
+
                 }
             }
-            if (testSuite.isNodeTest) {
-                this.session.createNodeFile(event.program, testSuite);
+        }
+
+        if (isBrsFile(event.file)) {
+            if (this.shouldAddCodeCoverageToFile(event.file)) {
+                this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
+            }
+            if (this.shouldEnableGlobalMocksOnFile(event.file)) {
+                this.mockUtil.enableGlobalMethodMocks(event.file, event.editor);
             }
         }
     }
@@ -147,6 +218,37 @@ export class RooibosPlugin implements CompilerPlugin {
         // console.log('including ', file.pkgPath);
         return true;
     }
+    shouldAddCodeCoverageToFile(file: BscFile) {
+        if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
+            return false;
+        } else if (!this.config.coverageExcludedFiles) {
+            return true;
+        } else {
+            for (let filter of this.config.coverageExcludedFiles) {
+                if (minimatch(file.pkgPath, filter)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    shouldEnableGlobalMocksOnFile(file: BscFile) {
+        if (!isBrsFile(file) || !this.config.isGlobalMethodMockingEnabled) {
+            return false;
+        } else if (!this.config.globalMethodMockingExcludedFiles) {
+            return true;
+        } else {
+            for (let filter of this.config.globalMethodMockingExcludedFiles) {
+                if (minimatch(file.pkgPath, filter)) {
+                    // console.log('±±±skipping file', file.pkgPath);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 }
 
 export default () => {

@@ -78,7 +78,7 @@ describe('TestSuiteBuilder tests ', () => {
         it('duplicate suite name - different files', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -90,7 +90,7 @@ describe('TestSuiteBuilder tests ', () => {
             assertSuite(ts, 1);
             let testSuite2 = createTestSuite('test2.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -106,7 +106,7 @@ describe('TestSuiteBuilder tests ', () => {
         it('duplicate suite name - same file', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -114,7 +114,7 @@ describe('TestSuiteBuilder tests ', () => {
       end function
       end class
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -129,7 +129,7 @@ describe('TestSuiteBuilder tests ', () => {
         it('duplicate group', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -150,7 +150,7 @@ describe('TestSuiteBuilder tests ', () => {
         it('duplicate test', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -173,7 +173,7 @@ describe('TestSuiteBuilder tests ', () => {
             let testSuite = createTestSuite('test1.bs', `namespace Tests
 
   @suite("Rooibos assertion tests")
-  class AssertionTests extends Rooibos.BaseTestSuite
+  class AssertionTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("group1")
@@ -194,7 +194,7 @@ end namespace
         let testSuite = createTestSuite('test1.bs', `namespace Tests
 
   @suite("Rooibos assertion tests")
-  class AssertionTests extends Rooibos.BaseTestSuite
+  class AssertionTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("group1")
@@ -218,7 +218,7 @@ end namespace
         let testSuite = createTestSuite('test1.bs', `namespace Tests
 
     @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("group1")
@@ -248,7 +248,7 @@ end namespace
         let testSuite = createTestSuite('test1.bs', `namespace Tests
 
     @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
 
     @describe("group1")
 
@@ -274,7 +274,7 @@ end namespace
         let testSuite = createTestSuite('test1.bs', `namespace Tests
 
     @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
 
     @describe("group1")
 
@@ -294,7 +294,7 @@ end namespace
         let testSuite = createTestSuite('test1.bs', `namespace Tests
 
     @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
 
     @describe("group1")
 
@@ -316,7 +316,7 @@ end namespace
         let testSuite = createTestSuite('test1.bs', `namespace Tests
 
     @suite("Rooibos assertion tests")
-    class AssertionTests extends Rooibos.BaseTestSuite
+    class AssertionTests extends rooibos.BaseTestSuite
 
     @describe("group1")
 
@@ -344,7 +344,7 @@ end namespace
             let ts = createTestSuite('test1.bs', `namespace Tests
       @only
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -370,7 +370,7 @@ end namespace
         it('only group', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @only
       @describe("group1")
 
@@ -397,7 +397,7 @@ end namespace
         it('only test', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @only
@@ -424,7 +424,7 @@ end namespace
         it('two tests', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @only
@@ -451,7 +451,7 @@ end namespace
         it('two tests and group', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @only
       @describe("group1")
 
@@ -480,7 +480,7 @@ end namespace
             let ts = createTestSuite('test1.bs', `namespace Tests
       @only
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @only
       @describe("group1")
 
@@ -509,7 +509,7 @@ end namespace
             let ts = createTestSuite('test1.bs', `namespace Tests
       @only
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @only
       @describe("group1")
 
@@ -546,7 +546,7 @@ end namespace
             let ts = createTestSuite('test1.bs', `namespace Tests
       @only
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @only
       @describe("group1")
 
@@ -582,7 +582,7 @@ end namespace
         it('only on param block', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @Only
@@ -615,7 +615,7 @@ end namespace
         it('onlyparams', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -647,7 +647,7 @@ end namespace
         it('onlyparams 2', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -683,7 +683,7 @@ end namespace
             let ts = createTestSuite('test1.bs', `namespace Tests
       @ignore
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -708,7 +708,7 @@ end namespace
         it('ignore group', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @ignore
       @describe("group1")
 
@@ -733,7 +733,7 @@ end namespace
         it('ignore test', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @ignore
@@ -760,7 +760,7 @@ end namespace
         it('two tests', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @ignore
@@ -787,7 +787,7 @@ end namespace
         it('two tests and group', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @ignore
       @describe("group1")
 
@@ -816,7 +816,7 @@ end namespace
             let ts = createTestSuite('test1.bs', `namespace Tests
       @ignore
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @ignore
       @describe("group1")
 
@@ -846,7 +846,7 @@ end namespace
             let ts = createTestSuite('test1.bs', `namespace Tests
       @ignore
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @ignore
       @describe("group1")
 
@@ -885,7 +885,7 @@ end namespace
             let ts = createTestSuite('test1.bs', `namespace Tests
       @ignore
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @ignore
       @describe("group1")
 
@@ -923,7 +923,7 @@ end namespace
         it('ignore on param block', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @ignore
@@ -956,7 +956,7 @@ end namespace
         it('ignoreParams', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -988,7 +988,7 @@ end namespace
         it('ignoreParams 2', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -1023,7 +1023,7 @@ end namespace
         it('simple params', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -1042,7 +1042,7 @@ end namespace
         it('2 params', () => {
             let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -1062,7 +1062,7 @@ end namespace
     it('2 with url and chars', () => {
         let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -1081,7 +1081,7 @@ end namespace
     it('param mismatch -no params', () => {
         let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -1095,7 +1095,7 @@ end namespace
     it('param mismatch -one', () => {
         let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -1113,7 +1113,7 @@ end namespace
     it('param mismatch -all', () => {
         let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")
@@ -1131,7 +1131,7 @@ end namespace
     it('cannot parse', () => {
         let ts = createTestSuite('test1.bs', `namespace Tests
       @suite("Rooibos assertion tests")
-      class AssertionTests extends Rooibos.BaseTestSuite
+      class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
 
       @it("one")

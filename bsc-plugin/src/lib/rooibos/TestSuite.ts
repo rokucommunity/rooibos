@@ -1,3 +1,4 @@
+import * as path from 'path';
 import type { AstEditor, BrsFile, ClassStatement } from 'brighterscript';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
@@ -6,6 +7,7 @@ import type { RooibosAnnotation } from './Annotation';
 
 import type { TestGroup } from './TestGroup';
 import { addOverriddenMethod, sanitizeBsJsonString } from './Utils';
+import type { RooibosSession } from './RooibosSession';
 
 /**
  * base of test suites and blocks..
@@ -34,6 +36,12 @@ export class TestBlock {
     public get isSolo(): boolean {
         return this.annotation.isSolo;
     }
+    public get isAsync(): boolean {
+        return this.annotation.isAsync;
+    }
+    public get asyncTimeout(): number {
+        return this.annotation.asyncTimeout;
+    }
 
     public get isIgnored(): boolean {
         return this.annotation.isIgnore;
@@ -44,12 +52,15 @@ export class TestBlock {
 
     public hasFailures = false;
     public hasSoloTests = false;
+    public hasAsyncTests = false;
     public hasIgnoredTests = false;
 
     public setupFunctionName: string;
     public tearDownFunctionName: string;
     public beforeEachFunctionName: string;
     public afterEachFunctionName: string;
+    public xmlPkgPath: string;
+    public bsPkgPath: string;
 
 }
 
@@ -63,7 +74,9 @@ export class TestSuite extends TestBlock {
             this.annotation.name = classStatement.name.text;
         }
         this.generatedNodeName = (this.name || 'ERROR').replace(/[^a-zA-Z0-9]/g, '_');
-
+        let pathBase = path.join('components', 'rooibos', 'generated');
+        this.xmlPkgPath = path.join(pathBase, this.generatedNodeName + '.xml');
+        this.bsPkgPath = path.join(pathBase, this.generatedNodeName + '.bs');
     }
 
     //state
@@ -73,6 +86,7 @@ export class TestSuite extends TestBlock {
     public generatedNodeName: string;
     public hasSoloGroups = false;
     public isNodeTest = false;
+    public session: RooibosSession;
 
     public addGroup(group: TestGroup) {
         this.testGroups.set(group.name, group);
@@ -81,6 +95,9 @@ export class TestSuite extends TestBlock {
         }
         if (group.hasSoloTests) {
             this.hasSoloTests = true;
+        }
+        if (group.hasAsyncTests) {
+            this.annotation.isAsync = true;
         }
         if (group.isSolo) {
             this.hasSoloGroups = true;
@@ -130,6 +147,8 @@ export class TestSuite extends TestBlock {
       beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"
       afterEachFunctionName: "${this.afterEachFunctionName || ''}"
       isNodeTest: ${this.isNodeTest || false}
+      isAsync: ${this.isAsync || false}
+      asyncTimeout: ${this.asyncTimeout || 60000}
       nodeName: "${this.nodeName || ''}"
       generatedNodeName: "${this.generatedNodeName || ''}"
       testGroups: [${testGroups}]

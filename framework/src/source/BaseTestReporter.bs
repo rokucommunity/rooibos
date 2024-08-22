@@ -1,25 +1,25 @@
 namespace rooibos
+  interface ITestReporterOnEndEvent
+    stats as rooibos.Stats
+  end interface
+
   class BaseTestReporter
 
     public testRunner = invalid
     public config = invalid
     public allStats = invalid
 
-    function new(testRunner as dynamic)
-      m.testRunner = testRunner
-      m.config = testRunner.config
-      m.allStats = testRunner.stats
+    function new(runner as dynamic)
+      m.testRunner = runner
+      m.config = runner.config
+      m.allStats = runner.stats
     end function
 
-    function reportResults(allStats as dynamic)
+    function onBegin(ev as dynamic)
       'override me
     end function
 
-    function testLogInfo(text as string)
-      'override me
-    end function
-
-    function testLogError(text as string)
+    function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       'override me
     end function
 

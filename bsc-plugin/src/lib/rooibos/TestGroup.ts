@@ -1,16 +1,13 @@
-import type { AstEditor, CallExpression, DottedGetExpression, Expression } from 'brighterscript';
-import { isCallExpression, isCallfuncExpression, isIndexedGetExpression, ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isLiteralExpression, isVariableExpression } from 'brighterscript';
+import type { AstEditor, CallExpression, DottedGetExpression, Expression, NamespaceContainer, Scope } from 'brighterscript';
+import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
-import { TranspileState } from 'brighterscript/dist/parser/TranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { RooibosAnnotation } from './Annotation';
-import { RawCodeStatement } from './RawCodeStatement';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
 import { TestBlock } from './TestSuite';
-import { overrideAstTranspile, sanitizeBsJsonString } from './Utils';
-import undent from 'undent';
+import { getAllDottedGetParts, getRootObjectFromDottedGet, getStringPathFromDottedGet, sanitizeBsJsonString } from './Utils';
 
 export class TestGroup extends TestBlock {
 
@@ -38,6 +35,9 @@ export class TestGroup extends TestBlock {
         } else if (testCase.isSolo) {
             this.hasSoloTests = true;
             this.soloTestCases.push(testCase);
+            this.hasAsyncTests = testCase.isAsync;
+        } else {
+            this.hasAsyncTests = testCase.isAsync;
         }
     }
 
@@ -45,7 +45,7 @@ export class TestGroup extends TestBlock {
         return [...this.testCases.values()];
     }
 
-    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor) {
+    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         //for each method
         //if assertion
         //wrap with if is not fail
@@ -54,27 +54,32 @@ export class TestGroup extends TestBlock {
         try {
             let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(brighterscript.createVisitor({
-                ExpressionStatement: (expressionStatement) => {
+                ExpressionStatement: (expressionStatement, parent, owner, key) => {
                     let callExpression = expressionStatement.expression as CallExpression;
                     if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
+                        let isSub = isFunctionExpression(callExpression.parent.parent.parent) && callExpression.parent.parent.parent.functionType.kind === TokenKind.Sub;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.name.text)) {
                             if (dge.name.text === 'stubCall') {
-                                this.modifyModernRooibosExpectCallExpression(callExpression, editor);
+                                this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 return expressionStatement;
 
                             } else {
 
                                 if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
-                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor);
+                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 }
-                                //TODO change this to editor.setProperty(parentObj, parentKey, new SourceNode()) once bsc supports it
-                                overrideAstTranspile(editor, expressionStatement, '\n' + undent`
-                                    m.currentAssertLineNumber = ${callExpression.range.start.line}
-                                    ${callExpression.transpile(transpileState).join('')}
-                                    ${noEarlyExit ? '' : 'if m.currentResult.isFail then return invalid'}
-                                ` + '\n');
+                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
+                                }
+
+                                if (!noEarlyExit) {
+                                    const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
+                                    editor.arraySplice(owner, key + 1, 0, trailingLine);
+                                }
+                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.range.start.line}`).ast.statements[0];
+                                editor.arraySplice(owner, key, 0, leadingLine);
                             }
                         }
                     }
@@ -83,44 +88,82 @@ export class TestGroup extends TestBlock {
                 walkMode: brighterscript.WalkMode.visitStatementsRecursive
             });
         } catch (e) {
-            // console.log(e);
+            console.error(e);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             diagnosticErrorProcessingFile(this.testSuite.file, e.message);
         }
     }
 
-    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor) {
+    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         let isNotCalled = false;
         let isStubCall = false;
-        if (isDottedGetExpression(callExpression.callee)) {
-            const nameText = callExpression.callee.name.text;
-            editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);
-            isNotCalled = nameText === 'expectNotCalled';
-            isStubCall = nameText === 'stubCall';
-        }
+
         //modify args
         let arg0 = callExpression.args[0];
-        if (brighterscript.isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
-            let functionName = arg0.callee.name.text;
-            let fullPath = this.getStringPathFromDottedGet(arg0.callee.obj as DottedGetExpression);
-            editor.removeFromArray(callExpression.args, 0);
-            if (!isNotCalled && !isStubCall) {
-                const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
-                editor.addToArray(callExpression.args, 0, expectedArgs);
+        let arg1 = callExpression.args[1];
+        if (isDottedGetExpression(callExpression.callee)) {
+            const nameText = callExpression.callee.name.text;
+            isNotCalled = nameText === 'expectNotCalled';
+            isStubCall = nameText === 'stubCall';
+
+            if (isStubCall && this.shouldNotModifyStubCall(arg0, namespaceLookup, scope)) {
+                return;
             }
-            editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
-            editor.addToArray(callExpression.args, 0, this.getRootObjectFromDottedGet(arg0.callee));
-            editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
-            editor.addToArray(callExpression.args, 0, arg0.callee.obj);
+            editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);
+        }
+
+        if (brighterscript.isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
+
+            //is it a namespace?
+            let dg = arg0.callee;
+            let nameParts = getAllDottedGetParts(dg);
+            let name = nameParts.pop();
+
+            if (name) {
+                //is a namespace?
+                if (nameParts[0] && namespaceLookup.has(nameParts[0].toLowerCase())) {
+                    //then this must be a namespace method
+                    let fullPathName = nameParts.join('.').toLowerCase();
+                    let ns = namespaceLookup.get(fullPathName);
+                    if (!ns) {
+                        //TODO this is an error condition!
+                    }
+                    nameParts.push(name);
+                    let functionName = nameParts.join('_').toLowerCase();
+                    editor.removeFromArray(callExpression.args, 0);
+                    if (!isNotCalled && !isStubCall) {
+                        const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                        editor.addToArray(callExpression.args, 0, expectedArgs);
+                    }
+                    editor.addToArray(callExpression.args, 0, createInvalidLiteral());
+                    editor.addToArray(callExpression.args, 0, createInvalidLiteral());
+                    editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
+                    editor.addToArray(callExpression.args, 0, brighterscript.createVariableExpression(functionName));
+                    this.testSuite.session.globalStubbedMethods.add(functionName);
+                } else {
+                    let functionName = arg0.callee.name.text;
+                    let fullPath = getStringPathFromDottedGet(arg0.callee.obj as DottedGetExpression);
+                    editor.removeFromArray(callExpression.args, 0);
+                    if (!isNotCalled && !isStubCall) {
+                        const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                        editor.addToArray(callExpression.args, 0, expectedArgs);
+                    }
+                    editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
+                    editor.addToArray(callExpression.args, 0, getRootObjectFromDottedGet(arg0.callee));
+                    editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
+                    editor.addToArray(callExpression.args, 0, arg0.callee.obj);
+                }
+            }
         } else if (brighterscript.isDottedGetExpression(arg0)) {
             let functionName = arg0.name.text;
-            let fullPath = this.getStringPathFromDottedGet(arg0.obj as DottedGetExpression);
+            let fullPath = getStringPathFromDottedGet(arg0.obj as DottedGetExpression);
             arg0 = callExpression.args[0] as DottedGetExpression;
             editor.removeFromArray(callExpression.args, 0);
             if (!isNotCalled && !isStubCall) {
                 editor.addToArray(callExpression.args, 0, createInvalidLiteral());
             }
             editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
-            editor.addToArray(callExpression.args, 0, this.getRootObjectFromDottedGet(arg0 as DottedGetExpression));
+            editor.addToArray(callExpression.args, 0, getRootObjectFromDottedGet(arg0 as DottedGetExpression));
             editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
             editor.addToArray(callExpression.args, 0, (arg0 as DottedGetExpression).obj);
         } else if (brighterscript.isCallfuncExpression(arg0)) {
@@ -134,12 +177,38 @@ export class TestGroup extends TestBlock {
                 const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName), ...arg0.args], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 editor.addToArray(callExpression.args, 0, expectedArgs);
             }
-            let fullPath = this.getStringPathFromDottedGet(arg0.callee as DottedGetExpression);
+            let fullPath = getStringPathFromDottedGet(arg0.callee as DottedGetExpression);
             editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
-            editor.addToArray(callExpression.args, 0, this.getRootObjectFromDottedGet(arg0.callee as DottedGetExpression));
+            editor.addToArray(callExpression.args, 0, getRootObjectFromDottedGet(arg0.callee as DottedGetExpression));
             editor.addToArray(callExpression.args, 0, createStringLiteral('callFunc'));
             editor.addToArray(callExpression.args, 0, arg0.callee);
+        } else if (brighterscript.isCallExpression(arg0) && brighterscript.isVariableExpression(arg0.callee)) {
+            let functionName = arg0.callee.getName(brighterscript.ParseMode.BrightScript);
+            editor.removeFromArray(callExpression.args, 0);
+            if (!isNotCalled && !isStubCall) {
+                const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                editor.addToArray(callExpression.args, 0, expectedArgs);
+            }
+            editor.addToArray(callExpression.args, 0, createInvalidLiteral());
+            editor.addToArray(callExpression.args, 0, createInvalidLiteral());
+            editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
+            editor.addToArray(callExpression.args, 0, brighterscript.createVariableExpression(functionName));
+            this.testSuite.session.globalStubbedMethods.add(functionName);
         }
+    }
+
+    private shouldNotModifyStubCall(arg0: Expression, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+        if (brighterscript.isDottedGetExpression(arg0)) {
+            let nameParts = getAllDottedGetParts(arg0);
+            let functionName = nameParts.join('.');
+            return scope.getCallableByName(functionName);
+        } else if (brighterscript.isVariableExpression(arg0)) {
+            return (
+                scope.symbolTable.hasSymbol(arg0.getName(ParseMode.BrightScript)) ||
+                scope.getCallableByName(arg0.getName(ParseMode.BrighterScript))
+            );
+        }
+        return false;
     }
 
     public asText(): string {
@@ -159,57 +228,4 @@ export class TestGroup extends TestBlock {
                 testCases: [${testCaseText.join(',\n')}]
             }`;
     }
-
-    private getStringPathFromDottedGet(value: DottedGetExpression) {
-        let parts = [this.getPathValuePartAsString(value)];
-        let root;
-        root = value.obj;
-        while (root) {
-            if (isCallExpression(root) || isCallfuncExpression(root)) {
-                return undefined;
-            }
-            parts.push(`${this.getPathValuePartAsString(root)}`);
-            root = root.obj;
-        }
-        let joinedParts = parts.reverse().join('.');
-        return joinedParts === '' ? undefined : createStringLiteral(joinedParts);
-    }
-
-
-    private getPathValuePartAsString(expr: Expression) {
-        if (isCallExpression(expr) || isCallfuncExpression(expr)) {
-            return undefined;
-        }
-        if (isVariableExpression(expr)) {
-            return expr.name.text;
-        }
-        if (!expr) {
-            return undefined;
-        }
-        if (isDottedGetExpression(expr)) {
-            return expr.name.text;
-        } else if (isIndexedGetExpression(expr)) {
-            if (isLiteralExpression(expr.index)) {
-                return `${expr.index.token.text.replace(/^"/, '').replace(/"$/, '')}`;
-            } else if (isVariableExpression(expr.index)) {
-                return `${expr.index.name.text}`;
-            }
-        }
-    }
-
-    private getRootObjectFromDottedGet(value: DottedGetExpression) {
-        let root;
-        if (isDottedGetExpression(value) || isIndexedGetExpression(value)) {
-
-            root = value.obj;
-            while (root.obj) {
-                root = root.obj;
-            }
-        } else {
-            root = value;
-        }
-
-        return root;
-    }
-
 }

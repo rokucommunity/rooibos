@@ -8,9 +8,19 @@ namespace rooibos
     public test = invalid
     public time = 0
     public error = invalid
+    public throwOnFailedAssertion = false
 
     function new(test)
       m.test = test
+    end function
+
+    function merge(other)
+      m.isFail = other.isFail
+      m.isCrash = other.isCrash
+      m.message = other.message
+      m.lineNumber = other.lineNumber
+      m.time = other.time
+      m.error = other.error
     end function
 
     function reset() as void
@@ -28,6 +38,9 @@ namespace rooibos
           m.isFail = true
           m.message = message
         end if
+      end if
+      if m.throwOnFailedAssertion
+        throw m.getMessage()
       end if
     end function
 

@@ -1,9 +1,13 @@
 
 namespace tests
-
   @noEarlyExit
   @suite
   class ExpectTests extends rooibos.BaseTestSuite
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.isAutoAssertingMocks = true
+    end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '+  Helper
@@ -176,6 +180,7 @@ namespace tests
 
       m.assertEqual(item.service.caller@.say("hello"), "hi")
     end function
+
 
   end class
 

@@ -1,5 +1,5 @@
 namespace rooibos
-  function init() as void
+  function init(testSceneName = invalid) as void
     if createObject("roAPPInfo").IsDev() <> true
       ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
       return
@@ -8,15 +8,20 @@ namespace rooibos
     screen = CreateObject("roSGScreen")
     m.port = CreateObject("roMessagePort")
     screen.setMessagePort(m.port)
-    testSceneName = "TestsScene"
+    if testSceneName = invalid or testSceneName = ""
+      testSceneName = "RooibosScene"
+    end if
 
-    ? "Starting test using test scene with name TestsScene" ; testSceneName
+    ? "Starting test using test scene with name RooibosScene" ; testSceneName
     scene = screen.CreateScene(testSceneName)
     scene.id = "ROOT"
     screen.show()
 
     m.global = screen.getGlobalNode()
-    m.global.addFields({ "testsScene": scene })
+    m.global.addFields({
+      "testsScene": scene
+      "_rbs_ccn": createObject("roSGNode", "CodeCoverage")' bs:disable-line
+    })
 
     if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false
       ? "The scene is not ready yet - waiting for it to set isReadyToStartTests to true"
@@ -26,6 +31,16 @@ namespace rooibos
       ? "scene is ready; running tests now"
       runner = new rooibos.TestRunner(scene, m)
       runner.Run()
+
+      if runner.config.keepAppOpen = false
+        ? "keepAppOpen is false; exiting Rooibos"
+        ' End statement will also exit the caller of this function
+        ' leading to an instant exit of the application
+
+        ' Give the io port time to finish sending all the logs
+        sleep(400)
+        end
+      end if
     end if
 
     while true

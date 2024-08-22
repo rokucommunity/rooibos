@@ -2,4 +2,10 @@
 <component
     name="NodeExample"
     extends="Group">
+    <interface>
+        <field id="state" type="string" />
+    </interface>
+    <children>
+        <Label id="nameText" />
+    </children>
 </component>

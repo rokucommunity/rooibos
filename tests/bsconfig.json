@@ -7,7 +7,7 @@
   ],
   "autoImportComponentScript": true,
   "createPackage": false,
-  "stagingFolderPath": "build",
+  "stagingDir": "build",
   "diagnosticFilters": [
     {
       "src": "**/roku_modules/**/*.*",
@@ -15,7 +15,9 @@
         1107,
         1009
       ]
-    }
+    },
+    1128,
+    1001
   ],
   "plugins": [
     "../bsc-plugin/src/plugin.ts"
@@ -25,10 +27,13 @@
   ],
   "rooibos": {
     "showOnlyFailures": true,
-    "catchCrashes": true,
+    "catchCrashes": false,
     "lineWidth": 70,
     "failFast": false,
-    "sendHomeOnFinish": false
+    "sendHomeOnFinish": false,
+    "keepAppOpen": true,
+    "isGlobalMethodMockingEnabled": true,
+    "isRecordingCodeCoverage": false
   },
   "sourceMap": true
 }

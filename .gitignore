@@ -41,13 +41,11 @@ out
 rooibosDist.brs
 
 # Yarn
-yarn.lock
 yarn-error.log
 /outRun/
 node_modules/
 out
 **/roku_modules/
-package-lock.json
 
 !.vscode
 .vscode/.env
