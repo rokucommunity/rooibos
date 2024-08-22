@@ -1,4 +1,4 @@
-namespace rooibos.Common
+namespace rooibos.common
   ' /**
   '  * @module CommonUtils
   '  */
@@ -15,7 +15,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains XMLElement interface, else return false
   '  */
   function isXmlElement(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifXMLElement") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifXMLElement") <> invalid
   end function
 
   ' /**
@@ -27,12 +27,12 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains Function interface, else return false
   '  */
   function isFunction(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifFunction") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifFunction") <> invalid
   end function
 
 
   ' /**
-  '  * @name Rooibos.Common.getFunction
+  '  * @name rooibos.common.getFunction
   '  * @function
   '  * @description looks up the function by name, for the function map
   '  * @memberof module:CommonUtils
@@ -41,10 +41,10 @@ namespace rooibos.Common
   '  * @returns {Function} - function pointer or invalid
   '  */
   function getFunction(filename, functionName) as object
-    if not Rooibos.Common.isNotEmptyString(functionName)
+    if not rooibos.common.isNotEmptyString(functionName)
       return invalid
     end if
-    if not Rooibos.Common.isNotEmptyString(filename)
+    if not rooibos.common.isNotEmptyString(filename)
       return invalid
     end if
     'bs:disable-next-line
@@ -68,7 +68,7 @@ namespace rooibos.Common
   end function
 
   ' /**
-  '  * @name Rooibos.Common.getFunctionBruteforce
+  '  * @name rooibos.common.getFunctionBruteforce
   '  * @function
   '  * @description looks up the function by name, from any function map
   '  *            in future
@@ -78,7 +78,7 @@ namespace rooibos.Common
   '  * @returns {Function} - function pointer or invalid
   '  */
   function getFunctionBruteForce(functionName) as object
-    if not Rooibos.Common.isNotEmptyString(functionName)
+    if not rooibos.common.isNotEmptyString(functionName)
       return invalid
     end if
     'bs:disable-next-line
@@ -116,7 +116,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains Boolean interface, else return false
   '  */
   function isBoolean(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifBoolean") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifBoolean") <> invalid
   end function
 
   ' /**
@@ -128,7 +128,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value type equals Integer, else return false
   '  */
   function isInteger(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifInt") <> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
+    return rooibos.common.isValid(value) and GetInterface(value, "ifInt") <> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
   end function
 
   ' /**
@@ -140,7 +140,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains Float interface, else return false
   '  */
   function isFloat(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifFloat") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifFloat") <> invalid
   end function
 
   ' /**
@@ -152,7 +152,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains Double interface, else return false
   '  */
   function isDouble(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifDouble") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifDouble") <> invalid
   end function
 
   ' /**
@@ -164,7 +164,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains LongInteger interface, else return false
   '  */
   function isLongInteger(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifLongInt") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifLongInt") <> invalid
   end function
 
   ' /**
@@ -176,7 +176,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value is number, else return false
   '  */
   function isNumber(value) as boolean
-    return Rooibos.Common.isLongInteger(value) or Rooibos.Common.isDouble(value) or Rooibos.Common.isInteger(value) or Rooibos.Common.isFloat(value)
+    return rooibos.common.isLongInteger(value) or rooibos.common.isDouble(value) or rooibos.common.isInteger(value) or rooibos.common.isFloat(value)
   end function
 
   ' /**
@@ -188,7 +188,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains List interface, else return false
   '  */
   function isList(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifList") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifList") <> invalid
   end function
 
   ' /**
@@ -200,7 +200,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains Array interface, else return false
   '  */
   function isArray(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifArray") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifArray") <> invalid
   end function
 
   ' /**
@@ -212,7 +212,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains AssociativeArray interface, else return false
   '  */
   function isAssociativeArray(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifAssociativeArray") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifAssociativeArray") <> invalid
   end function
 
   ' /**
@@ -224,7 +224,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains SGNodeChildren interface, else return false
   '  */
   function isSGNode(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifSGNodeChildren") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifSGNodeChildren") <> invalid
   end function
 
   ' /**
@@ -236,7 +236,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains String interface, else return false
   '  */
   function isString(value) as boolean
-    return Rooibos.Common.isValid(value) and GetInterface(value, "ifString") <> invalid
+    return rooibos.common.isValid(value) and GetInterface(value, "ifString") <> invalid
   end function
 
   ' /**
@@ -248,7 +248,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains String interface and length more 0, else return false
   '  */
   function isNotEmptyString(value) as boolean
-    return Rooibos.Common.isString(value) and len(value) > 0
+    return rooibos.common.isString(value) and len(value) > 0
   end function
 
   ' /**
@@ -260,7 +260,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value contains DateTime interface, else return false
   '  */
   function isDateTime(value) as boolean
-    return Rooibos.Common.isValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
+    return rooibos.common.isValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
   end function
 
   ' /**
@@ -272,7 +272,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value initialized and not equal invalid, else return false
   '  */
   function isValid(value) as boolean
-    return not Rooibos.Common.isUndefined(value) and value <> invalid
+    return not rooibos.common.isUndefined(value) and value <> invalid
   end function
 
   function isUndefined(value) as boolean
@@ -304,23 +304,23 @@ namespace rooibos.Common
   '  * @returns {String} - converted string
   '  */
   function asString(input, includeType = false) as string
-    if Rooibos.Common.isValid(input) = false
+    if rooibos.common.isValid(input) = false
       return "INVALID"
-    else if Rooibos.Common.isString(input)
+    else if rooibos.common.isString(input)
       if includeType
         return """" + input + """"
       else
         return input
       end if
-    else if Rooibos.Common.isInteger(input) or Rooibos.Common.isLongInteger(input) or Rooibos.Common.isBoolean(input)
+    else if rooibos.common.isInteger(input) or rooibos.common.isLongInteger(input) or rooibos.common.isBoolean(input)
       if includeType
-        return input.ToStr() + " (" + Rooibos.Common.getSafeType(input) + ")"
+        return input.ToStr() + " (" + rooibos.common.getSafeType(input) + ")"
       else
         return input.ToStr()
       end if
-    else if Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input)
+    else if rooibos.common.isFloat(input) or rooibos.common.isDouble(input)
       if includeType
-        return Str(input).Trim() + " (" + Rooibos.Common.getSafeType(input) + ")"
+        return Str(input).Trim() + " (" + rooibos.common.getSafeType(input) + ")"
       else
         return Str(input).Trim()
       end if
@@ -334,20 +334,22 @@ namespace rooibos.Common
         'bs:disable-next-line
         isFirst = false
       end if
-      for each key in input
-        if rooibos.Common.canSafelyIterateAAKey(input, key)
-          text = text + key + ":" + Rooibos.Common.asString(input[key], includeType)
+      keys = input.keys()
+      keys.sort()
+      for each key in keys
+        if rooibos.common.canSafelyIterateAAKey(input, key)
+          text = text + key + ":" + rooibos.common.asString(input[key], includeType)
         end if
       end for
       text = text + "}"
       return text
-    else if Rooibos.Common.isArray(input)
+    else if rooibos.common.isArray(input)
       text = "["
       join = ""
       maxLen = 500
       for each v in input
         if len(text) < maxLen
-          text += join + rooibos.Common.asString(v, includeType)
+          text += join + rooibos.common.asString(v, includeType)
           join = ", "
         end if
       end for
@@ -356,7 +358,7 @@ namespace rooibos.Common
       end if
       text = text + "]"
       return text
-    else if Rooibos.Common.isFunction(input)
+    else if rooibos.common.isFunction(input)
       return input.toStr() + "(function)"
     else
       return ""
@@ -372,13 +374,13 @@ namespace rooibos.Common
   '  * @returns {Integer} - converted Integer
   '  */
   function asInteger(input) as integer
-    if Rooibos.Common.isValid(input) = false
+    if rooibos.common.isValid(input) = false
       return 0
-    else if Rooibos.Common.isString(input)
+    else if rooibos.common.isString(input)
       return input.ToInt()
-    else if Rooibos.Common.isInteger(input)
+    else if rooibos.common.isInteger(input)
       return input
-    else if Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input) or Rooibos.Common.isLongInteger(input)
+    else if rooibos.common.isFloat(input) or rooibos.common.isDouble(input) or rooibos.common.isLongInteger(input)
       return Int(input)
     else
       return 0
@@ -394,11 +396,11 @@ namespace rooibos.Common
   '  * @returns {Integer} - converted LongInteger
   '  */
   function asLongInteger(input) as longinteger
-    if Rooibos.Common.isValid(input) = false
+    if rooibos.common.isValid(input) = false
       return 0
-    else if Rooibos.Common.isString(input)
-      return Rooibos.Common.asInteger(input)
-    else if Rooibos.Common.isLongInteger(input) or Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input) or Rooibos.Common.isInteger(input)
+    else if rooibos.common.isString(input)
+      return rooibos.common.asInteger(input)
+    else if rooibos.common.isLongInteger(input) or rooibos.common.isFloat(input) or rooibos.common.isDouble(input) or rooibos.common.isInteger(input)
       return input
     else
       return 0
@@ -414,13 +416,13 @@ namespace rooibos.Common
   '  * @returns {Float} - converted Float
   '  */
   function asFloat(input) as float
-    if Rooibos.Common.isValid(input) = false
+    if rooibos.common.isValid(input) = false
       return 0.0
-    else if Rooibos.Common.isString(input)
+    else if rooibos.common.isString(input)
       return input.ToFloat()
-    else if Rooibos.Common.isInteger(input)
+    else if rooibos.common.isInteger(input)
       return (input / 1)
-    else if Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input) or Rooibos.Common.isLongInteger(input)
+    else if rooibos.common.isFloat(input) or rooibos.common.isDouble(input) or rooibos.common.isLongInteger(input)
       return input
     else
       return 0.0
@@ -436,11 +438,11 @@ namespace rooibos.Common
   '  * @returns {Float} - converted Double
   '  */
   function asDouble(input) as double
-    if Rooibos.Common.isValid(input) = false
+    if rooibos.common.isValid(input) = false
       return 0.0
-    else if Rooibos.Common.isString(input)
-      return Rooibos.Common.asFloat(input)
-    else if Rooibos.Common.isInteger(input) or Rooibos.Common.isLongInteger(input) or Rooibos.Common.isFloat(input) or Rooibos.Common.isDouble(input)
+    else if rooibos.common.isString(input)
+      return rooibos.common.asFloat(input)
+    else if rooibos.common.isInteger(input) or rooibos.common.isLongInteger(input) or rooibos.common.isFloat(input) or rooibos.common.isDouble(input)
       return input
     else
       return 0.0
@@ -456,13 +458,13 @@ namespace rooibos.Common
   '  * @returns {Boolean} - converted boolean
   '  */
   function asBoolean(input) as boolean
-    if Rooibos.Common.isValid(input) = false
+    if rooibos.common.isValid(input) = false
       return false
-    else if Rooibos.Common.isString(input)
+    else if rooibos.common.isString(input)
       return LCase(input) = "true"
-    else if Rooibos.Common.isInteger(input) or Rooibos.Common.isFloat(input)
+    else if rooibos.common.isInteger(input) or rooibos.common.isFloat(input)
       return input <> 0
-    else if Rooibos.Common.isBoolean(input)
+    else if rooibos.common.isBoolean(input)
       return input
     else
       return false
@@ -478,8 +480,8 @@ namespace rooibos.Common
   '  * @returns {Array} - converted array
   '  */
   function asArray(value) as object
-    if Rooibos.Common.isValid(value)
-      if not Rooibos.Common.isArray(value)
+    if rooibos.common.isValid(value)
+      if not rooibos.common.isArray(value)
         return [value]
       else
         return value
@@ -501,10 +503,10 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if value is null or empty string, else return false
   '  */
   function isNullOrEmpty(value) as boolean
-    if Rooibos.Common.isString(value)
+    if rooibos.common.isString(value)
       return Len(value) = 0
     else
-      return not Rooibos.Common.isValid(value)
+      return not rooibos.common.isValid(value)
     end if
   end function
 
@@ -524,19 +526,19 @@ namespace rooibos.Common
   '  * @returns {Integer} - element index if array contains a value, else return -1
   '  */
   function findElementIndexInArray(array, value, compareAttribute = invalid, caseSensitive = false, callCount = 0) as integer
-    if callCount = 0 and not Rooibos.Common.isArray(array)
-      array = Rooibos.Common.asArray(array)
+    if callCount = 0 and not rooibos.common.isArray(array)
+      array = rooibos.common.asArray(array)
     end if
 
-    if Rooibos.Common.isArray(array)
-      for i = 0 to Rooibos.Common.asArray(array).Count() - 1
+    if rooibos.common.isArray(array)
+      for i = 0 to rooibos.common.asArray(array).Count() - 1
         compareValue = array[i]
 
-        if compareAttribute <> invalid and Rooibos.Common.isAssociativeArray(compareValue)
+        if compareAttribute <> invalid and rooibos.common.isAssociativeArray(compareValue)
           compareValue = compareValue.lookupCI(compareAttribute)
         end if
 
-        if Rooibos.Common.eqValues(compareValue, value, callCount + 1)
+        if rooibos.common.eqValues(compareValue, value, callCount + 1)
           return i
         end if
       next
@@ -555,7 +557,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if array contains a value, else return false
   '  */
   function arrayContains(array, value, compareAttribute = invalid) as boolean
-    return (Rooibos.Common.findElementIndexInArray(array, value, compareAttribute) > -1)
+    return (rooibos.common.findElementIndexInArray(array, value, compareAttribute) > -1)
   end function
 
 
@@ -602,7 +604,7 @@ namespace rooibos.Common
   '  * @returns {Boolean} - true if node contains a value, else return false
   '  */
   function nodeContains(node, value) as boolean
-    return (Rooibos.Common.findElementIndexInNode(node, value) > -1)
+    return (rooibos.common.findElementIndexInNode(node, value) > -1)
   end function
 
 
@@ -649,8 +651,8 @@ namespace rooibos.Common
     end if
 
     ' Workaraund for bug with string boxing, and box everything else
-    val1Type = Rooibos.Common.getSafeType(Value1)
-    val2Type = Rooibos.Common.getSafeType(Value2)
+    val1Type = rooibos.common.getSafeType(Value1)
+    val2Type = rooibos.common.getSafeType(Value2)
     if val1Type = invalid or val2Type = invalid
       ? "ERROR!!!! - undefined value passed"
       return false
@@ -669,11 +671,11 @@ namespace rooibos.Common
       valtype = val1Type
 
       if val1Type = "List"
-        return Rooibos.Common.eqArray(Value1, Value2, fuzzy, callCount + 1)
+        return rooibos.common.eqArray(Value1, Value2, fuzzy, callCount + 1)
       else if valtype = "roAssociativeArray"
-        return Rooibos.Common.eqAssocArray(Value1, Value2, fuzzy, callCount + 1)
+        return rooibos.common.eqAssocArray(Value1, Value2, fuzzy, callCount + 1)
       else if valtype = "roArray"
-        return Rooibos.Common.eqArray(Value1, Value2, fuzzy, callCount + 1)
+        return rooibos.common.eqArray(Value1, Value2, fuzzy, callCount + 1)
       else if valtype = "roSGNode"
         if val2Type <> "roSGNode"
           return false
@@ -682,7 +684,7 @@ namespace rooibos.Common
         end if
       else
         if fuzzy = true
-          return Rooibos.Common.asString(Value1) = Rooibos.Common.asString(Value2)
+          return rooibos.common.asString(Value1) = rooibos.common.asString(Value2)
         else
           'If you crashed on this line, then you're trying to compare
           '2 things which can't be compared - check what value1 and value2
@@ -694,8 +696,8 @@ namespace rooibos.Common
   end function
 
   function eqTypes(Value1, Value2) as dynamic
-    val1Type = Rooibos.Common.getSafeType(Value1)
-    val2Type = Rooibos.Common.getSafeType(Value2)
+    val1Type = rooibos.common.getSafeType(Value1)
+    val2Type = rooibos.common.getSafeType(Value2)
     if val1Type = invalid or val2Type = invalid
       ? "ERROR!!!! - undefined value passed"
       return false
@@ -736,7 +738,7 @@ namespace rooibos.Common
           if rooibos.common.canSafelyIterateAAKey(Value1, k) and rooibos.common.canSafelyIterateAAKey(Value2, k)
             v1 = Value1[k]
             v2 = Value2[k]
-            if not Rooibos.Common.eqValues(v1, v2, fuzzy, callCount + 1)
+            if not rooibos.common.eqValues(v1, v2, fuzzy, callCount + 1)
               return false
             end if
           end if
@@ -771,7 +773,7 @@ namespace rooibos.Common
       ? "REACHED MAX ITERATIONS DOING COMPARISON"
       return true
     end if
-    if not (Rooibos.Common.isArray(Value1)) or not Rooibos.Common.isArray(Value2)
+    if not (rooibos.common.isArray(Value1)) or not rooibos.common.isArray(Value2)
       return false
     end if
 
@@ -784,7 +786,7 @@ namespace rooibos.Common
       for i = 0 to l1 - 1
         v1 = Value1[i]
         v2 = Value2[i]
-        if not Rooibos.Common.eqValues(v1, v2, fuzzy, callCount + 1)
+        if not rooibos.common.eqValues(v1, v2, fuzzy, callCount + 1)
           return false
         end if
       end for
@@ -838,14 +840,14 @@ namespace rooibos.Common
         end if
 
         nextPart = invalid
-        if rooibos.Common.isArray(part) and isIndexNumber
+        if rooibos.common.isArray(part) and isIndexNumber
           nextPart = part[index]
         else if type(part) = "roAssociativeArray" and not isIndexNumber
           nextPart = part[index]
         end if
 
         if nextPart = invalid or type(nextPart) <> "roAssociativeArray"
-          if (not isIndexNumber and type(part) = "roAssociativeArray") or (isIndexNumber and (rooibos.Common.isArray(part)))
+          if (not isIndexNumber and type(part) = "roAssociativeArray") or (isIndexNumber and (rooibos.common.isArray(part)))
             nextPart = { id: index }
             part[index] = nextPart
           else

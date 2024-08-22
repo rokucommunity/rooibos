@@ -19,7 +19,7 @@
       uri='source/rooibos/Matchers.bs' />
   <script
       type='text/brighterscript'
-      uri='source/rooibos/Rooibos.bs' />
+      uri='source/rooibos/rooibos.bs' />
   <script
       type='text/brighterscript'
       uri='source/rooibos/RuntimeConfig.bs' />

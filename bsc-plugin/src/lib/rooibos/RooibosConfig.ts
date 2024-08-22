@@ -7,8 +7,11 @@ export enum RooibosLogLevel {
 }
 
 export interface RooibosConfig {
+    isGlobalMethodMockingEfficientMode?: boolean;
     coverageExcludedFiles?: string[];
     isRecordingCodeCoverage?: boolean;
+    isGlobalMethodMockingEnabled?: boolean;
+    globalMethodMockingExcludedFiles?: string[];
     logLevel?: RooibosLogLevel;
     showOnlyFailures?: boolean;
     failFast?: boolean;
@@ -19,7 +22,14 @@ export interface RooibosConfig {
     includeFilters?: string[];
     tags?: string[];
     catchCrashes?: boolean;
+    throwOnFailedAssertion?: boolean;
     sendHomeOnFinish?: boolean;
+
+    /**
+     * @deprecated Use the `reporters` array instead
+     */
+    reporter?: string;
+    reporters?: string[];
     keepAppOpen?: boolean;
     testSceneName?: string;
 

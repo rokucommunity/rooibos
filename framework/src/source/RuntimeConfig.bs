@@ -1,16 +1,25 @@
 namespace rooibos
   class RuntimeConfig
 
+    function new()
+      m.testSuites = m.getTestSuiteClassMap()
+    end function
+
     function getVersionText()
     end function
 
     function getRuntimeConfig()
     end function
 
+    function getTestSuiteClassMap()
+    end function
+
     function getTestSuiteClassWithName(name)
+      return m.testSuites[name]
     end function
 
     function getAllTestSuitesNames()
+      return m.testSuites.keys()
     end function
 
     function getIgnoredTestInfo()

@@ -22,6 +22,23 @@ namespace tests
       m.assertTrue(isFail)
     end function
 
+    @it("FailCrash")
+    function _()
+
+      try
+        result = 2 / 0
+      catch e
+        m.failCrash(e)
+      end try
+
+      isFail = m.currentResult.isFail
+      isCrash = m.currentResult.isCrash
+      m.currentResult.Reset()
+
+      m.assertTrue(isCrash)
+      m.assertTrue(isFail)
+    end function
+
     @it("AssertTrue")
     @params(true, true)
     @params(false, false)

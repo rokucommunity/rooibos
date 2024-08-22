@@ -13,8 +13,8 @@ namespace rooibos
       end if
     end function
 
-    override function reportResults(allStats)
-      m.allStats = allStats
+    override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
+      m.allStats = ev.stats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
@@ -30,13 +30,13 @@ namespace rooibos
 
       'bs:disable-next-line
       ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
-      m.printLine(0, "Total: " + Rooibos.Common.AsString(m.allStats.ranCount))
-      m.printLine(0, "  Passed: " + Rooibos.Common.AsString(m.allStats.passedCount))
-      m.printLine(0, "  Crashed: " + Rooibos.Common.AsString(m.allStats.crashedCount))
-      m.printLine(0, "  Failed: " + Rooibos.Common.AsString(m.allStats.failedCount))
+      m.printLine(0, "Total: " + rooibos.common.AsString(m.allStats.ranCount))
+      m.printLine(0, "  Passed: " + rooibos.common.AsString(m.allStats.passedCount))
+      m.printLine(0, "  Crashed: " + rooibos.common.AsString(m.allStats.crashedCount))
+      m.printLine(0, "  Failed: " + rooibos.common.AsString(m.allStats.failedCount))
       'bs:disable-next-line
-      m.printLine(0, "  Ignored: " + Rooibos.Common.AsString(ignoredInfo.count))
-      m.printLine(0, "  Time: " + Rooibos.Common.AsString(m.allStats.time) + "ms")
+      m.printLine(0, "  Ignored: " + rooibos.common.AsString(ignoredInfo.count))
+      m.printLine(0, "  Time: " + rooibos.common.AsString(m.allStats.time) + "ms")
       m.printLine()
       m.printLine()
 
@@ -103,7 +103,7 @@ namespace rooibos
 
       insetText = ""
       if test.isParamTest <> true
-        messageLine = Rooibos.Common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
+        messageLine = rooibos.common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
         m.printLine(0, messageLine + test.result.getStatusText() + timeText)
         m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
       else if test.paramTestIndex = 0
@@ -130,7 +130,7 @@ namespace rooibos
         else
           rawParams = test.rawParams
         end if
-        messageLine = Rooibos.Common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", m.lineWidth)
+        messageLine = rooibos.common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", m.lineWidth)
         m.printLine(0, messageLine + test.result.getStatusText() + timeText)
       end if
 
@@ -185,14 +185,6 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ printing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    override function testLogInfo(text)
-      ? "INFO " ; text
-    end function
-
-    override function testLogError(text)
-      ? "ERROR " ; text
-    end function
 
     function printLine(depth = 0, text = "")
       ? " " ; text

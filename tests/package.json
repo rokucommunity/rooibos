@@ -7,13 +7,13 @@
     "watch": "npx bsc --project bsconfig.json --watch"
   },
   "devDependencies": {
-    "brighterscript": "^0.64.0",
+    "brighterscript": "^0.65.22",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.4"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/georgejecook/rooibos.git"
+    "url": "git+https://github.com/rokucommunity/rooibos.git"
   },
   "keywords": [
     "brightscript",
@@ -24,7 +24,7 @@
   "author": "George Cook",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/georgejecook/rooibos/issues"
+    "url": "https://github.com/rokucommunity/rooibos/issues"
   },
-  "homepage": "https://github.com/georgejecook/rooibos#readme"
+  "homepage": "https://github.com/rokucommunity/rooibos#readme"
 }

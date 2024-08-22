@@ -18,8 +18,8 @@ namespace tests
     @it("HelloFromNode")
     function _()
       'bs:disable-next-line
-      text = HelloFromNode("georgejecook", 12)
-      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      text = HelloFromNode("rokucommunity", 12)
+      m.AssertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
       m.done()
     end function
 
@@ -67,6 +67,29 @@ namespace tests
       m.timer.duration = 0.1
       m.timer.observeFieldScoped("fire", callback)
       m.timer.control = "start"
+    end function
+
+    @it("updates state")
+    @params("start")
+    @params("stop")
+    @params("error")
+    function _(state)
+      m.node.top.state = ""
+      UpdateState(state)
+      m.assertEqual(m.node.top.state, state)
+    end function
+
+    @it("updates name text")
+    @params("jon")
+    @params("ringo")
+    @params("ringo")
+    @params("ringo")
+    @params("george")
+    @params("paul")
+    function _(text)
+      m.node.nameText.text = ""
+      SetLabelText(text)
+      m.assertEqual(m.node.nameText.text, text)
     end function
   end class
 end namespace

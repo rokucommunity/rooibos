@@ -3,6 +3,7 @@ import { standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
+import type { TestSuite } from './TestSuite';
 
 export class FileFactory {
     private coverageComponentXmlTemplate;
@@ -40,6 +41,7 @@ export class FileFactory {
         'TestGroup',
         'BaseTestReporter',
         'ConsoleTestReporter',
+        'JUnitTestReporter',
         'TestResult',
         'TestRunner',
         'Utils'
@@ -70,10 +72,15 @@ export class FileFactory {
         );
     }
 
-    public createTestXML(name: string, baseName: string, useBs = true): string {
+    public createTestXML(name: string, baseName: string, suite?: TestSuite): string {
         let scriptImports = [];
         for (let fileName of this.frameworkFileNames) {
-            scriptImports.push(`<script type="text/bright${useBs ? 'er' : ''}script" uri="pkg:/${this.targetPath}${fileName}.${useBs ? 'bs' : 'brs'}" />`);
+            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${this.targetPath}${fileName}.bs" />`);
+        }
+
+        // Add the test spec file rather then relying on auto imports
+        if (suite) {
+            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.pkgPath.replace(/\\/g, '/')}" />`);
         }
 
         let contents = `<?xml version="1.0" encoding="UTF-8" ?>
@@ -89,8 +96,10 @@ export class FileFactory {
 
                 <children>
                     <Rectangle id="statusBackground" color="#444444" width="1920" height="1080" />
-                    <Label id="statusLabel" text='Rooibos is running tests' />
-                    <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
+                    <LayoutGroup translation="[960, 540]" vertAlignment="center"  horizAlignment="center">
+                        <Label id="statusLabel" text='Rooibos is running tests' width="1800" />
+                        <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
+                    </LayoutGroup>
                 </children>
             </component>
         `;
@@ -99,8 +108,8 @@ export class FileFactory {
 
     public createCoverageComponent(program: Program, coverageMap: any, filepathMap: Map<number, string>) {
         let template = this.coverageComponentBrsTemplate;
-        template = template.replace(/\#EXPECTED_MAP\#/g, JSON.stringify(coverageMap ?? {}));
-        template = template.replace(/\#FILE_PATH_MAP\#/g, JSON.stringify(filepathMap ?? {}));
+        template = template.replace(/\"\#EXPECTED_MAP\#\"/g, JSON.stringify(coverageMap ?? {}));
+        template = template.replace(/\"\#FILE_PATH_MAP\#\"/g, JSON.stringify(filepathMap ?? {}));
 
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);

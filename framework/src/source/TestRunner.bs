@@ -11,7 +11,7 @@ namespace rooibos
   '  */
   class TestRunner
     public testScene = invalid
-    public testReporter = invalid
+    public testReporters = []
     public nodeContext = invalid
     public config = invalid
     public testSuites = []
@@ -32,8 +32,8 @@ namespace rooibos
       m.stats = new rooibos.Stats()
       m.runtimeConfig = new rooibos.RuntimeConfig()
       m.config = m.runtimeConfig.getRuntimeConfig()
-      'TODO - allow providing different reporters via config
-      m.testReporter = new Rooibos.ConsoleTestReporter(m)
+
+      m.testReporters = m.getTestReporters()
     end function
 
     ' /**
@@ -44,6 +44,12 @@ namespace rooibos
     '  * @description Executes all tests for a project, as per the config
     '  */
     public function run()
+
+      for each reporter in m.testReporters
+        if rooibos.common.isFunction(reporter.onBegin)
+          reporter.onBegin({})
+        end if
+      end for
 
       rooibosTimer = createObject("roTimespan")
       rooibosTimer.mark()
@@ -65,6 +71,7 @@ namespace rooibos
           testSuite.top = m.nodeContext.top
           testSuite.scene = m.nodeContext.global.testsScene
           testSuite.catchCrashes = m.config.catchCrashes
+          testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
           testSuite.scene.testText = `Running Suite ${i} of ${numSuites}: ${name}`
           m.runTestSuite(testSuite)
           if m.stats.hasFailures = true
@@ -98,7 +105,11 @@ namespace rooibos
 
       m.stats.time = rooibosTimer.totalMilliseconds()
 
-      m.testReporter.reportResults(m.stats)
+      for each reporter in m.testReporters
+        if rooibos.common.isFunction(reporter.onEnd)
+          reporter.onEnd({ stats: m.stats })
+        end if
+      end for
 
       rooibosResult = {
         stats: m.stats
@@ -106,9 +117,7 @@ namespace rooibos
       }
       m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
 
-      'bs:disable-next-line
-      if Rooibos.Common.isFunction(rooibos.Coverage.reportCodeCoverage)
-        'bs:disable-next-line
+      if m.config.isRecordingCodeCoverage
         rooibos.Coverage.reportCodeCoverage()
 
         if m.config.printLcov = true
@@ -134,6 +143,7 @@ namespace rooibos
         testSuite.top = m.nodeContext.top
         testSuite.scene = m.nodeContext.global.testsScene
         testSuite.catchCrashes = m.config.catchCrashes
+        testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
         m.nodeContext.testSuite = testSuite
         m.nodeTestName = nodeTestName
         m.nodeContext.testRunner = m
@@ -153,6 +163,7 @@ namespace rooibos
           ? "Running suite asynchronously!"
           m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
           testSuite.run()
+          return invalid
         else
           ? "Running suite synchronously!"
           testSuite.run()
@@ -187,7 +198,7 @@ namespace rooibos
     private function runTestSuite(testSuite) as void
       if testSuite.groupsData <> invalid and testSuite.groupsData.count() > 0
         ? ""
-        ? Rooibos.Common.fillText("> SUITE: " + testSuite.name, ">", 80)
+        ? rooibos.common.fillText("> SUITE: " + testSuite.name, ">", 80)
         m.testSuites.push(testSuite)
 
         if testSuite.isNodeTest
@@ -246,7 +257,13 @@ namespace rooibos
               timeout = testSuite.asyncTimeout = invalid ? 60000 : testSuite.asyncTimeout
 
               ? "Waiting max " timeout "ms for the test suite to finish"
-              m.waitForField(node, "rooibosSuiteFinished", 10, timeout / 10)
+              t = createObject("roTimespan")
+              while node.rooibosSuiteFinished = false
+                m.wait(10)
+                if t.totalMilliseconds() >= timeout
+                  exit while
+                end if
+              end while
             end if
           end if
           nodeResults = node.asyncRooibosTestResult
@@ -254,7 +271,7 @@ namespace rooibos
             testSuite.stats.merge(nodeResults.stats)
             m.mergeGroups(testSuite, nodeResults.groups)
           else
-            ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/georgejecook/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+            ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
           end if
           m.testScene.removeChild(node)
           return
@@ -295,6 +312,19 @@ namespace rooibos
       ut = createObject("roUrlTransfer")
       ut.SetUrl("http://localhost:8060/keypress/Home")
       ut.PostFromString("")
+    end function
+
+    private function getTestReporters()
+      reporters = []
+      for each factory in m.config.reporters
+        if rooibos.common.isFunction(factory)
+          reporters.push(factory(m))
+        end if
+      end for
+      if reporters.isEmpty()
+        reporters.push(new rooibos.ConsoleTestReporter(m))
+      end if
+      return reporters
     end function
 
   end class
