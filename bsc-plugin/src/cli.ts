@@ -52,7 +52,8 @@ async function main() {
 
     builder.logger.logLevel = logLevel;
 
-    await builder.run(<any>options);
+
+    await builder.run(<any>{ ...options, retainStagingDir: true });
 
     const rokuDeploy = new RokuDeploy();
     const deviceInfo = await rokuDeploy.getDeviceInfo({ host: host });

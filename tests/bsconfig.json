@@ -7,7 +7,6 @@
   ],
   "autoImportComponentScript": true,
   "stagingDir": "build",
-  "retainStagingDir": true,
   "diagnosticFilters": [
     {
       "src": "**/roku_modules/**/*.*",
