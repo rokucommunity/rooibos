@@ -22,6 +22,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Incorporate your own util methods](#incorporate-your-own-util-methods)
  - [Hook into your global setup mechanisms](#hook-into-your-global-setup-mechanisms)
  - [Only show output for failed tests](#only-show-output-for-failed-tests)
+ - [Simple Command Line Interface](#command-line-interface)
  - [Easily integrate into any CI system](#easily-integrate-into-any-ci-system)
  - [Generate code coverage](#generate-code-coverage)
 
@@ -36,6 +37,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Using mocks and stubs](#using-mocks-and-stubs)
  - [API reference](https://rokucommunity.github.io/rooibos)
  - [assertion reference](https://rokucommunity.github.io/rooibos/module-BaseTestSuite.html)
+ - [Command Line Interface (CLI)](#command-line-interface)
  - [Integrating with your CI](#integrating-with-your-ci)
  - [Advanced Setup](#advanced-setup)
  - [Code coverage](#generate-code-coverage)
@@ -949,14 +951,40 @@ m.expectCalled(videoService.getVideos, someJson, true)
 
 Note, you can also opt to disable the error at the whole test suite level; by setting `m.allowNonExistingMethods = true` in your test suite code.
 
+## Command Line Interface
+<a name="simple-cli"></a>
+Rooibos includes a simple CLI that can be used to run the tests on a Roku Device
+from the command line.
+
+To use the CLI, you call it with references to the `bsconfig.json` file defining your test project, and the host and password of a Roku device that is in developer mode:
+
+```
+npx rooibos --project=<path_to_bsconfig.json> --host=<host> --password=<password>
+```
+
+The test runner CLI will:
+1. build the app as defined in the given `bsconfig.json` file
+2. deploy the app the Roku device specified
+3. send the Roku's console output to `stdout`
+4. exit with status `0` on success, or `1` on failure.
+
 
 ## Integrating with your CI
 <a name="easily-integrate-into-any-ci-system"></a>
-Rooibos does not have special test runners for outputting to files, or uploading to servers. However, that will not stop you integrating with your CI system.
+Rooibos CLI can be used directly in your CI process.
 
-Because the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
+An example make target might look like
 
-Note that rooibos doesn't need any special parameters to run. If you follow the standard setup the tests will run. Simply ensure that your build system includes, or does not include rooibosDist.brs (and better still, _all_ of your tests), depending on whether you wish to run the tests or not.
+```
+continuousIntegration: build
+	echo "Running Rooibos Unit Tests"
+	npx rooibos --project=<test project bsconfig.json> --host=${ROKU_DEV_TARGET} --password=${ROKU_DEV_PASSWORD}
+
+```
+
+Alternately, you can manually deploy the app after it has been built, and check the output. Because the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
+
+Note that Rooibos doesn't need any special parameters to run. If you follow the standard setup the tests will run. Simply ensure that your build system includes, or does not include rooibosDist.brs (and better still, _all_ of your tests), depending on whether you wish to run the tests or not.
 
 An example make target might look like
 
