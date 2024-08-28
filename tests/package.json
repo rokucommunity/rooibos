@@ -4,12 +4,14 @@
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - tests",
   "scripts": {
     "build": "bsc",
-    "watch": "npx bsc --project bsconfig.json --watch"
+    "watch": "npx bsc --project bsconfig.json --watch",
+    "test": "source ./.vscode/.env && npx rooibos --project=bsconfig.json --host=$ROKU_DEV_TARGET --password=$ROKU_DEVPASSWORD"
   },
   "devDependencies": {
-    "brighterscript": "^0.65.22",
+    "brighterscript": "^0.67.4",
     "ts-node": "^10.7.0",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "rooibos-roku": "../bsc-plugin"
   },
   "repository": {
     "type": "git",
