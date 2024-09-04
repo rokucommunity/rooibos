@@ -17,9 +17,9 @@ describe('RooibosPlugin', () => {
     let plugin: RooibosPlugin;
 
     function setupProgram(options) {
+        fsExtra.emptyDirSync(tmpPath);
         fsExtra.ensureDirSync(_stagingFolderPath);
         fsExtra.ensureDirSync(_rootDir);
-        fsExtra.ensureDirSync(tmpPath);
 
         plugin = new RooibosPlugin();
         builder = new ProgramBuilder();
@@ -1992,6 +1992,37 @@ describe('RooibosPlugin', () => {
         });
     });
 
+    describe('does not prevent component scope validation of node tests', () => {
+        it('does not prevent valid scope based diagnostics for node tests', () => {
+            program.setFile('components/customComponent.xml', `
+                <component name="CustomComponent" extends="Group" />
+            `);
+            program.setFile('source/baseTestClass.spec.bs', `
+                class BaseTestClass extends rooibos.BaseTestSuite
+                    public function customHelperFunction() as boolean
+                        return true
+                    end function
+                end class
+            `);
+            program.setFile('components/test2.spec.bs', `
+                @suite
+                @SGNode("CustomComponent")
+                class ATest2 extends BaseTestClass
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        item = {id: "item"}
+                        m.expectNotCalled(item.getFunction())
+                        m.expectNotCalled(item.getFunction())
+                    end function
+                end class
+            `);
+            program.validate();
+            let files = [...Object.values(program.files)].map(x => ({ src: x.srcPath, dest: x.pkgPath }));
+            expect(program.getDiagnostics().map(x => x.message)).to.eql([`Cannot find name 'BaseTestClass'`]);
+        });
+    });
+
     describe('addTestRunnerMetadata', () => {
         it('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
@@ -2335,4 +2366,3 @@ function getTestSubContents() {
     );
     return result;
 }
-
