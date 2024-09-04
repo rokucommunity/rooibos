@@ -419,10 +419,6 @@ function createCovMap(files: Array<FileCoverage>) {
         report += `end_of_record\n`;
     }
 }
-
-
-
-
 // function write_info($$$) {
 //     my $self = $_[0];
 //     local *INFO_HANDLE = $_[1];
