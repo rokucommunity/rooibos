@@ -1,6 +1,4 @@
-import type { BscFile,
-    WalkOptions,
-    WalkVisitor } from 'brighterscript';
+import type { BscFile, WalkOptions, WalkVisitor } from 'brighterscript';
 import { Expression } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import type { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
@@ -32,5 +30,9 @@ export class RawCodeExpression extends Expression {
     }
     public walk(visitor: WalkVisitor, options: WalkOptions) {
         //nothing to walk
+    }
+
+    public clone() {
+        return new RawCodeExpression(this.source, this.sourceFile, brighterscript.util.cloneLocation({ range: this.range } as any).range);
     }
 }

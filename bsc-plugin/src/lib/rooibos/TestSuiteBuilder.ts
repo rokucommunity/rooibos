@@ -2,9 +2,11 @@
 import type {
     BrsFile,
     ClassStatement,
+    FunctionStatement,
     MethodStatement
 } from 'brighterscript';
 import {
+    isFunctionStatement,
     isMethodStatement,
     util
 } from 'brighterscript';
@@ -203,7 +205,7 @@ export class TestSuiteBuilder {
 
         let sanitizedTestName = this.sanitizeFunctionName(this.currentGroup.name) + '_' + this.sanitizeFunctionName(annotation.name);
         statement.tokens.name.text = sanitizedTestName;
-        statement.func.functionStatement.tokens.name.text = sanitizedTestName;
+        statement.func.findAncestor<MethodStatement>(isMethodStatement).tokens.name.text = sanitizedTestName;
 
         if (numberOfParams > 0) {
             let index = 0;

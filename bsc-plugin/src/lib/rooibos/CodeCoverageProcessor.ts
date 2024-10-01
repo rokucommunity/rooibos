@@ -131,9 +131,6 @@ export class CodeCoverageProcessor {
                 this.addStatement(ds);
                 ds.tokens.forEach.text = `${this.getFuncCallText(ds.location.range.start.line, CodeCoverageLineType.code)}: for each`;
             },
-            ExitWhileStatement: (ds, parent, owner, key) => {
-
-            },
             PrintStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
                 this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
