@@ -19,7 +19,7 @@ let options = yargs
             return new Error('You must provide a host. (--host)');
         }
         if (!argv.password) {
-            return new Error('You must provide a password. (--host)');
+            return new Error('You must provide a password. (--password)');
         }
         if (!argv.project) {
             console.log('No project file specified. Using "./bsconfig.json"');
