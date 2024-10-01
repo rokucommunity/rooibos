@@ -1115,7 +1115,6 @@ end namespace
       @suite("Rooibos assertion tests")
       class AssertionTests extends rooibos.BaseTestSuite
       @describe("group1")
-
       @it("one")
       @params("http://google.com/thing", true)
       @params("#'_!!@#%", false)

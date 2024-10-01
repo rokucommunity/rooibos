@@ -47,6 +47,10 @@ export class RawCodeStatement extends Statement {
     public walk(visitor: WalkVisitor, options: WalkOptions) {
         //nothing to walk
     }
+
+    public clone() {
+        return new RawCodeStatement(this.source, this.sourceFile, util.cloneLocation({ range: this.range } as any).range);
+    }
 }
 
 export class RawCodeExpression extends Expression {
@@ -80,5 +84,9 @@ export class RawCodeExpression extends Expression {
     }
     public walk(visitor: WalkVisitor, options: WalkOptions) {
         //nothing to walk
+    }
+
+    public clone() {
+        return new RawCodeExpression(this.source, this.sourceFile, util.cloneLocation({ range: this.range } as any).range);
     }
 }
