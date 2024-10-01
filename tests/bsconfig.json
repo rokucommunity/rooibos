@@ -17,7 +17,8 @@
       ]
     },
     1128,
-    1001
+    1001, 
+    1140
   ],
   "plugins": [
     "../bsc-plugin/src/plugin.ts"
@@ -35,5 +36,6 @@
     "isGlobalMethodMockingEnabled": true,
     "isRecordingCodeCoverage": false
   },
-  "sourceMap": true
+  "sourceMap": true,
+  "retainStagingDir": true
 }
