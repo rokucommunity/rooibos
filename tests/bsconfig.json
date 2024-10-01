@@ -6,7 +6,6 @@
     "components/**/*.*"
   ],
   "autoImportComponentScript": true,
-  "createPackage": false,
   "stagingDir": "build",
   "diagnosticFilters": [
     {
