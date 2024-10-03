@@ -10,16 +10,19 @@ namespace rooibos
   '  * @description Creates an instance of the test runner
   '  */
   class TestRunner
-    public testScene = invalid
-    public testReporters = []
-    public nodeContext = invalid
-    public config = invalid
-    public testSuites = []
-    private runtimeConfig = invalid
-    private stats = invalid
-    private top = invalid
+    public testScene as roSGNodeScene = invalid
+    public testReporters as BaseTestReporter[] = []
+    public nodeContext as roAssociativeArray = invalid
+    public config as RuntimeConfigData = invalid
+    public testSuites as BaseTestSuite[] = []
+    private runtimeConfig as RuntimeConfig = invalid
+    private stats as Stats = invalid
+    public top as NodeWithRooibosFields = invalid
+    private nodeTestName = ""
+    private currentTestSuite as BaseTestSuite = invalid
+    public currentGroup as TestGroup = invalid
 
-    public function new(testScene, nodeContext)
+    public function new(testScene as roSGNodeScene, nodeContext as roAssociativeArray)
       m.testScene = testScene
       if nodeContext.top = invalid
         nodeContext.top = testScene
@@ -107,7 +110,7 @@ namespace rooibos
 
       for each reporter in m.testReporters
         if rooibos.common.isFunction(reporter.onEnd)
-          reporter.onEnd({ stats: m.stats })
+          reporter.onEnd({stats: m.stats})
         end if
       end for
 
@@ -131,7 +134,7 @@ namespace rooibos
       end if
     end function
 
-    public function runInNodeMode(nodeTestName)
+    public function runInNodeMode(nodeTestName as string)
       'bs:disable-next-line
       suiteClass = m.runtimeConfig.getTestSuiteClassWithName(nodeTestName)
       testSuite = invalid
@@ -184,14 +187,14 @@ namespace rooibos
       if testSuite <> invalid
         return {
           stats: testSuite.stats
-          tests: testSuite.tests
+          tests: testSuite.tests ' WHAT IS THIS?
         }
 
       else
-        ? "[ERROR] could not create test suite " ; m.testRunner.nodeTestName
+        ? "[ERROR] could not create test suite " ; m.nodeTestName
       end if
 
-      ? "ERROR! (onTestSuiteComplete) executing node test " + m.testRunner.nodeTestName + " was unsuccessful."
+      ? "ERROR! (onTestSuiteComplete) executing node test " + m.nodeTestName + " was unsuccessful."
       return invalid
     end function
 
@@ -245,7 +248,7 @@ namespace rooibos
         'wait on the field
 
         if type(node) = "roSGNode"
-          m.groups = []
+
           for each groupData in testSuite.groupsData
             'bs:disable-next-line
             group = new TestGroup(testSuite, groupData)
@@ -299,11 +302,11 @@ namespace rooibos
         realGroup.tests = []
         for testDataIndex = 0 to group.testsData.count() - 1
           testData = group.testsData[testDataIndex]
-          realTest = new rooibos.Test(m, testData)
+          realTest = new rooibos.Test(group, testData)
           realTest.testSuite = testSuite
           realGroup.tests.push(realTest)
-          test = group.tests[testDataIndex]
-          realTest.result.merge(test.result)
+          groupTest = group.tests[testDataIndex]
+          realTest.result.merge(groupTest.result)
         end for
       end for
     end function
@@ -353,4 +356,12 @@ namespace rooibos
   function onTestSuiteComplete()
     m.testRunner.onTestSuiteComplete()
   end function
+
+  interface NodeWithRooibosFields extends roSGNode
+    rooibosSuiteFinished as boolean
+    rooibosTestFinished as boolean
+    rooibosTestIsAsync as boolean
+    rooibosGroupFinished as boolean
+  end interface
+
 end namespace

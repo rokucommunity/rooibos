@@ -3,15 +3,16 @@
     "inline-if-style": "no-then",
     "block-if-style": "no-then",
     "condition-style": "no-group",
-    "named-function-style": "no-sub",
-    "anon-function-style": "no-sub",
-    "type-annotations": "off",
+    "named-function-style": "off",
+    "anon-function-style": "off",
     "assign-all-paths": "off",
     "unsafe-path-loop": "error",
     "unsafe-iterators": "error",
     "unreachable-code": "warn",
     "case-sensitivity": "warn",
     "unused-variable": "warn",
-    "consistent-return": "error"
+    "consistent-return": "error",
+    "eol-last": "off",
+    "aa-comma-style": "off"
   }
 }

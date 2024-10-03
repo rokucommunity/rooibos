@@ -9,6 +9,5 @@
       "src": "**/roku_modules/**/*.*",
       "codes": [1107, 1009]
     }
-  ],
-  "plugins": ["@rokucommunity/bslint"]
+  ]
 }

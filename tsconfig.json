@@ -1,0 +1,3 @@
+{
+  "extends": "./bsc-plugin/tsconfig.json"
+}

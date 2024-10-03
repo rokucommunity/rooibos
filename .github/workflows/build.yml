@@ -39,7 +39,7 @@ jobs:
         with:
           node-version: "16.20.2"
           architecture: 'x64' # fix for macos-latest
-      - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ./.npmrc
+      - run: cd bsc-plugin && echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ./.npmrc
       - run: cd bsc-plugin && npm ci
       - run: cd bsc-plugin && npm run build
       #create npm package

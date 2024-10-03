@@ -1,10 +1,13 @@
-import type { BrsFile, ClassStatement, FunctionStatement, Statement, BscFile, AnnotationExpression } from 'brighterscript';
-import { DiagnosticSeverity, Range } from 'brighterscript';
+import type { BrsFile, ClassStatement, FunctionStatement, Statement, BscFile, AnnotationExpression, BsDiagnostic } from 'brighterscript';
+import { DiagnosticSeverity, Range, util } from 'brighterscript';
 
 import type { AnnotationType, RooibosAnnotation } from '../rooibos/Annotation';
 
+
+export const RooibosLogPrefix = '[Rooibos]';
+
 function addDiagnostic(
-    file: BscFile,
+    file: BrsFile,
     code: number,
     message: string,
     startLine = 0,
@@ -14,7 +17,10 @@ function addDiagnostic(
     severity: DiagnosticSeverity = DiagnosticSeverity.Error
 ) {
     endLine = endLine === -1 ? startLine : endLine;
-    file.addDiagnostics([createDiagnostic(file, code, message, startLine, startCol, endLine, endCol, severity)]);
+    file.program?.diagnostics.register(
+        createDiagnostic(file, code, message, startLine, startCol, endLine, endCol, severity),
+        { tags: ['rooibos'] }
+    );
 }
 
 function addDiagnosticForStatement(
@@ -24,23 +30,29 @@ function addDiagnosticForStatement(
     statement: Statement,
     severity: DiagnosticSeverity = DiagnosticSeverity.Error
 ) {
-    let line = statement.range.start.line;
-    let col = statement.range.start.character;
-    file.addDiagnostics([createDiagnostic(file, code, message, line, col, line, 999999, severity)]);
+    let line = statement.location.range.start.line;
+    let col = statement.location.range.start.character;
+    file.program?.diagnostics.register(
+        createDiagnostic(file, code, message, line, col, line, 999999, severity),
+        { tags: ['rooibos'] }
+    );
 }
 
 function addDiagnosticForAnnotation(
-    file: BscFile,
+    file: BrsFile,
     code: number,
     message: string,
     annotation: AnnotationExpression,
     severity: DiagnosticSeverity = DiagnosticSeverity.Error,
     endChar?: number
 ) {
-    let line = annotation.range.start.line;
-    let col = annotation.range.start.character;
+    let line = annotation.location.range.start.line;
+    let col = annotation.location.range.start.character;
 
-    file.addDiagnostics([createDiagnostic(file, code, message, line, col, annotation.range.end.line, annotation.range.end.character + 9999, severity)]);
+    file.program?.diagnostics.register(
+        createDiagnostic(file, code, message, line, col, annotation.location.range.end.line, annotation.location.range.end.character + 9999, severity),
+        { tags: ['rooibos'] }
+    );
 }
 
 function createDiagnostic(
@@ -52,12 +64,11 @@ function createDiagnostic(
     endLine = 0,
     endCol = 99999,
     severity: DiagnosticSeverity = DiagnosticSeverity.Error
-) {
+): BsDiagnostic {
     const diagnostic = {
         code: `RBS${code}`,
         message: message,
-        range: Range.create(startLine, startCol, endLine, endCol),
-        file: bscFile,
+        location: util.createLocationFromFileRange(bscFile, Range.create(startLine, startCol, endLine, endCol)),
         severity: severity
     };
     return diagnostic;
@@ -89,7 +100,7 @@ export function diagnosticWrongParameterCount(file: BrsFile, statement: Function
     addDiagnosticForStatement(
         file,
         2202,
-        `Function ${statement.name} defined with wrong number of params: expected ${expectedParamCount}`,
+        `Function ${statement.tokens.name} defined with wrong number of params: expected ${expectedParamCount}`,
         statement
     );
 }
@@ -183,7 +194,7 @@ export function diagnosticErrorProcessingFile(file: BrsFile, message: string) {
     );
 }
 
-export function diagnosticErrorNoMainFound(file: BscFile) {
+export function diagnosticErrorNoMainFound(file: BrsFile) {
     addDiagnostic(
         file,
         2213,
@@ -255,7 +266,7 @@ export function diagnosticCorruptTestProduced(file: BrsFile, annotation: Annotat
     );
 }
 
-export function diagnosticNoStagingDir(file: BscFile) {
+export function diagnosticNoStagingDir(file: BrsFile) {
     addDiagnostic(
         file,
         2221,
