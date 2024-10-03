@@ -13,8 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - the versioning for the 6.0.0 alphas will align with the version of brighterscript v1 alpha that it supports.
 
 
+#### [v5.14.0](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.38...v5.14.0)
+> 1 October 2024
 
-#### [5.13.0](https://github.com/rokucommunity/rooibos/compare/5.12.0...5.13.0)
+- Adds a CLI to Rooibos (current version) [`#295`](https://github.com/rokucommunity/rooibos/pull/295)
+
+#### [v5.13.0](https://github.com/rokucommunity/rooibos/compare/5.12.0...v5.13.0)
+
+> 12 September 2024
 
 - chore(deps): bump luxon from 1.28.0 to 1.28.1 [`#210`](https://github.com/rokucommunity/rooibos/pull/210)
 - Fixed a bug where scope validations where incomplete for node tests [`#280`](https://github.com/rokucommunity/rooibos/pull/280)
@@ -26,8 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow custom test reporter [`#265`](https://github.com/rokucommunity/rooibos/pull/265)
 - Fixed logs sometimes getting cut off at the end of running tests [`#279`](https://github.com/rokucommunity/rooibos/pull/279)
 - Adjust implementation to fit with new proposal [`599e6ce`](https://github.com/rokucommunity/rooibos/commit/599e6ce0e02bd16f5ca6bc06ab16bb2a7ec8d1e2)
+- chore: release v5.13.0 [`6c56e29`](https://github.com/rokucommunity/rooibos/commit/6c56e290073e0b707f174a978c1d7757e834ecb8)
 - Switch reporter API to conform to new spec proposal, add `onBegin` and `onEnd` [`54aa936`](https://github.com/rokucommunity/rooibos/commit/54aa936382786b35823406b7d14e9d7a47f8f227)
-- Tweak reporter method signature to accept event AA [`c2f0b2f`](https://github.com/rokucommunity/rooibos/commit/c2f0b2fb1ec0e5ebc1dcb164802542636f78499f)
 
 #### [5.12.0](https://github.com/rokucommunity/rooibos/compare/5.11.0...5.12.0)
 

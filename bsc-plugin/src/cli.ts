@@ -38,7 +38,6 @@ let options = yargs
 async function main() {
     let currentErrorCode = 0;
     let bsconfigPath = options.project ?? 'bsconfig.json';
-
     console.log(`Using bsconfig: ${bsconfigPath}`);
 
     const rawConfig: BsConfig = util.loadConfigFile(bsconfigPath);

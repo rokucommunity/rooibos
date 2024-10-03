@@ -15,7 +15,8 @@
         "publish-npm": "npm run test && npm publish",
         "publish-npm:beta": "npm run test && npm publish --tag=beta",
         "local": "ts-node scripts/install-local.js",
-        "remote": "ts-node scripts/install-npm.js"
+        "remote": "ts-node scripts/install-npm.js",
+        "cli": "ts-node src/cli.ts"
     },
     "repository": {
         "type": "git",
