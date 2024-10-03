@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.39](https://github.com/rokucommunity/bslint/compare/v6.0.0-alpha.38...v6.0.0-alpha.39) - 2024-10-03
+### Changed
+ - upgrade to [brighterscript@1.0.0-alpha.39](https://github.com/rokucommunity/brighterscript/blob/release-1.0.0/CHANGELOG.md#100-alpha39---2024-10-03)
+
+
+
 ## [6.0.0-alpha.38](https://github.com/rokucommunity/brighterscript/compare/5.13.0...v6.0.0-alpha.38) - 2024-10-01
 ### Changed
  - upgrade to brighterscript v1.0.0-alpha.38 and fix issues ([#299](https://github.com/rokucommunity/rooibos/pull/299))
