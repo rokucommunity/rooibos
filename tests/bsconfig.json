@@ -34,7 +34,8 @@
     "sendHomeOnFinish": false,
     "keepAppOpen": true,
     "isGlobalMethodMockingEnabled": true,
-    "isRecordingCodeCoverage": false
+    "isRecordingCodeCoverage": false,
+    "printLcov": false
   },
   "sourceMap": true,
   "retainStagingDir": true
