@@ -69,7 +69,12 @@ namespace rooibos
 
     public isDoneCalled = false
 
-    public top as NodeWithRooibosFields = invalid
+    ' Reference to the tested node in Node tests
+    ' Defined as object so it can be easily typed in tests
+    public top as object = invalid
+    ' Reference to the 'm' of the tested node in node tests
+    ' Defined as object so it can be easily typed in tests
+    public node as object = invalid
 
     public tests as Test[] = []
 
@@ -200,23 +205,24 @@ namespace rooibos
         m.finishAsyncGroups()
       else
         group = m.currentGroup
-        m.testRunner.top.rooibosGroupFinished = false
+        testRunnerTop as NodeWithRooibosFields = m.testRunner.top
+        testRunnerTop.rooibosGroupFinished = false
 
         ? ""
         ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
         ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
         ? ""
 
-        m.testRunner.top.observeFieldScoped("rooibosGroupFinished", "rooibos_onGroupComplete")
+        testRunnerTop.observeFieldScoped("rooibosGroupFinished", "rooibos_onGroupComplete")
 
         group.run()
 
         if group.stats.hasFailures
           ? "Group failed before any async code could be executed"
-          m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
+          testRunnerTop.unobserveFieldScoped("rooibosGroupFinished")
           ' m.testGroupDone()
           m.onAsyncGroupComplete(group)
-        else if m.testRunner.top.rooibosGroupFinished
+        else if testRunnerTop.rooibosGroupFinished
           m.onAsyncGroupComplete(group)
         end if
 
@@ -2677,14 +2683,14 @@ namespace rooibos
 
     function setAsync(isAsync as boolean)
       ? "Setting current test to async " isAsync
-      m.top.rooibosTestIsAsync = isAsync
+      (m.top as NodeWithRooibosFields).rooibosTestIsAsync = isAsync
     end function
 
     function done()
       ' ? "Async test is complete"
       if m.isDoneCalled = false
         m.isDoneCalled = true
-        m.top.rooibosTestFinished = true
+        (m.top as NodeWithRooibosFields).rooibosTestFinished = true
       else
         ? "WARNING - extra done call after test is done ! Did you properly clean up your observers?"
       end if
@@ -2692,12 +2698,12 @@ namespace rooibos
 
     function testSuiteDone()
       ' ? "Async suite is complete"
-      m.top.rooibosSuiteFinished = true
+      (m.top as NodeWithRooibosFields).rooibosSuiteFinished = true
     end function
 
     function testGroupDone()
       ? "Async group is complete"
-      m.top.rooibosGroupFinished = true
+      (m.top as NodeWithRooibosFields).rooibosGroupFinished = true
     end function
 
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)

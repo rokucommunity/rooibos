@@ -17,7 +17,7 @@ namespace rooibos
     public testSuites as BaseTestSuite[] = []
     private runtimeConfig as RuntimeConfig = invalid
     private stats as Stats = invalid
-    public top as NodeWithRooibosFields = invalid
+    public top as roSGNode = invalid
     private nodeTestName = ""
     private currentTestSuite as BaseTestSuite = invalid
     public currentGroup as TestGroup = invalid
@@ -151,10 +151,10 @@ namespace rooibos
         m.nodeTestName = nodeTestName
         m.nodeContext.testRunner = m
         m.nodeContext.top.addFields({
-          "rooibosSuiteFinished": false
-          "rooibosTestFinished": false
-          "rooibosTestIsAsync": false
-          "rooibosGroupFinished": false
+          rooibosSuiteFinished: false
+          rooibosTestFinished: false
+          rooibosTestIsAsync: false
+          rooibosGroupFinished: false
         })
 
       end if
@@ -244,7 +244,7 @@ namespace rooibos
         ? " +++++RUNNING NODE TEST"
         ? " node type is " ; testSuite.generatedNodeName
 
-        node = m.testScene.createChild(testSuite.generatedNodeName)
+        node = m.testScene.createChild(testSuite.generatedNodeName) as NodeWithRooibosFields
         'wait on the field
 
         if type(node) = "roSGNode"
@@ -276,7 +276,7 @@ namespace rooibos
           else
             ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
           end if
-          m.testScene.removeChild(node)
+          m.testScene.removeChild(node as roSGNode)
           return
 
         else
@@ -362,6 +362,13 @@ namespace rooibos
     rooibosTestFinished as boolean
     rooibosTestIsAsync as boolean
     rooibosGroupFinished as boolean
+    asyncRooibosTestResult
+  end interface
+
+  interface AsyncRooibosTestResult
+    stats as rooibos.Stats
+    tests as rooibos.Test[]
+    groups as rooibos.TestGroup[]
   end interface
 
 end namespace
