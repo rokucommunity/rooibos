@@ -18,7 +18,6 @@ namespace rooibos
     private runtimeConfig as RuntimeConfig = invalid
     private stats as Stats = invalid
     public top as roSGNode = invalid
-    public node as roAssociativeArray = invalid
     private nodeTestName = ""
     private currentTestSuite as BaseTestSuite = invalid
     public currentGroup as TestGroup = invalid
