@@ -2253,6 +2253,9 @@ describe('RooibosPlugin', () => {
     });
 
     describe.skip('run a local project', () => {
+
+        // TODO: This project should include its own app to run tests on
+        // Perhaps using https://github.com/lvcabral/brs-engine to run non-node tests
         it('sanity checks on parsing - only run this outside of ci', () => {
             let programBuilder = new ProgramBuilder();
             let swv = {

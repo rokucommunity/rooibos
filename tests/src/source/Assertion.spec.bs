@@ -1,6 +1,3 @@
-import "pkg:/source/rooibos/BaseTestSuite.bs"
-
-
 namespace tests
 
   @noEarlyExit

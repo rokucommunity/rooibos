@@ -135,7 +135,8 @@ namespace rooibos
         'finished
         m.finishAsyncTests()
       else
-        m.testRunner.top.rooibosTestFinished = false
+        testRunnerTop as NodeWithRooibosFields = m.testRunner.top
+        testRunnerTop.rooibosTestFinished = false
         isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
         if isOk
           'TODO - set a timeout here
@@ -143,10 +144,10 @@ namespace rooibos
           if currentTest?.isAsync <> true
             ? "Executing test synchronously"
             m.testSuite.runTest(currentTest)
-            m.testRunner.top.rooibosTestFinished = true
+            testRunnerTop.rooibosTestFinished = true
             m.onAsyncTestComplete()
           else
-            m.testRunner.top.observeFieldScoped("rooibosTestFinished", "rooibos_onTestComplete")
+            testRunnerTop.observeFieldScoped("rooibosTestFinished", "rooibos_onTestComplete")
             if currentTest.isAsync = true
               m.testSuite.setTestTimer(currentTest.asyncTimeout)
             end if
@@ -154,8 +155,8 @@ namespace rooibos
 
             if currentTest.result.isFail
               ? "Test failed before any async code could be executed"
-              m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
-              m.testRunner.top.rooibosTestFinished = true
+              testRunnerTop.unobserveFieldScoped("rooibosTestFinished")
+              testRunnerTop.rooibosTestFinished = true
               m.onAsyncTestComplete()
             end if
           end if
