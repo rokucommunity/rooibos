@@ -36,14 +36,14 @@ namespace tests
 
     @it("simple")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectCalled(item.getText(), "test")
       m.assertEqual(item.getText(), "test")
     end function
 
     @it("expected param")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectCalled(item.getText("expected"), "test")
       m.assertEqual(item.getText("expected"), "test")
 
@@ -52,7 +52,7 @@ namespace tests
 
     @it("not matching on param")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectCalled(item.getText("expected"), "test")
 
       m.assertEqual(item.getText("not expected"), "test")
@@ -66,7 +66,7 @@ namespace tests
 
     @it("supports function pointer - therefore ignoring the params")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
 
       'don't care about the args
       m.expectCalled(item.getText, "some return value I want")
@@ -96,14 +96,14 @@ namespace tests
 
     @it("simple")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectCalled(item@.getText(), "test")
       m.assertEqual(item@.getText(), "test")
     end function
 
     @it("expected param")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectCalled(item@.getText("expected"), "test")
       m.assertEqual(item@.getText("expected"), "test")
 
@@ -112,7 +112,7 @@ namespace tests
 
     @it("not matching on param")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectCalled(item@.getText("expected"), "test")
 
       m.assertEqual(item@.getText("not expected"), "test")
@@ -126,14 +126,14 @@ namespace tests
 
     @it("simple")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.stubCall(item.getText(), "test")
       m.assertEqual(item.getText(), "test")
     end function
 
     @it("expected param")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.stubCall(item.getText("expected"), "test")
       m.assertEqual(item.getText("expected"), "test")
 
@@ -142,7 +142,7 @@ namespace tests
 
     @it("not matching on param")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.stubCall(item.getText("expected"), "test")
 
       m.assertEqual(item.getText("not expected"), "test")
@@ -156,7 +156,7 @@ namespace tests
 
     @it("supports function pointer - therefore ignoring the params")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.stubCall(item.getText, "test")
 
       m.assertEqual(item.getText("any text"), "test")
@@ -301,6 +301,9 @@ namespace tests
         m.wasCalled = true
       end sub)
 
+
+
+
       m.assertInvalid(testNamespace.functionWithoutReturn())
       m.assertTrue(getGlobalAA().wasCalled)
 
@@ -385,7 +388,7 @@ namespace tests
 
     @it("not matching on param")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.stubCall(item@.getText("expected"), "test")
 
       m.assertEqual(item@.getText("not expected"), "test")
@@ -395,14 +398,14 @@ namespace tests
 
     @it("simple")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.stubCall(item@.getText(), "test")
       m.assertEqual(item@.getText(), "test")
     end function
 
     @it("expected param")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.stubCall(item@.getText("expected"), "test")
       m.assertEqual(item@.getText("expected"), "test")
 
@@ -415,14 +418,14 @@ namespace tests
 
     @it("passes when not called")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item.getText())
       m.assertRunningTestIsPassed()
     end function
 
     @it("fails when called")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item.getText())
       item.getText()
 
@@ -431,7 +434,7 @@ namespace tests
 
     @it("fails when called, with params")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item.getText())
       item.getText("expected")
 
@@ -440,7 +443,7 @@ namespace tests
 
     @it("fails when called, with params on expect too")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item.getText("expected"))
       item.getText("not expected")
 
@@ -453,14 +456,14 @@ namespace tests
 
     @it("passes when not called")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item@.getText())
       m.assertRunningTestIsPassed()
     end function
 
     @it("fails when called")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item@.getText())
       item@.getText()
 
@@ -469,7 +472,7 @@ namespace tests
 
     @it("fails when called, with params")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item@.getText())
       item@.getText("expected")
 
@@ -478,7 +481,7 @@ namespace tests
 
     @it("fails when called, with params on expect too")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item@.getText("expected"))
       item@.getText("not expected")
 
@@ -491,14 +494,14 @@ namespace tests
 
     @it("passes when not called")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item.getText)
       m.assertRunningTestIsPassed()
     end function
 
     @it("fails when called")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item.getText)
       item.getText()
 
@@ -507,7 +510,7 @@ namespace tests
 
     @it("fails when called, with params")
     function _()
-      item = { "id": "node" }
+      item = {"id": "node"}
       m.expectNotCalled(item.getText)
       item.getText("expected")
 
@@ -520,9 +523,9 @@ namespace tests
 
     @it("throws exceptions")
     function _()
-      thing = { "id": "thing" }
+      thing = {"id": "thing"}
 
-      error = { message: "error" }
+      error = {message: "error"}
       m.expectCalled(thing.thrownAnError())
       m.expectLastCallToThrowError(error)
 

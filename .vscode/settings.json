@@ -20,7 +20,10 @@
     "/tmp/**": true,
     "**/dist": true,
     "**/build": true,
-    "**/out": true
+    "**/out": true,
+    "bsc-plugin": true,
+    "framework": true,
+    "tests": true
   },
   "search.exclude": {
     "**/.git/objects/**": true,

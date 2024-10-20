@@ -12,7 +12,7 @@ namespace rooibos
       testSceneName = "RooibosScene"
     end if
 
-    ? "Starting test using test scene with name RooibosScene" ; testSceneName
+    ? "Starting test using test scene with name: " ; testSceneName
     scene = screen.CreateScene(testSceneName)
     scene.id = "ROOT"
     screen.show()

@@ -6,7 +6,6 @@
     "components/**/*.*"
   ],
   "autoImportComponentScript": true,
-  "createPackage": false,
   "stagingDir": "build",
   "diagnosticFilters": [
     {
@@ -21,8 +20,10 @@
     1140
   ],
   "plugins": [
+    "@rokucommunity/bslint",
     "../bsc-plugin/src/plugin.ts"
   ],
+  "lintConfig": "../framework/bslint.json",
   "require": [
     "ts-node/register"
   ],

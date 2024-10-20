@@ -35,7 +35,7 @@ namespace tests
 
       newManager = rooibos.common.makePathStubbable(manager, "manager")
 
-      m.assertEqual(newManager, { id: "manager" })
+      m.assertEqual(newManager, {id: "manager"})
     end function
 
     @it("makes a simple node stubbable")
@@ -44,16 +44,16 @@ namespace tests
 
       newManager = rooibos.common.makePathStubbable(manager, "manager")
 
-      m.assertEqual(newManager, { id: "manager" })
+      m.assertEqual(newManager, {id: "manager"})
     end function
 
     @it("makes a path on an existing object stubbable")
     function _()
-      manager = { id: "man" }
+      manager = {id: "man"}
 
       newManager = rooibos.common.makePathStubbable(manager, "manager.item.data")
 
-      m.assertEqual(newManager, { id: "data" })
+      m.assertEqual(newManager, {id: "data"})
 
       m.assertEqual(manager, {
         id: "man"
@@ -76,7 +76,7 @@ namespace tests
       }
 
       newManager = rooibos.common.makePathStubbable(manager, "manager.item.data")
-      m.assertEqual(newManager, { id: "data" })
+      m.assertEqual(newManager, {id: "data"})
 
       m.assertEqual(manager, {
         id: "man"
