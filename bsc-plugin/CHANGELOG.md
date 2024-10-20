@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.41](https://github.com/rokucommunity/bslint/compare/v6.0.0-alpha.40...v6.0.0-alpha.41) - 2024-10-20
+### Changed
+ - upgrade to [brighterscript@1.0.0-alpha.41](https://github.com/rokucommunity/brighterscript/blob/release-1.0.0/CHANGELOG.md#100-alpha41---2024-10-20)
+
+
+
 ## [6.0.0-alpha.40](https://github.com/rokucommunity/bslint/compare/v6.0.0-alpha.39...v6.0.0-alpha.40) - 2024-10-20
 ### Changed
  - set default types for `m.top` and `m.node` in BaseTestSuite ([#301](https://github.com/rokucommunity/rooibos/pull/301))
