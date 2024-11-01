@@ -645,11 +645,6 @@ namespace rooibos.common
   '  * @returns {boolean} - True if values are equal or False in other case.
   '  */
   function eqValues(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
-    if callCount > 10
-      ? "REACHED MAX ITERATIONS DOING COMPARISON"
-      return true
-    end if
-
     ' Workaraund for bug with string boxing, and box everything else
     val1Type = rooibos.common.getSafeType(Value1)
     val2Type = rooibos.common.getSafeType(Value2)
@@ -769,10 +764,6 @@ namespace rooibos.common
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
   function eqArray(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
-    if callCount > 30
-      ? "REACHED MAX ITERATIONS DOING COMPARISON"
-      return true
-    end if
     if not (rooibos.common.isArray(Value1)) or not rooibos.common.isArray(Value2)
       return false
     end if
