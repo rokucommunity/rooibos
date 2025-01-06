@@ -2123,6 +2123,7 @@ describe('RooibosPlugin', () => {
             [[], 'rooibos_ConsoleTestReporter'],
             [['CONSOLE'], 'rooibos_ConsoleTestReporter'],
             [['MyCustomReporter'], 'MyCustomReporter'],
+            [['mocha'], '"rooibos_MochaTestReporter'],
             [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
         ];
         it('adds custom test reporters', async () => {
@@ -2141,9 +2142,7 @@ describe('RooibosPlugin', () => {
 
                 await builder.transpile();
 
-                expect(
-                    getContents('rooibos/RuntimeConfig.brs')
-                ).to.eql(undent`
+                let fullExpected = undent`
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}
                         instance.new = sub()
@@ -2191,7 +2190,11 @@ describe('RooibosPlugin', () => {
                         instance.new()
                         return instance
                     end function
-                `);
+                `;
+
+                expect(
+                    getContents('rooibos/RuntimeConfig.brs')
+                ).to.eql(fullExpected);
 
                 destroyProgram();
             }

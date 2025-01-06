@@ -41,6 +41,7 @@ export class FileFactory {
         'BaseTestReporter',
         'ConsoleTestReporter',
         'JUnitTestReporter',
+        'MochaTestReporter',
         'TestResult',
         'TestRunner',
         'Utils'

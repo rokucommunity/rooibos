@@ -175,6 +175,7 @@ export class RooibosSession {
         switch (name.toLowerCase()) {
             case 'console': return 'rooibos_ConsoleTestReporter';
             case 'junit': return 'rooibos_JUnitTestReporter';
+            case 'mocha': return 'rooibos_MochaTestReporter';
         }
         // @todo: check if function name is valid
         return name;
