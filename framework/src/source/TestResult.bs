@@ -3,6 +3,8 @@ namespace rooibos
 
     public isFail = false
     public isCrash = false
+    public actual = ""
+    public expected = ""
     public message = ""
     public lineNumber = -1
     public test = invalid
@@ -31,12 +33,14 @@ namespace rooibos
       m.lineNumber = -1
     end function
 
-    function fail(message as string, lineNumber = -1)
+    function fail(message as string, lineNumber = -1, actual = "", expected = "")
       if message <> "" and not m.isFail
         if not m.isFail
           m.lineNumber = lineNumber
           m.isFail = true
           m.message = message
+          m.actual = actual
+          m.expected = expected
         end if
       end if
       if m.throwOnFailedAssertion
