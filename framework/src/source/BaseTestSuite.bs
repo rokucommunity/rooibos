@@ -302,14 +302,14 @@ namespace rooibos
     '  * @param {Dynamic} [msg=""] - message to display in the test report
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    function fail(msg = "Error" as string) as dynamic
+    function fail(msg = "Error" as string, actual = "" as string, expected = "" as string) as dynamic
       if m.currentResult.isFail
         if m.throwOnFailedAssertion
           throw m.currentResult.getMessage()
         end if
         return false
       end if
-      m.currentResult.fail(msg, m.currentAssertLineNumber)
+      m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
       return false
     end function
 
@@ -361,10 +361,10 @@ namespace rooibos
       try
         if rooibos.common.isBoolean(expr)
           if expr
-            return m.fail(msg)
+            return m.fail(msg, rooibos.common.asString(expr, true), rooibos.common.asString(false, true))
           end if
         else
-          return m.fail("value was not a boolean")
+          return m.fail("value was not a boolean", rooibos.common.asString(expr, true), rooibos.common.asString(false, true))
         end if
         return true
       catch error
@@ -391,10 +391,10 @@ namespace rooibos
       try
         if rooibos.common.isBoolean(expr)
           if not expr
-            return m.fail(msg)
+            return m.fail(msg, rooibos.common.asString(expr, true), rooibos.common.asString(true, true))
           end if
         else
-          return m.fail("value was not a boolean")
+          return m.fail("value was not a boolean", rooibos.common.asString(expr, true), rooibos.common.asString(true, true))
         end if
 
         return true
