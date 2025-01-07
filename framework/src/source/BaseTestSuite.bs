@@ -1186,34 +1186,40 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
-      try
 
+      try
         if typeStr <> "String" and typeStr <> "Integer" and typeStr <> "Boolean" and typeStr <> "Array" and typeStr <> "AssociativeArray"
-          msg = "Type must be Boolean, String, Array, Integer, or AssociativeArray"
+          msg = `expect type ${rooibos.common.asMultilineString(typeStr, true)} to be "Boolean", "String", "Integer", "Array", or "AssociativeArray"`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
-        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
-          methodName = "Rooibos_Common_Is" + typeStr
-          typeCheckFunction = m.getIsTypeFunction(methodName)
-          if typeCheckFunction <> invalid
-            for each item in array
-              if not typeCheckFunction(item)
-                msg = rooibos.common.asString(item, true) + " is not a '" + typeStr + "' type."
-                m.currentResult.fail(msg, m.currentAssertLineNumber)
-                return false
-              end if
-            end for
-          else
-            msg = "could not find comparator for type '" + typeStr + "' type."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        else
-          msg = "Input value is not an Array."
+        if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
+        end if
+
+        isAA = rooibos.common.isAssociativeArray(array)
+        methodName = "Rooibos_Common_Is" + typeStr
+        typeCheckFunction = m.getIsTypeFunction(methodName)
+        stop
+        if typeCheckFunction <> invalid
+          for each item in array
+            ' TODO: Looks like this function was meant to support AAs as well. Need to talk about adding this fix as it changes behavior 'if isAA
+            ' if isAA
+            '   item = array[item]
+            ' end if
+            if not typeCheckFunction(item)
+              msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be type ${rooibos.common.asMultilineString(typeStr, true)}`
+              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              return false
+            end if
+          end for
+        else
+          ' I think we can remove this check, as we are already checking for valid types?
+          ' Will revisit this later.
+          throw `could not find comparator for type ${rooibos.common.asMultilineString(typeStr, true)}`
         end if
         return true
       catch error
@@ -1221,7 +1227,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     function getIsTypeFunction(name)
@@ -1275,13 +1280,15 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
         if type(value) <> typeStr
+          actual = rooibos.common.asMultilineString(type(value), true)
+          expected = rooibos.common.asMultilineString(typeStr, true)
           if msg = ""
-            expr_as_string = rooibos.common.asString(value, true)
-            msg = expr_as_string + " was not expected type " + typeStr
+            msg = `expected ${rooibos.common.truncateString(actual)} to be type ${rooibos.common.truncateString(expected)}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1290,7 +1297,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**

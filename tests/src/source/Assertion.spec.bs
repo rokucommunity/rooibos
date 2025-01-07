@@ -802,22 +802,56 @@ namespace tests
 
     @it("fail assertNotEmpty bad input")
     function _()
-      m.AssertNotEmpty(invalid)
+      m.assertNotEmpty(invalid)
     end function
 
     @it("fail assertNotEmpty empty array")
     function _()
-      m.AssertNotEmpty([])
+      m.assertNotEmpty([])
     end function
 
     @it("fail assertNotEmpty empty aa")
     function _()
-      m.AssertNotEmpty({})
+      m.assertNotEmpty({})
     end function
 
     @it("fail assertNotEmpty empty string")
     function _()
-      m.AssertNotEmpty("")
+      m.assertNotEmpty("")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertArrayContainsOnlyValuesOfType fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayContainsOnlyValuesOfType bad input type")
+    function _()
+      m.assertArrayContainsOnlyValuesOfType(invalid, "bad value")
+    end function
+
+    @it("fail assertArrayContainsOnlyValuesOfType bad input value")
+    function _()
+      m.assertArrayContainsOnlyValuesOfType(invalid, "String")
+    end function
+
+    @it("fail assertArrayContainsOnlyValuesOfType array of invalid values")
+    function _()
+      m.assertArrayContainsOnlyValuesOfType([ invalid ], "String")
+    end function
+
+    @it("fail assertArrayContainsOnlyValuesOfType AA of invalid values")
+    @only
+    function _()
+      m.assertArrayContainsOnlyValuesOfType({ key: invalid }, "String")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertType fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertType type mismatch")
+    function _()
+      m.assertType(invalid, "string")
     end function
 
     'ASSERTIONS TO WRITE TESTS FOR!
