@@ -422,8 +422,8 @@ namespace rooibos
       end if
       try
         if not rooibos.common.eqValues(first, second)
-          actual = rooibos.common.asMultilineString(first, true, 0)
-          expected = rooibos.common.asMultilineString(second, true, 0)
+          actual = rooibos.common.asMultilineString(first, true)
+          expected = rooibos.common.asMultilineString(second, true)
           if msg = ""
             messageActual = rooibos.common.truncateString(actual)
             messageExpected = rooibos.common.truncateString(expected)
@@ -458,8 +458,8 @@ namespace rooibos
       end if
       try
         if not rooibos.common.eqValues(first, second, true)
-          actual = rooibos.common.asMultilineString(first, true, 0)
-          expected = rooibos.common.asMultilineString(second, true, 0)
+          actual = rooibos.common.asMultilineString(first, true)
+          expected = rooibos.common.asMultilineString(second, true)
           if msg = ""
             messageActual = rooibos.common.truncateString(actual)
             messageExpected = rooibos.common.truncateString(expected)
@@ -494,8 +494,8 @@ namespace rooibos
       end if
       try
         if rooibos.common.eqValues(first, second)
-          actual = rooibos.common.asMultilineString(first, true, 0)
-          expected = rooibos.common.asMultilineString(second, true, 0)
+          actual = rooibos.common.asMultilineString(first, true)
+          expected = rooibos.common.asMultilineString(second, true)
           if msg = ""
             messageActual = rooibos.common.truncateString(actual)
             messageExpected = rooibos.common.truncateString(expected)
@@ -530,11 +530,11 @@ namespace rooibos
 
       try
         if value <> invalid
-          actual = rooibos.common.asMultilineString(value, true)
           if msg = ""
+            actual = rooibos.common.asMultilineString(value, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to be invalid`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, rooibos.common.asMultilineString(invalid, true))
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
         return true
@@ -595,8 +595,8 @@ namespace rooibos
       end if
       try
         if not rooibos.common.isAssociativeArray(aa) or not aa.DoesExist(key)
-          actual = rooibos.common.asMultilineString(value, true)
           if msg = ""
+            actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to have property "${key}"`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
@@ -629,8 +629,8 @@ namespace rooibos
 
       try
         if not rooibos.common.isAssociativeArray(aa) and aa.DoesExist(key)
-          actual = rooibos.common.asMultilineString(value, true)
           if msg = ""
+            actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to not have property "${key}"`
           end if
         end if
@@ -661,13 +661,13 @@ namespace rooibos
 
       try
         if not rooibos.common.isAssociativeArray(aa)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa))}" to be an AssociativeArray`
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to be an AssociativeArray`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
         if not rooibos.common.isArray(keys)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(keys))}" to be an Array`
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(keys, true))}" to be an Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
@@ -681,7 +681,7 @@ namespace rooibos
 
         if missingKeys.count() > 0
           if msg = ""
-            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa))}" to have properties ${rooibos.common.truncateString(missingKeys.join(", "))}`
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to have properties ${rooibos.common.truncateString(missingKeys.join(", "))}`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
@@ -712,13 +712,13 @@ namespace rooibos
 
       try
         if not rooibos.common.isAssociativeArray(aa)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa))}" to be an Associative Array`
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to be an AssociativeArray`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
         if not rooibos.common.isArray(keys)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(keys))}" to be an Array`
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(keys, true))}" to be an Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
@@ -732,7 +732,7 @@ namespace rooibos
 
         if foundKeys.count() > 0
           if msg = ""
-            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa))}" to not have properties ${rooibos.common.truncateString(foundKeys.join(", "))}`
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to not have properties ${rooibos.common.truncateString(foundKeys.join(", "))}`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
@@ -768,13 +768,13 @@ namespace rooibos
 
       try
         if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array))}" to be an AssociativeArray or Array`
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
         if not rooibos.common.arrayContains(array, value, key)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value))}"`
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
@@ -805,13 +805,13 @@ namespace rooibos
 
       try
         if not rooibos.common.isArray(values)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(values))}"(expected) to be an Array`
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(values, true))}"(expected) to be an Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
         if not rooibos.common.isArray(array)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array))}"(actual) to be an Array`
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"(actual) to be an Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
@@ -819,7 +819,7 @@ namespace rooibos
         for each value in values
           isMatched = false
           if not rooibos.common.isAssociativeArray(value)
-            msg = `expected search value "${rooibos.common.truncateString(rooibos.common.asMultilineString(value))}" to be an AssociativeArray`
+            msg = `expected search value "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}" to be an AssociativeArray`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -842,7 +842,7 @@ namespace rooibos
           end for ' items in array
 
           if not isMatched
-            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
@@ -906,6 +906,7 @@ namespace rooibos
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
+    ' TODO: UPDATE
     function assertArrayContainsSubset(array, subset, msg = "") as dynamic
       if m.currentResult.isFail
         return false
