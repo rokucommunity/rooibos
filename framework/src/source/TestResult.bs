@@ -3,8 +3,8 @@ namespace rooibos
 
     public isFail = false
     public isCrash = false
-    public actual = ""
-    public expected = ""
+    public actual = invalid
+    public expected = invalid
     public message = ""
     public lineNumber = -1
     public test = invalid
