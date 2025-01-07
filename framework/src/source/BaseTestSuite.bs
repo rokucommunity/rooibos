@@ -1085,21 +1085,31 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if rooibos.common.isAssociativeArray(item) or rooibos.common.isArray(item)
-          if item.count() > 0
-            msg = "Array is not empty."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+        if rooibos.common.isAssociativeArray(item)
+          if not item.isEmpty()
+            actual = rooibos.common.asMultilineString(item, true)
+            msg = `expected "${rooibos.common.truncateString(actual)}" to be empty`
+            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, rooibos.common.asMultilineString({}, true))
+            return false
+          end if
+        else if rooibos.common.isArray(item)
+          if not item.isEmpty()
+            actual = rooibos.common.asMultilineString(item, true)
+            msg = `expected "${rooibos.common.truncateString(actual)}" to be empty`
+            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, rooibos.common.asMultilineString([], true))
             return false
           end if
         else if rooibos.common.isString(item)
-          if rooibos.common.asString(item) <> ""
-            msg = "String is not empty, contains: " + rooibos.common.asString(item, true)
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+          if not item.isEmpty()
+            actual = rooibos.common.asMultilineString(item, true)
+            msg = `expected "${rooibos.common.truncateString(actual)}" to be empty`
+            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, "")
             return false
           end if
         else
-          msg = "AssertEmpty: Input value was not an array or a string"
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be an AssociativeArray, Array, or String`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
@@ -1109,7 +1119,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
@@ -1126,21 +1135,31 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if rooibos.common.isAssociativeArray(item) or rooibos.common.isArray(item)
-          if item.count() = 0
-            msg = "Array is empty."
+        if rooibos.common.isAssociativeArray(item)
+          if item.isEmpty()
+            actual = rooibos.common.asMultilineString(item, true)
+            msg = `expected "${rooibos.common.truncateString(actual)}" to not be empty`
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        else if rooibos.common.isArray(item)
+          if item.isEmpty()
+            actual = rooibos.common.asMultilineString(item, true)
+            msg = `expected "${rooibos.common.truncateString(actual)}" to not be empty`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
         else if rooibos.common.isString(item)
-          if item = ""
-            msg = "Input value is empty."
+          if item.isEmpty()
+            actual = rooibos.common.asMultilineString(item, true)
+            msg = `expected "${rooibos.common.truncateString(actual)}" to be empty`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
         else
-          msg = "Input value is not a string or array."
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be an AssociativeArray, Array, or String`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
@@ -1150,7 +1169,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
