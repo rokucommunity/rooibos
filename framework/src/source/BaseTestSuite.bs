@@ -1057,7 +1057,7 @@ namespace rooibos
           return false
         end if
 
-        if array.count() <> count
+        if array.count() = count
           msg = `expected count "${array.count()}" to not be "${count}"`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
