@@ -805,13 +805,13 @@ namespace rooibos
 
       try
         if not rooibos.common.isArray(values)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(values, true))}"(expected) to be an Array`
+          msg = `expected value "${rooibos.common.truncateString(rooibos.common.asMultilineString(values, true))}" must be an Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
         if not rooibos.common.isArray(array)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"(actual) to be an Array`
+          msg = `actual value "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" must be an Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
