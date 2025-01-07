@@ -854,7 +854,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
@@ -870,6 +869,7 @@ namespace rooibos
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
+    ' TODO: UPDATE
     function assertArrayNotContains(array, value, key = invalid, msg = "") as dynamic
       if m.currentResult.isFail
         return false
@@ -892,7 +892,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
@@ -952,6 +951,7 @@ namespace rooibos
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
+    ' TODO: UPDATE
     function assertArrayNotContainsSubset(array, subset, msg = "") as dynamic
       if m.currentResult.isFail
         return false
@@ -1206,12 +1206,17 @@ namespace rooibos
         stop
         if typeCheckFunction <> invalid
           for each item in array
-            ' TODO: Looks like this function was meant to support AAs as well. Need to talk about adding this fix as it changes behavior 'if isAA
-            ' if isAA
-            '   item = array[item]
-            ' end if
+            key = invalid
+            if isAA
+              key = item
+              item = array[key]
+            end if
             if not typeCheckFunction(item)
-              msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be type ${rooibos.common.asMultilineString(typeStr, true)}`
+              if isAA
+                msg = `expected "${rooibos.common.truncateString(key)}: ${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be type ${rooibos.common.asMultilineString(typeStr, true)}`
+              else
+                msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be type ${rooibos.common.asMultilineString(typeStr, true)}`
+              end if
               m.currentResult.fail(msg, m.currentAssertLineNumber)
               return false
             end if
