@@ -1009,6 +1009,12 @@ namespace rooibos
           return false
         end if
 
+        if not rooibos.common.isInteger(count)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(count, true))}" to be an Integer`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
         if array.Count() <> count
           msg = `expected count "${array.Count()}" to be "${count}"`
           m.currentResult.fail(msg, m.currentAssertLineNumber, rooibos.common.asMultilineString(array, true), rooibos.common.asMultilineString(count, true))
@@ -1020,7 +1026,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
