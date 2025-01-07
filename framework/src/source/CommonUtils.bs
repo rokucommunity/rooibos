@@ -295,6 +295,75 @@ namespace rooibos.common
     end if
   end function
 
+    ' /**
+  '  * @name asMultilineString
+  '  * @function
+  '  * @description convert input to multiline String if this possible, else return empty string
+  '  * @memberof module:CommonUtils
+  '  * @param {Dynamic} input - value to check
+  '  * @returns {String} - converted string
+  '  */
+  function asMultilineString(input, includeType = false, indention = 0) as string
+    indentChr = "  "
+
+    if rooibos.common.isValid(input) = false
+      return "Invalid"
+    else if rooibos.common.isString(input)
+      if includeType
+        return """" + input + """"
+      else
+        return input
+      end if
+    else if rooibos.common.isInteger(input) or rooibos.common.isLongInteger(input) or rooibos.common.isBoolean(input)
+      if includeType
+        return input.ToStr() + " (" + rooibos.common.getSafeType(input) + ")"
+      else
+        return input.ToStr()
+      end if
+    else if rooibos.common.isFloat(input) or rooibos.common.isDouble(input)
+      if includeType
+        return Str(input).Trim() + " (" + rooibos.common.getSafeType(input) + ")"
+      else
+        return Str(input).Trim()
+      end if
+    else if type(input) = "roSGNode"
+      return "Node(" + input.subType() + ")"
+    else if type(input) = "roAssociativeArray"
+      isFirst = true
+      text = "{" + chr(10)
+      if not isFirst
+        text = text + ","
+        'bs:disable-next-line
+        isFirst = false
+      end if
+      for each key in input
+        if rooibos.common.canSafelyIterateAAKey(input, key)
+          text = text + string(indention + 1, indentChr) + key + ":" + rooibos.common.asString(input[key], includeType, indention + 1) + chr(10)
+        end if
+      end for
+      text = text + string(indention, indentChr) + "}"
+      return text
+    else if rooibos.common.isArray(input)
+      text = "[" + chr(10)
+      maxLen = 500
+      for i = 0 to input.count() - 1
+        v = input[i]
+        if len(text) < maxLen
+          text += string(indention + 1, indentChr) + rooibos.common.asString(v, includeType, indention + 1) + chr(10)
+        end if
+      end for
+      if len(text) > maxLen
+        text = left(text, maxLen - 3) + "..."
+      end if
+      text = text + string(indention, indentChr) + "]"
+      return text
+    else if rooibos.common.isFunction(input)
+      return input.toStr() + "(function)"
+    else
+      return ""
+    end if
+  end function
+
   ' /**
   '  * @name AsString
   '  * @function

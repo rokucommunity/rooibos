@@ -36,52 +36,45 @@ namespace rooibos
     end function
 
     function logFailures(testGroup)
-      ' print "testGroup:" testGroup.name
       for each test in testGroup.tests
-        ' print "name:" test.name "time:" test.result.time
-        ' Gitlab displays classname in the suite field for some reason
-        ' print "classname:" test.testSuite.name chr(10) chr(10)
-
         if test.result.isFail
-          ' testFailure = testCase.AddElement(test.result.isCrash ? "error" : "failure")
           m.failureCount ++
 
           resultMessage = ""
           resultMessage += `${string(1, chr(9))}${m.failureCount.toStr()}) ${test.testSuite.name}\n`
           resultMessage += `${string(2, chr(9))}${testGroup.name}\n`
-          resultMessage += `${string(3, chr(9))}${test.name}:\n`
-          resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
-          resultMessage += unifiedDiff(test.result.actual, test.result.expected)
-          resultMessage += chr(10)
+          resultMessage += `${string(3, chr(9))}${test.name}:\n\n`
+          if not test.result.isCrash
+            resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
+            resultMessage += unifiedDiff(test.result.actual, test.result.expected)
+            resultMessage += chr(10)
 
-          if test.isParamTest
-            resultMessage += `${string(1, chr(9))}params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber + 1)})\n`
-            resultMessage += `${string(1, chr(9))}assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+            if test.isParamTest
+              resultMessage += `${string(1, chr(9))}params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber + 1)})\n`
+              resultMessage += `${string(1, chr(9))}assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+            else
+              resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+            end if
+
+            print resultMessage
           else
-            resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+            resultMessage += `${string(1, chr(9))}Error: ${m.getStackTrace(test.result.error)}`
+            print resultMessage
           end if
-
-          print resultMessage
-        else if test.result.isCrash
-            m.failureCount ++
-            print tab(2) m.failureCount.toStr() ") " test.testSuite.name
-            print tab(4) testGroup.name
-            print tab(6) test.name":"
-            print tab(2) "Error:" m.getStackTrace(test.result.error)
         end if
 
       end for
-      stop
     end function
 
     function getStackTrace(error) as string
-      output = ""
+      output = `${error.message}\n`
 
+      stop
       for i = error.backTrace.count() - 1 to 0 step -1
         e = error.backTrace[i]
-        if e.filename.instr("pkg:/source/rooibos") = -1
-          output = output + e.filename + "(" + stri(e.line_number).trim() + ")"
-        end if
+        ' if e.filename.instr("pkg:/source/rooibos") = -1
+          output += `${string(1, chr(9))}at ${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})\n`
+        ' end if
       end for
 
       return output
@@ -279,7 +272,7 @@ function new_Diff()
       if bestPath.get(0).oldPos + 1 >= oldLen and newPos + 1 >= newLen
         ' Identity per the equality and tokenizer
         ' return m.done(buildValues(m, bestPath[0].lastComponent, newString, oldString, m.useLongestToken))
-        return m.done(buildValues(m, bestPath.get(0).lastComponent, newString, oldString, m.useLongestToken))
+        return m.done(buildValues(m, bestPath.get(0).lastComponent, newString, oldString, m.useLongestToken), options)
       end if
 
       ' Once we hit the right edge of the edit graph on some diagonal k, we can

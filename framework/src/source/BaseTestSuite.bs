@@ -361,10 +361,10 @@ namespace rooibos
       try
         if rooibos.common.isBoolean(expr)
           if expr
-            return m.fail(msg, rooibos.common.asString(expr, true), rooibos.common.asString(false, true))
+            return m.fail(msg, rooibos.common.asMultilineString(expr, true), rooibos.common.asMultilineString(false, true))
           end if
         else
-          return m.fail("value was not a boolean", rooibos.common.asString(expr, true), rooibos.common.asString(false, true))
+          return m.fail("value was not a boolean", rooibos.common.asMultilineString(expr, true), rooibos.common.asMultilineString(false, true))
         end if
         return true
       catch error
@@ -391,10 +391,10 @@ namespace rooibos
       try
         if rooibos.common.isBoolean(expr)
           if not expr
-            return m.fail(msg, rooibos.common.asString(expr, true), rooibos.common.asString(true, true))
+            return m.fail(msg, rooibos.common.asMultilineString(expr, true), rooibos.common.asMultilineString(true, true))
           end if
         else
-          return m.fail("value was not a boolean", rooibos.common.asString(expr, true), rooibos.common.asString(true, true))
+          return m.fail("value was not a boolean", rooibos.common.asMultilineString(expr, true), rooibos.common.asMultilineString(true, true))
         end if
 
         return true
@@ -422,12 +422,24 @@ namespace rooibos
       end if
       try
         if not rooibos.common.eqValues(first, second)
+          actual = rooibos.common.asMultilineString(first, true, 0)
+          expected = rooibos.common.asMultilineString(second, true, 0)
           if msg = ""
-            first_as_string = rooibos.common.asString(first, true)
-            second_as_string = rooibos.common.asString(second, true)
-            msg = first_as_string + " != " + second_as_string
+            messageActual = actual
+            messageActual = messageActual.replace(chr(10), "\n")
+            if len(messageActual) > 38
+              messageActual = messageActual.mid(0, 35) + "…"
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+
+            messageExpected = expected
+            messageExpected = messageExpected.replace(chr(10), "\n")
+            if len(messageExpected) > 38
+              messageExpected = messageExpected.mid(0, 35) + "…"
+            end if
+
+            msg = `expected "${messageActual}" to equal "${messageExpected}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -456,12 +468,24 @@ namespace rooibos
       end if
       try
         if not rooibos.common.eqValues(first, second, true)
+          actual = rooibos.common.asMultilineString(first, true, 0)
+          expected = rooibos.common.asMultilineString(second, true, 0)
           if msg = ""
-            first_as_string = rooibos.common.asString(first)
-            second_as_string = rooibos.common.asString(second)
-            msg = first_as_string + " != " + second_as_string
+            messageActual = actual
+            messageActual = messageActual.replace(chr(10), "\n")
+            if len(messageActual) > 38
+              messageActual = messageActual.mid(0, 35) + "…"
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+
+            messageExpected = expected
+            messageExpected = messageExpected.replace(chr(10), "\n")
+            if len(messageExpected) > 38
+              messageExpected = messageExpected.mid(0, 35) + "…"
+            end if
+
+            msg = `expected "${messageActual}" to be like "${messageExpected}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -490,12 +514,24 @@ namespace rooibos
       end if
       try
         if rooibos.common.eqValues(first, second)
+          actual = rooibos.common.asMultilineString(first, true, 0)
+          expected = rooibos.common.asMultilineString(second, true, 0)
           if msg = ""
-            first_as_string = rooibos.common.asString(first, true)
-            second_as_string = rooibos.common.asString(second, true)
-            msg = first_as_string + " == " + second_as_string
+            messageActual = actual
+            messageActual = messageActual.replace(chr(10), "\n")
+            if len(messageActual) > 38
+              messageActual = messageActual.mid(0, 35) + "…"
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+
+            messageExpected = expected
+            messageExpected = messageExpected.replace(chr(10), "\n")
+            if len(messageExpected) > 38
+              messageExpected = messageExpected.mid(0, 35) + "…"
+            end if
+
+            msg = `expected "${messageActual}" to not equal "${messageExpected}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
