@@ -46,7 +46,11 @@ namespace rooibos
           resultMessage += `${string(3, chr(9))}${test.name}:\n\n`
           if not test.result.isCrash
             resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
+
+            if test.result.actual <> "" and test.result.expected <> ""
             resultMessage += unifiedDiff(test.result.actual, test.result.expected)
+            end if
+
             resultMessage += chr(10)
 
             if test.isParamTest
