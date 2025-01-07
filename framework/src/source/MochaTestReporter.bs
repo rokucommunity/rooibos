@@ -69,7 +69,6 @@ namespace rooibos
     function getStackTrace(error) as string
       output = `${error.message}\n`
 
-      stop
       for i = error.backTrace.count() - 1 to 0 step -1
         e = error.backTrace[i]
         ' if e.filename.instr("pkg:/source/rooibos") = -1

@@ -425,18 +425,8 @@ namespace rooibos
           actual = rooibos.common.asMultilineString(first, true, 0)
           expected = rooibos.common.asMultilineString(second, true, 0)
           if msg = ""
-            messageActual = actual
-            messageActual = messageActual.replace(chr(10), "\n")
-            if len(messageActual) > 38
-              messageActual = messageActual.mid(0, 35) + "…"
-          end if
-
-            messageExpected = expected
-            messageExpected = messageExpected.replace(chr(10), "\n")
-            if len(messageExpected) > 38
-              messageExpected = messageExpected.mid(0, 35) + "…"
-            end if
-
+            messageActual = rooibos.common.truncateString(actual)
+            messageExpected = rooibos.common.truncateString(expected)
             msg = `expected "${messageActual}" to equal "${messageExpected}"`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
@@ -471,18 +461,8 @@ namespace rooibos
           actual = rooibos.common.asMultilineString(first, true, 0)
           expected = rooibos.common.asMultilineString(second, true, 0)
           if msg = ""
-            messageActual = actual
-            messageActual = messageActual.replace(chr(10), "\n")
-            if len(messageActual) > 38
-              messageActual = messageActual.mid(0, 35) + "…"
-          end if
-
-            messageExpected = expected
-            messageExpected = messageExpected.replace(chr(10), "\n")
-            if len(messageExpected) > 38
-              messageExpected = messageExpected.mid(0, 35) + "…"
-            end if
-
+            messageActual = rooibos.common.truncateString(actual)
+            messageExpected = rooibos.common.truncateString(expected)
             msg = `expected "${messageActual}" to be like "${messageExpected}"`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
@@ -517,18 +497,8 @@ namespace rooibos
           actual = rooibos.common.asMultilineString(first, true, 0)
           expected = rooibos.common.asMultilineString(second, true, 0)
           if msg = ""
-            messageActual = actual
-            messageActual = messageActual.replace(chr(10), "\n")
-            if len(messageActual) > 38
-              messageActual = messageActual.mid(0, 35) + "…"
-          end if
-
-            messageExpected = expected
-            messageExpected = messageExpected.replace(chr(10), "\n")
-            if len(messageExpected) > 38
-              messageExpected = messageExpected.mid(0, 35) + "…"
-            end if
-
+            messageActual = rooibos.common.truncateString(actual)
+            messageExpected = rooibos.common.truncateString(expected)
             msg = `expected "${messageActual}" to not equal "${messageExpected}"`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
@@ -560,11 +530,11 @@ namespace rooibos
 
       try
         if value <> invalid
+          actual = rooibos.common.asMultilineString(value, true)
           if msg = ""
-            expr_as_string = rooibos.common.asString(value, true)
-            msg = expr_as_string + " <> Invalid"
+            msg = `expected "${rooibos.common.truncateString(actual)}" to be invalid`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, rooibos.common.asMultilineString(invalid, true))
           return false
         end if
         return true

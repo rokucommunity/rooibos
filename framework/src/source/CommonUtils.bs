@@ -338,7 +338,7 @@ namespace rooibos.common
       end if
       for each key in input
         if rooibos.common.canSafelyIterateAAKey(input, key)
-          text = text + string(indention + 1, indentChr) + key + ":" + rooibos.common.asString(input[key], includeType, indention + 1) + chr(10)
+          text = text + string(indention + 1, indentChr) + key + ":" + rooibos.common.asMultilineString(input[key], includeType, indention + 1) + chr(10)
         end if
       end for
       text = text + string(indention, indentChr) + "}"
@@ -349,7 +349,7 @@ namespace rooibos.common
       for i = 0 to input.count() - 1
         v = input[i]
         if len(text) < maxLen
-          text += string(indention + 1, indentChr) + rooibos.common.asString(v, includeType, indention + 1) + chr(10)
+          text += string(indention + 1, indentChr) + rooibos.common.asMultilineString(v, includeType, indention + 1) + chr(10)
         end if
       end for
       if len(text) > maxLen
@@ -701,6 +701,19 @@ namespace rooibos.common
       return t
     end if
   end function
+
+  function truncateString(value as string, length = 38 as integer, replaceNewLines = true as boolean) as string
+    if replaceNewLines
+      value = value.replace(chr(10), "\n")
+    end if
+
+    if len(value) > length
+      value = value.mid(0, length - 1) + "…"
+    end if
+    return value
+  end function
+
+
   ' /**
   '  * @memberof module:CommonUtils
   '  * @name EqValues
