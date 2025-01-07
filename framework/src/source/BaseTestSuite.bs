@@ -563,7 +563,8 @@ namespace rooibos
       try
         if value = invalid
           if msg = ""
-            msg = "Expected value, got invalid"
+            actual = rooibos.common.asMultilineString(value, true)
+            msg = `expected "${rooibos.common.truncateString(actual)}" to not be invalid`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
@@ -582,27 +583,22 @@ namespace rooibos
     '  * @name assertAAHasKey
     '  * @function
     '  * @instance
-    '  * @description Fail if the array doesn't have the key.
-    '  * @param {Dynamic} array - target array
+    '  * @description Fail if the aa doesn't have the key.
+    '  * @param {Dynamic} aa - target aa
     '  * @param {Dynamic} key - key name
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    function assertAAHasKey(array, key, msg = "") as dynamic
+    function assertAAHasKey(aa, key, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
       try
-        if rooibos.common.isAssociativeArray(array)
-          if not array.DoesExist(key)
-            if msg = ""
-              msg = "Array doesn't have the '" + key + "' key."
-            end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
+        if not rooibos.common.isAssociativeArray(aa) or not aa.DoesExist(key)
+          actual = rooibos.common.asMultilineString(value, true)
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(actual)}" to have property "${key}"`
           end if
-        else
-          msg = "Input value is not an Associative Array."
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
@@ -620,30 +616,23 @@ namespace rooibos
     '  * @name assertAANotHasKey
     '  * @function
     '  * @instance
-    '  * @description Fail if the array has the key.
-    '  * @param {Dynamic} array - target array
+    '  * @description Fail if the aa has the key.
+    '  * @param {Dynamic} aa - target aa
     '  * @param {Dynamic} key - key name
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    function assertAANotHasKey(array, key, msg = "") as dynamic
+    function assertAANotHasKey(aa, key, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
 
       try
-        if rooibos.common.isAssociativeArray(array)
-          if array.DoesExist(key)
-            if msg = ""
-              msg = "Array has the '" + key + "' key."
-            end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
+        if not rooibos.common.isAssociativeArray(aa) and aa.DoesExist(key)
+          actual = rooibos.common.asMultilineString(value, true)
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(actual)}" to not have property "${key}"`
           end if
-        else
-          msg = "Input value is not an Associative Array."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
-          return false
         end if
         return true
       catch error
