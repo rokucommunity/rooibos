@@ -309,11 +309,7 @@ namespace rooibos.common
     if rooibos.common.isValid(input) = false
       return "Invalid"
     else if rooibos.common.isString(input)
-      if includeType
-        return """" + input + """"
-      else
-        return input
-      end if
+      return formatJson(input)
     else if rooibos.common.isInteger(input) or rooibos.common.isLongInteger(input) or rooibos.common.isBoolean(input)
       if includeType
         return input.ToStr() + " (" + rooibos.common.getSafeType(input) + ")"
@@ -338,27 +334,32 @@ namespace rooibos.common
       end if
       for each key in input
         if rooibos.common.canSafelyIterateAAKey(input, key)
-          text = text + string(indention + 1, indentChr) + key + ":" + rooibos.common.asMultilineString(input[key], includeType, indention + 1) + chr(10)
+          text = text + string(indention + 1, indentChr) + formatJson(key) + ": " + rooibos.common.asMultilineString(input[key], includeType, indention + 1) + "," + chr(10)
         end if
       end for
-      text = text + string(indention, indentChr) + "}"
+
+      ' remove last comma
+      if len(text) > 2
+        text = left(text, len(text) - 2)
+      end if
+
+      text = text + chr(10) + string(indention, indentChr) + "}"
       return text
     else if rooibos.common.isArray(input)
       text = "[" + chr(10)
-      maxLen = 500
       for i = 0 to input.count() - 1
         v = input[i]
-        if len(text) < maxLen
-          text += string(indention + 1, indentChr) + rooibos.common.asMultilineString(v, includeType, indention + 1) + chr(10)
+        text += string(indention + 1, indentChr) + rooibos.common.asMultilineString(v, includeType, indention + 1)
+
+        if i < input.count() - 1
+          text += ","
         end if
+        text += chr(10)
       end for
-      if len(text) > maxLen
-        text = left(text, maxLen - 3) + "..."
-      end if
       text = text + string(indention, indentChr) + "]"
       return text
     else if rooibos.common.isFunction(input)
-      return input.toStr() + "(function)"
+      return input.toStr().mid(10) + " (function)"
     else
       return ""
     end if
@@ -702,9 +703,9 @@ namespace rooibos.common
     end if
   end function
 
-  function truncateString(value as string, length = 38 as integer, replaceNewLines = true as boolean) as string
-    if replaceNewLines
-      value = value.replace(chr(10), "\n")
+  function truncateString(value as string, length = 38 as integer, collapseNewlines = true as boolean) as string
+    if collapseNewlines
+      value = CreateObject("roRegex", "\n\s*", "g").replaceAll(value, " ")
     end if
 
     if len(value) > length
