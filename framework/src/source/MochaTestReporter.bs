@@ -12,11 +12,7 @@ namespace rooibos
       print "Rooibos Version:" m.testRunner.runtimeConfig.getVersionText()
 
       for each testSuite in m.testRunner.testSuites
-        print "name:" testSuite.name
-        print "tests:" testSuite.stats.ranCount
-        print "failures:" testSuite.stats.failedCount
-        print "skipped:" testSuite.stats.ignoredCount
-        print "time:" testSuite.stats.time
+        print "name:" testSuite.name "tests:" testSuite.stats.ranCount "failures:" testSuite.stats.failedCount "skipped:" testSuite.stats.ignoredCount "time:" testSuite.stats.time
 
         for each testGroup in testSuite.groups
           m.logFailures(testGroup)
