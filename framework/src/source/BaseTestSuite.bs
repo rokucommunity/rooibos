@@ -1009,15 +1009,15 @@ namespace rooibos
           return false
         end if
 
-        if not rooibos.common.isInteger(count)
-          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(count, true))}" to be an Integer`
+        if not rooibos.common.isNumber(count)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(count, true))}" to be an Number`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
-        if array.Count() <> count
+        if array.count() <> count
           msg = `expected count "${array.Count()}" to be "${count}"`
-          m.currentResult.fail(msg, m.currentAssertLineNumber, rooibos.common.asMultilineString(array, true), rooibos.common.asMultilineString(count, true))
+          m.currentResult.fail(msg, m.currentAssertLineNumber, rooibos.common.asMultilineString(array.count(), true), rooibos.common.asMultilineString(count, true))
           return false
         end if
         return true
@@ -1043,25 +1043,32 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
-          if array.Count() = count
-            msg = "Array items count = " + rooibos.common.asString(count) + "."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        else
-          msg = "Input value is not an Array."
+        if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
+
+        if not rooibos.common.isNumber(count)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(count, true))}" to be an Number`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if array.count() <> count
+          msg = `expected count "${array.count()}" to not be "${count}"`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
         return true
       catch error
         'bs:disable-next-line
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
