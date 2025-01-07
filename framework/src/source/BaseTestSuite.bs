@@ -648,30 +648,41 @@ namespace rooibos
     '  * @name assertAAHasKeys
     '  * @function
     '  * @instance
-    '  * @description Fail if the array doesn't have the keys list.
-    '  * @param {Dynamic} array - A target associative array.
+    '  * @description Fail if the aa doesn't have the keys list.
+    '  * @param {Dynamic} aa - A target associative array.
     '  * @param {Dynamic} keys - Array of key names.
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    function assertAAHasKeys(array, keys, msg = "") as dynamic
+    function assertAAHasKeys(aa, keys, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
 
       try
-        if rooibos.common.isAssociativeArray(array) and rooibos.common.isArray(keys)
-          for each key in keys
-            if not array.DoesExist(key)
-              if msg = ""
-                msg = "Array doesn't have the '" + key + "' key."
-              end if
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
-              return false
-            end if
-          end for
-        else
-          msg = "Input value is not an Associative Array."
+        if not rooibos.common.isAssociativeArray(aa)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa))}" to be an AssociativeArray`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if not rooibos.common.isArray(keys)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(keys))}" to be an Array`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        missingKeys = []
+        for each key in keys
+          if not aa.DoesExist(key)
+            missingKeys.push(formatJson(key))
+          end if
+        end for
+
+        if missingKeys.count() > 0
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa))}" to have properties ${rooibos.common.truncateString(missingKeys.join(", "))}`
+          end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
@@ -681,7 +692,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
@@ -689,32 +699,45 @@ namespace rooibos
     '  * @name assertAANotHasKeys
     '  * @function
     '  * @instance
-    '  * @description Fail if the array has the keys list.
-    '  * @param {Dynamic} array - A target associative array.
+    '  * @description Fail if the aa has the keys list.
+    '  * @param {Dynamic} aa - A target associative array.
     '  * @param {Dynamic} keys - Array of key names.
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    function assertAANotHasKeys(array, keys, msg = "") as dynamic
+    function assertAANotHasKeys(aa, keys, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if rooibos.common.isAssociativeArray(array) and rooibos.common.isArray(keys)
-          for each key in keys
-            if array.DoesExist(key)
-              if msg = ""
-                msg = "Array has the '" + key + "' key."
-              end if
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
-              return false
-            end if
-          end for
-        else
-          msg = "Input value is not an Associative Array."
+        if not rooibos.common.isAssociativeArray(aa)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa))}" to be an Associative Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
+
+        if not rooibos.common.isArray(keys)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(keys))}" to be an Array`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        foundKeys = []
+        for each key in keys
+          if aa.DoesExist(key)
+            foundKeys.push(formatJson(key))
+          end if
+        end for
+
+        if foundKeys.count() > 0
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa))}" to not have properties ${rooibos.common.truncateString(foundKeys.join(", "))}`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
         return true
       catch error
         'bs:disable-next-line
@@ -742,22 +765,23 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
-          if not rooibos.common.arrayContains(array, value, key)
-            msg = "Array doesn't have the '" + rooibos.common.asString(value, true) + "' value."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        else
-          msg = "Input value is not an Array."
+        if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array))}" to be an AssociativeArray or Array`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if not rooibos.common.arrayContains(array, value, key)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value))}"`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
         return true
       catch error
         'bs:disable-next-line
-        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+        m.currentResult.failCrash(error, error.message)
       end try
       return false
 
@@ -778,51 +802,52 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
         if not rooibos.common.isArray(values)
-          msg = "values to search for are not an Array."
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(values))}"(expected) to be an Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
 
-        if rooibos.common.isArray(array)
-          for each value in values
-            isMatched = false
-            if not rooibos.common.isAssociativeArray(value)
-              msg = "Value to search for was not associativeArray " + rooibos.common.asString(value, true)
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
-              return false
-            end if
-            for each item in array
-              if rooibos.common.IsAssociativeArray(item)
-                isValueMatched = true
-                for each key in value
-                  fieldValue = value[key]
-                  itemValue = item[key]
-                  if not rooibos.common.eqValues(fieldValue, itemValue)
-                    isValueMatched = false
-                    exit for
-                  end if
-                end for
-                if isValueMatched
-                  isMatched = true
+        if not rooibos.common.isArray(array)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array))}"(actual) to be an Array`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        for each value in values
+          isMatched = false
+          if not rooibos.common.isAssociativeArray(value)
+            msg = `expected search value "${rooibos.common.truncateString(rooibos.common.asMultilineString(value))}" to be an AssociativeArray`
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+          for each item in array
+            if rooibos.common.IsAssociativeArray(item)
+              isValueMatched = true
+              for each key in value
+                fieldValue = value[key]
+                itemValue = item[key]
+                if not rooibos.common.eqValues(fieldValue, itemValue)
+                  isValueMatched = false
                   exit for
                 end if
+              end for
+              if isValueMatched
+                isMatched = true
+                exit for
               end if
-            end for ' items in array
-
-            if not isMatched
-              msg = "array missing value: " + rooibos.common.asString(value, true)
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
-              return false
             end if
+          end for ' items in array
 
-          end for 'values to match
-        else
-          msg = "Input value is not an Array."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
-          return false
-        end if
+          if not isMatched
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+
+        end for 'values to match
         return true
       catch error
         'bs:disable-next-line
