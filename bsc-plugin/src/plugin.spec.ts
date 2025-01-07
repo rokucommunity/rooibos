@@ -2123,7 +2123,7 @@ describe('RooibosPlugin', () => {
             [[], 'rooibos_ConsoleTestReporter'],
             [['CONSOLE'], 'rooibos_ConsoleTestReporter'],
             [['MyCustomReporter'], 'MyCustomReporter'],
-            [['mocha'], '"rooibos_MochaTestReporter'],
+            [['mocha'], 'rooibos_MochaTestReporter'],
             [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
         ];
         it('adds custom test reporters', async () => {
