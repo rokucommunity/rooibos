@@ -589,6 +589,237 @@ namespace tests
 
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests fail on crash")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("reports error")
+    function _()
+      throw "some error"
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertTrue fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("AssertTrue with message")
+    @params(false)
+    @params(invalid)
+    @params(0)
+    @params(1)
+    @params("test")
+    @params({})
+    @params([])
+    function _(value)
+      m.assertTrue(value)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertFalse fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("AssertFalse")
+    @params(true)
+    @params(invalid)
+    @params(0)
+    @params(1)
+    @params("test")
+    @params({})
+    @params([])
+    function _(value)
+      m.assertFalse(value)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertEqual fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("assertEqual fail on object")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertAAHasKeys fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertAAHasKeys")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertAAHasKeys(obj, ["one", "two", "three", "four", "five", "six'", "seven"""])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayContains fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayContains")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertArrayContains(obj, invalid)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayContainsAAs fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayContainsAAs with missing actual array")
+    function _()
+      m.assertArrayContainsAAs(invalid, [{ "one": 1, "two": 2, "three": 3, "four": 4 }])
+    end function
+
+    @it("fail assertArrayContainsAAs with missing search array")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertArrayContainsAAs([obj], invalid)
+    end function
+
+    @it("fail assertArrayContainsAAs with invalid value in search array")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertArrayContainsAAs([obj], [invalid])
+    end function
+
+    @it("fail assertArrayContainsAAs did not contain aa")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertArrayContainsAAs([obj], [{ "one": 1, "two": 2, "three": 3, "four": 4 }])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayCount fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayCount missing array")
+    function _()
+      m.assertArrayCount(invalid, 1)
+    end function
+
+    @it("fail assertArrayCount miss match count on array")
+    function _()
+      m.assertArrayCount([1, 2], 1)
+    end function
+
+    @it("fail assertArrayCount miss match count on AA")
+    function _()
+      m.assertArrayCount({ one: 1, two: 2 }, 1)
+    end function
+
+    @it("fail assertArrayCount bad count value")
+    function _()
+      m.assertArrayCount({ one: 1, two: 2 }, "1")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayNotCount fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayNotCount missing array")
+    function _()
+      m.assertArrayNotCount(invalid, 1)
+    end function
+
+    @it("fail assertArrayNotCount miss match count on array")
+    function _()
+      m.assertArrayNotCount([1, 2], 2)
+    end function
+
+    @it("fail assertArrayNotCount miss match count on AA")
+    function _()
+      m.assertArrayNotCount({ one: 1, two: 2 }, 2)
+    end function
+
+    @it("fail assertArrayNotCount bad count value")
+    function _()
+      m.assertArrayNotCount({ one: 1, two: 2 }, "2")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertEmpty fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertEmpty bad input")
+    function _()
+      m.assertEmpty(invalid)
+    end function
+
+    @it("fail assertEmpty non empty array")
+    function _()
+      m.assertEmpty([1])
+    end function
+
+    @it("fail assertEmpty non empty aa")
+    function _()
+      m.assertEmpty({ one: 1 })
+    end function
+
+    @it("fail assertEmpty non empty string")
+    function _()
+      m.assertEmpty("2")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNotEmpty fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNotEmpty bad input")
+    function _()
+      m.AssertNotEmpty(invalid)
+    end function
+
+    @it("fail assertNotEmpty empty array")
+    function _()
+      m.AssertNotEmpty([])
+    end function
+
+    @it("fail assertNotEmpty empty aa")
+    function _()
+      m.AssertNotEmpty({})
+    end function
+
+    @it("fail assertNotEmpty empty string")
+    function _()
+      m.AssertNotEmpty("")
+    end function
+
     'ASSERTIONS TO WRITE TESTS FOR!
 
     'This is coming soon!
