@@ -1362,20 +1362,28 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
         if type(value) <> "roSGNode"
-          if msg = ""
-            expr_as_string = rooibos.common.asString(value, true)
-            msg = expr_as_string + " was not a node, so could not match subtype " + typeStr
+          if rooibos.common.isNumber(value) or rooibos.common.isString(value) or rooibos.common.isBoolean(value)
+            actual = type(value)
+          else
+            actual = `<Component: ${type(value)}>`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          expected = `<Component: roSGNode:${typeStr}>`
+
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         else if value.subType() <> typeStr
+          actual = `<Component: roSGNode:${value.subType()}>`
+          expected = `<Component: roSGNode:${typeStr}>`
           if msg = ""
-            expr_as_string = rooibos.common.asString(value, true)
-            msg = expr_as_string + "( type : " + value.subType() + ") was not of subType " + typeStr
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1384,7 +1392,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     function assertClass(value, func, msg = "") as dynamic
@@ -1394,21 +1401,23 @@ namespace rooibos
       if rooibos.common.isFunction(func)
         func = func.toStr().mid(10).replace("_", ".")
       end if
+
       try
         if not rooibos.common.isAssociativeArray(value)
           if msg = ""
-            expr_as_string = rooibos.common.asString(value)
-            msg = expr_as_string + " was not an aa, so could not match Class " + func
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}" to be an instance of ${rooibos.common.truncateString(rooibos.common.asMultilineString(func, true))}`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
         className = lCase(`${value.__classname}`)
         if className <> lCase(func)
+          actual = rooibos.common.asMultilineString(className, true)
+          expected = rooibos.common.asMultilineString(lCase(func), true)
           if msg = ""
-            msg = `Expected class: ${func} got ${className}`
+            msg = `expected ${rooibos.common.truncateString(actual)} to be an instance of ${rooibos.common.truncateString(expected)}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1417,7 +1426,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
 

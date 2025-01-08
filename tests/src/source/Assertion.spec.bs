@@ -933,7 +933,6 @@ namespace tests
     end function
 
     @it("fail assertArrayContainsOnlyValuesOfType AA of invalid values")
-    @only
     function _()
       m.assertArrayContainsOnlyValuesOfType({ key: invalid }, "String")
     end function
@@ -945,6 +944,44 @@ namespace tests
     @it("fail assertType type mismatch")
     function _()
       m.assertType(invalid, "string")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertSubType fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertType type mismatch non-node")
+    function _()
+      m.assertSubType(createObject("roDateTime"), "MyNode")
+    end function
+
+    @it("fail assertType type mismatch primitive")
+    function _()
+      m.assertSubType(true, "MyNode")
+    end function
+
+    @it("fail assertType type mismatch subtypes")
+    function _()
+      m.assertSubType(createObject("roSgNode", "Node"), "MyNode")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertClass fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @it("fails if not passed a class")
+    @params(invalid)
+    @params([])
+    @params("wrong")
+    function _(value)
+      m.assertClass(value, "myClass")
+    end function
+
+    @it("fails if wrong class name")
+    @params({})
+    @params({ __classname: invalid })
+    @params({ __classname: "other" })
+    function _(value)
+      m.assertClass(value, "myClass")
     end function
 
     'ASSERTIONS TO WRITE TESTS FOR!
