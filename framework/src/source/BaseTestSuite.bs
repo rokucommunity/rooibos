@@ -1203,7 +1203,6 @@ namespace rooibos
         isAA = rooibos.common.isAssociativeArray(array)
         methodName = "Rooibos_Common_Is" + typeStr
         typeCheckFunction = m.getIsTypeFunction(methodName)
-        stop
         if typeCheckFunction <> invalid
           for each item in array
             key = invalid
