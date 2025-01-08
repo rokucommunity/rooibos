@@ -703,6 +703,18 @@ namespace rooibos.common
     end if
   end function
 
+  function getTypeWithComponentWrapper(value, includeSubtype = false) as string
+    if not rooibos.common.isValid(value) or rooibos.common.isNumber(value) or rooibos.common.isString(value) or rooibos.common.isBoolean(value)
+      return type(value)
+    else
+      if includeSubtype and rooibos.common.isSGNode(value)
+        return `<Component: ${type(value)}:${value.subType()}>`
+      else
+        return `<Component: ${type(value)}>`
+      end if
+    end if
+  end function
+
   function truncateString(value as string, length = 38 as integer, collapseNewlines = true as boolean) as string
     if collapseNewlines
       value = CreateObject("roRegex", "\n\s*", "g").replaceAll(value, " ")

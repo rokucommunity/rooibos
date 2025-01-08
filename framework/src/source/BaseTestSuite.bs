@@ -1365,11 +1365,7 @@ namespace rooibos
 
       try
         if type(value) <> "roSGNode"
-          if rooibos.common.isNumber(value) or rooibos.common.isString(value) or rooibos.common.isBoolean(value)
-            actual = type(value)
-          else
-            actual = `<Component: ${type(value)}>`
-          end if
+          actual = rooibos.common.getTypeWithComponentWrapper(value)
           expected = `<Component: roSGNode:${typeStr}>`
 
           if msg = ""
@@ -1378,7 +1374,7 @@ namespace rooibos
           m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         else if value.subType() <> typeStr
-          actual = `<Component: roSGNode:${value.subType()}>`
+          actual = rooibos.common.getTypeWithComponentWrapper(value, true)
           expected = `<Component: roSGNode:${typeStr}>`
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
@@ -1438,7 +1434,7 @@ namespace rooibos
     '  * @name assertNodeCount
     '  * @function
     '  * @instance
-    '  * @description Asserts that the node contains the desginated number of children
+    '  * @description Asserts that the node contains the designated number of children
     '  * @param {Dynamic} node - target node
     '  * @param {Dynamic} count - expected number of child items
     '  * @param {Dynamic} [msg=""] - alternate error message
@@ -1448,23 +1444,29 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
         if type(node) = "roSGNode"
-          if node.isSubType("mc_Node")
             if node.isSubType("mc_Node")
               childCount = node.length
             else
               childCount = node.getChildCount()
             end if
             if childCount <> count
-              msg = "node items count <> " + rooibos.common.asString(count) + ". Received " + rooibos.common.asString(childCount)
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              actual = rooibos.common.asMultilineString(childCount, true)
+              expected = rooibos.common.asMultilineString(count, true)
+              msg = `expected count "${actual}" to be "${expected}"`
+              m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
               return false
             end if
-          end if
         else
-          msg = "Input value is not an node."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1473,7 +1475,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**

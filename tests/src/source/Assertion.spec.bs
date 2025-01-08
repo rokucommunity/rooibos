@@ -783,7 +783,6 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @only
     @describe("tests assertArrayNotContainsSubset fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -968,6 +967,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests AssertClass fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     @it("fails if not passed a class")
     @params(invalid)
     @params([])
@@ -982,6 +982,22 @@ namespace tests
     @params({ __classname: "other" })
     function _(value)
       m.assertClass(value, "myClass")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertNodeCount fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeCount missing node")
+    function _()
+      m.assertNodeCount(invalid, 0)
+    end function
+
+    @it("fail assertNodeCount on count miss match")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Node")
+      m.assertNodeCount(node, 5)
     end function
 
     'ASSERTIONS TO WRITE TESTS FOR!
