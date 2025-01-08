@@ -869,23 +869,24 @@ namespace rooibos
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    ' TODO: UPDATE
     function assertArrayNotContains(array, value, key = invalid, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if rooibos.common.isAssociativeArray(array) or rooibos.common.isArray(array)
-          if rooibos.common.arrayContains(array, value, key)
-            msg = "Array has the '" + rooibos.common.asString(value, true) + "' value."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
-            return false
-          end if
-        else
-          msg = "Input value is not an Array."
+        if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
+
+        if rooibos.common.arrayContains(array, value, key)
+          msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to not contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
         return true
       catch error
         'bs:disable-next-line
@@ -901,36 +902,58 @@ namespace rooibos
     '  * @instance
     '  * @description Fail if the array doesn't have the item subset.
     '  * @param {Dynamic} array - target array
-    '  * @param {Dynamic} subset - items to check presnece of
+    '  * @param {Dynamic} subset - items to check presence of
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    ' TODO: UPDATE
     function assertArrayContainsSubset(array, subset, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if (rooibos.common.isAssociativeArray(array) and rooibos.common.isAssociativeArray(subset)) or (rooibos.common.isArray(array) and rooibos.common.isArray(subset))
-          isAA = rooibos.common.isAssociativeArray(subset)
-          for each item in subset
-            key = invalid
-            value = item
-            if isAA
-              key = item
-              value = subset[key]
-            end if
-            if not rooibos.common.arrayContains(array, value, key)
-              msg = "Array doesn't have the '" + rooibos.common.asString(value, true) + "' value."
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
-              return false
-            end if
-          end for
-        else
-          msg = "Input value is not an Array."
+        if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
+          msg = `expected target "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
+
+        if not rooibos.common.isAssociativeArray(subset) and not rooibos.common.isArray(subset)
+          msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray or Array`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if rooibos.common.isAssociativeArray(array) and not rooibos.common.isAssociativeArray(subset)
+          msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray to match type "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if rooibos.common.isArray(array) and not rooibos.common.isArray(subset)
+          msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an Array to match type "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        isAA = rooibos.common.isAssociativeArray(subset)
+        for each item in subset
+          key = invalid
+          value = item
+          if isAA
+            key = item
+            value = subset[key]
+          end if
+          if not rooibos.common.arrayContains(array, value, key)
+            if isAA
+              msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to contain property "${rooibos.common.truncateString(key)}" with value "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
+            else
+              msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
+            end if
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        end for
         return true
       catch error
         'bs:disable-next-line
@@ -947,43 +970,64 @@ namespace rooibos
     '  * @instance
     '  * @description Fail if the array have the item from subset.
     '  * @param {Dynamic} array - target array
-    '  * @param {Dynamic} subset - items to check presnece of
+    '  * @param {Dynamic} subset - items to check presence of
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    ' TODO: UPDATE
     function assertArrayNotContainsSubset(array, subset, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if (rooibos.common.isAssociativeArray(array) and rooibos.common.isAssociativeArray(subset)) or (rooibos.common.isArray(array) and rooibos.common.isArray(subset))
-          isAA = rooibos.common.isAssociativeArray(subset)
-          for each item in subset
-            key = invalid
-            value = item
-            if isAA
-              key = item
-              value = item[key]
-            end if
-            if rooibos.common.arrayContains(array, value, key)
-              msg = "Array has the '" + rooibos.common.asString(value, true) + "' value."
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
-              return false
-            end if
-          end for
-        else
-          msg = "Input value is not an Array."
+        if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
+          msg = `expected target "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
+
+        if not rooibos.common.isAssociativeArray(subset) and not rooibos.common.isArray(subset)
+          msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray or Array`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if rooibos.common.isAssociativeArray(array) and not rooibos.common.isAssociativeArray(subset)
+          msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray to match type "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if rooibos.common.isArray(array) and not rooibos.common.isArray(subset)
+          msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an Array to match type "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        isAA = rooibos.common.isAssociativeArray(subset)
+        for each item in subset
+          key = invalid
+          value = item
+          if isAA
+            key = item
+            value = item[key]
+          end if
+          if rooibos.common.arrayContains(array, value, key)
+            if isAA
+              msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to not contain property "${rooibos.common.truncateString(key)}" with value "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
+            else
+              msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to not contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
+            end if
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            return false
+          end if
+        end for
         return true
       catch error
         'bs:disable-next-line
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
