@@ -176,6 +176,7 @@ namespace tests
     @describe("test array string printing")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    ' TODO: remove or update
     @it("prints strings for failed array tests - simple")
     function _()
       arr1 = [

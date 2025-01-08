@@ -1462,7 +1462,6 @@ namespace rooibos
         else
           actual = rooibos.common.getTypeWithComponentWrapper(node)
           expected = `<Component: roSGNode>`
-
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
@@ -1492,6 +1491,7 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
         if type(node) = "roSGNode"
           if node.isSubType("mc_Node")
@@ -1500,13 +1500,19 @@ namespace rooibos
             childCount = node.getChildCount()
           end if
           if childCount = count
-            msg = "node items count = " + rooibos.common.asString(count) + "."
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            actual = rooibos.common.asMultilineString(childCount, true)
+            expected = rooibos.common.asMultilineString(count, true)
+            msg = `expected count "${actual}" to not be "${expected}"`
+            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
             return false
           end if
         else
-          msg = "Input value is not an node."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1515,7 +1521,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
@@ -1532,6 +1537,7 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
         if type(node) = "roSGNode"
           if node.isSubType("mc_Node")
@@ -1540,10 +1546,18 @@ namespace rooibos
             childCount = node.getChildCount()
           end if
           if childCount > 0
-            msg = "node is not empty."
+            msg = `expected child count "${childCount}" to be "0"`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
+        else
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          return false
         end if
         return true
       catch error
@@ -1551,7 +1565,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
@@ -1568,13 +1581,28 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
         if type(node) = "roSGNode"
-          if node.Count() = 0
-            msg = "Array is empty."
+          if node.isSubType("mc_Node")
+            childCount = node.length
+          else
+            childCount = node.getChildCount()
+          end if
+
+          if childCount = 0
+            msg = `expected child count "${childCount}" to be greater then "0"`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
+        else
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          return false
         end if
         return true
       catch error
@@ -1582,7 +1610,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
@@ -1600,16 +1627,21 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
         if type(node) = "roSGNode"
           if not rooibos.common.nodeContains(node, value)
-            msg = "Node doesn't have the '" + rooibos.common.asString(value, true) + "' value."
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
         else
-          msg = "Input value is not an Node."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1618,7 +1650,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     ' /**
@@ -1639,7 +1670,7 @@ namespace rooibos
       try
         if type(node) = "roSGNode"
           if not rooibos.common.nodeContains(node, value)
-            msg = "Node doesn't have the '" + rooibos.common.asString(value, true) + "' value."
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           else
@@ -1648,15 +1679,20 @@ namespace rooibos
             else
               childCount = node.getChildCount()
             end if
+
             if childCount <> 1
-              msg = "Node Contains specified value; but other values as well"
+              msg = `expected child count "${childCount}" to be "1"`
               m.currentResult.fail(msg, m.currentAssertLineNumber)
               return false
             end if
           end if
         else
-          msg = "Input value is not an Node."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1687,13 +1723,17 @@ namespace rooibos
       try
         if type(node) = "roSGNode"
           if rooibos.common.nodeContains(node, value)
-            msg = "Node has the '" + rooibos.common.asString(value, true) + "' value."
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to not contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
           end if
         else
-          msg = "Input value is not an Node."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1720,36 +1760,56 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if (type(node) = "roSGNode" and rooibos.common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and rooibos.common.isArray(subset))
-          isIgnoredFields = rooibos.common.isArray(ignoredFields)
-          for each key in subset
-            if key <> ""
-              if not isIgnoredFields or not rooibos.common.arrayContains(ignoredFields, key)
-                subsetValue = subset[key]
-                nodeValue = node[key]
-                if not rooibos.common.eqValues(nodeValue, subsetValue)
-                  msg = key + ": Expected '" + rooibos.common.asString(subsetValue, true) + "', got '" + rooibos.common.asString(nodeValue, true) + "'"
-                  m.currentResult.fail(msg, m.currentAssertLineNumber)
-                  return false
-                end if
-              end if
-            else
-              ? "Found empty key!"
-            end if
-          end for
-        else
-          msg = "Input value is not an Node."
+        if not type(node) = "roSGNode"
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          return false
+        end if
+
+        if not rooibos.common.isAssociativeArray(subset)
+          msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray`
           m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        isIgnoredFields = rooibos.common.isArray(ignoredFields)
+
+        foundValues = {}
+        missingValues = {}
+        for each key in subset
+          if not isIgnoredFields or not rooibos.common.arrayContains(ignoredFields, key)
+            subsetValue = subset[key]
+            nodeValue = node[key]
+            if rooibos.common.eqValues(nodeValue, subsetValue)
+              foundValues[key] = subsetValue
+            else
+              missingValues[key] = subsetValue
+            end if
+          end if
+        end for
+
+        if foundValues.count() <> subset.count()
+          actual = rooibos.common.asMultilineString(foundValues, true)
+          expected = rooibos.common.asMultilineString(subset, true)
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to have properties "${rooibos.common.truncateString(rooibos.common.asMultilineString(missingValues))}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
       catch error
         'bs:disable-next-line
-        m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
+        m.currentResult.failCrash(error, error.message)
+        return false
       end try
       return false
-
     end function
 
     ' /**
@@ -1767,25 +1827,51 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if (type(node) = "roSGNode" and rooibos.common.isAssociativeArray(subset)) or (type(node) = "roSGNode" and rooibos.common.isArray(subset))
-          isAA = rooibos.common.isAssociativeArray(subset)
-          for each item in subset
-            key = invalid
-            value = item
-            if isAA
-              key = item
-              value = item[key]
-            end if
+        if not type(node) = "roSGNode"
+          actual = rooibos.common.getTypeWithComponentWrapper(node)
+          expected = `<Component: roSGNode>`
+          if msg = ""
+            msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          return false
+        end if
+
+        if rooibos.common.isArray(subset)
+          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+          ' NOTE: Legacy check for children via array support.
+          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+          for each value in subset
             if rooibos.common.nodeContains(node, value)
-              msg = "Node has the '" + rooibos.common.asString(value, true) + "' value."
+              msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to not contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
               m.currentResult.fail(msg, m.currentAssertLineNumber)
               return false
             end if
           end for
+        else if rooibos.common.isAssociativeArray(subset)
+          foundValues = {}
+          for each key in subset
+            subsetValue = subset[key]
+            nodeValue = node[key]
+            if rooibos.common.eqValues(nodeValue, subsetValue)
+              foundValues[key] = subsetValue
+            end if
+          end for
+
+          if foundValues.count() > 0
+            actual = rooibos.common.asMultilineString(foundValues, true)
+            expected = rooibos.common.asMultilineString({}, true)
+            if msg = ""
+              msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to have not have properties "${rooibos.common.truncateString(rooibos.common.asMultilineString(foundValues))}"`
+            end if
+            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+            return false
+          end if
         else
-          msg = "Input value is not an Node."
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+            msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray`
+            m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
         return true
@@ -1794,7 +1880,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1817,27 +1902,43 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
+
       try
-        if rooibos.common.isAssociativeArray(array) and rooibos.common.isAssociativeArray(subset)
-          isIgnoredFields = rooibos.common.isArray(ignoredFields)
-          for each key in subset
-            if key <> ""
-              if not isIgnoredFields or not rooibos.common.arrayContains(ignoredFields, key)
-                subsetValue = subset[key]
-                arrayValue = array[key]
-                if not rooibos.common.eqValues(arrayValue, subsetValue)
-                  msg = key + ": Expected '" + rooibos.common.asString(subsetValue, true) + "', got '" + rooibos.common.asString(arrayValue, true) + "'"
-                  m.currentResult.fail(msg, m.currentAssertLineNumber)
-                  return false
-                end if
-              end if
+        if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
+          msg = `expected target "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if not rooibos.common.isAssociativeArray(subset) and not rooibos.common.isArray(subset)
+          msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray`
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        isIgnoredFields = rooibos.common.isArray(ignoredFields)
+
+        foundValues = {}
+        missingValues = {}
+        for each key in subset
+          if not isIgnoredFields or not rooibos.common.arrayContains(ignoredFields, key)
+            subsetValue = subset[key]
+            nodeValue = array[key]
+            if rooibos.common.eqValues(nodeValue, subsetValue)
+              foundValues[key] = subsetValue
             else
-              ? "Found empty key!"
+              missingValues[key] = subsetValue
             end if
-          end for
-        else
-          msg = "Input values are not an Associative Array."
-          m.currentResult.fail("Assert failed: " + msg, m.currentAssertLineNumber)
+          end if
+        end for
+
+        if foundValues.count() <> subset.count()
+          actual = rooibos.common.asMultilineString(foundValues, true)
+          expected = rooibos.common.asMultilineString(subset, true)
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to have properties "${rooibos.common.truncateString(rooibos.common.asMultilineString(missingValues))}"`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
@@ -1846,7 +1947,6 @@ namespace rooibos
         m.currentResult.fail("Assert failed: " + error.message, m.currentAssertLineNumber)
       end try
       return false
-
     end function
 
 

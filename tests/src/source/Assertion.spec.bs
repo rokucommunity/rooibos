@@ -996,8 +996,165 @@ namespace tests
     @it("fail assertNodeCount on count miss match")
     function _()
       node = createObject("roSGNode", "Node")
-      node.createChildren(10, "Node")
+      node.createChildren(10, "Group")
       m.assertNodeCount(node, 5)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertNodeEmpty fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeEmpty missing node")
+    function _()
+      m.assertNodeEmpty(invalid, 0)
+    end function
+
+    @it("fail assertNodeEmpty on non-empty node")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeEmpty(node)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertNodeNotEmpty fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeNotEmpty missing node")
+    function _()
+      m.assertNodeNotEmpty(invalid)
+    end function
+
+    @it("fail assertNodeNotEmpty on empty node")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeNotEmpty(node)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertNodeContains fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeContains missing node")
+    function _()
+      m.assertNodeContains(invalid, invalid)
+    end function
+
+    @it("fail assertNodeContains when child not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeContains(node, createObject("roSGNode", "Group"))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertNodeContainsOnly fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeContainsOnly missing node")
+    function _()
+      m.assertNodeContainsOnly(invalid, invalid)
+    end function
+
+    @it("fail assertNodeContainsOnly when child if found but contains other children")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeContainsOnly(node, node.getChild(0))
+    end function
+
+    @it("fail assertNodeContainsOnly when child is not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(1, "Group")
+      m.assertNodeContainsOnly(node, createObject("roSGNode", "Group"))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertNodeNotContains fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeNotContains missing node")
+    function _()
+      m.assertNodeNotContains(invalid, invalid)
+    end function
+
+    @it("fail assertNodeNotContains when child is found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotContains(node, node.getChild(5))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertNodeContainsFields fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeContainsFields missing node")
+    function _()
+      m.assertNodeContainsFields(invalid, invalid)
+    end function
+
+    @it("fail assertNodeContainsFields bad subset value")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeContainsFields(node, [])
+    end function
+
+    @it("fail assertNodeContainsFields fields are not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeContainsFields(node, { "field": "value", "id": "", "focusable": false, "": false })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests assertNodeNotContainsFields fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeNotContainsFields with missing node")
+    function _()
+      m.assertNodeNotContainsFields(invalid, [])
+    end function
+
+    @it("fail assertNodeNotContainsFields with missing subset")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeNotContainsFields(node, invalid)
+    end function
+
+    @it("fail assertNodeNotContainsFields legacy find child support in array subset")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotContainsFields(node, [ node.getChild(5) ])
+    end function
+
+    @it("fail assertNodeNotContainsFields subset AA of fields")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeNotContainsFields(node, { "focusable": false })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @only
+    @describe("tests assertAAContainsSubset fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertAAContainsSubset with missing actual AA")
+    function _()
+      m.assertAAContainsSubset(invalid, {})
+    end function
+
+    @it("fail assertAAContainsSubset with missing subset")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertAAContainsSubset({ one: 1, two: 2, three: 3 }, invalid)
+    end function
+
+    @it("fail assertAAContainsSubset with subset item not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertAAContainsSubset({ one: 1, two: 2, three: 3 }, { three: 4})
     end function
 
     'ASSERTIONS TO WRITE TESTS FOR!
