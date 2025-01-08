@@ -1006,7 +1006,7 @@ namespace tests
 
     @it("fail assertNodeEmpty missing node")
     function _()
-      m.assertNodeEmpty(invalid, 0)
+      m.assertNodeEmpty(invalid)
     end function
 
     @it("fail assertNodeEmpty on non-empty node")

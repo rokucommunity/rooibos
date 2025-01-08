@@ -176,7 +176,6 @@ namespace tests
     @describe("test array string printing")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    ' TODO: remove or update
     @it("prints strings for failed array tests - simple")
     function _()
       arr1 = [
@@ -191,7 +190,7 @@ namespace tests
       m.currentResult.Reset()
       m.assertTrue(isFail)
 
-      m.assertEqual(msg, `["one", "two", "three"] != ["2one", "2two", "2three"]`)
+      m.assertEqual(msg, `expected "[ "one", "two", "three" ]" to equal "[ "2one", "2two", "2three" ]"`)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

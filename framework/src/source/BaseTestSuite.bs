@@ -2009,7 +2009,7 @@ namespace rooibos
       end if
 
       try
-        if not rooibos.common.isAssociativeArray(array) and not rooibos.common.isArray(array)
+        if not rooibos.common.isAssociativeArray(array)
           if msg = ""
             msg = `expected target "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray`
           end if
@@ -2017,7 +2017,7 @@ namespace rooibos
           return false
         end if
 
-        if not rooibos.common.isAssociativeArray(subset) and not rooibos.common.isArray(subset)
+        if not rooibos.common.isAssociativeArray(subset)
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray`
           end if
