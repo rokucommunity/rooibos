@@ -1136,7 +1136,6 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @only
     @describe("tests assertAAContainsSubset fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
