@@ -1010,7 +1010,7 @@ namespace rooibos
           value = item
           if isAA
             key = item
-            value = item[key]
+            value = subset[key]
           end if
           if rooibos.common.arrayContains(array, value, key)
             if isAA
