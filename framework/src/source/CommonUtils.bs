@@ -325,13 +325,11 @@ namespace rooibos.common
     else if type(input) = "roSGNode"
       return "Node(" + input.subType() + ")"
     else if type(input) = "roAssociativeArray"
-      isFirst = true
-      text = "{" + chr(10)
-      if not isFirst
-        text = text + ","
-        'bs:disable-next-line
-        isFirst = false
+      if input.isEmpty()
+        return "{" + chr(10) + "}"
       end if
+
+      text = "{" + chr(10)
       for each key in input
         if rooibos.common.canSafelyIterateAAKey(input, key)
           text = text + string(indention + 1, indentChr) + formatJson(key) + ": " + rooibos.common.asMultilineString(input[key], includeType, indention + 1) + "," + chr(10)
@@ -346,6 +344,9 @@ namespace rooibos.common
       text = text + chr(10) + string(indention, indentChr) + "}"
       return text
     else if rooibos.common.isArray(input)
+      if input.isEmpty()
+        return "[" + chr(10) + "]"
+      end if
       text = "[" + chr(10)
       for i = 0 to input.count() - 1
         v = input[i]
