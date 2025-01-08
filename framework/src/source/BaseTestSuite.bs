@@ -355,19 +355,20 @@ namespace rooibos
     '  * @description Fail the test if the expression is true.
     '  * @param {Dynamic} expr - An expression to evaluate.
     '  * @param {Dynamic} [msg=""] - alternate error message
-    ' Default value: "Expression evaluates to true"'  * @returns {boolean} - true if the assert was satisfied, false otherwise
+    '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    function assertFalse(expr as dynamic, msg = "Expression evaluates to true") as dynamic
+    function assertFalse(expr as dynamic, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
       try
-        if rooibos.common.isBoolean(expr)
-          if expr
-            return m.fail(msg, rooibos.common.asMultilineString(expr, true), rooibos.common.asMultilineString(false, true))
+        if not rooibos.common.isBoolean(expr) or expr
+          actual = rooibos.common.asMultilineString(expr, true)
+          expected = rooibos.common.asMultilineString(false, true)
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(actual)}" to be ${rooibos.common.truncateString(expected)}`
           end if
-        else
-          return m.fail("value was not a boolean", rooibos.common.asMultilineString(expr, true), rooibos.common.asMultilineString(false, true))
+          return m.fail(msg, actual, expected)
         end if
         return true
       catch error
@@ -387,17 +388,18 @@ namespace rooibos
     '  * @param {Dynamic} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    function assertTrue(expr, msg = "Expression evaluates to false")
+    function assertTrue(expr, msg = "")
       if m.currentResult.isFail
         return false
       end if
       try
-        if rooibos.common.isBoolean(expr)
-          if not expr
-            return m.fail(msg, rooibos.common.asMultilineString(expr, true), rooibos.common.asMultilineString(true, true))
+        if not rooibos.common.isBoolean(expr) or not expr
+          actual = rooibos.common.asMultilineString(expr, true)
+          expected = rooibos.common.asMultilineString(true, true)
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(actual)}" to be ${rooibos.common.truncateString(expected)}`
           end if
-        else
-          return m.fail("value was not a boolean", rooibos.common.asMultilineString(expr, true), rooibos.common.asMultilineString(true, true))
+          return m.fail(msg, actual, expected)
         end if
 
         return true
