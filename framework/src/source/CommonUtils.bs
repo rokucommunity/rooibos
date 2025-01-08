@@ -818,6 +818,9 @@ namespace rooibos.common
   '  * @returns {boolean} - True if arrays are equal or False in other case.
   '  */
   function eqAssocArray(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
+    if not rooibos.common.isAssociativeArray(Value1) or not rooibos.common.isAssociativeArray(Value2)
+      return false
+    end if
     l1 = Value1.Count()
     l2 = Value2.Count()
 
