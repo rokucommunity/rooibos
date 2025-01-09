@@ -19,6 +19,8 @@ namespace rooibos
     function merge(other)
       m.isFail = other.isFail
       m.isCrash = other.isCrash
+      m.actual = other.actual
+      m.expected = other.expected
       m.message = other.message
       m.lineNumber = other.lineNumber
       m.time = other.time
