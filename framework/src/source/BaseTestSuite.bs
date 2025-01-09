@@ -1879,25 +1879,32 @@ namespace rooibos
           return false
         end if
 
-        isIgnoredFields = rooibos.common.isArray(ignoredFields)
+        if rooibos.common.isArray(ignoredFields)
+          filteredSubset = {}
+          for each key in subset
+            if rooibos.common.isString(key) and not rooibos.common.arrayContains(ignoredFields, key)
+              filteredSubset[key] = subset[key]
+            end if
+          end for
+        else
+          filteredSubset = subset
+        end if
 
         foundValues = {}
         missingValues = {}
-        for each key in subset
-          if not isIgnoredFields or not rooibos.common.arrayContains(ignoredFields, key)
-            subsetValue = subset[key]
-            nodeValue = node[key]
-            if rooibos.common.eqValues(nodeValue, subsetValue)
-              foundValues[key] = subsetValue
-            else
-              missingValues[key] = subsetValue
-            end if
+        for each key in filteredSubset
+          subsetValue = filteredSubset[key]
+          nodeValue = node[key]
+          if rooibos.common.eqValues(nodeValue, subsetValue)
+            foundValues[key] = subsetValue
+          else
+            missingValues[key] = subsetValue
           end if
         end for
 
-        if foundValues.count() <> subset.count()
+        if foundValues.count() <> filteredSubset.count()
           actual = rooibos.common.asMultilineString(foundValues, true)
-          expected = rooibos.common.asMultilineString(subset, true)
+          expected = rooibos.common.asMultilineString(filteredSubset, true)
           if msg = ""
             if msg = ""
               msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to have properties "${rooibos.common.truncateString(rooibos.common.asMultilineString(missingValues))}"`
@@ -2027,25 +2034,32 @@ namespace rooibos
           return false
         end if
 
-        isIgnoredFields = rooibos.common.isArray(ignoredFields)
+        if rooibos.common.isArray(ignoredFields)
+          filteredSubset = {}
+          for each key in subset
+            if rooibos.common.isString(key) and not rooibos.common.arrayContains(ignoredFields, key)
+              filteredSubset[key] = subset[key]
+            end if
+          end for
+        else
+          filteredSubset = subset
+        end if
 
         foundValues = {}
         missingValues = {}
-        for each key in subset
-          if not isIgnoredFields or not rooibos.common.arrayContains(ignoredFields, key)
-            subsetValue = subset[key]
-            nodeValue = array[key]
-            if rooibos.common.eqValues(nodeValue, subsetValue)
-              foundValues[key] = subsetValue
-            else
-              missingValues[key] = subsetValue
-            end if
+        for each key in filteredSubset
+          subsetValue = filteredSubset[key]
+          nodeValue = array[key]
+          if rooibos.common.eqValues(nodeValue, subsetValue)
+            foundValues[key] = subsetValue
+          else
+            missingValues[key] = subsetValue
           end if
         end for
 
-        if foundValues.count() <> subset.count()
+        if foundValues.count() <> filteredSubset.count()
           actual = rooibos.common.asMultilineString(foundValues, true)
-          expected = rooibos.common.asMultilineString(subset, true)
+          expected = rooibos.common.asMultilineString(filteredSubset, true)
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to have properties "${rooibos.common.truncateString(rooibos.common.asMultilineString(missingValues))}"`
           end if
