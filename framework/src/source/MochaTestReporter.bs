@@ -8,6 +8,54 @@ namespace rooibos
 
     private failureCount = 0
 
+    override function onSuiteBegin(suite as rooibos.BaseTestSuite)
+      ? suite.name
+    end function
+
+    override function onTestGroupBegin(group as rooibos.TestGroup)
+      ? tab(2) group.name
+    end function
+
+    ' override function onTestBegin(test as rooibos.Test)
+    '   'override me
+    ' end function
+
+    override function onTestComplete(test as rooibos.Test)
+      passed = test.result.getStatusText() = "PASS"
+      if passed
+        symbol = "✔"
+      else
+        symbol = "✖️"
+      end if
+
+      params = ""
+      if test.isParamTest
+        rawParams = invalid
+        if type(test.rawParams) = "roAssociativeArray"
+          rawParams = {}
+          for each key in test.rawParams
+            if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
+              rawParams[key] = test.rawParams[key]
+            end if
+          end for
+        else
+          rawParams = test.rawParams
+        end if
+
+        params = " " + formatJson(rawParams)
+      end if
+
+      ? tab(4) symbol + " " + test.name + params
+    end function
+
+    ' override function onTestGroupComplete(group as rooibos.TestGroup)
+    '   'override me
+    ' end function
+
+    ' override function onSuiteComplete(suite as rooibos.BaseTestSuite)
+    '   'override me
+    ' end function
+
     override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       print "Rooibos Version:" m.testRunner.runtimeConfig.getVersionText()
 

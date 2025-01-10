@@ -66,6 +66,8 @@ namespace rooibos
         testSuite = invalid
         if suiteClass <> invalid
           testSuite = suiteClass()
+          testSuite.testRunner = m
+          testSuite.testReporters = m.testReporters
           testSuite.global = m.nodeContext.global
           testSuite.context = m.nodeContext
           testSuite.top = m.nodeContext.top
@@ -138,6 +140,7 @@ namespace rooibos
 
       if suiteClass <> invalid
         testSuite = suiteClass()
+        testSuite.testReporters = m.testReporters
         testSuite.global = m.nodeContext.global
         testSuite.node = m.nodeContext
         testSuite.top = m.nodeContext.top
@@ -197,8 +200,6 @@ namespace rooibos
 
     private function runTestSuite(testSuite) as void
       if testSuite.groupsData <> invalid and testSuite.groupsData.count() > 0
-        ? ""
-        ? rooibos.common.fillText("> SUITE: " + testSuite.name, ">", 80)
         m.testSuites.push(testSuite)
 
         if testSuite.isNodeTest

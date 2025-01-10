@@ -109,7 +109,7 @@ namespace rooibos
     '++++++++++++++++++++++++++++++++++++?+++++++++++++++++++++++++
 
     function run()
-
+      m.notifyReportersOnSuiteBegin()
       ' ? ">>>>>>>>>>>>"
       ' ? " RUNNING TEST SUITE"
       if m.isAsync = true
@@ -154,6 +154,7 @@ namespace rooibos
           }
         })
       end if
+      m.notifyReportersOnSuiteComplete()
     end function
 
     function runASync()
@@ -183,12 +184,6 @@ namespace rooibos
       else
         group = m.currentGroup
         m.testRunner.top.rooibosGroupFinished = false
-
-        ? ""
-        ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
-        'bs:disable-next-line
-        ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
-        ? ""
 
         m.testRunner.top.observeFieldScoped("rooibosGroupFinished", "rooibos_onGroupComplete")
 
@@ -257,11 +252,6 @@ namespace rooibos
     end function
 
     function runTest(test as rooibos.Test)
-      ? ""
-      ? rooibos.common.fillText(">>>>>> It: " + test.name, ">", 80)
-      ? `  Location: file://${test.testSuite.filePath.trim()}:${test.lineNumber}`
-      ? ""
-
       m.currentResult = test.result
       m.currentResult.throwOnFailedAssertion = m.throwOnFailedAssertion
       if m.catchCrashes and not test.noCatch and not m.noCatch
@@ -284,9 +274,6 @@ namespace rooibos
           m.CleanStubs()
         end if
       end if
-
-      ? rooibos.common.fillText("<<<< END It: " + test.name + " (" + m.currentResult.getStatusText() + ") ", "<", 80)
-
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -3050,6 +3037,7 @@ namespace rooibos
 
     function testSuiteDone()
       ' ? "Async suite is complete"
+      m.notifyReportersOnSuiteComplete()
       m.top.rooibosSuiteFinished = true
     end function
 
@@ -3102,6 +3090,22 @@ namespace rooibos
         instance[id] = { id: id }
       end for
     end function
+
+    private sub notifyReportersOnSuiteBegin()
+      for each reporter in m.testReporters
+        if rooibos.common.isFunction(reporter.onSuiteBegin)
+          reporter.onSuiteBegin(m)
+        end if
+      end for
+    end sub
+
+    private sub notifyReportersOnSuiteComplete()
+      for each reporter in m.testReporters
+        if rooibos.common.isFunction(reporter.onSuiteComplete)
+          reporter.onSuiteComplete(m)
+        end if
+      end for
+    end sub
 
   end class
 

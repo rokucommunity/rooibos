@@ -13,6 +13,38 @@ namespace rooibos
       end if
     end function
 
+    override function onSuiteBegin(suite as rooibos.BaseTestSuite)
+      ? ""
+      ? rooibos.common.fillText("> SUITE: " + suite.name, ">", 80)
+    end function
+
+    override function onTestGroupBegin(group as rooibos.TestGroup)
+      ? ""
+      ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
+      'bs:disable-next-line
+      ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
+      ? ""
+    end function
+
+    override function onTestBegin(test as rooibos.Test)
+      ? ""
+      ? rooibos.common.fillText(">>>>>> It: " + test.name, ">", 80)
+      ? `  Location: file://${test.testSuite.filePath.trim()}:${test.lineNumber}`
+      ? ""
+    end function
+
+    override function onTestComplete(test as rooibos.Test)
+      ? rooibos.common.fillText("<<<< END It: " + test.name + " (" + test.result.getStatusText() + ") ", "<", 80)
+    end function
+
+    ' override function onTestGroupComplete(group as rooibos.TestGroup)
+    '   'override me
+    ' end function
+
+    ' override function onSuiteComplete(suite as rooibos.BaseTestSuite)
+    '   'override me
+    ' end function
+
     override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       m.allStats = ev.stats
       m.startReport()
