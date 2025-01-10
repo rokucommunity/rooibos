@@ -306,6 +306,26 @@ namespace rooibos
 
     ' /**
     '  * @memberof module:BaseTestSuite
+    '  * @name fail
+    '  * @function
+    '  * @instance
+    '  * @description Fail immediately, with the given message
+    '  * @param {Dynamic} [msg=""] - message to display in the test report
+    '  * @returns {boolean} - true if the assert was satisfied, false otherwise
+    '  */
+    function skip(msg = "Skipped" as string) as dynamic
+      if m.currentResult.isFail
+        if m.throwOnFailedAssertion
+          throw m.currentResult.getMessage()
+        end if
+        return false
+      end if
+      m.currentResult.skip(msg)
+      return false
+    end function
+
+    ' /**
+    '  * @memberof module:BaseTestSuite
     '  * @name failCrash
     '  * @function
     '  * @instance
