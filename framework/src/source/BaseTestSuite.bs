@@ -586,7 +586,15 @@ namespace rooibos
         return false
       end if
       try
-        if not rooibos.common.isAssociativeArray(aa) or not aa.DoesExist(key)
+        if not rooibos.common.isAssociativeArray(aa)
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to be an AssociativeArray`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if not aa.DoesExist(key)
           if msg = ""
             actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to have property "${key}"`
@@ -620,7 +628,15 @@ namespace rooibos
       end if
 
       try
-        if not rooibos.common.isAssociativeArray(aa) and aa.DoesExist(key)
+        if not rooibos.common.isAssociativeArray(aa)
+          if msg = ""
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to be an AssociativeArray`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        if aa.DoesExist(key)
           if msg = ""
             actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to not have property "${key}"`
