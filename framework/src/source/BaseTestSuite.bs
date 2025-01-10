@@ -125,11 +125,6 @@ namespace rooibos
       for each groupData in m.groupsData
         'bs:disable-next-line
         group = new TestGroup(m, groupData)
-        ? ""
-        ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
-        'bs:disable-next-line
-        ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
-        ? ""
 
         'bs:disable-next-line
         m.groups.push(group)
