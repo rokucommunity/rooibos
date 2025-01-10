@@ -172,13 +172,18 @@ describe('RooibosPlugin', () => {
             `);
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
-            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases.entries()][0][1].isIgnored).to.equal(true);
         });
 
         it('ignores a group', () => {
             program.setFile('source/test.spec.bs', `
-            @suite
-                    class ATest
+                @suite
+                class ATest
                     @ignore
                     @describe("groupA")
 
@@ -190,8 +195,12 @@ describe('RooibosPlugin', () => {
             `);
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
-            expect(plugin.session.sessionInfo.groupsCount).to.equal(0);
-            expect(plugin.session.sessionInfo.testsCount).to.equal(0);
+            expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(false);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases.entries()][0][1].isIgnored).to.equal(true);
         });
 
         it('ignores a test', () => {
@@ -207,10 +216,15 @@ describe('RooibosPlugin', () => {
 
                 end class
             `);
+
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
-            expect(plugin.session.sessionInfo.testsCount).to.equal(0);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(false);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(false);
+            expect([...[...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases.entries()][0][1].isIgnored).to.equal(true);
         });
 
         it('multiple groups', () => {

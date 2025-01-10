@@ -141,7 +141,6 @@ export class SessionInfo {
                             testCase.isIncluded = false;
                         } else {
                             testCase.isIncluded = testGroup.isIncluded || testCase.isSolo;
-                            this.testsCount++;
                         }
                     }
 
@@ -150,6 +149,11 @@ export class SessionInfo {
                             testCase.isIncluded = false;
                         } else {
                             testCase.isIncluded = true;
+                        }
+                    }
+
+                    for (let testCase of testCases) {
+                        if (testCase.isIncluded) {
                             this.testsCount++;
                         }
                     }
