@@ -11,7 +11,6 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("reports error")
-    @ignore
     function _()
       throw "some error"
     end function
