@@ -14,11 +14,13 @@ namespace rooibos
     end function
 
     override function onSuiteBegin(suite as rooibos.BaseTestSuite)
+      if suite.isIgnored then return invalid
       ? ""
       ? rooibos.common.fillText("> SUITE: " + suite.name, ">", 80)
     end function
 
     override function onTestGroupBegin(group as rooibos.TestGroup)
+      if group.isIgnored then return invalid
       ? ""
       ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
       'bs:disable-next-line
@@ -27,6 +29,7 @@ namespace rooibos
     end function
 
     override function onTestBegin(test as rooibos.Test)
+    if test.isIgnored then return invalid
       ? ""
       ? rooibos.common.fillText(">>>>>> It: " + test.name, ">", 80)
       ? `  Location: file://${test.testSuite.filePath.trim()}:${test.lineNumber}`
@@ -34,6 +37,7 @@ namespace rooibos
     end function
 
     override function onTestComplete(test as rooibos.Test)
+      if test.isIgnored then return invalid
       ? rooibos.common.fillText("<<<< END It: " + test.name + " (" + test.result.getStatusText() + ") ", "<", 80)
     end function
 
@@ -49,6 +53,7 @@ namespace rooibos
       m.allStats = ev.stats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
+        if testSuite.isIgnored then return invalid
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
           m.printSuiteStart(testSuite)
 
@@ -91,9 +96,11 @@ namespace rooibos
     end function
 
     function printGroup(testGroup)
+      if testGroup.isIgnored then return invalid
       isGroupPrinted = false
 
       for each test in testGroup.tests
+        if test.result.isSkipped then return invalid
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
           if not isGroupPrinted
             m.printGroupStart(testGroup)
