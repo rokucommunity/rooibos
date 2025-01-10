@@ -17,7 +17,7 @@
       ]
     },
     1128,
-    1001, 
+    1001,
     1140
   ],
   "plugins": [
@@ -28,7 +28,7 @@
   ],
   "rooibos": {
     "showOnlyFailures": true,
-    "catchCrashes": false,
+    "catchCrashes": true,
     "lineWidth": 70,
     "failFast": false,
     "sendHomeOnFinish": false,
