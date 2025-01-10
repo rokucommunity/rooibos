@@ -157,6 +157,7 @@ export class SessionInfo {
             }
         }
         this.testSuitesToRun = [...this.testSuites.values()].filter((s) => s.isIncluded);
+        this.testSuitesToRun.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     isExcludedByTag(item: TestCase | TestGroup | TestSuite, isParentIncluded) {

@@ -85,6 +85,9 @@ describe('MockUtil', () => {
                             __stubFunction = __stubs_globalAa.__globalStubs.sayhello
                             __stubOrMockResult = __stubFunction(a1, a2)
                             return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
+                            value = __stubs_globalAa.__globalStubs.sayhello
+                            return value
                         end if
                         print "hello"
                     end function
@@ -122,6 +125,9 @@ describe('MockUtil', () => {
                             __stubFunction = __stubs_globalAa.__globalStubs.sayhello
                             __stubOrMockResult = __stubFunction(a1, a2)
                             return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
+                            value = __stubs_globalAa.__globalStubs.sayhello
+                            return value
                         end if
                         print "hello"
                     end function
@@ -162,6 +168,9 @@ describe('MockUtil', () => {
                             __stubFunction = __stubs_globalAa.__globalStubs.redlines_setrulerlines
                             __stubOrMockResult = __stubFunction(rulerLines)
                             return
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("redlines_setrulerlines")
+                            value = __stubs_globalAa.__globalStubs.redlines_setrulerlines
+                            return
                         end if
                         For Each line In rulerLines.Items()
                             RedLines_AddLine(line.key, line.value.position, line.value.coords, m.node, m.childMap)
@@ -177,6 +186,9 @@ describe('MockUtil', () => {
                             __stubFunction = __stubs_globalAa.__globalStubs.redlines_addline
                             __stubOrMockResult = __stubFunction(id, position, coords, node, childMap)
                             return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("redlines_addline")
+                            value = __stubs_globalAa.__globalStubs.redlines_addline
+                            return value
                         end if
                         line = CreateObject("roSGNode", "Rectangle")
                         line.setField("id", id)
@@ -212,6 +224,9 @@ describe('MockUtil', () => {
                         else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
                             __stubFunction = __stubs_globalAa.__globalStubs.sayhello
                             __stubOrMockResult = __stubFunction(a1, a2)
+                            return
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
+                            value = __stubs_globalAa.__globalStubs.sayhello
                             return
                         end if
                         print "hello"
@@ -250,6 +265,9 @@ describe('MockUtil', () => {
                             __stubFunction = __stubs_globalAa.__globalStubs.person_utils_sayhello
                             __stubOrMockResult = __stubFunction(a1, a2)
                             return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("person_utils_sayhello")
+                            value = __stubs_globalAa.__globalStubs.person_utils_sayhello
+                            return value
                         end if
                         print "hello"
                     end function
@@ -286,6 +304,9 @@ describe('MockUtil', () => {
                         else if type(__stubs_globalAa?.__globalStubs?.person_utils_sayhello).endsWith("Function")
                             __stubFunction = __stubs_globalAa.__globalStubs.person_utils_sayhello
                             __stubOrMockResult = __stubFunction(a1, a2)
+                            return
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("person_utils_sayhello")
+                            value = __stubs_globalAa.__globalStubs.person_utils_sayhello
                             return
                         end if
                         print "hello"
@@ -378,6 +399,9 @@ describe('MockUtil', () => {
                             __stubFunction = __stubs_globalAa.__globalStubs.beings_sayhello
                             __stubOrMockResult = __stubFunction()
                             return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("beings_sayhello")
+                            value = __stubs_globalAa.__globalStubs.beings_sayhello
+                            return value
                         end if
                         print "hello2"
                     end function
@@ -391,6 +415,9 @@ describe('MockUtil', () => {
                             __stubFunction = __stubs_globalAa.__globalStubs.sayhello
                             __stubOrMockResult = __stubFunction()
                             return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
+                            value = __stubs_globalAa.__globalStubs.sayhello
+                            return value
                         end if
                         print "hello3"
                     end function

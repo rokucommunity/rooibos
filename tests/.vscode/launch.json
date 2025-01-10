@@ -30,7 +30,7 @@
       "stopDebuggerOnAppExit": true,
       "enableVariablesPanel": false,
       "injectRaleTrackerTask": false,
-      "enableDebugProtocol": false
+      "enableDebugProtocol": true
     },
     {
       "name": "watch tests",
@@ -61,7 +61,7 @@
       "stopDebuggerOnAppExit": true,
       "enableVariablesPanel": false,
       "injectRaleTrackerTask": false,
-      "enableDebugProtocol": false
+      "enableDebugProtocol": true,
     }
   ]
 }

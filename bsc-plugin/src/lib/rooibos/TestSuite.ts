@@ -1,3 +1,4 @@
+import * as path from 'path';
 import type { AstEditor, BrsFile, ClassStatement } from 'brighterscript';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
@@ -62,6 +63,8 @@ export class TestBlock {
     public tearDownFunctionName: string;
     public beforeEachFunctionName: string;
     public afterEachFunctionName: string;
+    public xmlPkgPath: string;
+    public bsPkgPath: string;
 
 }
 
@@ -75,7 +78,9 @@ export class TestSuite extends TestBlock {
             this.annotation.name = classStatement.name.text;
         }
         this.generatedNodeName = (this.name || 'ERROR').replace(/[^a-zA-Z0-9]/g, '_');
-
+        let pathBase = path.join('components', 'rooibos', 'generated');
+        this.xmlPkgPath = path.join(pathBase, this.generatedNodeName + '.xml');
+        this.bsPkgPath = path.join(pathBase, this.generatedNodeName + '.bs');
     }
 
     //state

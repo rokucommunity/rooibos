@@ -38,7 +38,7 @@ namespace rooibos
         ' leading to an instant exit of the application
 
         ' Give the io port time to finish sending all the logs
-        sleep(200)
+        sleep(400)
         end
       end if
     end if

@@ -123,8 +123,7 @@ export class RooibosSession {
             let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
             this.updateRunTimeConfigFunction(classStatement, editor);
             this.updateVersionTextFunction(classStatement, editor);
-            this.updateClassLookupFunction(classStatement, editor);
-            this.updateGetAllTestSuitesNames(classStatement, editor);
+            this.updateClassMapFunction(classStatement, editor);
             this.createIgnoredTestsInfoFunction(classStatement, editor);
         }
     }
@@ -192,50 +191,32 @@ export class RooibosSession {
         }
     }
 
-    updateClassLookupFunction(classStatement: ClassStatement, editor: AstEditor) {
-        let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassWithName');
+    updateClassMapFunction(classStatement: ClassStatement, editor: AstEditor) {
+        let method = classStatement.methods.find((m) => m.name.text === 'getTestSuiteClassMap');
         if (method) {
             editor.arrayPush(method.func.body.statements, ...Parser.parse(undent`
-                if false
-                    ? "noop" ${this.sessionInfo.testSuitesToRun.map(suite => `
-                else if name = "${suite.name}"
-                    return ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('')}
-                end if
+                return {${this.sessionInfo.testSuitesToRun.map(suite => `
+                    "${suite.name}": ${suite.classStatement.getName(ParseMode.BrightScript)}`).join('')}
+                }
             `).ast.statements);
         }
     }
 
-    updateGetAllTestSuitesNames(classStatement: ClassStatement, editor: AstEditor) {
-        let method = classStatement.methods.find((m) => m.name.text === 'getAllTestSuitesNames');
-        if (method) {
-            editor.arrayPush(method.func.body.statements, ...Parser.parse([
-                'return [',
-                ...this.sessionInfo.testSuitesToRun.map((s) => `    "${s.name}"`),
-                ']'
-            ].join('\n')).ast.statements);
-        }
-    }
-
     createNodeFiles(program: Program) {
-
         for (let suite of this.sessionInfo.testSuitesToRun.filter((s) => s.isNodeTest)) {
             this.createNodeFile(program, suite);
         }
     }
 
     createNodeFile(program: Program, suite: TestSuite) {
-        let p = path.join('components', 'rooibos', 'generated');
-
         let xmlText = this.getNodeTestXmlText(suite);
-        let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
-        this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-        let bsFile = program.getFile(bsPath);
+        this.fileFactory.addFile(program, suite.xmlPkgPath, xmlText);
+        let bsFile = program.getFile(suite.bsPkgPath);
         if (bsFile) {
             (bsFile as BrsFile).parser.statements.push();
             bsFile.needsTranspiled = true;
         }
-        let brsFile = this.fileFactory.addFile(program, bsPath, undent`
-            import "pkg:/${suite.file.pkgPath}"
+        let brsFile = this.fileFactory.addFile(program, suite.bsPkgPath, undent`
             function init()
                 nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
                 m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
@@ -244,8 +225,8 @@ export class RooibosSession {
         brsFile.parser.invalidateReferences();
     }
 
-    private getNodeTestXmlText(suite: TestSuite) {
-        return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName);
+    public getNodeTestXmlText(suite: TestSuite) {
+        return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName, suite);
     }
 
     private getNamespaceLookup(scope: Scope): Map<string, NamespaceContainer> {

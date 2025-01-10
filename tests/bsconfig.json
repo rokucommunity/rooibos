@@ -17,7 +17,8 @@
       ]
     },
     1128,
-    1001
+    1001, 
+    1140
   ],
   "plugins": [
     "../bsc-plugin/src/plugin.ts"
@@ -27,7 +28,7 @@
   ],
   "rooibos": {
     "showOnlyFailures": true,
-    "catchCrashes": true,
+    "catchCrashes": false,
     "lineWidth": 70,
     "failFast": false,
     "sendHomeOnFinish": false,
@@ -38,5 +39,6 @@
       "mocha"
     ]
   },
-  "sourceMap": true
+  "sourceMap": true,
+  "retainStagingDir": true
 }

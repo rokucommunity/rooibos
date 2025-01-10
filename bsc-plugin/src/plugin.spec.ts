@@ -17,9 +17,9 @@ describe('RooibosPlugin', () => {
     let plugin: RooibosPlugin;
 
     function setupProgram(options) {
+        fsExtra.emptyDirSync(tmpPath);
         fsExtra.ensureDirSync(_stagingFolderPath);
         fsExtra.ensureDirSync(_rootDir);
-        fsExtra.ensureDirSync(tmpPath);
 
         plugin = new RooibosPlugin();
         builder = new ProgramBuilder();
@@ -1063,6 +1063,9 @@ describe('RooibosPlugin', () => {
                         __stubFunction = __stubs_globalAa.__globalStubs.sayhello
                         __stubOrMockResult = __stubFunction(firstName, lastName)
                         return __stubOrMockResult
+                    else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
+                        value = __stubs_globalAa.__globalStubs.sayhello
+                        return value
                     end if
                     print firstName + " " + lastName
                 end function
@@ -1151,6 +1154,9 @@ describe('RooibosPlugin', () => {
                         __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
                         __stubOrMockResult = __stubFunction(firstName, lastName)
                         return __stubOrMockResult
+                    else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("utils_sayhello")
+                        value = __stubs_globalAa.__globalStubs.utils_sayhello
+                        return value
                     end if
                     print firstName + " " + lastName
                 end function
@@ -1986,6 +1992,37 @@ describe('RooibosPlugin', () => {
         });
     });
 
+    describe('does not prevent component scope validation of node tests', () => {
+        it('does not prevent valid scope based diagnostics for node tests', () => {
+            program.setFile('components/customComponent.xml', `
+                <component name="CustomComponent" extends="Group" />
+            `);
+            program.setFile('source/baseTestClass.spec.bs', `
+                class BaseTestClass extends rooibos.BaseTestSuite
+                    public function customHelperFunction() as boolean
+                        return true
+                    end function
+                end class
+            `);
+            program.setFile('components/test2.spec.bs', `
+                @suite
+                @SGNode("CustomComponent")
+                class ATest2 extends BaseTestClass
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        item = {id: "item"}
+                        m.expectNotCalled(item.getFunction())
+                        m.expectNotCalled(item.getFunction())
+                    end function
+                end class
+            `);
+            program.validate();
+            let files = [...Object.values(program.files)].map(x => ({ src: x.srcPath, dest: x.pkgPath }));
+            expect(program.getDiagnostics().map(x => x.message)).to.eql([`Cannot find name 'BaseTestClass'`]);
+        });
+    });
+
     describe('addTestRunnerMetadata', () => {
         it('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
@@ -2025,8 +2062,7 @@ describe('RooibosPlugin', () => {
             //the methods should be empty by default
             expect(findMethod('getVersionText').func.body.statements).to.be.empty;
             expect(findMethod('getRuntimeConfig').func.body.statements).to.be.empty;
-            expect(findMethod('getTestSuiteClassWithName').func.body.statements).to.be.empty;
-            expect(findMethod('getAllTestSuitesNames').func.body.statements).to.be.empty;
+            expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.empty;
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
 
             await builder.transpile();
@@ -2056,8 +2092,9 @@ describe('RooibosPlugin', () => {
             ).to.eql(undent`
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
-                    instance.new = sub()
-                    end sub
+                    instance.new = function()
+                        m.testSuites = m.getTestSuiteClassMap()
+                    end function
                     instance.getVersionText = function()
                         return "${version}"
                     end function
@@ -2080,20 +2117,17 @@ describe('RooibosPlugin', () => {
                             "isRecordingCodeCoverage": false
                         }
                     end function
+                    instance.getTestSuiteClassMap = function()
+                        return {
+                            "ATest1": ATest1
+                            "ATest2": ATest2
+                        }
+                    end function
                     instance.getTestSuiteClassWithName = function(name)
-                        if false
-                            ? "noop"
-                        else if name = "ATest1"
-                            return ATest1
-                        else if name = "ATest2"
-                            return ATest2
-                        end if
+                        return m.testSuites[name]
                     end function
                     instance.getAllTestSuitesNames = function()
-                        return [
-                            "ATest1"
-                            "ATest2"
-                        ]
+                        return m.testSuites.keys()
                     end function
                     instance.getIgnoredTestInfo = function()
                         return {
@@ -2113,8 +2147,7 @@ describe('RooibosPlugin', () => {
             //the methods should be empty again after transpile has finished
             expect(findMethod('getVersionText').func.body.statements).to.be.empty;
             expect(findMethod('getRuntimeConfig').func.body.statements).to.be.empty;
-            expect(findMethod('getTestSuiteClassWithName').func.body.statements).to.be.empty;
-            expect(findMethod('getAllTestSuitesNames').func.body.statements).to.be.empty;
+            expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.empty;
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
         });
 
@@ -2145,8 +2178,9 @@ describe('RooibosPlugin', () => {
                 let fullExpected = undent`
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}
-                        instance.new = sub()
-                        end sub
+                        instance.new = function()
+                            m.testSuites = m.getTestSuiteClassMap()
+                        end function
                         instance.getVersionText = function()
                             return "${version}"
                         end function
@@ -2169,13 +2203,14 @@ describe('RooibosPlugin', () => {
                                 "isRecordingCodeCoverage": false
                             }
                         end function
+                        instance.getTestSuiteClassMap = function()
+                            return {}
+                        end function
                         instance.getTestSuiteClassWithName = function(name)
-                            if false
-                                ? "noop"
-                            end if
+                            return m.testSuites[name]
                         end function
                         instance.getAllTestSuitesNames = function()
-                            return []
+                            return m.testSuites.keys()
                         end function
                         instance.getIgnoredTestInfo = function()
                             return {
@@ -2334,4 +2369,3 @@ function getTestSubContents() {
     );
     return result;
 }
-

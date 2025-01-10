@@ -22,6 +22,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Incorporate your own util methods](#incorporate-your-own-util-methods)
  - [Hook into your global setup mechanisms](#hook-into-your-global-setup-mechanisms)
  - [Only show output for failed tests](#only-show-output-for-failed-tests)
+ - [Simple Command Line Interface](#command-line-interface)
  - [Easily integrate into any CI system](#easily-integrate-into-any-ci-system)
  - [Generate code coverage](#generate-code-coverage)
 
@@ -34,8 +35,9 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Controlling which tests run](#controlling-which-tests-run)
  - [Integrating with your app setup and util methods](#integrating-with-your-app-and-utils)
  - [Using mocks and stubs](#using-mocks-and-stubs)
- - [API reference](https://georgejecook.github.io/rooibos)
- - [assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html)
+ - [API reference](https://rokucommunity.github.io/rooibos)
+ - [assertion reference](https://rokucommunity.github.io/rooibos/module-BaseTestSuite.html)
+ - [Command Line Interface (CLI)](#command-line-interface)
  - [Integrating with your CI](#integrating-with-your-ci)
  - [Advanced Setup](#advanced-setup)
  - [Code coverage](#generate-code-coverage)
@@ -87,7 +89,7 @@ Roku will perform poorly if roku's rendezvous tracking is enabled, when launchin
 
 ### I do not have a project that uses the brighterscript transpiler
 
-You will need to setup a bsc project to use rooibos 4. Here is an [example project](https://github.com/georgejecook/rooibos-roku-sample) you can clone.
+You will need to setup a bsc project to use rooibos 4. Here is an [example project](https://github.com/rokucommunity/rooibos-roku-sample) you can clone.
 
 The easiest thing to do is to clone that project and
  - copy bsconfig.json
@@ -105,7 +107,7 @@ You can do the setup from scratch as followes:
     "build-tests": "npx bsc"
   }
 ```
-5. Add a bsconfig.json file. The easiest thing to do is copy the file from the [example project](https://github.com/georgejecook/rooibos-roku-sample)
+5. Add a bsconfig.json file. The easiest thing to do is copy the file from the [example project](https://github.com/rokucommunity/rooibos-roku-sample)
 6. Setup a task to run `npm run build-tests`, in `.vscode/tasks.json`
 7. Setup a launch task to run the build-tests task, from the previous step, in `.vscode/launch.json`
 8. Create some tests
@@ -176,7 +178,7 @@ Here is the information converted into a Markdown table:
 | reporters? <sup>2</sup>            | string[]        | An array of factory functions/classes which implement `rooibos.BaseTestReporter`. Built-in reporters include `console` and `junit`. Defaults to `["console"]`.                                     |
 
 **<sup>1</sup>** This parameter is deprecated, use `reporters` instead. When specified, the reporter will be appended to the list of `reporters`.
-**<sup>2</sup>** Custom reporters are not currently supported on [node-based tests](#testing-nodes), because rooibos does not know which files it should include in the generated test components. This will be addressed in a future Rooibos version (see issue [#266](https://github.com/georgejecook/rooibos/issues/266)).
+**<sup>2</sup>** Custom reporters are not currently supported on [node-based tests](#testing-nodes), because rooibos does not know which files it should include in the generated test components. This will be addressed in a future Rooibos version (see issue [#266](https://github.com/rokucommunity/rooibos/issues/266)).
 
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
@@ -549,7 +551,7 @@ If a test case has a `@only` or `@ignore` annotation, the _params_ will execute 
 
 ### Node specific asserts
 <a name="node-specific-assertions"></a>
-Rooibos adds some node specifc asserts, which are fully described in the   [assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html). These are:
+Rooibos adds some node specifc asserts, which are fully described in the   [assertion reference](https://rokucommunity.github.io/rooibos/module-BaseTestSuite.html). These are:
 
  - assertNodeCount
  - assertNodeNotCount
@@ -562,7 +564,7 @@ Rooibos adds some node specifc asserts, which are fully described in the   [asse
 
 
 ### Full list of asserts
-The full list of asserts can be found in the documentation  - [assertion reference](https://georgejecook.github.io/rooibos/module-BaseTestSuite.html)
+The full list of asserts can be found in the documentation  - [assertion reference](https://rokucommunity.github.io/rooibos/module-BaseTestSuite.html)
 
 ## Understanding test output
 Rooibos reports test output in an easy to read hierarchical manner.
@@ -949,14 +951,40 @@ m.expectCalled(videoService.getVideos, someJson, true)
 
 Note, you can also opt to disable the error at the whole test suite level; by setting `m.allowNonExistingMethods = true` in your test suite code.
 
+## Command Line Interface
+<a name="simple-cli"></a>
+Rooibos includes a simple CLI that can be used to run the tests on a Roku Device
+from the command line.
+
+To use the CLI, you call it with references to the `bsconfig.json` file defining your test project, and the host and password of a Roku device that is in developer mode:
+
+```
+npx rooibos --project=<path_to_bsconfig.json> --host=<host> --password=<password>
+```
+
+The test runner CLI will:
+1. build the app as defined in the given `bsconfig.json` file
+2. deploy the app the Roku device specified
+3. send the Roku's console output to `stdout`
+4. exit with status `0` on success, or `1` on failure.
+
 
 ## Integrating with your CI
 <a name="easily-integrate-into-any-ci-system"></a>
-Rooibos does not have special test runners for outputting to files, or uploading to servers. However, that will not stop you integrating with your CI system.
+Rooibos CLI can be used directly in your CI process.
 
-Because the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
+An example make target might look like
 
-Note that rooibos doesn't need any special parameters to run. If you follow the standard setup the tests will run. Simply ensure that your build system includes, or does not include rooibosDist.brs (and better still, _all_ of your tests), depending on whether you wish to run the tests or not.
+```
+continuousIntegration: build
+	echo "Running Rooibos Unit Tests"
+	npx rooibos --project=<test project bsconfig.json> --host=${ROKU_DEV_TARGET} --password=${ROKU_DEV_PASSWORD}
+
+```
+
+Alternately, you can manually deploy the app after it has been built, and check the output. Because the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
+
+Note that Rooibos doesn't need any special parameters to run. If you follow the standard setup the tests will run. Simply ensure that your build system includes, or does not include rooibosDist.brs (and better still, _all_ of your tests), depending on whether you wish to run the tests or not.
 
 An example make target might look like
 
@@ -1014,8 +1042,8 @@ namespace Tests
     @it("HelloFromNode")
     function helloFromNode_simple()
       'bs:disable-next-line
-      text = HelloFromNode("georgejecook", 12)
-      m.assertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      text = HelloFromNode("rokucommunity", 12)
+      m.assertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
     end function
 ...
 ```
@@ -1078,8 +1106,8 @@ namespace tests
     @it("HelloFromNode")
     function _()
       'bs:disable-next-line
-      text = HelloFromNode("georgejecook", 12)
-      m.AssertEqual(text, "HELLO georgejecook" + " age:" + stri(12))
+      text = HelloFromNode("rokucommunity", 12)
+      m.AssertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
       m.done()
     end function
 
@@ -1266,4 +1294,3 @@ The report is contained after the LCOV.INFO file. Given that that the console ou
 e.g.
 
 ![coverage output](images/lcov.png)
-
