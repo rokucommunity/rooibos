@@ -32,7 +32,9 @@ export class TestGroup extends TestBlock {
         if (testCase.isIgnored) {
             this.ignoredTestCases.push(testCase);
             this.hasIgnoredTests = true;
-        } else if (testCase.isSolo) {
+        }
+
+        if (testCase.isSolo) {
             this.hasSoloTests = true;
             this.soloTestCases.push(testCase);
             this.hasAsyncTests = testCase.isAsync;

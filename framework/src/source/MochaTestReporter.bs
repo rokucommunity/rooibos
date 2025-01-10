@@ -9,11 +9,11 @@ namespace rooibos
     private failureCount = 0
 
     override function onSuiteBegin(suite as rooibos.BaseTestSuite)
-      ? suite.name
+      ? colorLines("suite", suite.name)
     end function
 
     override function onTestGroupBegin(group as rooibos.TestGroup)
-      ? tab(2) group.name
+      ? tab(2) colorLines("suite", group.name)
     end function
 
     ' override function onTestBegin(test as rooibos.Test)
@@ -21,11 +21,21 @@ namespace rooibos
     ' end function
 
     override function onTestComplete(test as rooibos.Test)
-      passed = test.result.getStatusText() = "PASS"
-      if passed
+      status = test.result.getStatusText()
+
+      lineColor = "light"
+      symbolColor = ""
+      symbol = "?"
+      if status = "PASS"
         symbol = "✔"
-      else
+        symbolColor = "checkmark"
+      else if status = "FAIL" or status = "CRASH"
         symbol = "✖️"
+        symbolColor = "bright fail"
+      else if status = "SKIP"
+        symbol = "-"
+        symbolColor = "pending"
+        lineColor = "pending"
       end if
 
       params = ""
@@ -45,7 +55,7 @@ namespace rooibos
         params = " " + formatJson(rawParams)
       end if
 
-      ? tab(4) symbol + " " + test.name + params
+      ? tab(4) colorLines(symbolColor, symbol) + " " + colorLines(lineColor, test.name + params)
     end function
 
     ' override function onTestGroupComplete(group as rooibos.TestGroup)
@@ -57,11 +67,25 @@ namespace rooibos
     ' end function
 
     override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
-      print "Rooibos Version:" m.testRunner.runtimeConfig.getVersionText()
+      print "Rooibos Version:" m.testRunner.runtimeConfig.getVersionText() + chr(10)
+
+      print string(1, chr(9)) colorLines("bright pass", `${ev.stats.passedCount} passed`) + colorLines("light", ` (${ev.stats.time}ms)`)
+
+      if ev.stats.crashedCount > 0
+        print colorLines("fail", `${string(1, chr(9))}${ev.stats.crashedCount} crashed`)
+      end if
+
+      if ev.stats.failedCount > 0
+        print colorLines("fail", `${string(1, chr(9))}${ev.stats.failedCount} failing`)
+      end if
+
+      if ev.stats.ignoredCount > 0
+        print colorLines("pending", `${string(1, chr(9))}${ev.stats.ignoredCount} skipped`)
+      end if
+
+      print ""
 
       for each testSuite in m.testRunner.testSuites
-        print "name:" testSuite.name "tests:" testSuite.stats.ranCount "failures:" testSuite.stats.failedCount "skipped:" testSuite.stats.ignoredCount "time:" testSuite.stats.time
-
         for each testGroup in testSuite.groups
           m.logFailures(testGroup)
         end for

@@ -253,6 +253,10 @@ namespace rooibos
 
     function runTest(test as rooibos.Test)
       m.currentResult = test.result
+      if test.isIgnored
+        m.currentResult.skip("Test is ignored")
+        return invalid
+      end if
       m.currentResult.throwOnFailedAssertion = m.throwOnFailedAssertion
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try

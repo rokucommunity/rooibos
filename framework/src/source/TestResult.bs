@@ -3,6 +3,7 @@ namespace rooibos
 
     public isFail = false
     public isCrash = false
+    public isSkipped = false
     public actual = invalid
     public expected = invalid
     public message = ""
@@ -50,6 +51,15 @@ namespace rooibos
       end if
     end function
 
+    function skip(message as string)
+      if message <> "" and not m.isFail
+        if not m.isFail
+          m.isSkipped = true
+          m.message = message
+        end if
+      end if
+    end function
+
     function crash(message as string, error)
       if message <> "" and not m.isCrash
         if not m.isCrash
@@ -84,6 +94,8 @@ namespace rooibos
         return "CRASH"
       else if m.isFail
         return "FAIL"
+      else if m.isSkipped
+        return "SKIP"
       else
         return "PASS"
       end if
