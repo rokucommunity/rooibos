@@ -1,3 +1,8 @@
+#const ROOIBOS_ERROR_LOGS = true
+#const ROOIBOS_INFO_LOGS = true
+#const ROOIBOS_DEBUG_LOGS = false
+#const ROOIBOS_TRACE_LOGS = false
+
 namespace rooibos.common
   ' /**
   '  * @module CommonUtils
@@ -740,7 +745,7 @@ namespace rooibos.common
   '  */
   function eqValues(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
     if callCount > 10
-      ? "REACHED MAX ITERATIONS DOING COMPARISON"
+      rooibos.common.logError("REACHED MAX ITERATIONS DOING COMPARISON")
       return true
     end if
 
@@ -748,7 +753,8 @@ namespace rooibos.common
     val1Type = rooibos.common.getSafeType(Value1)
     val2Type = rooibos.common.getSafeType(Value2)
     if val1Type = invalid or val2Type = invalid
-      ? "ERROR!!!! - undefined value passed"
+      ' TODO: this doesn't actually feel like an error, Need to talk about this.
+      rooibos.common.logError("undefined value passed")
       return false
     end if
 
@@ -793,7 +799,8 @@ namespace rooibos.common
     val1Type = rooibos.common.getSafeType(Value1)
     val2Type = rooibos.common.getSafeType(Value2)
     if val1Type = invalid or val2Type = invalid
-      ? "ERROR!!!! - undefined value passed"
+      ' TODO: this doesn't actually feel like an error, Need to talk about this.
+      rooibos.common.logError("undefined value passed")
       return false
     end if
 
@@ -867,7 +874,7 @@ namespace rooibos.common
   '  */
   function eqArray(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
     if callCount > 30
-      ? "REACHED MAX ITERATIONS DOING COMPARISON"
+      rooibos.common.logError("REACHED MAX ITERATIONS DOING COMPARISON")
       return true
     end if
     if not (rooibos.common.isArray(Value1)) or not rooibos.common.isArray(Value2)
@@ -960,5 +967,28 @@ namespace rooibos.common
     return part
   end function
 
+  sub logError(value)
+    #if ROOIBOS_ERROR_LOGS
+      ? "[Rooibos Error]: " value
+    #end if
+  end sub
+
+  sub logInfo(value)
+    #if ROOIBOS_INFO_LOGS
+      ? "[Rooibos Info]: " value
+    #end if
+  end sub
+
+  sub logDebug(value)
+    #if ROOIBOS_DEBUG_LOGS
+      ? "[Rooibos Debug]: "value
+    #end if
+  end sub
+
+  sub logTrace(value)
+    #if ROOIBOS_TRACE_LOGS
+      ? "[Rooibos Trace]: "value
+    #end if
+  end sub
 
 end namespace

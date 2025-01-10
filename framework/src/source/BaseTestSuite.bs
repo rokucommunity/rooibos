@@ -59,7 +59,7 @@ namespace rooibos
     function new()
       data = m.getTestSuitedata()
       if data = invalid
-        ? "ERROR RETRIEVING TEST SUITE DATA!! this is a rooibos BUG - please report the suite that resulted in a corrupt test. Thanks"
+        rooibos.common.logError("ERROR RETRIEVING TEST SUITE DATA!! this is a rooibos BUG - please report the suite that resulted in a corrupt test. Thanks")
       else
         m.name = data.name
         m.filePath = data.filePath
@@ -110,13 +110,13 @@ namespace rooibos
 
     function run()
       m.notifyReportersOnSuiteBegin()
-      ' ? ">>>>>>>>>>>>"
-      ' ? " RUNNING TEST SUITE"
+      rooibos.common.logTrace(">>>>>>>>>>>>")
+      rooibos.common.logTrace("RUNNING TEST SUITE")
       if m.isAsync = true
-        ' ? " THIS GROUP IS ASYNC"
+        rooibos.common.logTrace("THIS GROUP IS ASYNC")
         m.runAsync()
       else
-        ' ? " THIS GROUP IS SYNC"
+        rooibos.common.logTrace("THIS GROUP IS SYNC")
         m.runSync()
       end if
     end function
@@ -135,7 +135,7 @@ namespace rooibos
         m.stats.merge(group.stats)
 
         if m.stats.hasFailures and m.isFailingFast = true
-          ? "Terminating suite due to failed group"
+          rooibos.common.logDebug("Terminating suite due to failed group")
           exit for
         end if
 
@@ -153,7 +153,7 @@ namespace rooibos
     end function
 
     function runASync()
-      ' ? "running groups async"
+      rooibos.common.logTrace("Running groups async")
 
       m.groups = []
       for each groupData in m.groupsData
@@ -168,12 +168,12 @@ namespace rooibos
     end function
 
     private function runNextAsync()
-      ' ? "Getting next async group"
+      rooibos.common.logTrace("Getting next async group")
       m.currentGroupIndex++
       m.currentGroup = m.groups[m.currentGroupIndex]
       if m.currentGroup = invalid
         m.setTestTimer(0)
-        ' ? " all groups are finished"
+        rooibos.common.logTrace("All groups are finished")
         'finished
         m.finishAsyncGroups()
       else
@@ -182,32 +182,33 @@ namespace rooibos
 
         m.testRunner.top.observeFieldScoped("rooibosGroupFinished", "rooibos_onGroupComplete")
 
-        group.run()
+        completed = group.run()
 
         if group.stats.hasFailures
-          ? "Group failed before any async code could be executed"
+          rooibos.common.logDebug("Group failed before any async code could be executed")
           m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
           ' m.testGroupDone()
           m.onAsyncGroupComplete(group)
+        else if completed
+          m.onAsyncGroupComplete(group)
         end if
-
       end if
     end function
 
     private function onAsyncGroupComplete(group = invalid) as void
-      ' ? "++ CURRENT GROUP COMPLETED"
+      rooibos.common.logTrace("++ CURRENT GROUP COMPLETED")
       m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
 
       group = group = invalid ? m.currentGroup : group
       if group = invalid
-        ? "cannot find test group to mark async finished for?!"
+        rooibos.common.logError("Cannot find test group to mark async finished for?!")
         return
       end if
       'bs:disable-next-line
       m.stats.merge(group.stats)
 
       if m.stats.hasFailures and m.isFailingFast
-        ' ? "Terminating group due to failed test"
+        rooibos.common.logTrace("Terminating group due to failed test")
         m.isTestFailedDueToEarlyExit = true
         m.finishAsyncGroups()
       else
@@ -225,12 +226,12 @@ namespace rooibos
           groups: m.groups
         }
       })
-      ' ? " indicating test suite is done"
+      rooibos.common.logTrace("Indicating test suite is done")
       m.testSuiteDone()
     end function
 
     private function setTestTimer(duration)
-      ' ? " SETTING TIMER FOR " duration
+      rooibos.common.logTrace(`SETTING TIMER FOR ${duration}`)
       if m.testTimer = invalid
         m.testTimer = createObject("roSGNode", "Timer")
       end if
@@ -2129,8 +2130,8 @@ namespace rooibos
       m.__stubId++
 
       if m.__stubId > 25
-        ? "ERROR ONLY 25 MOCKS PER TEST ARE SUPPORTED!! you're on # " ; m.__mockId
-        ? " Method was " ; methodName
+        rooibos.common.logError(`ERROR ONLY 25 MOCKS PER TEST ARE SUPPORTED!! you're on # ${m.__mockId}`)
+        rooibos.common.logError("Method was " + methodName)
         return invalid
       end if
 
@@ -2149,10 +2150,10 @@ namespace rooibos
 
           ' FIXME: add a log setting for this - and add better detection so that stubs know that they are colliding/don't exist/have correct sigs
           ' if not isMethodPresent
-          '   ? "WARNING - stubbing call " ; methodName; " which did not exist on target object"
+          '   rooibos.common.Error("WARNING - stubbing call " + methodName + " which did not exist on target object")
           ' end if
         else
-          ? "ERROR - could not create Stub : method not found  "; target ; "." ; methodName
+          rooibos.common.logTrace("Could not create Stub : method not found  " + rooibos.common.asString(target) + "." + methodName)
         end if
       end if
 
@@ -2379,7 +2380,7 @@ namespace rooibos
       end if
 
       if m.currentResult.isFail
-        ? "ERROR! Cannot create MOCK. method " ; methodName ;" " str(lineNumber) ; " "; m.currentResult.message
+        rooibos.common.logError(`Cannot create MOCK. method ${methodName} ${lineNumber} ${m.currentResult.message}`)
         return {}
       end if
 
@@ -2414,8 +2415,8 @@ namespace rooibos
         m.__mockId++
         id = stri(m.__mockId).trim()
         if m.__mockId > 25
-          ? "ERROR ONLY 25 MOCKS PER TEST ARE SUPPORTED!! you're on # " ; m.__mockId
-          ? " Method was " ; methodName
+          rooibos.common.logError(`ERROR ONLY 25 MOCKS PER TEST ARE SUPPORTED!! you're on # ${m.__mockId}`)
+          rooibos.common.logError("Method was " + methodName)
           return invalid
         end if
 
@@ -2431,10 +2432,10 @@ namespace rooibos
             target.__mocks = m.mocks
 
             if not isMethodPresent
-              ' ? "WARNING - mocking call " ; methodName; " which did not exist on target object"
+              rooibos.common.logError("WARNING - mocking call " + methodName + " which did not exist on target object")
             end if
           else
-            ? "ERROR - could not create Mock : method not found  "; target ; "." ; methodName
+            rooibos.common.logError(`Could not create Mock : method not found ${target}.${methodName}`)
           end if
         end if
       else
@@ -2477,7 +2478,7 @@ namespace rooibos
           if not rooibos.common.isUndefined(value)
             if rooibos.common.isAssociativeArray(value) and rooibos.common.isValid(value.matcher)
               if not rooibos.common.isFunction(value.matcher)
-                ? "[ERROR] you have specified a matching function; but it is not in scope!"
+                rooibos.common.logError("You have specified a matching function; but it is not in scope!")
                 expectedArgsValues.push("#ERR-OUT_OF_SCOPE_MATCHER!")
               else
                 expectedArgsValues.push(expectedArgs[i])
@@ -2506,7 +2507,7 @@ namespace rooibos
         expectedArgs: expectedArgsValues,
         expectedInvocations: expectedInvocations,
         callback: function(arg1 = invalid, arg2 = invalid, arg3 = invalid, arg4 = invalid, arg5 = invalid, arg6 = invalid, arg7 = invalid, arg8 = invalid, arg9 = invalid, arg10 = invalid, arg11 = invalid, arg12 = invalid, arg13 = invalid, arg14 = invalid, arg15 = invalid) as dynamic
-          ' ? "FAKE CALLBACK CALLED FOR " ; m.methodName
+          rooibos.common.logTrace(`FAKE CALLBACK CALLED FOR ${m.methodName}`)
           'bs:disable-next-line
           if m.allInvokedArgs = invalid
             'bs:disable-next-line
@@ -2536,11 +2537,11 @@ namespace rooibos
               'bs:disable-next-line
               if returnValues.count() <= m.invocations
                 returnIndex = returnValues.count() - 1
-                print "Multi return values all used up - repeating last value"
+                rooibos.common.logDebug("Multi return values all used up - repeating last value")
               end if
               return returnValues[returnIndex]
             else
-              ? "Multi return value was specified; but no array of results were found"
+              rooibos.common.logError("Multi return value was specified; but no array of results were found")
               return invalid
             end if
           else
@@ -3044,7 +3045,7 @@ namespace rooibos
         if attempts = maxAttempts
           return false
         end if
-        ? "waiting for signal field '" ; fieldName "' - " ; attempts
+        rooibos.common.logDebug(`Waiting for signal field '${fieldName}' - ${attempts}`)
       end while
 
       return true
@@ -3056,28 +3057,28 @@ namespace rooibos
     end function
 
     function setAsync(isAsync as boolean)
-      ? "Setting current test to async " isAsync
+      rooibos.common.logTrace(`Setting current test to async ${isAsync}`)
       m.top.rooibosTestIsAsync = isAsync
     end function
 
     function done()
-      ' ? "Async test is complete"
+      rooibos.common.logTrace("Async test is complete")
       if m.isDoneCalled = false
         m.isDoneCalled = true
         m.top.rooibosTestFinished = true
       else
-        ? "WARNING - extra done call after test is done ! Did you properly clean up your observers?"
+        rooibos.common.logError("WARNING - extra done call after test is done ! Did you properly clean up your observers?")
       end if
     end function
 
     function testSuiteDone()
-      ' ? "Async suite is complete"
+      rooibos.common.logTrace("Async suite is complete")
       m.notifyReportersOnSuiteComplete()
       m.top.rooibosSuiteFinished = true
     end function
 
     function testGroupDone()
-      ? "Async group is complete"
+      rooibos.common.logTrace("Async group is complete")
       m.top.rooibosGroupFinished = true
     end function
 
@@ -3146,12 +3147,12 @@ namespace rooibos
 
 
   function onGroupComplete()
-    ' ? "++++++++ THE GROUP COMPLETED"
+    rooibos.common.logTrace("++++++++ THE GROUP COMPLETED")
     m.testRunner.currentTestSuite.onAsyncGroupComplete()
   end function
 
   function onTestTimer()
-    ' ? "++++++++ TEST TIMED OUT"
+    rooibos.common.logTrace("++++++++ TEST TIMED OUT")
     m.testRunner.currentTestSuite.failBecauseOfTimeOut()
   end function
 

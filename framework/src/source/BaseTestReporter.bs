@@ -17,7 +17,7 @@ namespace rooibos
 
     function onBegin(ev as dynamic)
       'override me
-      ? "BaseTestReporter.onBegin"
+      rooibos.common.logDebug("BaseTestReporter.onBegin")
     end function
 
     function onSuiteBegin(suite as rooibos.BaseTestSuite)
@@ -46,7 +46,7 @@ namespace rooibos
 
     function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       'override me
-      ? "BaseTestReporter.onEnd"
+      rooibos.common.logDebug("BaseTestReporter.onEnd")
     end function
 
   end class

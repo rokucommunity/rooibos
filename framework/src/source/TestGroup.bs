@@ -59,17 +59,19 @@ namespace rooibos
     private currentTestIndex = 0
     'TODO CONVERT THIS TO ASYNC
     function run()
-      ' ? ">>>>>>>>>>>>"
-      ' ? " RUNNING TEST GROUP"
+      rooibos.common.logTrace(">>>>>>>>>>>>")
+      rooibos.common.logTrace("RUNNING TEST GROUP")
       m.testRunner = m.testSuite.testRunner
       m.notifyReportersOnTestGroupBegin()
       m.testSuite.setTestTimer(0)
       if m.testSuite.isAsync = true
-        ' ? " THIS GROUP IS ASYNC"
+        rooibos.common.logTrace("THIS GROUP IS ASYNC")
         m.runAsync()
+        return false
       else
-        ' ? " THIS GROUP IS SYNC"
+        rooibos.common.logTrace("THIS GROUP IS SYNC")
         m.runSync()
+        return true
       end if
     end function
 
@@ -102,12 +104,12 @@ namespace rooibos
           m.stats.appendTestResult(test.result)
 
           if m.stats.hasFailures and m.testSuite.isFailingFast
-            ? "Terminating group due to failed test"
+            rooibos.common.logTrace("Terminating group due to failed test")
             exit for
           end if
         end for
       else
-        ? "ERROR running test setup function"
+        rooibos.common.logError("ERROR running test setup function")
       end if
       m.notifyReportersOnTestGroupComplete()
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
@@ -127,19 +129,19 @@ namespace rooibos
         m.currentTestIndex = -1
         m.runNextAsync()
       else
-        ? "ERROR running test setup function"
+        rooibos.common.logError("ERROR running test setup function")
         m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
       end if
     end function
 
     private function runNextAsync()
-      ' ? "Getting next async test"
+      rooibos.common.logTrace("Getting next async test")
       m.currentTestIndex++
       m.currentTest = m.tests[m.currentTestIndex]
       m.testSuite.isDoneCalled = false
       m.testTimer.mark()
       if m.currentTest = invalid
-        ' ? " all tests are finished"
+        rooibos.common.logTrace("All tests are finished")
         'finished
         m.finishAsyncTests()
       else
@@ -157,7 +159,7 @@ namespace rooibos
         if isOk
           'TODO - set a timeout here
           if test.isAsync <> true
-            ? "Executing test synchronously"
+            rooibos.common.logDebug("Executing test synchronously")
             m.notifyReportersOnTestBegin(test)
             m.testSuite.runTest(test)
             m.testRunner.top.rooibosTestFinished = true
@@ -171,7 +173,7 @@ namespace rooibos
             m.testSuite.runTest(test)
 
             if test.result.isFail
-              ? "Test failed before any async code could be executed"
+              rooibos.common.logTrace("Test failed before any async code could be executed")
               m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
               m.testRunner.top.rooibosTestFinished = true
               m.onAsyncTestComplete()
@@ -179,7 +181,7 @@ namespace rooibos
           end if
 
         else
-          ? "Error running test before each function"
+          rooibos.common.logTrace("Error running test before each function")
           m.isTestFailedDueToEarlyExit = true
           m.finishAsyncTests()
         end if
@@ -187,7 +189,7 @@ namespace rooibos
     end function
 
     private function onAsyncTestComplete()
-      ' ? "++ CURRENT TEST COMPLETED"
+      rooibos.common.logTrace("++ CURRENT TEST COMPLETED")
       m.notifyReportersOnTestComplete(m.currentTest)
       m.runSuiteFunction(m.afterEachFunctionName, "afterEach", m.currentTest)
 
@@ -197,7 +199,7 @@ namespace rooibos
       m.stats.appendTestResult(m.currentTest.result)
 
       if m.stats.hasFailures and m.testSuite.isFailingFast
-        ? "Terminating group due to failed test"
+        rooibos.common.logTrace("Terminating group due to failed test")
         m.isTestFailedDueToEarlyExit = true
         m.finishAsyncTests()
       else
@@ -210,7 +212,7 @@ namespace rooibos
       m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
       m.testSuite.setTestTimer(0)
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
-      ' ? " indicating test suite is done"
+      rooibos.common.logTrace("Indicating test suite is done")
       ' m.testRunner.top.addFields({ asyncRooibosTestResult: {
       '     stats: m.stats
       '     tests: m.tests
@@ -278,7 +280,7 @@ namespace rooibos
   end class
 
   function onTestComplete()
-    ' ? "++++++++ THE TEST COMPLETED"
+    rooibos.common.logTrace("++++++++ THE TEST COMPLETED")
     m.testRunner.currentGroup.onAsyncTestComplete()
   end function
 end namespace

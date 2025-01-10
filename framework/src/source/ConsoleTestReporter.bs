@@ -53,13 +53,14 @@ namespace rooibos
       m.allStats = ev.stats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
-        if testSuite.isIgnored then return invalid
-        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
-          m.printSuiteStart(testSuite)
+        if not testSuite.isIgnored
+          if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
+            m.printSuiteStart(testSuite)
 
-          for each testGroup in testSuite.groups
-            m.printGroup(testGroup)
-          end for
+            for each testGroup in testSuite.groups
+              m.printGroup(testGroup)
+            end for
+          end if
         end if
       end for
 
@@ -100,14 +101,15 @@ namespace rooibos
       isGroupPrinted = false
 
       for each test in testGroup.tests
-        if test.result.isSkipped then return invalid
-        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
-          if not isGroupPrinted
-            m.printGroupStart(testGroup)
-            isGroupPrinted = true
-          end if
+        if not test.result.isSkipped
+          if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
+            if not isGroupPrinted
+              m.printGroupStart(testGroup)
+              isGroupPrinted = true
+            end if
 
-          m.printTest(test)
+            m.printTest(test)
+          end if
         end if
       end for
 
