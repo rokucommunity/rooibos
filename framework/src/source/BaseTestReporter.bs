@@ -17,10 +17,36 @@ namespace rooibos
 
     function onBegin(ev as dynamic)
       'override me
+      ? "BaseTestReporter.onBegin"
+    end function
+
+    function onSuiteBegin(suite as rooibos.BaseTestSuite)
+      'override me
+    end function
+
+    function onTestGroupBegin(group as rooibos.TestGroup)
+      'override me
+    end function
+
+    function onTestBegin(test as rooibos.Test)
+      'override me
+    end function
+
+    function onTestComplete(test as rooibos.Test)
+      'override me
+    end function
+
+    function onTestGroupComplete(group as rooibos.TestGroup)
+      'override me
+    end function
+
+    function onSuiteComplete(suite as rooibos.BaseTestSuite)
+      'override me
     end function
 
     function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       'override me
+      ? "BaseTestReporter.onEnd"
     end function
 
   end class
