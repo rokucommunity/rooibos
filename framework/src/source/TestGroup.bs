@@ -81,6 +81,14 @@ namespace rooibos
           test = new rooibos.Test(m, testData)
           m.tests.push(test)
 
+          if test.isIgnored
+            m.notifyReportersOnTestBegin(test)
+            m.testSuite.runTest(test)
+            m.notifyReportersOnTestComplete(test)
+            m.stats.appendTestResult(test.result)
+            continue for
+          end if
+
           isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", test)
 
           if isOk
@@ -135,11 +143,19 @@ namespace rooibos
         'finished
         m.finishAsyncTests()
       else
+        test = m.currentTest
+        if test.isIgnored
+          m.notifyReportersOnTestBegin(test)
+          m.testSuite.runTest(test)
+          m.testRunner.top.rooibosTestFinished = true
+          m.onAsyncTestComplete()
+          return invalid
+        end if
+
         m.testRunner.top.rooibosTestFinished = false
         isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
         if isOk
           'TODO - set a timeout here
-          test = m.currentTest
           if test.isAsync <> true
             ? "Executing test synchronously"
             m.notifyReportersOnTestBegin(test)
