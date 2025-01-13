@@ -21,6 +21,10 @@ export class RawCodeStatement extends Statement {
         super();
     }
 
+    public clone() {
+        return new RawCodeStatement(this.source, this.sourceFile, this.range);
+    }
+
     public transpile(state: BrsTranspileState) {
         //indent every line with the current transpile indent level (except the first line, because that's pre-indented by bsc)
         let source = this.source.replace(/\r?\n/g, (match, newline) => {
