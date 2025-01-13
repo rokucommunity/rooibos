@@ -72,7 +72,6 @@ namespace rooibos
     ' end function
 
     override sub onEnd(event as rooibos.TestReporterOnEndEvent)
-      print "Rooibos Version:" m.testRunner.runtimeConfig.getVersionText() + chr(10)
       stats = event.stats
 
       print string(1, chr(9)) m.colorLines("bright pass", `${stats.passedCount} passed`) + m.colorLines("light", ` (${stats.time}ms)`)
@@ -96,15 +95,6 @@ namespace rooibos
           m.logFailures(testGroup)
         end for
       end for
-
-      'bs:disable-next-line
-      ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
-      if ignoredInfo.count > 0
-        print "Ignored tests:" ignoredInfo.count
-        for each ignoredItemName in ignoredInfo.items
-          print "name:" ignoredItemName
-        end for
-      end if
     end sub
 
     sub logFailures(testGroup)
