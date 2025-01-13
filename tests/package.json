@@ -8,10 +8,10 @@
     "test": "source ./.vscode/.env && npx rooibos --project=bsconfig.json --host=$ROKU_DEV_TARGET --password=$ROKU_DEVPASSWORD"
   },
   "devDependencies": {
-    "brighterscript": "^0.67.4",
+    "brighterscript": "^0.68.3",
+    "rooibos-roku": "../bsc-plugin",
     "ts-node": "^10.7.0",
-    "typescript": "^4.6.4",
-    "rooibos-roku": "../bsc-plugin"
+    "typescript": "^4.6.4"
   },
   "repository": {
     "type": "git",
