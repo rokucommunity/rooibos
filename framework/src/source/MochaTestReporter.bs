@@ -9,11 +9,11 @@ namespace rooibos
     private failureCount = 0
 
     override function onSuiteBegin(suite as rooibos.BaseTestSuite)
-      ? colorLines("suite", suite.name)
+      ? m.colorLines("suite", suite.name)
     end function
 
     override function onTestGroupBegin(group as rooibos.TestGroup)
-      ? tab(2) colorLines("suite", group.name)
+      ? tab(2) m.colorLines("suite", group.name)
     end function
 
     ' override function onTestBegin(test as rooibos.Test)
@@ -55,7 +55,7 @@ namespace rooibos
         params = " " + formatJson(rawParams)
       end if
 
-      ? tab(4) colorLines(symbolColor, symbol) + " " + colorLines(lineColor, test.name + params)
+      ? tab(4) m.colorLines(symbolColor, symbol) + " " + m.colorLines(lineColor, test.name + params)
     end function
 
     ' override function onTestGroupComplete(group as rooibos.TestGroup)
@@ -69,18 +69,18 @@ namespace rooibos
     override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       print "Rooibos Version:" m.testRunner.runtimeConfig.getVersionText() + chr(10)
 
-      print string(1, chr(9)) colorLines("bright pass", `${ev.stats.passedCount} passed`) + colorLines("light", ` (${ev.stats.time}ms)`)
+      print string(1, chr(9)) m.colorLines("bright pass", `${ev.stats.passedCount} passed`) + m.colorLines("light", ` (${ev.stats.time}ms)`)
 
       if ev.stats.crashedCount > 0
-        print colorLines("fail", `${string(1, chr(9))}${ev.stats.crashedCount} crashed`)
+        print m.colorLines("fail", `${string(1, chr(9))}${ev.stats.crashedCount} crashed`)
       end if
 
       if ev.stats.failedCount > 0
-        print colorLines("fail", `${string(1, chr(9))}${ev.stats.failedCount} failing`)
+        print m.colorLines("fail", `${string(1, chr(9))}${ev.stats.failedCount} failing`)
       end if
 
       if ev.stats.ignoredCount > 0
-        print colorLines("pending", `${string(1, chr(9))}${ev.stats.ignoredCount} skipped`)
+        print m.colorLines("pending", `${string(1, chr(9))}${ev.stats.ignoredCount} skipped`)
       end if
 
       print ""
@@ -116,7 +116,7 @@ namespace rooibos
             resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
 
             if test.result.actual <> "" or test.result.expected <> ""
-              resultMessage += unifiedDiff(test.result.actual, test.result.expected)
+              resultMessage += m.unifiedDiff(test.result.actual, test.result.expected)
             end if
 
             resultMessage += chr(10)
@@ -151,89 +151,86 @@ namespace rooibos
       return output
     end function
 
+    function unifiedDiff(actual, expected)
+      cleanUp = function(line, m)
+          indent = "      "
+          if line.left(1) = "+"
+              return indent + m.colorLines("diff added", line)
+          end if
+          if line.left(1) = "-"
+              return indent + m.colorLines("diff removed", line)
+          end if
+          if CreateObject("roRegex", "@@","").isMatch(line)
+              return "--"
+          end if
+          if CreateObject("roRegex", "\\ No newline", "").isMatch(line)
+              return invalid
+          end if
+          return indent + line
+      end function
+
+      msg = createPatch("string", actual, expected)
+      lines = msg.split(chr(10)).slice(5)
+
+      final = chr(10) + "      " + m.colorLines("diff added", "+ expected") + " " + m.colorLines("diff removed", "- actual")
+      final += chr(10) + chr(10)
+
+      cleanLines = []
+      for i = 0 to lines.count() - 1
+        cleaned = cleanUp(lines[i], m)
+        if cleaned <> invalid
+          cleanLines.push(cleaned)
+        end if
+      end for
+
+      return final + cleanLines.join(chr(10))
+    end function
+
+    function colorLines(name, targetString)
+      lines = targetString.split(chr(10))
+
+      for i = 0 to lines.count() - 1
+        lines[i] = m.colors(name, lines[i])
+      end for
+
+      return lines.join(chr(10))
+    end function
+
+    function colors(colorType, targetString)
+      colors = {
+          pass: 90,
+          fail: 31,
+          "bright pass": 92,
+          "bright fail": 91,
+          "bright yellow": 93,
+          pending: 36,
+          suite: 0,
+          "error title": 0,
+          "error message": 31,
+          "error stack": 90,
+          checkmark: 32,
+          fast: 90,
+          medium: 33,
+          slow: 31,
+          green: 32,
+          light: 90,
+          "diff gutter": 90,
+          "diff added": 32,
+          "diff removed": 31,
+          "diff added inline": "30;42",
+          "diff removed inline": "30;41"
+      }
+
+      if m.colorizeOutput
+        return chr(27) + "[" + colors[colorType].toStr() + "m" + targetString + chr(27) + "[0m"
+        ' return "\u001b[" + colors[colorType].toStr() + "m" + targetString + "\u001b[0m"
+      else
+          return targetString
+      end if
+    end function
   end class
+
 end namespace
-
-function unifiedDiff(actual, expected)
-  cleanUp = function(line)
-      indent = "      "
-      if line.left(1) = "+"
-          return indent + colorLines("diff added", line)
-      end if
-      if line.left(1) = "-"
-          return indent + colorLines("diff removed", line)
-      end if
-      if CreateObject("roRegex", "@@","").isMatch(line)
-          return "--"
-      end if
-      if CreateObject("roRegex", "\\ No newline", "").isMatch(line)
-          return invalid
-      end if
-      return indent + line
-  end function
-
-  notBlank = function(line)
-      return line <> invalid
-  end function
-
-  msg = createPatch("string", actual, expected)
-  lines = msg.split(chr(10)).slice(5)
-
-  final = chr(10) + "      " + colorLines("diff added", "+ expected") + " " + colorLines("diff removed", "- actual")
-  final += chr(10) + chr(10)
-
-  cleanLines = []
-  for i = 0 to lines.count() - 1
-    cleaned = cleanUp(lines[i])
-    if cleaned <> invalid
-      cleanLines.push(cleaned)
-    end if
-  end for
-
-  return final + cleanLines.join(chr(10))
-end function
-
-function colorLines(name, targetString)
-  lines = targetString.split(chr(10))
-
-  for i = 0 to lines.count() - 1
-    lines[i] = color(name, lines[i])
-  end for
-
-  return lines.join(chr(10))
-end function
-
-function color(colorType, targetString)
-  colors = {
-      pass: 90,
-      fail: 31,
-      "bright pass": 92,
-      "bright fail": 91,
-      "bright yellow": 93,
-      pending: 36,
-      suite: 0,
-      "error title": 0,
-      "error message": 31,
-      "error stack": 90,
-      checkmark: 32,
-      fast: 90,
-      medium: 33,
-      slow: 31,
-      green: 32,
-      light: 90,
-      "diff gutter": 90,
-      "diff added": 32,
-      "diff removed": 31,
-      "diff added inline": "30;42",
-      "diff removed inline": "30;41"
-  }
-
-  ' if !exports.useColors then
-  '     return String(targetString)
-  ' end if
-  return chr(27) + "[" + colors[colorType].toStr() + "m" + targetString + chr(27) + "[0m"
-  ' return "\u001b[" + colors[colorType].toStr() + "m" + targetString + "\u001b[0m"
-end function
 
 function createPatch(fileName, oldStr, newStr)
   result = structuredPatch(fileName, fileName, oldStr, newStr, invalid, invalid, {

@@ -146,6 +146,7 @@ export class RooibosSession {
                         "printLcov": ${this.config.printLcov ? 'true' : 'false'}
                         "port": "${this.config.port || 'invalid'}"
                         "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
+                        "colorizeOutput": ${this.config.colorizeOutput ? 'true' : 'false'}
                         "throwOnFailedAssertion": ${this.config.throwOnFailedAssertion ? 'true' : 'false'}
                         "keepAppOpen": ${this.config.keepAppOpen === undefined || this.config.keepAppOpen ? 'true' : 'false'}
                         "isRecordingCodeCoverage": ${this.config.isRecordingCodeCoverage ? 'true' : 'false'}

@@ -50,6 +50,9 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.catchCrashes === undefined) {
             config.catchCrashes = true;
         }
+        if (config.colorizeOutput === undefined) {
+            config.colorizeOutput = false;
+        }
         if (config.throwOnFailedAssertion === undefined) {
             config.throwOnFailedAssertion = false;
         }

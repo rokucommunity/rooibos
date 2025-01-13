@@ -2126,6 +2126,7 @@ describe('RooibosPlugin', () => {
                             "printLcov": false
                             "port": "invalid"
                             "catchCrashes": true
+                            "colorizeOutput": false
                             "throwOnFailedAssertion": false
                             "keepAppOpen": true
                             "isRecordingCodeCoverage": false
@@ -2212,6 +2213,7 @@ describe('RooibosPlugin', () => {
                                 "printLcov": false
                                 "port": "invalid"
                                 "catchCrashes": true
+                                "colorizeOutput": false
                                 "throwOnFailedAssertion": false
                                 "keepAppOpen": true
                                 "isRecordingCodeCoverage": false
@@ -2268,6 +2270,7 @@ describe('RooibosPlugin', () => {
                 'rooibos': {
                     'showOnlyFailures': true,
                     'catchCrashes': true,
+                    'colorizeOutput': false,
                     'throwOnFailedAssertion': false,
                     'lineWidth': 70,
                     'failFast': false,

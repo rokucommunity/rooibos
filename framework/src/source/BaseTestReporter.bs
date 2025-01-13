@@ -8,11 +8,13 @@ namespace rooibos
     public testRunner = invalid
     public config = invalid
     public allStats = invalid
+    public colorizeOutput = false
 
     function new(runner as dynamic)
       m.testRunner = runner
       m.config = runner.config
       m.allStats = runner.stats
+      m.colorizeOutput = runner.config.colorizeOutput = true
     end function
 
     function onBegin(ev as dynamic)

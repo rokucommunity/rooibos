@@ -29,6 +29,7 @@
   "rooibos": {
     "showOnlyFailures": true,
     "catchCrashes": true,
+    "colorizeOutput": true,
     "lineWidth": 70,
     "failFast": false,
     "sendHomeOnFinish": false,
