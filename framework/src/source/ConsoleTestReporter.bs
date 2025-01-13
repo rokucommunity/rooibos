@@ -13,44 +13,44 @@ namespace rooibos
       end if
     end function
 
-    override function onSuiteBegin(suite as rooibos.BaseTestSuite)
-      if suite.isIgnored then return invalid
+    override function onSuiteBegin(event as rooibos.TestReporterOnSuiteBeginEvent)
+      if event.suite.isIgnored then return invalid
       ? ""
-      ? rooibos.common.fillText("> SUITE: " + suite.name, ">", 80)
+      ? rooibos.common.fillText("> SUITE: " + event.suite.name, ">", 80)
     end function
 
-    override function onTestGroupBegin(group as rooibos.TestGroup)
-      if group.isIgnored then return invalid
+    override function onTestGroupBegin(event as rooibos.TestReporterOnTestGroupBeginEvent)
+      if event.group.isIgnored then return invalid
       ? ""
-      ? rooibos.common.fillText(">>>> Describe: " + group.name, ">", 80)
+      ? rooibos.common.fillText(">>>> Describe: " + event.group.name, ">", 80)
       'bs:disable-next-line
-      ? `  Location: file://${group.testSuite.filePath.trim()}:${group.lineNumber}`
+      ? `  Location: file://${event.group.testSuite.filePath.trim()}:${event.group.lineNumber}`
       ? ""
     end function
 
-    override function onTestBegin(test as rooibos.Test)
-    if test.isIgnored then return invalid
+    override function onTestBegin(event as rooibos.TestReporterOnTestBeginEvent)
+    if event.test.isIgnored then return invalid
       ? ""
-      ? rooibos.common.fillText(">>>>>> It: " + test.name, ">", 80)
-      ? `  Location: file://${test.testSuite.filePath.trim()}:${test.lineNumber}`
+      ? rooibos.common.fillText(">>>>>> It: " + event.test.name, ">", 80)
+      ? `  Location: file://${event.test.testSuite.filePath.trim()}:${event.test.lineNumber}`
       ? ""
     end function
 
-    override function onTestComplete(test as rooibos.Test)
-      if test.isIgnored then return invalid
-      ? rooibos.common.fillText("<<<< END It: " + test.name + " (" + test.result.getStatusText() + ") ", "<", 80)
+    override function onTestComplete(event as rooibos.TestReporterOnTestCompleteEvent)
+      if event.test.isIgnored then return invalid
+      ? rooibos.common.fillText("<<<< END It: " + event.test.name + " (" + event.test.result.getStatusText() + ") ", "<", 80)
     end function
 
-    ' override function onTestGroupComplete(group as rooibos.TestGroup)
+    ' override function onTestGroupComplete(event as rooibos.TestReporterOnTestGroupCompleteEvent)
     '   'override me
     ' end function
 
-    ' override function onSuiteComplete(suite as rooibos.BaseTestSuite)
+    ' override function onSuiteComplete(event as rooibos.TestReporterOnSuiteCompleteEvent)
     '   'override me
     ' end function
 
-    override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
-      m.allStats = ev.stats
+    override function onEnd(event as rooibos.TestReporterOnEndEvent)
+      m.allStats = event.stats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
         if not testSuite.isIgnored

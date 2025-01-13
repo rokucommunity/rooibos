@@ -3130,7 +3130,7 @@ namespace rooibos
     private sub notifyReportersOnSuiteBegin()
       for each reporter in m.testReporters
         if rooibos.common.isFunction(reporter.onSuiteBegin)
-          reporter.onSuiteBegin(m)
+          reporter.onSuiteBegin({ suite: m })
         end if
       end for
     end sub
@@ -3138,7 +3138,7 @@ namespace rooibos
     private sub notifyReportersOnSuiteComplete()
       for each reporter in m.testReporters
         if rooibos.common.isFunction(reporter.onSuiteComplete)
-          reporter.onSuiteComplete(m)
+          reporter.onSuiteComplete({ suite: m })
         end if
       end for
     end sub

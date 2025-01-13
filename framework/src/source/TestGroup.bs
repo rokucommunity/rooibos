@@ -249,7 +249,7 @@ namespace rooibos
     private sub notifyReportersOnTestGroupBegin()
       for each reporter in m.testSuite.testReporters
         if rooibos.common.isFunction(reporter.onTestGroupBegin)
-          reporter.onTestGroupBegin(m)
+          reporter.onTestGroupBegin({ group: m })
         end if
       end for
     end sub
@@ -257,7 +257,7 @@ namespace rooibos
     private sub notifyReportersOnTestBegin(test as rooibos.Test)
       for each reporter in m.testSuite.testReporters
         if rooibos.common.isFunction(reporter.onTestBegin)
-          reporter.onTestBegin(test)
+          reporter.onTestBegin({ test: test })
         end if
       end for
     end sub
@@ -265,7 +265,7 @@ namespace rooibos
     private sub notifyReportersOnTestComplete(test as rooibos.Test)
       for each reporter in m.testSuite.testReporters
         if rooibos.common.isFunction(reporter.onTestComplete)
-          reporter.onTestComplete(test)
+          reporter.onTestComplete({ test: test })
         end if
       end for
     end sub
@@ -273,7 +273,7 @@ namespace rooibos
     private sub notifyReportersOnTestGroupComplete()
       for each reporter in m.testSuite.testReporters
         if rooibos.common.isFunction(reporter.onTestGroupComplete)
-          reporter.onTestGroupComplete(m)
+          reporter.onTestGroupComplete({ group: m })
         end if
       end for
     end sub

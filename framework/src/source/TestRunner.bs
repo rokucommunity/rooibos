@@ -47,7 +47,7 @@ namespace rooibos
 
       for each reporter in m.testReporters
         if rooibos.common.isFunction(reporter.onBegin)
-          reporter.onBegin({})
+          reporter.onBegin({ runner: m })
         end if
       end for
 
