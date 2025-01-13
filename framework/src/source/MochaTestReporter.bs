@@ -114,19 +114,17 @@ namespace rooibos
             end if
 
             resultMessage += chr(10)
-
-            if test.isParamTest
-              resultMessage += `${string(1, chr(9))}params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber + 1)})\n`
-              resultMessage += `${string(1, chr(9))}assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
-            else
-              resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
-            end if
-
-            print resultMessage
           else
             resultMessage += `${string(1, chr(9))}Error: ${m.getStackTrace(test.result.error)}`
-            print resultMessage
           end if
+
+          if test.isParamTest
+            resultMessage += `${string(1, chr(9))}params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber + 1)})\n`
+            resultMessage += `${string(1, chr(9))}assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+          else
+            resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+          end if
+          print resultMessage
         end if
 
       end for
@@ -138,10 +136,10 @@ namespace rooibos
       for i = error.backTrace.count() - 1 to 0 step -1
         e = error.backTrace[i]
         ' if e.filename.instr("pkg:/source/rooibos") = -1
-        output += `${string(1, chr(9))}at ${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})\n`
+        output += `${string(2, chr(9))}${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})\n`
         ' end if
       end for
-
+      output += chr(10)
       return output
     end function
 
