@@ -478,16 +478,6 @@ namespace rooibos
               end for
 
               value = newValue
-
-              ' value = arrayMap(value, function(value, i)
-              '   oldValue = oldString[oldPos + i]
-              '   if len(oldValue) > len(value)
-              '     return oldValue
-              '   else
-              '     return value
-              '   end if
-              ' end function)
-
               component.value = diff.join(value)
             else
               component.value = diff.join(newString.slice(newPos, newPos + component.count))
@@ -512,7 +502,6 @@ namespace rooibos
           ' bs:disable-next-line
           diff: function(oldString, newString, options = {})
             Infinity = 2147483647
-            self = m
 
             oldString = m.removeEmpty(m.tokenize(oldString, options))
             newString = m.removeEmpty(m.tokenize(newString, options))
@@ -794,7 +783,7 @@ namespace rooibos
           ' for  i = 0 to linesAndNewlines.count() - 1
           '   line = linesAndNewlines[i]
 
-          '   if i mod 2 and not options.newlineIsToken = true then
+          '   if i mod 2 and not options.newlineIsToken = true
           '     retLines[retLines.count() - 1] = retLines[retLines.count() - 1] + line
           '   else
           '     retLines.push(line)
