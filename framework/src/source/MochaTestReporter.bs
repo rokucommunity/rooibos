@@ -106,7 +106,7 @@ namespace rooibos
     function logFailures(testGroup)
       for each test in testGroup.tests
         if test.result.isFail
-          m.failureCount ++
+          m.failureCount++
 
           resultMessage = ""
           resultMessage += `${string(1, chr(9))}${m.failureCount.toStr()}) ${test.testSuite.name}\n`
@@ -144,7 +144,7 @@ namespace rooibos
       for i = error.backTrace.count() - 1 to 0 step -1
         e = error.backTrace[i]
         ' if e.filename.instr("pkg:/source/rooibos") = -1
-          output += `${string(1, chr(9))}at ${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})\n`
+        output += `${string(1, chr(9))}at ${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})\n`
         ' end if
       end for
 
@@ -153,20 +153,20 @@ namespace rooibos
 
     function unifiedDiff(actual, expected)
       cleanUp = function(line, m)
-          indent = "      "
-          if line.left(1) = "+"
-              return indent + m.colorLines("diff added", line)
-          end if
-          if line.left(1) = "-"
-              return indent + m.colorLines("diff removed", line)
-          end if
-          if CreateObject("roRegex", "@@","").isMatch(line)
-              return "--"
-          end if
-          if CreateObject("roRegex", "\\ No newline", "").isMatch(line)
-              return invalid
-          end if
-          return indent + line
+        indent = "      "
+        if line.left(1) = "+"
+          return indent + m.colorLines("diff added", line)
+        end if
+        if line.left(1) = "-"
+          return indent + m.colorLines("diff removed", line)
+        end if
+        if CreateObject("roRegex", "@@", "").isMatch(line)
+          return "--"
+        end if
+        if CreateObject("roRegex", "\\ No newline", "").isMatch(line)
+          return invalid
+        end if
+        return indent + line
       end function
 
       msg = createPatch("string", actual, expected)
@@ -198,34 +198,34 @@ namespace rooibos
 
     function colors(colorType, targetString)
       colors = {
-          pass: 90,
-          fail: 31,
-          "bright pass": 92,
-          "bright fail": 91,
-          "bright yellow": 93,
-          pending: 36,
-          suite: 0,
-          "error title": 0,
-          "error message": 31,
-          "error stack": 90,
-          checkmark: 32,
-          fast: 90,
-          medium: 33,
-          slow: 31,
-          green: 32,
-          light: 90,
-          "diff gutter": 90,
-          "diff added": 32,
-          "diff removed": 31,
-          "diff added inline": "30;42",
-          "diff removed inline": "30;41"
+        pass: 90,
+        fail: 31,
+        "bright pass": 92,
+        "bright fail": 91,
+        "bright yellow": 93,
+        pending: 36,
+        suite: 0,
+        "error title": 0,
+        "error message": 31,
+        "error stack": 90,
+        checkmark: 32,
+        fast: 90,
+        medium: 33,
+        slow: 31,
+        green: 32,
+        light: 90,
+        "diff gutter": 90,
+        "diff added": 32,
+        "diff removed": 31,
+        "diff added inline": "30;42",
+        "diff removed inline": "30;41"
       }
 
       if m.colorizeOutput
         return chr(27) + "[" + colors[colorType].toStr() + "m" + targetString + chr(27) + "[0m"
         ' return "\u001b[" + colors[colorType].toStr() + "m" + targetString + "\u001b[0m"
       else
-          return targetString
+        return targetString
       end if
     end function
   end class
@@ -388,61 +388,61 @@ function new_Diff()
     end function
 
     ' Main worker method. checks all permutations of a given edit length for acceptance.
-execEditLength: function(execEditParams)
-  startingDiagonalPath = max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
-  diagonalPath = max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
-  ' while diagonalPath <= min(execEditParams.maxDiagonalToConsider, execEditParams.editLength)
-  for diagonalPath = max(execEditParams.minDiagonalToConsider, -execEditParams.editLength) to min(execEditParams.maxDiagonalToConsider, execEditParams.editLength) step 2
-    removePath = execEditParams.bestPath.get(diagonalPath - 1)
-    addPath = execEditParams.bestPath.get(diagonalPath + 1)
-    if removePath <> invalid
-      ' No one else is going to attempt to use this value, clear it
-      execEditParams.bestPath.set(diagonalPath - 1, invalid)
-    end if
+    execEditLength: function(execEditParams)
+      startingDiagonalPath = max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
+      diagonalPath = max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
+      ' while diagonalPath <= min(execEditParams.maxDiagonalToConsider, execEditParams.editLength)
+      for diagonalPath = max(execEditParams.minDiagonalToConsider, -execEditParams.editLength) to min(execEditParams.maxDiagonalToConsider, execEditParams.editLength) step 2
+        removePath = execEditParams.bestPath.get(diagonalPath - 1)
+        addPath = execEditParams.bestPath.get(diagonalPath + 1)
+        if removePath <> invalid
+          ' No one else is going to attempt to use this value, clear it
+          execEditParams.bestPath.set(diagonalPath - 1, invalid)
+        end if
 
-    canAdd = false
-    if addPath <> invalid
-      ' what newPos will be after we do an insertion:
-      addPathNewPos = addPath.oldPos - diagonalPath
-      canAdd = addPath <> invalid and 0 <= addPathNewPos and addPathNewPos < execEditParams.newLen
-    end if
+        canAdd = false
+        if addPath <> invalid
+          ' what newPos will be after we do an insertion:
+          addPathNewPos = addPath.oldPos - diagonalPath
+          canAdd = addPath <> invalid and 0 <= addPathNewPos and addPathNewPos < execEditParams.newLen
+        end if
 
-    canRemove = removePath <> invalid and removePath.oldPos + 1 < execEditParams.oldLen
-    if not canAdd and not canRemove
-      ' If this path is a terminal then prune
-      execEditParams.bestPath.set(diagonalPath, invalid)
-      continue for
-    end if
+        canRemove = removePath <> invalid and removePath.oldPos + 1 < execEditParams.oldLen
+        if not canAdd and not canRemove
+          ' If this path is a terminal then prune
+          execEditParams.bestPath.set(diagonalPath, invalid)
+          continue for
+        end if
 
-    ' Select the diagonal that we want to branch from. We select the prior
-    ' path whose position in the old string is the farthest from the origin
-    ' and does not pass the bounds of the diff graph
-    if not canRemove or (canAdd and removePath.oldPos < addPath.oldPos)
-      basePath = m.addToPath(addPath, true, false, 0, execEditParams.options)
-    else
-      basePath = m.addToPath(removePath, false, true, 1, execEditParams.options)
-    end if
+        ' Select the diagonal that we want to branch from. We select the prior
+        ' path whose position in the old string is the farthest from the origin
+        ' and does not pass the bounds of the diff graph
+        if not canRemove or (canAdd and removePath.oldPos < addPath.oldPos)
+          basePath = m.addToPath(addPath, true, false, 0, execEditParams.options)
+        else
+          basePath = m.addToPath(removePath, false, true, 1, execEditParams.options)
+        end if
 
-    newPos = m.extractCommon(basePath, execEditParams.newString, execEditParams.oldString, diagonalPath, execEditParams.options)
+        newPos = m.extractCommon(basePath, execEditParams.newString, execEditParams.oldString, diagonalPath, execEditParams.options)
 
-    if basePath.oldPos + 1 >= execEditParams.oldLen and newPos + 1 >= execEditParams.newLen
-      ' If we have hit the end of both strings, then we are done
-      execEditParams.ret = m.done(buildValues(m, basePath.lastComponent, execEditParams.newString, execEditParams.oldString, m.useLongestToken), execEditParams.options)
+        if basePath.oldPos + 1 >= execEditParams.oldLen and newPos + 1 >= execEditParams.newLen
+          ' If we have hit the end of both strings, then we are done
+          execEditParams.ret = m.done(buildValues(m, basePath.lastComponent, execEditParams.newString, execEditParams.oldString, m.useLongestToken), execEditParams.options)
+          return execEditParams
+        else
+          execEditParams.bestPath.set(diagonalPath, basePath)
+          if basePath.oldPos + 1 >= execEditParams.oldLen
+            execEditParams.maxDiagonalToConsider = min(execEditParams.maxDiagonalToConsider, diagonalPath - 1)
+          end if
+          if newPos + 1 >= execEditParams.newLen
+            execEditParams.minDiagonalToConsider = max(execEditParams.minDiagonalToConsider, diagonalPath + 1)
+          end if
+        end if
+      end for
+
+      execEditParams.editLength++
       return execEditParams
-    else
-      execEditParams.bestPath.set(diagonalPath, basePath)
-      if basePath.oldPos + 1 >= execEditParams.oldLen
-        execEditParams.maxDiagonalToConsider = min(execEditParams.maxDiagonalToConsider, diagonalPath - 1)
-      end if
-      if newPos + 1 >= execEditParams.newLen
-        execEditParams.minDiagonalToConsider = max(execEditParams.minDiagonalToConsider, diagonalPath + 1)
-      end if
-    end if
-  end for
-
-  execEditParams.editLength++
-  return execEditParams
-end function
+    end function
 
     addToPath: function(path, added, removed, oldPosInc, options)
       last = path.lastComponent
@@ -593,7 +593,7 @@ function diffLinesResultToPatch(diff, oldFileName, newFileName, oldHeader, newHe
     return invalid
   end if
 
-  diff.push({ value: "", lines: []}) ' Append an empty value to make cleanup easier
+  diff.push({ value: "", lines: [] }) ' Append an empty value to make cleanup easier
 
   hunks = []
   oldRangeStart = 0
@@ -601,7 +601,7 @@ function diffLinesResultToPatch(diff, oldFileName, newFileName, oldHeader, newHe
   curRange = []
   oldLine = 1
   newLine = 1
-  for i = 0 to diff.count() -1
+  for i = 0 to diff.count() - 1
     current = diff[i]
     if current.lines <> invalid
       lines = current.lines
@@ -679,7 +679,7 @@ function diffLinesResultToPatch(diff, oldFileName, newFileName, oldHeader, newHe
   for each hunk in hunks
     for i = 0 to hunk.lines.count() - 1
       if hunk.lines[i].endsWith(chr(10))
-        hunk.lines[i] = hunk.lines[i].mid(0, len(hunk.lines[i]) -1)
+        hunk.lines[i] = hunk.lines[i].mid(0, len(hunk.lines[i]) - 1)
       else
         hunk.lines = arraySplice(hunk.lines, i + 1, 0, ["\ No newline at end of file"])
         i++ ' Skip the line we just added, then continue iterating
@@ -698,8 +698,8 @@ end function
 
 function contextLines(lines)
   return arrayMap(lines, function(entry, _ = invalid)
-     return " " + entry
-    end function)
+    return " " + entry
+  end function)
 end function
 
 
@@ -771,10 +771,10 @@ function new_lineDiff()
       end if
     else if options.ignoreNewlineAtEof = true and not options.newlineIsToken = true
       if leftPart.endsWith(chr(10))
-        leftPart = leftPart.mid(0, len(leftPart) -1)
+        leftPart = leftPart.mid(0, len(leftPart) - 1)
       end if
       if rightPart.endsWith(chr(10))
-        rightPart = rightPart.mid(0, len(rightPart) -1)
+        rightPart = rightPart.mid(0, len(rightPart) - 1)
       end if
     end if
     return new_Diff().equals(leftPart, rightPart, options)
