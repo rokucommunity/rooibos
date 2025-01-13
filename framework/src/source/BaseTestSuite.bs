@@ -513,7 +513,7 @@ namespace rooibos
             messageExpected = rooibos.common.truncateString(expected)
             msg = `expected "${messageActual}" to not equal "${messageExpected}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
         return true
