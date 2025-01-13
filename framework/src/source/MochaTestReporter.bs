@@ -9,11 +9,11 @@ namespace rooibos
     private failureCount = 0
 
     override sub onSuiteBegin(suite as rooibos.BaseTestSuite)
-      ? m.colorLines("suite", suite.name)
+      print m.colorLines("suite", suite.name)
     end sub
 
     override sub onTestGroupBegin(group as rooibos.TestGroup)
-      ? tab(2) m.colorLines("suite", group.name)
+      print tab(2) m.colorLines("suite", group.name)
     end sub
 
     ' override function onTestBegin(test as rooibos.Test)
@@ -55,7 +55,7 @@ namespace rooibos
         params = " " + formatJson(rawParams)
       end if
 
-      ? tab(4) m.colorLines(symbolColor, symbol) + " " + m.colorLines(lineColor, test.name + params)
+      print tab(4) m.colorLines(symbolColor, symbol) + " " + m.colorLines(lineColor, test.name + params)
     end sub
 
     ' override function onTestGroupComplete(group as rooibos.TestGroup)
