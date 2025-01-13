@@ -1075,9 +1075,51 @@ namespace tests
       m.assertArrayNotContains(["one"], "one")
     end function
 
+    @it("fail assertArrayNotContains when value is in array with boolean search")
+    function _()
+      m.assertArrayNotContains([true], true)
+    end function
+
+    @it("fail assertArrayNotContains when value is in array with integer search")
+    function _()
+      m.assertArrayNotContains([1], 1)
+    end function
+
+    @it("fail assertArrayNotContains when value is in array with AA search")
+    function _()
+      m.assertArrayNotContains([{ one: 1, two: 2, three: 3 }], { one: 1, two: 2, three: 3 })
+    end function
+
+    @it("fail assertArrayNotContains when value is in array with node search")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayNotContains([node], node)
+    end function
+
     @it("fail assertArrayNotContains when value is in AA")
     function _()
       m.assertArrayNotContains({ one: 1, two: 2, three: 3 }, { one: 1, two: 2, three: 3 })
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA with boolean search")
+    function _()
+      m.assertArrayNotContains({ one: true }, { one: true })
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA with integer search")
+    function _()
+      m.assertArrayNotContains({ one: 1 }, { one: 1 })
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA with array search")
+    function _()
+      m.assertArrayNotContains({ one: [1] }, { one: [1] })
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA with node search")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayNotContains({ one: node }, { one: node })
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
