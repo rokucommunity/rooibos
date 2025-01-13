@@ -271,6 +271,111 @@ namespace tests
       m.assertEqual(obj, obj2)
     end function
 
+    @it("assertEqual fail on uninitialized vs node")
+    function _()
+      obj = uninitialized
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs uninitialized")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = uninitialized
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs invalid")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = invalid
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on invalid vs node")
+    function _()
+      obj = invalid
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs node")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs boolean")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = true
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on boolean vs node")
+    function _()
+      obj = true
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs string")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = "Node"
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on string vs node")
+    function _()
+      obj = "Node"
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs integer")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = 1
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on integer vs node")
+    function _()
+      obj = 1
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs array")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = [1, 2, 4, 3]
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on array vs node")
+    function _()
+      obj = [1, 2, 4, 3]
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs AA")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = { "key": "value" }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on AA vs node")
+    function _()
+      obj = { "key": "value" }
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
     @it("assertEqual fail on boolean vs uninitialized")
     function _()
       obj = true
@@ -717,6 +822,119 @@ namespace tests
       obj = "1"
       obj2 = 1
       m.assertLike(obj, obj2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNotEqual fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNotEqual on node vs node")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on object vs object")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on array vs array")
+    function _()
+      obj = [1, 2, 3]
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on string vs string")
+    function _()
+      obj = "myString"
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on integer vs integer")
+    function _()
+      obj = 10
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on boolean vs boolean")
+    function _()
+      obj = true
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on uninitialized vs uninitialized")
+    @ignore
+    function _()
+      obj = uninitialized
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on invalid vs invalid")
+    function _()
+      obj = invalid
+      m.assertNotEqual(obj, obj)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertInvalid fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertInvalid on node")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      m.assertInvalid(obj)
+    end function
+
+    @it("fail assertInvalid on object")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      m.assertInvalid(obj)
+    end function
+
+    @it("fail assertInvalid on array")
+    function _()
+      m.assertInvalid([1, 2, 3])
+    end function
+
+    @it("fail assertInvalid on string")
+    function _()
+      m.assertInvalid("myString")
+    end function
+
+    @it("fail assertInvalid on integer")
+    function _()
+      m.assertInvalid(10)
+    end function
+
+    @it("fail assertInvalid on boolean")
+    function _()
+      m.assertInvalid(true)
+    end function
+
+    @it("fail assertInvalid on uninitialized")
+    @ignore
+    function _()
+      m.assertInvalid(uninitialized)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
