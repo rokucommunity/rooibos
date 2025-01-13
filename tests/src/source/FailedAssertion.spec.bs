@@ -938,10 +938,43 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNotInvalid fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNotInvalid on invalid")
+    function _()
+      m.assertNotInvalid(invalid)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertAAHasKey fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertAAHasKey on invalid")
+    function _()
+      m.assertAAHasKey(invalid, "one")
+    end function
+
+    @it("fail assertAAHasKey on missing key")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertAAHasKey(obj, "four")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests AssertAAHasKeys fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("fail assertAAHasKeys")
+    @it("fail assertAAHasKeys with missing actual AA")
+    function _()
+      m.assertAAHasKeys(invalid, ["one"])
+    end function
+
+    @it("fail assertAAHasKeys when keys are found")
     function _()
       obj = {
         one: 1
@@ -949,6 +982,25 @@ namespace tests
         three: 3
       }
       m.assertAAHasKeys(obj, ["one", "two", "three", "four", "five", "six'", "seven"""])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertAANotHasKey fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertAANotHasKey on invalid")
+    function _()
+      m.assertAANotHasKey(invalid, "one")
+    end function
+
+    @it("fail assertAANotHasKey on found key")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertAANotHasKey(obj, "one")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1054,7 +1106,7 @@ namespace tests
 
     @it("fail assertArrayContainsSubset with actual as array and subset not found")
     function _()
-      m.assertArrayContainsSubset([ "one", "two", "three" ], [ "four" ])
+      m.assertArrayContainsSubset(["one", "two", "three"], ["four"])
     end function
 
     @it("fail assertArrayContainsSubset with actual as AA and subset not found")
@@ -1088,7 +1140,7 @@ namespace tests
 
     @it("fail assertArrayNotContainsSubset with actual as array and subset found")
     function _()
-      m.assertArrayNotContainsSubset([ "one", "two", "three" ], [ "three" ])
+      m.assertArrayNotContainsSubset(["one", "two", "three"], ["three"])
     end function
 
     @it("fail assertArrayNotContainsSubset with actual as AA and subset found")
@@ -1208,7 +1260,7 @@ namespace tests
 
     @it("fail assertArrayContainsOnlyValuesOfType array of invalid values")
     function _()
-      m.assertArrayContainsOnlyValuesOfType([ invalid ], "String")
+      m.assertArrayContainsOnlyValuesOfType([invalid], "String")
     end function
 
     @it("fail assertArrayContainsOnlyValuesOfType AA of invalid values")
@@ -1406,7 +1458,7 @@ namespace tests
     function _()
       node = createObject("roSGNode", "Node")
       node.createChildren(10, "Group")
-      m.assertNodeNotContainsFields(node, [ node.getChild(5) ])
+      m.assertNodeNotContainsFields(node, [node.getChild(5)])
     end function
 
     @it("fail assertNodeNotContainsFields subset AA of fields")
@@ -1433,7 +1485,7 @@ namespace tests
     @it("fail assertAAContainsSubset with subset item not found")
     function _()
       node = createObject("roSGNode", "Node")
-      m.assertAAContainsSubset({ one: 1, two: 2, three: 3 }, { three: 4})
+      m.assertAAContainsSubset({ one: 1, two: 2, three: 3 }, { three: 4 })
     end function
 
     'ASSERTIONS TO WRITE TESTS FOR!
