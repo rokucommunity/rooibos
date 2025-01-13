@@ -128,6 +128,13 @@ namespace rooibos
       else
         rooibos.common.logDebug("rooibos.Coverage.reportCodeCoverage is not a function")
       end if
+
+      ' Final results to be logged after all test reporters have finished
+      resultStatus = "PASS"
+      if isFailed then resultStatus = "FAIL"
+      print "[Rooibos Result]: " + resultStatus
+      print "[Rooibos Shutdown]"
+
       if m.config.sendHomeOnFinish <> false
         m.sendHomeKeypress()
       end if
