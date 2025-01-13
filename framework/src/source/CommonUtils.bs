@@ -711,6 +711,16 @@ namespace rooibos.common
     end if
   end function
 
+  ' /**
+  '  * @memberof module:CommonUtils
+  '  * @name getTypeWithComponentWrapper
+  '  * @function
+  '  * @instance
+  '  * @description Takes a value and if the value is not a primitive it will wrap the type in a Component: tag like the debugger does
+  '  * @param {Dynamic} value - value to check the type of
+  '  * @param {Boolean} includeSubtype - If true and the value is a node the result will include the node subtype
+  '  * @returns {string} - Formatted result. Examples: 'String', 'Integer', '<Component: roDateTime>', '<Component: roSGNode:Node>'
+  '  */
   function getTypeWithComponentWrapper(value, includeSubtype = false) as string
     if not rooibos.common.isValid(value) or rooibos.common.isNumber(value) or rooibos.common.isString(value) or rooibos.common.isBoolean(value)
       return type(value)
@@ -723,6 +733,17 @@ namespace rooibos.common
     end if
   end function
 
+  ' /**
+  '  * @memberof module:CommonUtils
+  '  * @name truncateString
+  '  * @function
+  '  * @instance
+  '  * @description Takes a string and formats and truncates a string for more compact printing.
+  '  * @param {Dynamic} value - string to format
+  '  * @param {Integer} maxLength - the max length of the resulting string
+  '  * @param {Boolean} collapseNewlines - Will convert newlines and spaces into a single space
+  '  * @returns {String} - Formatted result
+  '  */
   function truncateString(value as string, length = 38 as integer, collapseNewlines = true as boolean) as string
     if collapseNewlines
       value = CreateObject("roRegex", "\n\s*", "g").replaceAll(value, " ")
@@ -740,7 +761,7 @@ namespace rooibos.common
   '  * @name EqValues
   '  * @function
   '  * @instance
-  '  * @description Compare two arbtrary values to eachother.
+  '  * @description Compare two arbitrary values to each-other.
   '  * @param {Dynamic} Value1 - first item to compare
   '  * @param {Dynamic} Value2 - second item to compare
   '  * @returns {boolean} - True if values are equal or False in other case.
