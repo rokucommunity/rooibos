@@ -54,12 +54,11 @@ namespace tests
     @describe("assertAsyncField")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @ignore("takes ages")
     @it("times out")
     function _()
       item = { "id": "item" }
 
-      m.assertAsyncField(item, "id")
+      m.assertAsyncField(item, "id", 10)
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
       m.assertTrue(isFail)
