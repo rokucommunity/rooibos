@@ -706,18 +706,23 @@ namespace rooibos
           return false
         end if
 
+        foundKeys = []
         missingKeys = []
         for each key in keys
           if not aa.DoesExist(key)
-            missingKeys.push(formatJson(key))
+            missingKeys.push(key)
+          else
+            foundKeys.push(key)
           end if
         end for
 
         if missingKeys.count() > 0
+          actual = rooibos.common.asMultilineString(foundKeys, true)
+          expected = rooibos.common.asMultilineString(keys, true)
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to have properties ${rooibos.common.truncateString(missingKeys.join(", "))}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
           return false
         end if
         return true
