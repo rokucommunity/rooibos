@@ -92,18 +92,19 @@ namespace rooibos
     function formatStatsString(stats as rooibos.Stats) as string
       statusString = chr(10)
 
-      statusString += `${string(1, chr(9))} ${m.colorLines(rooibos.reporter.mocha.colors.brightPass, `${stats.passedCount} passed`)} ${m.colorLines(rooibos.reporter.mocha.colors.light, ` (${stats.time}ms)`)}`
+      indent = string(1, chr(9))
+      statusString += `${indent}${m.colorLines(rooibos.reporter.mocha.colors.brightPass, `${stats.passedCount} passed`)} ${m.colorLines(rooibos.reporter.mocha.colors.light, ` (${stats.time}ms)`)}`
 
       if stats.crashedCount > 0
-        statusString += m.colorLines(rooibos.reporter.mocha.colors.fail, `${string(1, chr(9))}${stats.crashedCount} crashed`)
+        statusString += chr(10) + m.colorLines(rooibos.reporter.mocha.colors.fail, `${indent}${stats.crashedCount} crashed`)
       end if
 
       if stats.failedCount > 0
-        statusString += m.colorLines(rooibos.reporter.mocha.colors.fail, `${string(1, chr(9))}${stats.failedCount} failing`)
+        statusString += chr(10) + m.colorLines(rooibos.reporter.mocha.colors.fail, `${indent}${stats.failedCount} failing`)
       end if
 
       if stats.ignoredCount > 0
-        statusString += m.colorLines(rooibos.reporter.mocha.colors.pending, `${string(1, chr(9))}${stats.ignoredCount} skipped`)
+        statusString += chr(10) + m.colorLines(rooibos.reporter.mocha.colors.pending, `${indent}${stats.ignoredCount} skipped`)
       end if
 
       statusString += chr(10)
