@@ -932,7 +932,6 @@ namespace tests
     end function
 
     @it("fail assertInvalid on uninitialized")
-    @ignore
     function _()
       m.assertInvalid(uninitialized)
     end function
@@ -1157,7 +1156,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertArrayNotContainsSubset fail")
+    @describe("tests AssertArrayNotContainsSubset fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertArrayNotContainsSubset with missing actual array")
@@ -1180,14 +1179,47 @@ namespace tests
       m.assertArrayNotContainsSubset({}, [])
     end function
 
-    @it("fail assertArrayNotContainsSubset with actual as array and subset found")
+    @it("fail assertArrayNotContainsSubset with actual as array and subset found string")
     function _()
       m.assertArrayNotContainsSubset(["one", "two", "three"], ["three"])
     end function
 
-    @it("fail assertArrayNotContainsSubset with actual as AA and subset found")
+    @it("fail assertArrayNotContainsSubset with actual as array and subset found boolean")
+    function _()
+      m.assertArrayNotContainsSubset([true, false], [true])
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as array and subset found integer")
+    function _()
+      m.assertArrayNotContainsSubset([1, 2, 3], [3])
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as array and subset found node")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayNotContainsSubset([node], [node])
+    end function
+
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset found string")
+    function _()
+      m.assertArrayNotContainsSubset({ one: "1", two: "2", three: "3" }, { three: "3" })
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset found boolean")
+    function _()
+      m.assertArrayNotContainsSubset({ one: true, two: false }, { two: false })
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset found integer")
     function _()
       m.assertArrayNotContainsSubset({ one: 1, two: 2, three: 3 }, { three: 3 })
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset found node")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayNotContainsSubset({ one: node }, { one: node })
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1287,7 +1319,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertArrayContainsOnlyValuesOfType fail")
+    @describe("tests AssertArrayContainsOnlyValuesOfType fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertArrayContainsOnlyValuesOfType bad input type")
@@ -1314,9 +1346,34 @@ namespace tests
     @describe("tests AssertType fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("fail assertType type mismatch")
+    @it("fail assertType type mismatch string")
     function _()
       m.assertType(invalid, "string")
+    end function
+
+    @it("fail assertType type mismatch boolean")
+    function _()
+      m.assertType(invalid, "boolean")
+    end function
+
+    @it("fail assertType type mismatch integer")
+    function _()
+      m.assertType(invalid, "integer")
+    end function
+
+    @it("fail assertType type mismatch AA")
+    function _()
+      m.assertType(invalid, "roAssociativeArray")
+    end function
+
+    @it("fail assertType type mismatch array")
+    function _()
+      m.assertType(invalid, "roArray")
+    end function
+
+    @it("fail assertType type mismatch node")
+    function _()
+      m.assertType(invalid, "roSGNode")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1359,7 +1416,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertNodeCount fail")
+    @describe("tests AssertNodeCount fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertNodeCount missing node")
@@ -1375,7 +1432,23 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertNodeEmpty fail")
+    @describe("tests AssertNodeNotCount fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeNotCount missing node")
+    function _()
+      m.assertNodeNotCount(invalid, 0)
+    end function
+
+    @it("fail assertNodeNotCount on count miss match")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotCount(node, 10)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeEmpty fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertNodeEmpty missing node")
@@ -1391,7 +1464,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertNodeNotEmpty fail")
+    @describe("tests AssertNodeNotEmpty fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertNodeNotEmpty missing node")
@@ -1406,7 +1479,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertNodeContains fail")
+    @describe("tests AssertNodeContains fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertNodeContains missing node")
@@ -1422,7 +1495,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertNodeContainsOnly fail")
+    @describe("tests AssertNodeContainsOnly fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertNodeContainsOnly missing node")
@@ -1445,7 +1518,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertNodeNotContains fail")
+    @describe("tests AssertNodeNotContains fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertNodeNotContains missing node")
@@ -1461,7 +1534,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertNodeContainsFields fail")
+    @describe("tests AssertNodeContainsFields fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertNodeContainsFields missing node")
@@ -1482,7 +1555,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertNodeNotContainsFields fail")
+    @describe("tests AssertNodeNotContainsFields fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertNodeNotContainsFields with missing node")
@@ -1510,7 +1583,7 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests assertAAContainsSubset fail")
+    @describe("tests AssertAAContainsSubset fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("fail assertAAContainsSubset with missing actual AA")
