@@ -1,4 +1,5 @@
 #const ROOIBOS_ERROR_LOGS = true
+#const ROOIBOS_WARNING_LOGS = false
 #const ROOIBOS_INFO_LOGS = true
 #const ROOIBOS_DEBUG_LOGS = false
 #const ROOIBOS_TRACE_LOGS = false
@@ -993,6 +994,12 @@ namespace rooibos.common
   sub logError(value)
     #if ROOIBOS_ERROR_LOGS
       ? "[Rooibos Error]: " value
+    #end if
+  end sub
+
+  sub logWarning(value)
+    #if ROOIBOS_WARNING_LOGS
+      ? "[Rooibos Warning]: " value
     #end if
   end sub
 

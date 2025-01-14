@@ -2157,7 +2157,7 @@ namespace rooibos
 
           ' FIXME: add a log setting for this - and add better detection so that stubs know that they are colliding/don't exist/have correct sigs
           ' if not isMethodPresent
-          '   rooibos.common.Error("WARNING - stubbing call " + methodName + " which did not exist on target object")
+          '   rooibos.common.logWarning(`stubbing call ${methodName} which did not exist on target object`)
           ' end if
         else
           rooibos.common.logTrace("Could not create Stub : method not found  " + rooibos.common.asString(target) + "." + methodName)
@@ -2439,7 +2439,7 @@ namespace rooibos
             target.__mocks = m.mocks
 
             if not isMethodPresent
-              rooibos.common.logError("WARNING - mocking call " + methodName + " which did not exist on target object")
+              rooibos.common.logWarning(`mocking call ${methodName} which did not exist on target object`)
             end if
           else
             rooibos.common.logError(`Could not create Mock : method not found ${target}.${methodName}`)
@@ -3074,7 +3074,7 @@ namespace rooibos
         m.isDoneCalled = true
         m.top.rooibosTestFinished = true
       else
-        rooibos.common.logError("WARNING - extra done call after test is done ! Did you properly clean up your observers?")
+        rooibos.common.logWarning("extra done call after test is done! Did you properly clean up your observers?")
       end if
     end function
 
