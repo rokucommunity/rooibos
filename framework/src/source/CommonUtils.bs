@@ -312,7 +312,7 @@ namespace rooibos.common
     indentChr = "  "
 
     if rooibos.common.isValid(input) = false
-      return "Invalid"
+      return type(input)
     else if rooibos.common.isString(input)
       return formatJson(input)
     else if rooibos.common.isInteger(input) or rooibos.common.isLongInteger(input) or rooibos.common.isBoolean(input)
