@@ -1244,7 +1244,7 @@ namespace rooibos
           if not item.isEmpty()
             actual = rooibos.common.asMultilineString(item, true)
             if msg = ""
-              msg = `expected "${rooibos.common.truncateString(actual)}" to be empty`
+              msg = `expected ${rooibos.common.truncateString(actual)} to be empty`
             end if
             m.currentResult.fail(msg, m.currentAssertLineNumber, actual, "")
             return false
@@ -1302,7 +1302,7 @@ namespace rooibos
           if item.isEmpty()
             if msg = ""
               actual = rooibos.common.asMultilineString(item, true)
-              msg = `expected "${rooibos.common.truncateString(actual)}" to be empty`
+              msg = `expected ${rooibos.common.truncateString(actual)} to be empty`
             end if
             m.currentResult.fail(msg, m.currentAssertLineNumber)
             return false
