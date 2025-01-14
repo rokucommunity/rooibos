@@ -541,7 +541,7 @@ namespace rooibos
       end if
 
       try
-        if value <> invalid
+        if type(value) <> "Invalid"
           if msg = ""
             actual = rooibos.common.asMultilineString(value, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to be invalid`
