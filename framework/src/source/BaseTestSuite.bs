@@ -661,6 +661,8 @@ namespace rooibos
             actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to not have property "${key}"`
           end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
         end if
         return true
       catch error
