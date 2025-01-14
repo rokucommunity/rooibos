@@ -1503,30 +1503,46 @@ namespace rooibos
       return false
     end function
 
-    function assertClass(value, func, msg = "") as dynamic
+    function assertClass(value, expectedClassName, msg = "") as dynamic
       if m.currentResult.isFail
         return false
       end if
-      if rooibos.common.isFunction(func)
-        func = func.toStr().mid(10).replace("_", ".")
+      if rooibos.common.isFunction(expectedClassName)
+        expectedClassName = expectedClassName.toStr().mid(10).replace("_", ".")
       end if
 
       try
         if not rooibos.common.isAssociativeArray(value)
           if msg = ""
-            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}" to be an instance of ${rooibos.common.truncateString(rooibos.common.asMultilineString(func, true))}`
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}" to be an instance of ${rooibos.common.truncateString(rooibos.common.asMultilineString(expectedClassName, true))}`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
-        className = lCase(`${value.__classname}`)
-        if className <> lCase(func)
-          actual = rooibos.common.asMultilineString(className, true)
-          expected = rooibos.common.asMultilineString(lCase(func), true)
+
+        if not rooibos.common.isString(value?.__classname)
           if msg = ""
-            msg = `expected ${rooibos.common.truncateString(actual)} to be an instance of ${rooibos.common.truncateString(expected)}`
+            msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}" to be an instance of ${rooibos.common.truncateString(rooibos.common.asMultilineString(expectedClassName, true))}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          return false
+        end if
+
+        className = value?.__classname
+        fail = false
+        if not rooibos.common.isString(value?.__classname)
+          className = "Invalid"
+          fail = true
+        end if
+        className = lCase(className)
+
+        if fail or className <> lCase(expectedClassName)
+          actual = rooibos.common.asMultilineString(className, true)
+          expected = rooibos.common.asMultilineString(lCase(expectedClassName), true)
+          if msg = ""
+            msg = `expected class ${rooibos.common.truncateString(actual)} to be an instance of ${rooibos.common.truncateString(expected)}`
+          end if
+          m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
         end if
         return true
@@ -1560,20 +1576,20 @@ namespace rooibos
 
       try
         if type(node) = "roSGNode"
-            if node.isSubType("mc_Node")
-              childCount = node.length
-            else
-              childCount = node.getChildCount()
+          if node.isSubType("mc_Node")
+            childCount = node.length
+          else
+            childCount = node.getChildCount()
+          end if
+          if childCount <> count
+            actual = rooibos.common.asMultilineString(childCount, true)
+            expected = rooibos.common.asMultilineString(count, true)
+            if msg = ""
+              msg = `expected count "${actual}" to be "${expected}"`
             end if
-            if childCount <> count
-              actual = rooibos.common.asMultilineString(childCount, true)
-              expected = rooibos.common.asMultilineString(count, true)
-              if msg = ""
-                msg = `expected count "${actual}" to be "${expected}"`
-              end if
-              m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
-              return false
-            end if
+            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+            return false
+          end if
         else
           actual = rooibos.common.getTypeWithComponentWrapper(node)
           expected = `<Component: roSGNode>`
