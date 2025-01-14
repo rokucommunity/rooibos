@@ -772,7 +772,7 @@ namespace rooibos.common
       return true
     end if
 
-    ' Workaraund for bug with string boxing, and box everything else
+    ' Workaround for bug with string boxing, and box everything else
     val1Type = rooibos.common.getSafeType(Value1)
     val2Type = rooibos.common.getSafeType(Value2)
     if val1Type = invalid or val2Type = invalid
