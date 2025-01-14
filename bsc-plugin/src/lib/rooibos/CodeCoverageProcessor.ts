@@ -56,6 +56,7 @@ export class CodeCoverageProcessor {
     private coverageMap: Map<number, number>;
     private fileFactory: FileFactory;
     private processedStatements: Set<Statement>;
+    private addedStatements: Set<Statement>;
     private astEditor: Editor;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
@@ -74,6 +75,7 @@ export class CodeCoverageProcessor {
         this.coverageMap = new Map<number, number>();
         this.executableLines = new Map<number, Statement>();
         this.processedStatements = new Set<Statement>();
+        this.addedStatements = new Set<Statement>();
         this.astEditor = astEditor;
 
         file.ast.walk(createVisitor({
@@ -167,7 +169,7 @@ export class CodeCoverageProcessor {
     }
 
     private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
-        if (this.processedStatements.has(statement)) {
+        if (this.processedStatements.has(statement) || this.addedStatements.has(statement)) {
             return;
         }
 
@@ -175,6 +177,7 @@ export class CodeCoverageProcessor {
         this.coverageMap.set(lineNumber, coverageType);
         const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
         this.astEditor.arraySplice(owner, key, 0, parsed);
+        this.addedStatements.add(parsed);
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
     }
@@ -182,6 +185,9 @@ export class CodeCoverageProcessor {
     public addBrsAPIText(file: BrsFile, astEditor: Editor) {
         const astCodeToInject = Parser.parse(this.coverageBrsTemplate.replace(/\#ID\#/g, this.fileId.toString().trim())).ast.statements;
         astEditor.arrayPush(file.ast.statements, ...astCodeToInject);
+        for (let statement of astCodeToInject) {
+            this.addedStatements.add(statement);
+        }
     }
 
     private addStatement(statement: Statement, lineNumber?: number) {

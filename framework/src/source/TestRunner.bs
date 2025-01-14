@@ -320,16 +320,16 @@ namespace rooibos
     end function
 
     private function getTestReporters()
-      reporters = []
+      testReporters = []
       for each factory in m.config.reporters
         if rooibos.common.isFunction(factory)
-          reporters.push(factory(m))
+          testReporters.push(factory(m))
         end if
       end for
-      if reporters.isEmpty()
-        reporters.push(new rooibos.ConsoleTestReporter(m))
+      if testReporters.isEmpty()
+        testReporters.push(new rooibos.ConsoleTestReporter(m))
       end if
-      return reporters
+      return testReporters
     end function
 
   end class
