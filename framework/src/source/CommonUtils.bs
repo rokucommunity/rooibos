@@ -687,8 +687,10 @@ namespace rooibos.common
 
   function getSafeType(v)
     t = type(v)
-    if t = "<uninitialized>" or t = ""
+    if t = ""
       return invalid
+    else if t = "<uninitialized>"
+      return "<uninitialized>"
     else if t = "roString"
       return "String"
     else if t = "roInteger"
@@ -777,7 +779,6 @@ namespace rooibos.common
     val1Type = rooibos.common.getSafeType(Value1)
     val2Type = rooibos.common.getSafeType(Value2)
     if val1Type = invalid or val2Type = invalid
-      ' TODO: this doesn't actually feel like an error, Need to talk about this.
       rooibos.common.logError("undefined value passed")
       return false
     end if
@@ -806,6 +807,12 @@ namespace rooibos.common
         else
           return Value1.isSameNode(Value2)
         end if
+      else if valtype = "<uninitialized>" and val2Type = "<uninitialized>"
+        ' Both values are uninitialized, so they are equal
+        return true
+      else if valtype = "<uninitialized>" or val2Type = "<uninitialized>"
+        ' One value is uninitialized, so they are not equal due to passing previous check
+        return false
       else
         if fuzzy = true
           return rooibos.common.asString(Value1) = rooibos.common.asString(Value2)

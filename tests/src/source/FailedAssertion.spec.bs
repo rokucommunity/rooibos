@@ -874,7 +874,6 @@ namespace tests
     end function
 
     @it("fail assertNotEqual on uninitialized vs uninitialized")
-    @ignore
     function _()
       obj = uninitialized
       m.assertNotEqual(obj, obj)
