@@ -13,11 +13,11 @@ namespace rooibos
     ' end function
 
     override sub onSuiteBegin(event as rooibos.TestReporterOnSuiteBeginEvent)
-      print m.colorLines("suite", event.suite.name)
+      print m.colorLines(rooibos.reports.mocha.colors.suite, event.suite.name)
     end sub
 
     override sub onTestGroupBegin(event as rooibos.TestReporterOnTestGroupBeginEvent)
-      print tab(2) m.colorLines("suite", event.group.name)
+      print tab(2) m.colorLines(rooibos.reports.mocha.colors.suite, event.group.name)
     end sub
 
     ' override function onTestBegin(event as rooibos.TestReporterOnTestBeginEvent)
@@ -28,19 +28,19 @@ namespace rooibos
       test = event.test
       status = test.result.getStatusText()
 
-      lineColor = "light"
+      lineColor = rooibos.reports.mocha.colors.light
       symbolColor = ""
       symbol = "?"
       if status = "PASS"
         symbol = "✔"
-        symbolColor = "checkmark"
+        symbolColor = rooibos.reports.mocha.colors.checkmark
       else if status = "FAIL" or status = "CRASH"
         symbol = "✖️"
-        symbolColor = "bright fail"
+        symbolColor = rooibos.reports.mocha.colors.brightFail
       else if status = "SKIP"
         symbol = "-"
-        symbolColor = "pending"
-        lineColor = "pending"
+        symbolColor = rooibos.reports.mocha.colors.pending
+        lineColor = rooibos.reports.mocha.colors.pending
       end if
 
       params = ""
@@ -72,23 +72,7 @@ namespace rooibos
     ' end function
 
     override sub onEnd(event as rooibos.TestReporterOnEndEvent)
-      stats = event.stats
-
-      print string(1, chr(9)) m.colorLines("bright pass", `${stats.passedCount} passed`) + m.colorLines("light", ` (${stats.time}ms)`)
-
-      if stats.crashedCount > 0
-        print m.colorLines("fail", `${string(1, chr(9))}${stats.crashedCount} crashed`)
-      end if
-
-      if stats.failedCount > 0
-        print m.colorLines("fail", `${string(1, chr(9))}${stats.failedCount} failing`)
-      end if
-
-      if stats.ignoredCount > 0
-        print m.colorLines("pending", `${string(1, chr(9))}${stats.ignoredCount} skipped`)
-      end if
-
-      print ""
+      print m.formatStatsString(event.stats)
 
       for each testSuite in m.testRunner.testSuites
         for each testGroup in testSuite.groups
@@ -97,6 +81,71 @@ namespace rooibos
       end for
     end sub
 
+    ' Creates a formatted string from the stats object
+    ' example:
+    '`
+    '     327 passed (5113ms)
+    '     1 crashed
+    '     207 failing
+    '     8 skipped
+    '`
+    function formatStatsString(stats as rooibos.Stats) as string
+      statusString = chr(10)
+
+      statusString += `${string(1, chr(9))} ${m.colorLines(rooibos.reports.mocha.colors.brightPass, `${stats.passedCount} passed`)} ${m.colorLines(rooibos.reports.mocha.colors.light, ` (${stats.time}ms)`)}`
+
+      if stats.crashedCount > 0
+        statusString += m.colorLines(rooibos.reports.mocha.colors.fail, `${string(1, chr(9))}${stats.crashedCount} crashed`)
+      end if
+
+      if stats.failedCount > 0
+        statusString += m.colorLines(rooibos.reports.mocha.colors.fail, `${string(1, chr(9))}${stats.failedCount} failing`)
+      end if
+
+      if stats.ignoredCount > 0
+        statusString += m.colorLines(rooibos.reports.mocha.colors.pending, `${string(1, chr(9))}${stats.ignoredCount} skipped`)
+      end if
+
+      statusString += chr(10)
+      return statusString
+    end function
+
+
+    ' Logs all failures for a given test group
+    ' example:
+
+    '    1) Rooibos failed assertion tests
+    '      tests fail on crash
+    '        reports error:
+    '
+    '    Error: some error
+    '        $anon_6c() As Dynamic (pkg:/source/FailedAssertion.spec.brs:11)
+    '        $anon_303() As Dynamic (pkg:/source/rooibos/Test.brs:45)
+    '        $anon_1f2(test As Object) As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:243)
+    '        $anon_30a() As Dynamic (pkg:/source/rooibos/TestGroup.brs:88)
+    '        $anon_309() As Dynamic (pkg:/source/rooibos/TestGroup.brs:68)
+    '        $anon_1ec() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:131)
+    '        $anon_1eb() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:121)
+    '        $anon_325(testsuite As Dynamic) As Void (pkg:/source/rooibos/TestRunner.brs:191)
+    '        $anon_322() As Dynamic (pkg:/source/rooibos/TestRunner.brs:72)
+    '        rooibos_init(testscenename As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
+    '        main(args As Dynamic) As Dynamic (pkg:/source/Main.brs:2)
+    '
+    '    at (file:///Users/chris/roku/rooibos/tests/src/source/FailedAssertion.spec.bs:15)
+    '
+    '    2) Rooibos failed assertion tests
+    '        tests AssertTrue fail
+    '            AssertTrue with message 0:
+    '
+    '    AssertionError: expected "false (Boolean)" to be true (Boolean)
+    '      + expected - actual
+    '
+    '      -false (Boolean)
+    '      +true (Boolean)
+    '
+    '    params at (file:///Users/chris/roku/rooibos/tests/src/source/FailedAssertion.spec.bs:23)
+    '    assertion at (file:///Users/chris/roku/rooibos/tests/src/source/FailedAssertion.spec.bs:31)
+    '
     sub logFailures(testGroup)
       for each test in testGroup.tests
         if test.result.isFail
@@ -130,6 +179,20 @@ namespace rooibos
       end for
     end sub
 
+    ' Returns a string representation of the stack trace
+    ' example:
+    '    Error: some error
+    '        $anon_6c() As Dynamic (pkg:/source/FailedAssertion.spec.brs:11)
+    '        $anon_303() As Dynamic (pkg:/source/rooibos/Test.brs:45)
+    '        $anon_1f2(test As Object) As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:243)
+    '        $anon_30a() As Dynamic (pkg:/source/rooibos/TestGroup.brs:88)
+    '        $anon_309() As Dynamic (pkg:/source/rooibos/TestGroup.brs:68)
+    '        $anon_1ec() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:131)
+    '        $anon_1eb() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:121)
+    '        $anon_325(testsuite As Dynamic) As Void (pkg:/source/rooibos/TestRunner.brs:191)
+    '        $anon_322() As Dynamic (pkg:/source/rooibos/TestRunner.brs:72)
+    '        rooibos_init(testscenename As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
+    '        main(args As Dynamic) As Dynamic (pkg:/source/Main.brs:2)
     function getStackTrace(error) as string
       output = `${error.message}\n`
 
@@ -143,14 +206,20 @@ namespace rooibos
       return output
     end function
 
+    ' Returns a unified diff string based on the actual and expected string values
+    ' example:
+    '      + expected - actual
+    '
+    '      -0 (Integer)
+    '      +true (Boolean)
     function unifiedDiff(actual, expected)
       cleanUp = function(line, m)
         indent = "      "
         if line.left(1) = "+"
-          return indent + m.colorLines("diff added", line)
+          return indent + m.colorLines(rooibos.reports.mocha.colors.diffAdded, line)
         end if
         if line.left(1) = "-"
-          return indent + m.colorLines("diff removed", line)
+          return indent + m.colorLines(rooibos.reports.mocha.colors.diffRemoved, line)
         end if
         if CreateObject("roRegex", "@@", "").isMatch(line)
           return "--"
@@ -164,7 +233,7 @@ namespace rooibos
       msg = m.createPatch("string", actual, expected)
       lines = msg.split(chr(10)).slice(5)
 
-      final = chr(10) + "      " + m.colorLines("diff added", "+ expected") + " " + m.colorLines("diff removed", "- actual")
+      final = chr(10) + "      " + m.colorLines(rooibos.reports.mocha.colors.diffAdded, "+ expected") + " " + m.colorLines(rooibos.reports.mocha.colors.diffRemoved, "- actual")
       final += chr(10) + chr(10)
 
       cleanLines = []
@@ -178,7 +247,8 @@ namespace rooibos
       return final + cleanLines.join(chr(10))
     end function
 
-    function colorLines(name, targetString)
+    ' Applies Asci colors to each line of a string based on the supplied color type
+    function colorLines(name as dynamic, targetString as string) as string
       lines = targetString.split(chr(10))
 
       for i = 0 to lines.count() - 1
@@ -188,39 +258,42 @@ namespace rooibos
       return lines.join(chr(10))
     end function
 
+    ' Applies Asci colors the supplied of a string based on the supplied color type
     function colors(colorType, targetString)
-      colors = {
-        pass: 90,
-        fail: 31,
-        "bright pass": 92,
-        "bright fail": 91,
-        "bright yellow": 93,
-        pending: 36,
-        suite: 0,
-        "error title": 0,
-        "error message": 31,
-        "error stack": 90,
-        checkmark: 32,
-        fast: 90,
-        medium: 33,
-        slow: 31,
-        green: 32,
-        light: 90,
-        "diff gutter": 90,
-        "diff added": 32,
-        "diff removed": 31,
-        "diff added inline": "30;42",
-        "diff removed inline": "30;41"
-      }
+      ' colors = {
+      '   pass: 90,
+      '   fail: 31,
+      '   "bright pass": 92,
+      '   "bright fail": 91,
+      '   "bright yellow": 93,
+      '   pending: 36,
+      '   suite: 0,
+      '   "error title": 0,
+      '   "error message": 31,
+      '   "error stack": 90,
+      '   checkmark: 32,
+      '   fast: 90,
+      '   medium: 33,
+      '   slow: 31,
+      '   green: 32,
+      '   light: 90,
+      '   "diff gutter": 90,
+      '   "diff added": 32,
+      '   "diff removed": 31,
+      '   "diff added inline": "30;42",
+      '   "diff removed inline": "30;41"
+      ' }
 
       if m.colorizeOutput
-        return chr(27) + "[" + colors[colorType].toStr() + "m" + targetString + chr(27) + "[0m"
+        return chr(27) + "[" + colorType + "m" + targetString + chr(27) + "[0m"
+        ' return chr(27) + "[" + colors[colorType].toStr() + "m" + targetString + chr(27) + "[0m"
         ' return "\u001b[" + colors[colorType].toStr() + "m" + targetString + "\u001b[0m"
       else
         return targetString
       end if
     end function
 
+    ' Creates a patch file string based on the the differences of the two supplied strings
     function createPatch(fileName, oldStr, newStr)
       result = m.structuredPatch(fileName, fileName, oldStr, newStr, invalid, invalid, {
         context: 4,
@@ -232,6 +305,7 @@ namespace rooibos
       return invalid
     end function
 
+    ' Generate a structured patch object from two strings
     function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options)
       if options = invalid
         options = {}
@@ -246,6 +320,7 @@ namespace rooibos
       return m.diffLinesResultToPatch(m.diffLines(oldStr, newStr, options), oldFileName, newFileName, oldHeader, newHeader, options)
     end function
 
+    ' Diff two sets of strings, comparing them line by line
     function diffLines(oldStr, newStr, callback)
       lineDiff = rooibos.reports.mocha.new_lineDiff()
 
@@ -258,6 +333,7 @@ namespace rooibos
       })
     end function
 
+    ' Convert a diff result into a patch
     function diffLinesResultToPatch(diff, oldFileName, newFileName, oldHeader, newHeader, options)
       ' STEP 1: Build up the patch with no "\ No newline at end of file" lines and with the arrays
       '         of lines containing trailing newline characters. We'll tidy up later...
@@ -390,6 +466,7 @@ namespace rooibos
       end function)
     end function
 
+    ' Return a unified patch file contents from a structured patch
     function formatPatch(diff, _ = invalid)
       if type(diff) = "roArray"
         return rooibos.reports.mocha.arrayMap(diff, m.formatPatch).join(chr(10))
@@ -436,6 +513,30 @@ namespace rooibos
 
   namespace reports
     namespace mocha
+      enum colors
+        pass = "90"
+        fail = "31"
+        brightPass = "92"
+        brightFail = "91"
+        brightYellow = "93"
+        pending = "36"
+        suite = "0"
+        errorTitle = "0"
+        errorMessage = "31"
+        errorStack = "90"
+        checkmark = "32"
+        fast = "90"
+        medium = "33"
+        slow = "31"
+        green = "32"
+        light = "90"
+        diffGutter = "90"
+        diffAdded = "32"
+        diffRemoved = "31"
+        diffAddedInline = "30;42"
+        diffRemovedInline = "30;41"
+      end enum
+
       function buildValues(diff, lastComponent, newString, oldString, useLongestToken)
         ' First we convert our linked list of components in reverse order to an
         ' array in the right order:
