@@ -36,7 +36,7 @@
     "dependencies": {
         "roku-debug": "^0.21.10",
         "roku-deploy": "^3.12.1",
-        "rooibospromises": "npm:@rokucommunity/promises@^0.5.0",
+        "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
         "source-map": "^0.7.3",
         "undent": "^0.1.0",
         "vscode-languageserver": "~6.1.1",
