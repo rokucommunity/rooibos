@@ -336,7 +336,9 @@ namespace rooibos.common
       end if
 
       text = "{" + chr(10)
-      for each key in input
+      keys = input.keys()
+      keys.sort()
+      for each key in keys
         if rooibos.common.canSafelyIterateAAKey(input, key)
           text = text + string(indention + 1, indentChr) + formatJson(key) + ": " + rooibos.common.asMultilineString(input[key], includeType, indention + 1) + "," + chr(10)
         end if
