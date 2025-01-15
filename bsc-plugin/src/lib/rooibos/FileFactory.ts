@@ -26,8 +26,8 @@ export class FileFactory {
             }
         }
 
-        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, '/source/CodeCoverage.xml'), 'utf8');
-        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, '/source/CodeCoverage.brs'), 'utf8');
+        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, '/components/rooibos/CodeCoverage.xml'), 'utf8');
+        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, '/source/rooibos/CodeCoverage.brs'), 'utf8');
     }
 
     private frameworkFileNames = [
@@ -79,8 +79,8 @@ export class FileFactory {
         }
 
         let entry = {
-            src: s`${this.options.frameworkSourcePath}/RooibosScene.xml`,
-            dest: s`${this.targetCompsPath}/RooibosScene.xml`
+            src: s`${this.options.frameworkSourcePath}/components/RooibosScene.xml`,
+            dest: s`${this.targetCompsPath}/components/RooibosScene.xml`
         };
         this.addedFrameworkFiles.push(
             program.setFile(entry, this.createTestXML('RooibosScene', 'Scene'))
