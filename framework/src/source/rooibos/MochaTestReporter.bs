@@ -60,7 +60,16 @@ namespace rooibos
         params = " " + formatJson(rawParams)
       end if
 
-      print tab(4) m.colorLines(symbolColor, symbol) + " " + m.colorLines(lineColor, test.name + params)
+      duration = ""
+      if test.result.time > test.slow
+        duration = m.colorLines(rooibos.reporters.mocha.colors.slow, ` (${test.result.time}ms)`)
+      else if test.result.time > test.slow / 2
+        duration = m.colorLines(rooibos.reporters.mocha.colors.medium, ` (${test.result.time}ms)`)
+      ' else if test.result.time > slow / 4
+      '   duration = m.colorLines(rooibos.reporters.mocha.colors.fast, ` (${test.result.time}ms)`)
+      end if
+
+      print tab(4) m.colorLines(symbolColor, symbol) + " " + m.colorLines(lineColor, test.name + params) + duration
     end sub
 
     ' override function onTestGroupComplete(event as rooibos.TestReporterOnTestGroupCompleteEvent)

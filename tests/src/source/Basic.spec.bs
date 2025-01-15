@@ -55,6 +55,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("times out")
+    @slow(150)
     function _()
       item = { "id": "item" }
 

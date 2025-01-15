@@ -448,6 +448,7 @@ describe('RooibosPlugin', () => {
                 class ATest extends rooibos.BaseTestSuite
                     @describe("groupA")
                     @it("is test1")
+                    @slow(1000)
                     function Test_3()
                     end function
                 end class
@@ -523,9 +524,10 @@ describe('RooibosPlugin', () => {
                                             isIgnored: false
                                             isAsync: false
                                             asyncTimeout: 2000
+                                            slow: 1000
                                             isParamTest: false
                                             name: "is test1"
-                                            lineNumber: 7
+                                            lineNumber: 8
                                             paramLineNumber: 0
                                             assertIndex: 0
                                             assertLineNumberMap: {}
