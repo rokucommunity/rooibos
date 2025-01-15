@@ -33,10 +33,4 @@ export interface RooibosConfig {
     reporters?: string[];
     keepAppOpen?: boolean;
     testSceneName?: string;
-
-    /**
-     * The path to the folder where the rooibos framework roku files reside.
-     * @default `dist/lib/framework`
-     */
-    frameworkSourcePath?: string;
 }

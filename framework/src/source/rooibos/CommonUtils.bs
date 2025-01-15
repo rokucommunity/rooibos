@@ -1018,13 +1018,13 @@ namespace rooibos.common
 
   sub logDebug(value)
     #if ROOIBOS_DEBUG_LOGS
-      ? "[Rooibos Debug]: "value
+      ? "[Rooibos Debug]: " value
     #end if
   end sub
 
   sub logTrace(value)
     #if ROOIBOS_TRACE_LOGS
-      ? "[Rooibos Trace]: "value
+      ? "[Rooibos Trace]: " value
     #end if
   end sub
 

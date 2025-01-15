@@ -142,7 +142,6 @@ namespace rooibos
       m.testTimer.mark()
       if m.currentTest = invalid
         rooibos.common.logTrace("All tests are finished")
-        'finished
         m.finishAsyncTests()
       else
         test = m.currentTest
