@@ -3,6 +3,7 @@ import { standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
+import * as fastGlob from 'fast-glob';
 import type { TestSuite } from './TestSuite';
 
 export class FileFactory {
@@ -18,15 +19,15 @@ export class FileFactory {
         if (!this.options.frameworkSourcePath) {
             if (__filename.endsWith('.ts')) {
                 //load the files directly from their source location. (i.e. the plugin is running as a typescript file from within ts-node)
-                this.options.frameworkSourcePath = s`${__dirname}/../../../../framework/src/source`;
+                this.options.frameworkSourcePath = s`${__dirname}/../../../../framework/src`;
             } else {
                 //load the framework files from the dist folder (i.e. the plugin is running as a node_module)
                 this.options.frameworkSourcePath = s`${__dirname}/../framework`;
             }
         }
 
-        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.xml'), 'utf8');
-        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.brs'), 'utf8');
+        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, '/source/CodeCoverage.xml'), 'utf8');
+        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, '/source/CodeCoverage.brs'), 'utf8');
     }
 
     private frameworkFileNames = [
@@ -53,11 +54,25 @@ export class FileFactory {
 
     public addFrameworkFiles(program: Program) {
         this.addedFrameworkFiles = [];
-        for (let fileName of this.frameworkFileNames) {
-            let sourcePath = path.resolve(path.join(this.options.frameworkSourcePath, `${fileName}.bs`));
-            let fileContents = fs.readFileSync(sourcePath, 'utf8');
-            let destPath = path.join(this.targetPath, `${fileName}.bs`);
-            let entry = { src: sourcePath, dest: destPath };
+        let globedFiles = fastGlob.sync([
+            '**/*.{bs,brs,xml}',
+            '!**/bslib.brs',
+            '!**/manifest',
+            '!**/CodeCoverage.{brs,xml}',
+            '!**/RooibosScene.xml'
+        ], {
+            cwd: this.options.frameworkSourcePath,
+            absolute: false,
+            followSymbolicLinks: true,
+            onlyFiles: true
+        });
+
+        console.log('globedFiles', globedFiles);
+
+        for (let filePath of globedFiles) {
+            let sourcePath = path.resolve(this.options.frameworkSourcePath, filePath);
+            let fileContents = fs.readFileSync(sourcePath, 'utf8').toString();
+            let entry = { src: sourcePath, dest: filePath };
             this.addedFrameworkFiles.push(
                 program.setFile(entry, fileContents)
             );
