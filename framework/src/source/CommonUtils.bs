@@ -1018,7 +1018,7 @@ namespace rooibos.common
 
   sub logDebug(value)
     #if ROOIBOS_DEBUG_LOGS
-      ? "[Rooibos Debug]: "value
+      ? "[Rooibos Debug]: " value
     #end if
   end sub
 
