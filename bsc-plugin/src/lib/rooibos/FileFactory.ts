@@ -9,25 +9,19 @@ import type { TestSuite } from './TestSuite';
 export class FileFactory {
     private coverageComponentXmlTemplate;
     private coverageComponentBrsTemplate;
+    private frameworkSourcePath: string;
 
-    constructor(
-        private options?: {
-            frameworkSourcePath?: string;
-        }
-    ) {
-        this.options = this.options ?? {};
-        if (!this.options.frameworkSourcePath) {
-            if (__filename.endsWith('.ts')) {
-                //load the files directly from their source location. (i.e. the plugin is running as a typescript file from within ts-node)
-                this.options.frameworkSourcePath = s`${__dirname}/../../../../framework/src`;
-            } else {
-                //load the framework files from the dist folder (i.e. the plugin is running as a node_module)
-                this.options.frameworkSourcePath = s`${__dirname}/../framework`;
-            }
+    constructor() {
+        if (__filename.endsWith('.ts')) {
+            //load the files directly from their source location. (i.e. the plugin is running as a typescript file from within ts-node)
+            this.frameworkSourcePath = s`${__dirname}/../../../../framework/src`;
+        } else {
+            //load the framework files from the dist folder (i.e. the plugin is running as a node_module)
+            this.frameworkSourcePath = s`${__dirname}/../framework`;
         }
 
-        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, '/components/rooibos/CodeCoverage.xml'), 'utf8');
-        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, '/source/rooibos/CodeCoverage.brs'), 'utf8');
+        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.frameworkSourcePath, '/components/rooibos/CodeCoverage.xml'), 'utf8');
+        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.frameworkSourcePath, '/source/rooibos/CodeCoverage.brs'), 'utf8');
     }
 
     public addedSourceFrameworkFilePaths: string[] = [];
@@ -42,7 +36,7 @@ export class FileFactory {
             '!**/CodeCoverage.{brs,xml}',
             '!**/RooibosScene.xml'
         ], {
-            cwd: this.options.frameworkSourcePath,
+            cwd: this.frameworkSourcePath,
             absolute: false,
             followSymbolicLinks: true,
             onlyFiles: true
@@ -54,7 +48,7 @@ export class FileFactory {
                 // to be imported by node test components
                 this.addedSourceFrameworkFilePaths.push(filePath);
             }
-            let sourcePath = path.resolve(this.options.frameworkSourcePath, filePath);
+            let sourcePath = path.resolve(this.frameworkSourcePath, filePath);
             let fileContents = fs.readFileSync(sourcePath, 'utf8').toString();
             let entry = { src: sourcePath, dest: filePath };
             this.addedFrameworkFiles.push(
@@ -63,7 +57,7 @@ export class FileFactory {
         }
 
         let entry = {
-            src: s`${this.options.frameworkSourcePath}/components/RooibosScene.xml`,
+            src: s`${this.frameworkSourcePath}/components/RooibosScene.xml`,
             dest: s`components/rooibos/RooibosScene.xml`
         };
         this.addedFrameworkFiles.push(
