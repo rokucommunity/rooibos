@@ -1024,7 +1024,7 @@ namespace rooibos.common
 
   sub logTrace(value)
     #if ROOIBOS_TRACE_LOGS
-      ? "[Rooibos Trace]: "value
+      ? "[Rooibos Trace]: " value
     #end if
   end sub
 
