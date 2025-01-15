@@ -589,6 +589,21 @@ namespace tests
 
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertInvalid")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes literal invalid")
+    function _()
+      m.assertInvalid(invalid)
+    end function
+
+    @it("passes roInvalid from parseJson")
+    function _()
+      result = parseJson(formatJson({ a: 1, b: "test", c: createObject("roTimespan") }))
+      m.assertInvalid(result)
+    end function
+
     'ASSERTIONS TO WRITE TESTS FOR!
 
     'This is coming soon!
