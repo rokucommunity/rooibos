@@ -1,0 +1,37 @@
+namespace tests
+  @async(1000)
+  @SGNode("NodeExample")
+  @suite
+  class NodePromisesTests extends rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		@describe("rooibos.promises.chain()")
+		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+		@async
+		@it("example using rooibos.promise.chain")
+		sub _()
+			context = {
+				thenCount: 0
+				catchCount: 0
+				finallyCount: 0
+			}
+
+			rooibos.promises.chain(rooibos.promises.resolve(1), context).then(sub(result, context)
+				context.thenCount++
+				m.testSuite.assertEqual(result, 1)
+			end sub).catch(sub(error, context)
+				context.catchCount++
+				m.testSuite.fail("should not get here")
+			end sub).finally(sub(context)
+				context.finallyCount++
+				m.testSuite.assertEqual(context, {
+					thenCount: 1
+					catchCount: 0
+					finallyCount: 1
+				})
+				m.testSuite.done()
+			end sub)
+		end sub
+  end class
+end namespace
