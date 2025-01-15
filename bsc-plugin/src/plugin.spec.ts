@@ -30,7 +30,6 @@ describe('RooibosPlugin', () => {
         program.plugins.add(plugin);
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate(builder);
-        plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
         plugin.afterProgramCreate(program);
     }
 
