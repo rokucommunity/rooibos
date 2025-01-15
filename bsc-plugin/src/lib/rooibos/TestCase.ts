@@ -8,6 +8,7 @@ export class TestCase {
         this.isSolo = isSolo;
         this.isAsync = annotation.isAsync;
         this.asyncTimeout = annotation.asyncTimeout;
+        this.slow = annotation.slow;
         this.funcName = funcName;
         this.isIgnored = isIgnored;
         this.name = name;
@@ -30,6 +31,7 @@ export class TestCase {
     public isParamTest: boolean;
     public isAsync: boolean;
     public asyncTimeout: number;
+    public slow: number;
     public name: string;
     public lineNumber: number;
     public paramLineNumber: number;
@@ -50,6 +52,7 @@ export class TestCase {
           isIgnored: ${this.isIgnored}
           isAsync: ${this.isAsync}
           asyncTimeout: ${this.asyncTimeout || 2000}
+          slow: ${this.slow}
           isParamTest: ${this.isParamTest}
           name: ${sanitizeBsJsonString(this.name)}
           lineNumber: ${this.lineNumber + 2}

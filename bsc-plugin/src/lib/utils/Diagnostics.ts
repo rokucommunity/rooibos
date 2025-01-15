@@ -263,3 +263,12 @@ export function diagnosticNoStagingDir(file: BscFile) {
     );
 }
 
+export function diagnosticSlowAnnotationRequiresNumber(file: BrsFile, annotation: AnnotationExpression) {
+    addDiagnosticForAnnotation(
+        file,
+        2222,
+        `Value for @slow must be a number in milliseconds`,
+        annotation
+    );
+}
+
