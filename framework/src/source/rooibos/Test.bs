@@ -19,9 +19,13 @@ namespace rooibos
 
     public result = invalid
 
-    function new(testGroup, data)
+    function new(testGroup, data, testSuite = invalid)
       m.testGroup = testGroup
-      m.testSuite = testGroup.testSuite
+      if testSuite <> invalid
+        m.testSuite = testSuite
+      else
+        m.testSuite = testGroup.testSuite
+      end if
       m.isSolo = data.isSolo
       m.noCatch = data.noCatch
       m.funcName = data.funcName

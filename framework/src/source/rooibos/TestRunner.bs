@@ -304,8 +304,7 @@ namespace rooibos
         realGroup.tests = []
         for testDataIndex = 0 to group.testsData.count() - 1
           testData = group.testsData[testDataIndex]
-          realTest = new rooibos.Test(m, testData)
-          realTest.testSuite = testSuite
+          realTest = new rooibos.Test(m, testData, testSuite)
           realGroup.tests.push(realTest)
           test = group.tests[testDataIndex]
           realTest.result.merge(test.result)
