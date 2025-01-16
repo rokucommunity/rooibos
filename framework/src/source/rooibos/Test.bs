@@ -54,46 +54,82 @@ namespace rooibos
     end function
 
     function run()
-      rooibosTimer = createObject("roTimespan")
-      rooibosTimer.mark()
+      m.rooibosTimer = createObject("roTimespan")
+      m.rooibosTimer.mark()
 
       if m.isParamTest
-        m.runParamsTest()
+        promise = m.runParamsTest()
       else
-        m.testSuite[m.funcName]()
+        promise = m.testSuite[m.funcName]()
       end if
 
-      m.result.time = rooibosTimer.totalMilliseconds()
+      if rooibos.promises.isPromise(promise)
+        if m.differed = invalid
+          m.differed = rooibos.promises.create()
+        end if
 
+        rooibos.promises.chain(promise, m).then(sub(result, m)
+          rooibos.promises.resolve(result, m.differed)
+        end sub).catch(sub(error, m)
+          rooibos.promises.reject(error, m.differed)
+        end sub)
+      else if m.testSuite.isNodeTest
+        rooibos.promises.resolve(true, m.differed)
+      end if
+
+      if m.differed <> invalid
+        rooibos.promises.chain(m.differed, m).then(sub(result, m)
+          m.result.time = m.rooibosTimer.totalMilliseconds()
+          rooibos.promises.resolve(result, m.differed)
+        end sub).catch(sub(error, m)
+          m.result.time = m.rooibosTimer.totalMilliseconds()
+          rooibos.promises.reject(error, m.differed)
+        end sub)
+
+        rooibos.promises.internal.delay(sub(m)
+          if not rooibos.promises.isComplete(m.deferred)
+            try
+              throw `test execution exceeded ${m.asyncTimeout}ms`
+            catch error
+              rooibos.promises.reject(error, m.differed)
+            end try
+          end if
+        end sub, m, m.asyncTimeout / 1000)
+      else
+        m.result.time = m.rooibosTimer.totalMilliseconds()
+      end if
+
+      m.result.time = m.rooibosTimer.totalMilliseconds()
+      return m.differed
     end function
 
     function runParamsTest()
       testParams = m.getTestParams()
 
       if m.expectedNumberOfParams = 1
-        m.testSuite[m.funcName](testParams[0])
+        return m.testSuite[m.funcName](testParams[0])
       else if m.expectedNumberOfParams = 2
-        m.testSuite[m.funcName](testParams[0], testParams[1])
+        return m.testSuite[m.funcName](testParams[0], testParams[1])
       else if m.expectedNumberOfParams = 3
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2])
       else if m.expectedNumberOfParams = 4
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3])
       else if m.expectedNumberOfParams = 5
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4])
       else if m.expectedNumberOfParams = 6
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5])
       else if m.expectedNumberOfParams = 7
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6])
       else if m.expectedNumberOfParams = 8
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7])
       else if m.expectedNumberOfParams = 9
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8])
       else if m.expectedNumberOfParams = 10
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9])
       else if m.expectedNumberOfParams = 11
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10])
       else if m.expectedNumberOfParams = 12
-        m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10], testParams[11])
+        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10], testParams[11])
       else if m.expectedNumberOfParams > 12
         m.testSuite.fail("Test case had more than 12 params. Max of 12 params is supported")
       end if

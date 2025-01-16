@@ -69,10 +69,10 @@ namespace rooibos
       m.testRunner = m.testSuite.testRunner
       m.notifyReportersOnTestGroupBegin()
       m.testSuite.setTestTimer(0)
-      if m.testSuite.isAsync = true
+      if m.testSuite.isNodeTest = true
         rooibos.common.logTrace("THIS GROUP IS ASYNC")
         m.runAsync()
-        return false
+        return m.differed
       else
         rooibos.common.logTrace("THIS GROUP IS SYNC")
         m.runSync()
@@ -153,37 +153,38 @@ namespace rooibos
         if test.isIgnored
           m.notifyReportersOnTestBegin(test)
           m.testSuite.runTest(test)
-          m.testRunner.top.rooibosTestFinished = true
           m.onAsyncTestComplete()
           return invalid
         end if
 
-        m.testRunner.top.rooibosTestFinished = false
         isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
         if isOk
-          'TODO - set a timeout here
-          if test.isAsync <> true
-            rooibos.common.logDebug("Executing test synchronously")
-            m.notifyReportersOnTestBegin(test)
-            m.testSuite.runTest(test)
-            m.testRunner.top.rooibosTestFinished = true
-            m.onAsyncTestComplete()
-          else
-            m.testRunner.top.observeFieldScoped("rooibosTestFinished", "rooibos_onTestComplete")
-            if test.isAsync = true
-              m.testSuite.setTestTimer(test.asyncTimeout)
-            end if
-            m.notifyReportersOnTestBegin(test)
-            m.testSuite.runTest(test)
+          threadInfo = m.testRunner.top.threadInfo()
+          print threadInfo.currentThread
+          print threadInfo.node
+          m.notifyReportersOnTestBegin(test)
 
-            if test.result.isFail
-              rooibos.common.logTrace("Test failed before any async code could be executed")
-              m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
-              m.testRunner.top.rooibosTestFinished = true
-              m.onAsyncTestComplete()
-            end if
+          m.testSuite.runTest(test)
+          if m.differed = invalid
+            m.differed = rooibos.promises.create()
           end if
 
+          rooibos.common.logDebug("Waiting on differed test results")
+
+          rooibos.promises.chain(test.differed, { self: m, test: test }).then(function(_, context)
+            rooibos.common.logDebug("Promise resolved")
+            context.self.testSuite.done()
+          end function).catch(function(error, context)
+            rooibos.common.logDebug("Promise rejected")
+            if rooibos.common.isAssociativeArray(error) and not error.isEmpty() and rooibos.common.isArray(error.backtrace) and not error.backtrace.isEmpty() and rooibos.common.isBoolean(error.rethrown)
+              context.self.testSuite.failCrash(error)
+            else
+              context.self.testSuite.fail("Test failed due to promise rejection", context.self.currentTest.lineNumber)
+            end if
+            context.self.testSuite.done()
+          end function).finally(function(context)
+            context.self.onAsyncTestComplete()
+          end function)
         else
           rooibos.common.logTrace("Error running test before each function")
           m.isTestFailedDueToEarlyExit = true
@@ -196,10 +197,6 @@ namespace rooibos
       rooibos.common.logTrace("++ CURRENT TEST COMPLETED")
       m.notifyReportersOnTestComplete(m.currentTest)
       m.runSuiteFunction(m.afterEachFunctionName, "afterEach", m.currentTest)
-
-      m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
-
-      m.currentTest.result.time = m.testTimer.totalMilliseconds()
       m.stats.appendTestResult(m.currentTest.result)
 
       if m.stats.hasFailures and m.testSuite.isFailingFast
@@ -213,8 +210,6 @@ namespace rooibos
     end function
 
     private function finishAsyncTests()
-      m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
-      m.testSuite.setTestTimer(0)
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
       rooibos.common.logTrace("Indicating test suite is done")
       ' m.testRunner.top.addFields({ asyncRooibosTestResult: {
@@ -223,7 +218,7 @@ namespace rooibos
       '   }
       ' })
       m.notifyReportersOnTestGroupComplete()
-      m.testSuite.testGroupDone()
+      rooibos.promises.resolve(true, m.differed)
     end function
 
     private function runSuiteFunction(methodName, defaultMethodName, test = invalid)

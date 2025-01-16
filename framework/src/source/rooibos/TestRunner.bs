@@ -259,19 +259,17 @@ namespace rooibos
             testSuite.groups.push(group)
           end for
 
-          if testSuite.isAsync = true
-            if node.rooibosSuiteFinished = false
-              timeout = testSuite.asyncTimeout = invalid ? 60000 : testSuite.asyncTimeout
+          if node.rooibosSuiteFinished = false
+            timeout = testSuite.asyncTimeout = invalid ? 60000 : testSuite.asyncTimeout
 
-              rooibos.common.logDebug(`Waiting max ${timeout}ms for the test suite to finish`)
-              t = createObject("roTimespan")
-              while node.rooibosSuiteFinished = false
-                m.wait(10)
-                if t.totalMilliseconds() >= timeout
-                  exit while
-                end if
-              end while
-            end if
+            rooibos.common.logDebug(`Waiting max ${timeout}ms for the test suite to finish`)
+            t = createObject("roTimespan")
+            while node.rooibosSuiteFinished = false
+              m.wait(10)
+              if t.totalMilliseconds() >= timeout
+                exit while
+              end if
+            end while
           end if
           nodeResults = node.asyncRooibosTestResult
           if nodeResults <> invalid
