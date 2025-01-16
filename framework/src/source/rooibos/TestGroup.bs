@@ -26,6 +26,7 @@ namespace rooibos
     nodeName = invalid
     testsData = invalid
     tests = []
+    public differed = invalid
 
     function new(testSuite, data)
       m.testSuite = testSuite
@@ -37,13 +38,17 @@ namespace rooibos
       m.isAsync = data.isAsync
       m.asyncTimeout = data.asyncTimeout
       m.testsData = data.testCases
-      m.isNodeTest = false
+      m.isNodeTest = testSuite.isNodeTest
       m.nodeName = invalid
       m.setupFunctionName = data.setupFunctionName
       m.tearDownFunctionName = data.tearDownFunctionName
       m.beforeEachFunctionName = data.beforeEachFunctionName
       m.afterEachFunctionName = data.afterEachFunctionName
       m.lineNumber = data.lineNumber
+
+      if m.isNodeTest
+        m.differed = rooibos.promises.create()
+      end if
 
       'bs:disable-next-line
       m.global = testSuite.global

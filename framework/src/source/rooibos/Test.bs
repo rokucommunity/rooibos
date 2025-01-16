@@ -10,6 +10,7 @@ namespace rooibos
     public paramLineNumber
     public testSuite = invalid
     public testGroup = invalid
+    public differed = invalid
 
     public rawParams
     public paramTestIndex
@@ -40,6 +41,10 @@ namespace rooibos
       m.paramTestIndex = data.paramTestIndex
       m.isParamTest = data.isParamTest
       m.expectedNumberOfParams = data.expectedNumberOfParams
+
+      if m.testSuite.isNodeTest
+        m.differed = rooibos.promises.create()
+      end if
 
       if m.isParamTest
         m.name = m.name + stri(m.paramTestIndex)

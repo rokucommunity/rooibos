@@ -32,6 +32,7 @@ namespace rooibos
     protected __stubId = -1
     protected __mockId = -1
     protected __mockTargetId = -1
+    public differed = invalid
 
     'special values
     protected invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
@@ -80,6 +81,11 @@ namespace rooibos
         m.nodeName = data.nodeName
         m.generatedNodeName = data.generatedNodeName
         m.isFailingFast = false
+
+        if m.isNodeTest
+          m.differed = rooibos.promises.create()
+        end if
+
         m.stats = new rooibos.Stats()
       end if
     end function

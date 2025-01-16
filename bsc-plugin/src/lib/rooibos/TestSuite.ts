@@ -138,6 +138,7 @@ export class TestSuite extends TestBlock {
       isSolo: ${this.isSolo}
       noCatch: ${this.annotation.noCatch}
       isIgnored: ${this.isIgnored}
+      isAsync: ${this.isAsync}
       pkgPath: "${this.pkgPath}"
       filePath: "${this.filePath}"
       lineNumber: ${this.classStatement.range.start.line + 1}
