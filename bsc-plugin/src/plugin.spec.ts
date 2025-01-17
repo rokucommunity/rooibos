@@ -488,6 +488,7 @@ describe('RooibosPlugin', () => {
                             isSolo: false
                             noCatch: false
                             isIgnored: false
+                            isAsync: false
                             pkgPath: "${s`source/test.spec.bs`}"
                             filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
                             lineNumber: 3
@@ -510,6 +511,7 @@ describe('RooibosPlugin', () => {
                                     name: "groupA"
                                     isSolo: false
                                     isIgnored: false
+                                    isAsync: false
                                     filename: "${s`source/test.spec.bs`}"
                                     lineNumber: "3"
                                     setupFunctionName: ""
