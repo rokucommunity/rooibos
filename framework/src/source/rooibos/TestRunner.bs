@@ -167,7 +167,6 @@ namespace rooibos
         m.currentTestSuite = testSuite
         testSuite.testRunner = m
         rooibos.common.logDebug("Running suite asynchronously!")
-        m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
         testSuite.run()
         return invalid
       else
@@ -238,12 +237,17 @@ namespace rooibos
         rooibos.common.logDebug(`+++++RUNNING NODE TEST${chr(10)}node type is ${testSuite.generatedNodeName}`)
 
         node = m.testScene.createChild(testSuite.generatedNodeName)
+        port = CreateObject("roMessagePort")
+        node.observeField("rooibosTestResult", port)
         ' Trigger test via observer so that thread ownership
         ' can be transferred to the render thread
         node.rooibosRunSuite = true
 
         'wait on the field
         if type(node) = "roSGNode"
+          event = wait(0, port)
+          nodeResults = event.getData()
+
           m.groups = []
           for each groupData in testSuite.groupsData
             'bs:disable-next-line
@@ -251,19 +255,6 @@ namespace rooibos
             testSuite.groups.push(group)
           end for
 
-          if node.rooibosSuiteFinished = false
-            timeout = testSuite.asyncTimeout = invalid ? 60000 : testSuite.asyncTimeout
-
-            rooibos.common.logDebug(`Waiting max ${timeout}ms for the test suite to finish`)
-            t = createObject("roTimespan")
-            while node.rooibosSuiteFinished = false
-              m.wait(10)
-              if t.totalMilliseconds() >= timeout
-                exit while
-              end if
-            end while
-          end if
-          nodeResults = node.asyncRooibosTestResult
           if nodeResults <> invalid
             testSuite.stats.merge(nodeResults.stats)
             m.mergeGroups(testSuite, nodeResults.groups)

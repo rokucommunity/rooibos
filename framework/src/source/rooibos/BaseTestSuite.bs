@@ -146,15 +146,6 @@ namespace rooibos
         end if
 
       end for
-
-      if m.isNodeTest and m.testRunner.top <> invalid
-        m.testRunner.top.addFields({ asyncRooibosTestResult: {
-            stats: m.stats
-            tests: m.tests
-            groups: m.groups
-          }
-        })
-      end if
       m.notifyReportersOnSuiteComplete()
     end function
 
@@ -218,12 +209,11 @@ namespace rooibos
     end function
 
     private function finishAsyncGroups()
-      m.testRunner.top.addFields({ asyncRooibosTestResult: {
-          stats: m.stats
-          tests: m.tests
-          groups: m.groups
-        }
-      })
+      m.testRunner.top.rooibosTestResult = {
+        stats: m.stats
+        tests: m.tests
+        groups: m.groups
+      }
       rooibos.common.logTrace("Indicating test suite is done")
       m.testSuiteDone()
     end function
