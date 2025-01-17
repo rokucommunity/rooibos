@@ -249,8 +249,11 @@ namespace rooibos
         rooibos.common.logDebug(`+++++RUNNING NODE TEST${chr(10)}node type is ${testSuite.generatedNodeName}`)
 
         node = m.testScene.createChild(testSuite.generatedNodeName)
-        'wait on the field
+        ' Trigger test via observer so that thread ownership
+        ' can be transferred to the render thread
+        node.rooibosRunSuite = true
 
+        'wait on the field
         if type(node) = "roSGNode"
           m.groups = []
           for each groupData in testSuite.groupsData

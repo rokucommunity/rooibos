@@ -219,6 +219,12 @@ export class RooibosSession {
         }
         let brsFile = this.fileFactory.addFile(program, suite.bsPkgPath, undent`
             function init()
+                m.top.addField("rooibosRunSuite", "boolean", false)
+                m.top.observeFieldScoped("rooibosRunSuite", "rooibosRunSuite")
+            end function
+
+            function rooibosRunSuite()
+                m.top.unobserveFieldScoped("rooibosRunSuite")
                 nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
                 m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
             end function
