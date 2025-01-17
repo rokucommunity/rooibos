@@ -105,11 +105,8 @@ namespace rooibos
       rooibos.promises.internal.delay(sub(m)
         if not rooibos.promises.isComplete(m.deferred)
           m.recordExecutionTime(m.asyncTimeout)
-          try
-            throw `test execution exceeded ${m.asyncTimeout}ms`
-          catch error
-            rooibos.promises.reject(error, m.deferred)
-          end try
+          m.testSuite.fail(`Test execution exceeded ${m.asyncTimeout}ms`)
+          rooibos.promises.resolve(invalid, m.deferred)
         end if
       end sub, m, m.asyncTimeout / 1000)
     end function

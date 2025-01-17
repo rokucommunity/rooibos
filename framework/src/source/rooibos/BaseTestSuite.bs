@@ -32,6 +32,8 @@ namespace rooibos
     protected __stubId = -1
     protected __mockId = -1
     protected __mockTargetId = -1
+    protected currentExecutionTime = 0
+    protected timedOut = false
     public deferred = invalid
 
     'special values
@@ -169,7 +171,6 @@ namespace rooibos
       m.currentGroupIndex++
       m.currentGroup = m.groups[m.currentGroupIndex]
       if m.currentGroup = invalid
-        m.setTestTimer(0)
         rooibos.common.logTrace("All groups are finished")
         'finished
         m.finishAsyncGroups()
@@ -177,7 +178,6 @@ namespace rooibos
         group = m.currentGroup
         group.run()
         if rooibos.promises.isPromise(group.deferred)
-          m.setTestTimer(m.asyncTimeout)
           rooibos.promises.onFinally(group.deferred, sub(context)
             context.self.onAsyncGroupComplete(context.group)
           end sub, { group: group, self: m })
@@ -218,21 +218,13 @@ namespace rooibos
       m.testSuiteDone()
     end function
 
-    private function setTestTimer(duration)
-      rooibos.common.logTrace(`SETTING TIMER FOR ${duration}`)
-      if m.testTimer = invalid
-        m.testTimer = createObject("roSGNode", "Timer")
+    ' calculate if the suite has timed out. Will return true if the suite flipped the timedOut flag
+    function isSuiteTimedOut()
+      if m.isNodeTest and m.asyncTimeout > 0 and m.currentExecutionTime >= m.asyncTimeout
+        m.timedOut = true
+        return true
       end if
-      if duration = 0
-        m.testTimer.unobserveFieldScoped("fire")
-        m.testTimer.control = "stop"
-      else
-        m.currentTimeout = duration
-        m.testTimer.observeFieldScoped("fire", "rooibos_onTestTimer")
-
-        m.testTimer.duration = duration / 1000.0
-        m.testTimer.control = "start"
-      end if
+      return false
     end function
 
     function runTest(test as rooibos.Test)
@@ -241,6 +233,14 @@ namespace rooibos
         m.currentResult.skip("Test is ignored")
         return invalid
       end if
+
+      ' Fail the test if the suite has timed out.
+      ' Currently, this will only happen if the suite is a node test.
+      if m.isNodeTest and m.timedOut
+        m.currentResult.fail("Suite test execution exceeded " + m.asyncTimeout.toStr() + "ms")
+        return invalid
+      end if
+
       m.currentResult.throwOnFailedAssertion = m.throwOnFailedAssertion
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
@@ -3148,19 +3148,8 @@ namespace rooibos
         end if
       end for
     end sub
-
   end class
 
-
-  function onGroupComplete()
-    rooibos.common.logTrace("++++++++ THE GROUP COMPLETED")
-    m.testRunner.currentTestSuite.onAsyncGroupComplete()
-  end function
-
-  function onTestTimer()
-    rooibos.common.logTrace("++++++++ TEST TIMED OUT")
-    m.testRunner.currentTestSuite.failBecauseOfTimeOut()
-  end function
 
   function getMocksByFunctionName()
     if m._rMocksByFunctionName = invalid
