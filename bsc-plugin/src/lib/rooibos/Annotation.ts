@@ -141,13 +141,18 @@ export class RooibosAnnotation {
                 isSolo = getAnnotationsOfType(AnnotationType.Solo).length > 0;
                 isIgnore = getAnnotationsOfType(AnnotationType.Ignore).length > 0;
 
+                for (const annotation of getAnnotationsOfType(AnnotationType.NodeTest)) {
+                    nodeName = annotation.getArguments()[0] as string;
+                }
+
                 for (const annotation of getAnnotationsOfType(AnnotationType.Async)) {
                     async = true;
                     asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : -1;
-                }
-
-                for (const annotation of getAnnotationsOfType(AnnotationType.NodeTest)) {
-                    nodeName = annotation.getArguments()[0] as string;
+                    if (nodeName === null) {
+                        // If the test is async, it must be a node test
+                        // Default to `Node` if no node is specified
+                        nodeName = 'Node';
+                    }
                 }
 
                 for (const annotation of getAnnotationsOfType(AnnotationType.Tags)) {
