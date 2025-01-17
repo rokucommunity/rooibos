@@ -168,7 +168,7 @@ namespace rooibos
           if not test.result.isCrash
             resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
 
-            if test.result.actual <> "" or test.result.expected <> ""
+            if (test.result.actual <> "" or test.result.expected <> "") and (test.result.actual <> test.result.expected)
               resultMessage += m.unifiedDiff(test.result.actual, test.result.expected)
             end if
 
