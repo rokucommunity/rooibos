@@ -32,7 +32,7 @@ namespace rooibos
     protected __stubId = -1
     protected __mockId = -1
     protected __mockTargetId = -1
-    public differed = invalid
+    public deferred = invalid
 
     'special values
     protected invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
@@ -83,7 +83,7 @@ namespace rooibos
         m.isFailingFast = false
 
         if m.isNodeTest
-          m.differed = rooibos.promises.create()
+          m.deferred = rooibos.promises.create()
         end if
 
         m.stats = new rooibos.Stats()
@@ -185,9 +185,9 @@ namespace rooibos
       else
         group = m.currentGroup
         group.run()
-        if rooibos.promises.isPromise(group.differed)
+        if rooibos.promises.isPromise(group.deferred)
           m.setTestTimer(m.asyncTimeout)
-          rooibos.promises.onFinally(group.differed, sub(context)
+          rooibos.promises.onFinally(group.deferred, sub(context)
             context.self.onAsyncGroupComplete(context.group)
           end sub, { group: group, self: m })
         else
@@ -258,7 +258,7 @@ namespace rooibos
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
           test.run()
-          if m.isAutoAssertingMocks = true and test.differed = invalid
+          if m.isAutoAssertingMocks = true and test.deferred = invalid
             m.AssertMocks()
             m.CleanMocks()
             m.CleanStubs()
@@ -269,14 +269,14 @@ namespace rooibos
         end try
       else
         test.run()
-        if m.isAutoAssertingMocks = true and test.differed = invalid
+        if m.isAutoAssertingMocks = true and test.deferred = invalid
           m.AssertMocks()
           m.CleanMocks()
           m.CleanStubs()
         end if
       end if
 
-      return test.differed
+      return test.deferred
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

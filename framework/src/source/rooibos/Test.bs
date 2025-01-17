@@ -10,7 +10,7 @@ namespace rooibos
     public paramLineNumber
     public testSuite = invalid
     public testGroup = invalid
-    public differed = invalid
+    public deferred = invalid
 
     public rawParams
     public paramTestIndex
@@ -43,7 +43,7 @@ namespace rooibos
       m.expectedNumberOfParams = data.expectedNumberOfParams
 
       if m.testSuite.isNodeTest
-        m.differed = rooibos.promises.create()
+        m.deferred = rooibos.promises.create()
       end if
 
       if m.isParamTest
@@ -64,26 +64,26 @@ namespace rooibos
       end if
 
       if rooibos.promises.isPromise(promise)
-        if m.differed = invalid
-          m.differed = rooibos.promises.create()
+        if m.deferred = invalid
+          m.deferred = rooibos.promises.create()
         end if
 
         rooibos.promises.chain(promise, m).then(sub(result, m)
-          rooibos.promises.resolve(result, m.differed)
+          rooibos.promises.resolve(result, m.deferred)
         end sub).catch(sub(error, m)
-          rooibos.promises.reject(error, m.differed)
+          rooibos.promises.reject(error, m.deferred)
         end sub)
       else if m.testSuite.isNodeTest
-        rooibos.promises.resolve(true, m.differed)
+        rooibos.promises.resolve(true, m.deferred)
       end if
 
-      if m.differed <> invalid
-        rooibos.promises.chain(m.differed, m).then(sub(result, m)
+      if m.deferred <> invalid
+        rooibos.promises.chain(m.deferred, m).then(sub(result, m)
           m.result.time = m.rooibosTimer.totalMilliseconds()
-          rooibos.promises.resolve(result, m.differed)
+          rooibos.promises.resolve(result, m.deferred)
         end sub).catch(sub(error, m)
           m.result.time = m.rooibosTimer.totalMilliseconds()
-          rooibos.promises.reject(error, m.differed)
+          rooibos.promises.reject(error, m.deferred)
         end sub)
 
         rooibos.promises.internal.delay(sub(m)
@@ -91,7 +91,7 @@ namespace rooibos
             try
               throw `test execution exceeded ${m.asyncTimeout}ms`
             catch error
-              rooibos.promises.reject(error, m.differed)
+              rooibos.promises.reject(error, m.deferred)
             end try
           end if
         end sub, m, m.asyncTimeout / 1000)

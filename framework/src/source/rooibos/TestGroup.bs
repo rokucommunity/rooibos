@@ -26,7 +26,7 @@ namespace rooibos
     nodeName = invalid
     testsData = invalid
     tests = []
-    public differed = invalid
+    public deferred = invalid
 
     function new(testSuite, data)
       m.testSuite = testSuite
@@ -47,7 +47,7 @@ namespace rooibos
       m.lineNumber = data.lineNumber
 
       if m.isNodeTest
-        m.differed = rooibos.promises.create()
+        m.deferred = rooibos.promises.create()
       end if
 
       'bs:disable-next-line
@@ -72,7 +72,7 @@ namespace rooibos
       if m.testSuite.isNodeTest = true
         rooibos.common.logTrace("THIS GROUP IS ASYNC")
         m.runAsync()
-        return m.differed
+        return m.deferred
       else
         rooibos.common.logTrace("THIS GROUP IS SYNC")
         m.runSync()
@@ -165,13 +165,13 @@ namespace rooibos
           m.notifyReportersOnTestBegin(test)
 
           m.testSuite.runTest(test)
-          if m.differed = invalid
-            m.differed = rooibos.promises.create()
+          if m.deferred = invalid
+            m.deferred = rooibos.promises.create()
           end if
 
-          rooibos.common.logDebug("Waiting on differed test results")
+          rooibos.common.logDebug("Waiting on deferred test results")
 
-          rooibos.promises.chain(test.differed, { self: m, test: test }).then(function(_, context)
+          rooibos.promises.chain(test.deferred, { self: m, test: test }).then(function(_, context)
             rooibos.common.logDebug("Promise resolved")
             context.self.testSuite.done()
           end function).catch(function(error, context)
@@ -179,7 +179,7 @@ namespace rooibos
             if rooibos.common.isAssociativeArray(error) and not error.isEmpty() and rooibos.common.isArray(error.backtrace) and not error.backtrace.isEmpty() and rooibos.common.isBoolean(error.rethrown)
               context.self.testSuite.failCrash(error)
             else
-              context.self.testSuite.fail("Test failed due to promise rejection", context.self.currentTest.lineNumber)
+              context.self.testSuite.fail("Test failed due to promise rejection")
             end if
             context.self.testSuite.done()
           end function).finally(function(context)
@@ -218,7 +218,7 @@ namespace rooibos
       '   }
       ' })
       m.notifyReportersOnTestGroupComplete()
-      rooibos.promises.resolve(true, m.differed)
+      rooibos.promises.resolve(true, m.deferred)
     end function
 
     private function runSuiteFunction(methodName, defaultMethodName, test = invalid)
