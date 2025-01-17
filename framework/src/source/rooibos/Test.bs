@@ -55,82 +55,122 @@ namespace rooibos
 
     function run()
       m.rooibosTimer = createObject("roTimespan")
-      m.rooibosTimer.mark()
 
       if m.isParamTest
+        m.rooibosTimer.mark()
         promise = m.runParamsTest()
       else
         promise = m.testSuite[m.funcName]()
       end if
 
       if rooibos.promises.isPromise(promise)
-        if m.deferred = invalid
-          m.deferred = rooibos.promises.create()
+        if m.testSuite.isNodeTest
+          m.markDoneWhenTestCompletes(promise)
+        else
+          throw "Can not return a promise from a non-node test"
         end if
-
-        rooibos.promises.chain(promise, m).then(sub(result, m)
-          rooibos.promises.resolve(result, m.deferred)
-        end sub).catch(sub(error, m)
-          rooibos.promises.reject(error, m.deferred)
-        end sub)
       else if m.testSuite.isNodeTest and not m.isAsync
+        ' The test is a node test and not async so we need to resolve the deferred
+        ' immediately
+        m.recordExecutionTime()
         rooibos.promises.resolve(true, m.deferred)
       end if
 
       if m.deferred <> invalid
-        rooibos.promises.chain(m.deferred, m).then(sub(result, m)
-          m.result.time = m.rooibosTimer.totalMilliseconds()
-          rooibos.promises.resolve(result, m.deferred)
-        end sub).catch(sub(error, m)
-          m.result.time = m.rooibosTimer.totalMilliseconds()
-          rooibos.promises.reject(error, m.deferred)
-        end sub)
-
-        rooibos.promises.internal.delay(sub(m)
-          if not rooibos.promises.isComplete(m.deferred)
-            try
-              throw `test execution exceeded ${m.asyncTimeout}ms`
-            catch error
-              rooibos.promises.reject(error, m.deferred)
-            end try
-          end if
-        end sub, m, m.asyncTimeout / 1000)
+        m.recordExecutionTimeWhenDone()
+        m.registerTimeout()
       else
-        m.result.time = m.rooibosTimer.totalMilliseconds()
+        m.recordExecutionTime()
       end if
 
-      m.result.time = m.rooibosTimer.totalMilliseconds()
       return m.differed
+    end function
+
+    ' Sets up a promise chain to link the deferred to the test promise results
+    ' and resolves or rejects the deferred based on the result of the test promise.
+    ' Also records the execution time of the test if not already recorded.
+    function markDoneWhenTestCompletes(testPromise)
+      rooibos.promises.chain(testPromise, m).then(sub(result, m)
+        m.recordExecutionTime()
+        rooibos.common.logDebug("Test promise resolved")
+        rooibos.promises.resolve(result, m.deferred)
+      end sub).catch(sub(error, m)
+        m.recordExecutionTime()
+        rooibos.common.logDebug("Test promise rejected")
+        rooibos.promises.reject(error, m.deferred)
+      end sub)
+    end function
+
+    function registerTimeout()
+      rooibos.promises.internal.delay(sub(m)
+        if not rooibos.promises.isComplete(m.deferred)
+          m.recordExecutionTime(m.asyncTimeout)
+          try
+            throw `test execution exceeded ${m.asyncTimeout}ms`
+          catch error
+            rooibos.promises.reject(error, m.deferred)
+          end try
+        end if
+      end sub, m, m.asyncTimeout / 1000)
+    end function
+
+    function recordExecutionTimeWhenDone()
+      rooibos.promises.chain(m.deferred, m).then(sub(result, m)
+        m.recordExecutionTime()
+        rooibos.promises.resolve(result, m.deferred)
+      end sub).catch(sub(error, m)
+        m.recordExecutionTime()
+        rooibos.promises.reject(error, m.deferred)
+      end sub)
+    end function
+
+    function recordExecutionTime(time = m.rooibosTimer.totalMilliseconds())
+      if m.result.time = -1
+        m.result.time = time
+      end if
     end function
 
     function runParamsTest()
       testParams = m.getTestParams()
 
       if m.expectedNumberOfParams = 1
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0])
       else if m.expectedNumberOfParams = 2
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1])
       else if m.expectedNumberOfParams = 3
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2])
       else if m.expectedNumberOfParams = 4
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3])
       else if m.expectedNumberOfParams = 5
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4])
       else if m.expectedNumberOfParams = 6
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5])
       else if m.expectedNumberOfParams = 7
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6])
       else if m.expectedNumberOfParams = 8
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7])
       else if m.expectedNumberOfParams = 9
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8])
       else if m.expectedNumberOfParams = 10
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9])
       else if m.expectedNumberOfParams = 11
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10])
       else if m.expectedNumberOfParams = 12
+        m.rooibosTimer.mark()
         return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10], testParams[11])
       else if m.expectedNumberOfParams > 12
+        m.rooibosTimer.mark()
         m.testSuite.fail("Test case had more than 12 params. Max of 12 params is supported")
       end if
     end function
