@@ -159,9 +159,6 @@ namespace rooibos
 
         isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
         if isOk
-          threadInfo = m.testRunner.top.threadInfo()
-          print threadInfo.currentThread
-          print threadInfo.node
           m.notifyReportersOnTestBegin(test)
 
           m.testSuite.runTest(test)
