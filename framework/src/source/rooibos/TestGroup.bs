@@ -209,11 +209,6 @@ namespace rooibos
     private function finishAsyncTests()
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
       rooibos.common.logTrace("Indicating test suite is done")
-      ' m.testRunner.top.addFields({ asyncRooibosTestResult: {
-      '     stats: m.stats
-      '     tests: m.tests
-      '   }
-      ' })
       m.notifyReportersOnTestGroupComplete()
       rooibos.promises.resolve(true, m.deferred)
     end function
