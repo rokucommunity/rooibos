@@ -1,5 +1,6 @@
 import * as path from 'path';
 import type { AstEditor, BrsFile, ClassStatement } from 'brighterscript';
+import { nodes } from 'brighterscript/dist/roku-types';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
 
@@ -8,6 +9,8 @@ import type { RooibosAnnotation } from './Annotation';
 import type { TestGroup } from './TestGroup';
 import { addOverriddenMethod, sanitizeBsJsonString } from './Utils';
 import type { RooibosSession } from './RooibosSession';
+
+const nativeNodeNames = Object.keys(nodes);
 
 /**
  * base of test suites and blocks..
@@ -124,7 +127,7 @@ export class TestSuite extends TestBlock {
         if (this.isNodeTest) {
             if (!this.nodeName) {
                 diagnosticNodeTestRequiresNode(this.file, this.annotation.annotation);
-            } else if (!this.file.program.getComponent(this.nodeName)) {
+            } else if (!this.file.program.getComponent(this.nodeName) && !nativeNodeNames.includes(this.nodeName.toLowerCase())) {
                 diagnosticNodeTestIllegalNode(this.file, this.annotation.annotation, this.nodeName);
             }
         }
