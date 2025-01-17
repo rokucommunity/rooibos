@@ -198,7 +198,6 @@ namespace rooibos
 
     private function onAsyncGroupComplete(group = invalid) as void
       rooibos.common.logTrace("++ CURRENT GROUP COMPLETED")
-      m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
 
       group = group = invalid ? m.currentGroup : group
       if group = invalid
@@ -219,8 +218,6 @@ namespace rooibos
     end function
 
     private function finishAsyncGroups()
-      m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
-
       m.testRunner.top.addFields({ asyncRooibosTestResult: {
           stats: m.stats
           tests: m.tests
@@ -3082,19 +3079,13 @@ namespace rooibos
       wait(delay, port)
     end function
 
-    function setAsync(isAsync as boolean)
-      rooibos.common.logTrace(`Setting current test to async ${isAsync}`)
-      m.top.rooibosTestIsAsync = isAsync
-    end function
-
     function done()
       rooibos.common.logTrace("Async test is complete")
       if m.isDoneCalled = false
         m.isDoneCalled = true
-        m.top.rooibosTestFinished = true
-        differed = m.currentGroup?.currentTest?.differed
-        if rooibos.promises.isPromise(differed)
-          rooibos.promises.resolve(true, m.currentGroup.currentTest.differed)
+        deferred = m.currentGroup?.currentTest?.deferred
+        if rooibos.promises.isPromise(deferred)
+          rooibos.promises.resolve(true, m.currentGroup.currentTest.deferred)
         end if
       else
         rooibos.common.logWarning("extra done call after test is done! Did you properly clean up your observers?")
@@ -3105,11 +3096,6 @@ namespace rooibos
       rooibos.common.logTrace("Async suite is complete")
       m.notifyReportersOnSuiteComplete()
       m.top.rooibosSuiteFinished = true
-    end function
-
-    function testGroupDone()
-      rooibos.common.logTrace("Async group is complete")
-      ' m.top.rooibosGroupFinished = true
     end function
 
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)

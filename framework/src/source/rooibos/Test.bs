@@ -73,7 +73,7 @@ namespace rooibos
         end sub).catch(sub(error, m)
           rooibos.promises.reject(error, m.deferred)
         end sub)
-      else if m.testSuite.isNodeTest
+      else if m.testSuite.isNodeTest and not m.isAsync
         rooibos.promises.resolve(true, m.deferred)
       end if
 

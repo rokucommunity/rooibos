@@ -159,9 +159,6 @@ namespace rooibos
         m.nodeContext.testRunner = m
         m.nodeContext.top.addFields({
           "rooibosSuiteFinished": false
-          "rooibosTestFinished": false
-          "rooibosTestIsAsync": false
-          "rooibosGroupFinished": false
         })
 
       end if
@@ -169,17 +166,10 @@ namespace rooibos
       if testSuite <> invalid
         m.currentTestSuite = testSuite
         testSuite.testRunner = m
-        if testSuite.isAsync = true
-          rooibos.common.logDebug("Running suite asynchronously!")
-          m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
-          testSuite.run()
-          return invalid
-        else
-          rooibos.common.logDebug("Running suite synchronously!")
-          testSuite.run()
-          return m.onTestSuiteComplete()
-        end if
-
+        rooibos.common.logDebug("Running suite asynchronously!")
+        m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
+        testSuite.run()
+        return invalid
       else
         rooibos.common.logError(`Could not create test suite ${nodeTestName}`)
       end if
@@ -215,7 +205,6 @@ namespace rooibos
           testSuite.run()
         end if
         m.stats.merge(testSuite.stats)
-
       end if
     end function
 
