@@ -73,7 +73,7 @@ namespace rooibos
         ' The test is a node test and not async so we need to resolve the deferred
         ' immediately
         m.recordExecutionTime()
-        rooibos.promises.resolve(true, m.deferred)
+        rooibos.promises.resolve(invalid, m.deferred)
       end if
 
       if m.deferred <> invalid
