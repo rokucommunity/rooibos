@@ -3075,7 +3075,7 @@ namespace rooibos
         m.isDoneCalled = true
         deferred = m.currentGroup?.currentTest?.deferred
         if rooibos.promises.isPromise(deferred)
-          rooibos.promises.resolve(true, m.currentGroup.currentTest.deferred)
+          rooibos.promises.resolve(true, deferred)
         end if
       else
         rooibos.common.logWarning("extra done call after test is done! Did you properly clean up your observers?")
