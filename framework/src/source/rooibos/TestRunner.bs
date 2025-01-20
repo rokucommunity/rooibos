@@ -162,7 +162,7 @@ namespace rooibos
       if testSuite <> invalid
         m.currentTestSuite = testSuite
         testSuite.testRunner = m
-        rooibos.common.logDebug("Running suite asynchronously!")
+        rooibos.common.logDebug("Running suite as a Node test!")
         testSuite.run()
         return invalid
       else
