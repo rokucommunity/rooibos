@@ -104,6 +104,225 @@ describe('RooibosPlugin', () => {
             expect(suite.isSolo).to.be.true;
         });
 
+        it('finds and combines onlys', () => {
+            program.setFile('source/test.spec.bs', `
+                @only
+                @suite("named1")
+                class ATest
+                    @describe("groupA")
+
+                    @it("is testA1")
+                    function Test()
+                    end function
+
+                    @it("is testA2")
+                    function Test()
+                    end function
+
+                    @describe("groupAA")
+
+                    @it("is testA1")
+                    function Test()
+                    end function
+
+                    @it("is testA2")
+                    function Test()
+                    end function
+
+                end class
+
+                @suite("named2")
+                class BTest
+                    @only
+                    @describe("groupB")
+
+                    @it("is testB1")
+                    function Test()
+                    end function
+
+                    @it("is testB2")
+                    function Test()
+                    end function
+
+                    @describe("groupBB")
+
+                    @it("is testBB1")
+                    function Test()
+                    end function
+
+                    @it("is testBB2")
+                    function Test()
+                    end function
+
+                end class
+
+                @suite("named3")
+                class CTest
+                    @describe("groupC")
+
+                    @it("is testC1")
+                    function Test()
+                    end function
+
+                    @only
+                    @it("is testC2")
+                    function Test()
+                    end function
+
+                    @describe("groupCC")
+
+                    @it("is testCC1")
+                    function Test()
+                    end function
+
+                    @it("is testCC2")
+                    function Test()
+                    end function
+
+                end class
+
+                @suite("named4")
+                class DTest
+                    @only
+                    @describe("groupD")
+
+                    @it("is testD1")
+                    function Test()
+                    end function
+
+                    @only
+                    @it("is testD2")
+                    function Test()
+                    end function
+
+                    @only
+                    @describe("groupDD")
+
+                    @it("is testDD1")
+                    function Test()
+                    end function
+
+                    @it("is testDD2")
+                    function Test()
+                    end function
+
+                end class
+
+                @only
+                @suite("named5")
+                class ETest
+                    @only
+                    @describe("groupE")
+
+                    @it("is testE1")
+                    function Test()
+                    end function
+
+                    @only
+                    @it("is testE2")
+                    function Test()
+                    end function
+
+                end class
+
+                @ignore
+                @suite("named6")
+                class FTest
+                    @describe("groupF")
+
+                    @it("is testF1")
+                    function Test()
+                    end function
+
+                    @it("is testF2")
+                    function Test()
+                    end function
+
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.length(5);
+
+            const testSuitesToRun = plugin.session.sessionInfo.testSuitesToRun;
+
+            let suiteOne = testSuitesToRun[0];
+            let suiteOneGroups = [...suiteOne.testGroups.values()];
+            let suiteOneTests = [];
+            for (let group of suiteOneGroups) {
+                suiteOneTests.push(...group.testCases.values());
+            }
+            expect(suiteOne.name).to.equal('named1');
+            expect(suiteOneGroups).to.be.length(2);
+            expect(suiteOneTests).to.be.length(4);
+            expect(suiteOneGroups.map(group => group.name)).to.eql(['groupA', 'groupAA']);
+            expect(suiteOneTests.map(test => test.name)).to.eql(['is testA1', 'is testA2', 'is testA1', 'is testA2']);
+            expect(suiteOne.isSolo).to.be.true;
+            expect(suiteOne.hasSoloGroups).to.be.false;
+            expect(suiteOne.hasSoloTests).to.be.false;
+
+            let suiteTwo = testSuitesToRun[1];
+            let suiteTwoGroups = [...suiteTwo.testGroups.values()];
+            let suiteTwoTests = [];
+            for (let group of suiteTwoGroups) {
+                suiteTwoTests.push(...group.testCases.values());
+            }
+            expect(suiteTwo.name).to.equal('named2');
+            expect(suiteTwoGroups).to.be.length(2);
+            expect(suiteTwoTests).to.be.length(4);
+            expect(suiteTwoGroups.filter(group => group.isIncluded).map(group => group.name)).to.eql(['groupB']);
+            expect(suiteTwoTests.filter(test => test.isIncluded).map(test => test.name)).to.eql(['is testB1', 'is testB2']);
+            expect(suiteTwo.isSolo).to.be.false;
+            expect(suiteTwo.hasSoloGroups).to.be.true;
+            expect(suiteTwo.hasSoloTests).to.be.false;
+
+            let suiteThree = testSuitesToRun[2];
+            let suiteThreeGroups = [...suiteThree.testGroups.values()];
+            let suiteThreeTests = [];
+            for (let group of suiteThreeGroups) {
+                suiteThreeTests.push(...group.testCases.values());
+            }
+            expect(suiteThree.name).to.equal('named3');
+            expect(suiteThreeGroups).to.be.length(2);
+            expect(suiteThreeTests).to.be.length(4);
+            expect(suiteThreeGroups.filter(group => group.isIncluded).map(group => group.name)).to.eql(['groupC']);
+            expect(suiteThreeTests.filter(test => test.isIncluded).map(test => test.name)).to.eql(['is testC2']);
+            expect(suiteThree.isSolo).to.be.false;
+            expect(suiteThree.hasSoloGroups).to.be.false;
+            expect(suiteThree.hasSoloTests).to.be.true;
+
+            let suiteFour = testSuitesToRun[3];
+            let suiteFourGroups = [...suiteFour.testGroups.values()];
+            let suiteFourTests = [];
+            for (let group of suiteFourGroups) {
+                suiteFourTests.push(...group.testCases.values());
+            }
+            expect(suiteFour.name).to.equal('named4');
+            expect(suiteFourGroups).to.be.length(2);
+            expect(suiteFourTests).to.be.length(4);
+            expect(suiteFourGroups.filter(group => group.isIncluded).map(group => group.name)).to.eql(['groupD', 'groupDD']);
+            expect(suiteFourTests.filter(test => test.isIncluded).map(test => test.name)).to.eql(['is testD2', 'is testDD1', 'is testDD2']);
+            expect(suiteFour.isSolo).to.be.false;
+            expect(suiteFour.hasSoloGroups).to.be.true;
+            expect(suiteFour.hasSoloTests).to.be.true;
+
+            let suiteFive = testSuitesToRun[4];
+            let suiteFiveGroups = [...suiteFive.testGroups.values()];
+            let suiteFiveTests = [];
+            for (let group of suiteFiveGroups) {
+                suiteFiveTests.push(...group.testCases.values());
+            }
+            expect(suiteFive.name).to.equal('named5');
+            expect(suiteFiveGroups).to.be.length(1);
+            expect(suiteFiveTests).to.be.length(2);
+            expect(suiteFiveGroups.filter(group => group.isIncluded).map(group => group.name)).to.eql(['groupE']);
+            expect(suiteFiveTests.filter(test => test.isIncluded).map(test => test.name)).to.eql(['is testE2']);
+            expect(suiteFive.isSolo).to.be.true;
+            expect(suiteFive.hasSoloGroups).to.be.true;
+            expect(suiteFive.hasSoloTests).to.be.true;
+        });
+
         it('finds a @async', () => {
             program.setFile('source/test.spec.bs', `
                 @async
