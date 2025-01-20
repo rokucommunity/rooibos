@@ -157,10 +157,6 @@ namespace rooibos
         m.nodeContext.testSuite = testSuite
         m.nodeTestName = nodeTestName
         m.nodeContext.testRunner = m
-        m.nodeContext.top.addFields({
-          "rooibosSuiteFinished": false
-        })
-
       end if
 
       if testSuite <> invalid

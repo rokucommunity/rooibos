@@ -173,7 +173,7 @@ namespace rooibos
       if m.currentGroup = invalid
         rooibos.common.logTrace("All groups are finished")
         'finished
-        m.finishAsyncGroups()
+        m.testSuiteDone()
       else
         group = m.currentGroup
         group.run()
@@ -201,21 +201,10 @@ namespace rooibos
       if m.stats.hasFailures and m.isFailingFast
         rooibos.common.logTrace("Terminating group due to failed test")
         m.isTestFailedDueToEarlyExit = true
-        m.finishAsyncGroups()
+        m.testSuiteDone()
       else
         m.runNextAsync()
       end if
-
-    end function
-
-    private function finishAsyncGroups()
-      m.testRunner.top.rooibosTestResult = {
-        stats: m.stats
-        tests: m.tests
-        groups: m.groups
-      }
-      rooibos.common.logTrace("Indicating test suite is done")
-      m.testSuiteDone()
     end function
 
     ' calculate if the suite has timed out. Will return true if the suite flipped the timedOut flag
@@ -3083,9 +3072,13 @@ namespace rooibos
     end function
 
     function testSuiteDone()
-      rooibos.common.logTrace("Async suite is complete")
+      rooibos.common.logTrace("Indicating test suite is done")
       m.notifyReportersOnSuiteComplete()
-      m.top.rooibosSuiteFinished = true
+      m.testRunner.top.rooibosTestResult = {
+        stats: m.stats
+        tests: m.tests
+        groups: m.groups
+      }
     end function
 
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)
