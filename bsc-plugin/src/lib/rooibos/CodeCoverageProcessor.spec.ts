@@ -333,7 +333,7 @@ describe('RooibosPlugin', () => {
                 expect(a).to.equal(b);
             });
 
-            it.skip('correctly transpiles some statements', async () => {
+            it('correctly transpiles some statements', async () => {
                 const source = `sub foo()
                     x = function(y)
                         if (true) then
