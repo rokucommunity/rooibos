@@ -1063,7 +1063,7 @@ The behavior of your unit tests is identical to unit testing any other class, wi
 ### Async testing
 To indicate a test suite will run in async mode you will mark the test suite with the @async annotation or mark one ore more tests with @async. This will cause rooibos to run the tests in async mode. If all tests in the suite do not complete within the timeout, then the suite will fail. The default time out is 60 seconds.
 
-When you mark any test in a suite with the @async annotation this will keep the test running in the background, waiting for a call to m.done(). If the call is not made within the timeout, then the test fails. Again, the default timeout for each test is 2 seconds.
+When you mark any test in a suite with the @async annotation this will keep the test running in the background, waiting for a call to `m.done()`. If the call is not made within the timeout, then the test fails. Again, the default timeout for each test is 2 seconds.
 
 Note: you are not required to add @async to your testSuite, it is implied when you add it one more more tests. However, you may wish to add tge async annotation to your suite, to override the default of 60 seconds (e.g. with the annotation `async(12000)` we are instructing rooibos to wait up to 2 minutes for the _whole_ suite).
 
@@ -1141,7 +1141,26 @@ function OnTimer()
   m.testSuite.done()
 end function
 ```
+#### Working with Promises
 
+Alternately, instead of using the `done()` callback, you may return a `Promise` from your test. The test will automaticly complete when the promise is completed. If the returned promise rejects the test will be considered failed.
+
+This is useful if the APIs you are testing return promises:
+
+```
+  @it('respond with matching records')
+  function _()
+    return rooibos.promises.chain(db.find({type: 'User'})).then(sub(result)
+      m.testSuite.assertEqual(result.count(), 3)
+    end sub).catch(sub(error)
+      m.testSuite.fail("should not reject")
+    end sub).toPromises()
+  end function
+```
+
+Rooibos implements the [rokucomunity/promises](https://github.com/rokucommunity/promises) library to enable this support. Please visit that project for more details and examples of promises.
+
+Note: `Promises` are only supported in Node tests and returning a promise from a non-Node test will automaticly fail the test.
 
 ## Advanced setup
 
