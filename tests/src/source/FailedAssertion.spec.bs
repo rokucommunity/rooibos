@@ -7,7 +7,6 @@ namespace tests
   class FailedAssertionTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @only
     @describe("automatically failing tests")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
