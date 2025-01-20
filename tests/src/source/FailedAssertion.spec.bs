@@ -7,12 +7,22 @@ namespace tests
   class FailedAssertionTests extends rooibos.BaseTestSuite
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests fail on crash")
+    @only
+    @describe("automatically failing tests")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("reports error")
+    @it("fails on crash in the test function")
     function _()
+      ' Make sure a passed assertion is superseded by a crash
+      m.assertTrue(true)
       throw "some error"
+    end function
+
+    @it("fails if returned a promise from a non-node test")
+    function _()
+      ' Make sure a passed assertion is superseded by fact a promise was returned
+      m.assertTrue(true)
+      return rooibos.promises.resolve(true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
