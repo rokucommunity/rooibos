@@ -22,24 +22,12 @@ export class TestGroup extends TestBlock {
 
     public testSuite: TestSuite;
     public testCases = new Map<string, TestCase>();
-    public ignoredTestCases: TestCase[] = [];
-    public soloTestCases: TestCase[] = [];
 
     public addTestCase(testCase: TestCase) {
-
         this.testCases.set(testCase.name + (testCase.isParamTest ? testCase.paramTestIndex.toString() : ''), testCase);
-
-        if (testCase.isIgnored) {
-            this.ignoredTestCases.push(testCase);
-            this.hasIgnoredTests = true;
-            this.soloTestCases.push(testCase);
-        } else if (testCase.isSolo) {
-            this.hasSoloTests = true;
-            this.soloTestCases.push(testCase);
-            this.hasAsyncTests = testCase.isAsync;
-        } else {
-            this.hasAsyncTests = testCase.isAsync;
-        }
+        this.hasIgnoredTests = this.hasIgnoredTests || testCase.isIgnored;
+        this.hasSoloTests = this.hasSoloTests || testCase.isSolo;
+        this.hasAsyncTests = this.hasAsyncTests || testCase.isAsync;
     }
 
     public getTestCases(): TestCase[] {

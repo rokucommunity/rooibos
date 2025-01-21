@@ -12,9 +12,7 @@ export class SessionInfo {
     public testSuites = new Map<string, TestSuite>();
     public testSuitesByPath = new Map<string, TestSuite[]>();
     public testSuitesToRun: TestSuite[] = [];
-    public hasSoloSuites = false;
-    public hasSoloGroups = false;
-    public hasSoloTests = false;
+    public shouldRunSolo = false;
     public testsCount = 0;
     public suitesCount = 0;
     public groupsCount = 0;
@@ -36,17 +34,9 @@ export class SessionInfo {
         for (let testSuite of testSuites) {
             if (testSuite.isValid && !this.isExcludedByTag(testSuite, false)) {
                 this.testSuites.set(testSuite.name, testSuite);
-
                 this.addTestSuiteToPath(testSuite);
-                if (testSuite.isSolo) {
-                    this.hasSoloSuites = true;
-                }
-                if (testSuite.hasSoloGroups) {
-                    this.hasSoloGroups = true;
-                }
-                if (testSuite.hasSoloTests) {
-                    this.hasSoloTests = true;
-                }
+
+                this.shouldRunSolo = this.shouldRunSolo || testSuite.isSolo || testSuite.hasSoloGroups || testSuite.hasSoloTests;
             } else {
                 this.allTestSuites.add(testSuite);
             }
@@ -68,19 +58,16 @@ export class SessionInfo {
     public updateInfo() {
         this.resetCounts();
         for (let testSuite of [...this.testSuites.values()]) {
-            if (this.isExcludedByTag(testSuite, false)) {
-                testSuite.isIncluded = false;
-            }
+            testSuite.isIncluded = false;
+            testSuite.isIgnored = testSuite.isIgnored || this.isExcludedByTag(testSuite, false);
 
-            if (!testSuite.isIgnored) {
-                if (this.hasSoloTests || this.hasSoloGroups || this.hasSoloSuites) {
-                    if (testSuite.isSolo || testSuite.hasSoloGroups || testSuite.hasSoloTests) {
-                        testSuite.isIncluded = true;
-                    }
+            if (this.shouldRunSolo) {
+                if (!testSuite.isIgnored && (testSuite.isSolo || testSuite.hasSoloGroups || testSuite.hasSoloTests)) {
+                    testSuite.isIncluded = true;
                 }
             } else {
-                if (!this.hasSoloTests && this.hasSoloGroups && this.hasSoloSuites) {
-                    testSuite.isIncluded = true;
+                testSuite.isIncluded = true;
+                if (testSuite.isIgnored) {
                     this.ignoredTestNames.push(testSuite.name + ' [WHOLE SUITE]');
                     this.ignoredCount++;
                 }
@@ -91,70 +78,54 @@ export class SessionInfo {
             }
             //'testSuite  ' + testSuite.name);
             for (let testGroup of testSuite.getTestGroups()) {
-                if (testSuite.isIgnored) {
-                    testGroup.isIgnored = true;
-                }
+                testGroup.isIgnored = testGroup.isIgnored || testSuite.isIgnored || this.isExcludedByTag(testGroup, true);
+                testGroup.isIncluded = false;
 
-                if (testGroup.ignoredTestCases.length > 0) {
-                    this.ignoredTestNames.push(testGroup.name);
-                    this.ignoredCount += testGroup.ignoredTestCases.length;
-                    for (let ignoredTestCase of testGroup.ignoredTestCases) {
-                        if (!ignoredTestCase.isParamTest) {
-                            this.ignoredTestNames.push(ignoredTestCase.name);
-                        } else if (ignoredTestCase.paramTestIndex === 0) {
-                            let testCaseName = ignoredTestCase.name;
-                            if (testCaseName.length > 1 && testCaseName.substr(testCaseName.length - 1) === '0') {
-                                testCaseName = testCaseName.substr(0, testCaseName.length - 1);
-                            }
-                            this.ignoredTestNames.push(testCaseName);
-                        }
-                    }
-                }
-
-                if (!testGroup.isIgnored && !this.isExcludedByTag(testGroup, true)) {
-                    if (testSuite.isSolo || testSuite.hasSoloGroups || testSuite.hasSoloTests) {
-                        if (testGroup.isSolo || testGroup.hasSoloTests) {
+                if (this.shouldRunSolo) {
+                    if (!testGroup.isIgnored) {
+                        if (testGroup.hasSoloTests || testGroup.isSolo || (testSuite.isSolo && !testSuite.hasSoloGroups)) {
                             testGroup.isIncluded = true;
-                        } else {
-                            testGroup.isIncluded = testSuite.isSolo;
                         }
                     }
                 } else {
-                    this.ignoredCount += testGroup.ignoredTestCases.length;
-                    this.ignoredTestNames.push(testGroup.name + ' [WHOLE GROUP]');
                     testGroup.isIncluded = true;
+                    if (testGroup.isIgnored) {
+                        this.ignoredTestNames.push(testGroup.name + ' [WHOLE GROUP]');
+                        this.ignoredCount += testGroup.testCases.size;
+                    }
                 }
 
                 if (testGroup.isIncluded) {
-                    this.groupsCount++;
+                    if (testGroup.isIncluded) {
+                        this.groupsCount++;
+                    }
                     let testCases = [...testGroup.testCases.values()];
 
                     for (let testCase of testCases) {
                         testCase.isIncluded = false;
-                        if (testGroup.isIgnored) {
-                            testCase.isIgnored = true;
-                        }
+                        testCase.isIgnored = testCase.isIgnored || testGroup.isIgnored || this.isExcludedByTag(testCase, true);
 
-                        if (this.isExcludedByTag(testCase, true)) {
-                            testCase.isIncluded = false;
-                        } else if (testCase.isIgnored) {
-                            testCase.isIncluded = true;
-                        } else if (testGroup.hasSoloTests && !testCase.isSolo) {
-                            testCase.isIncluded = false;
-                        } else {
-                            if (testGroup.hasSoloTests) {
-                                testCase.isIncluded = testCase.isSolo;
-                            } else {
-                                testCase.isIncluded = testGroup.isIncluded || testCase.isSolo;
+                        if (this.shouldRunSolo) {
+                            if (!testCase.isIgnored) {
+                                if (testGroup.hasSoloTests) {
+                                    testCase.isIncluded = testCase.isSolo;
+                                } else if (testGroup.isSolo || testSuite.isSolo) {
+                                    testCase.isIncluded = true;
+                                }
                             }
-                        }
-                    }
-
-                    for (let testCase of testGroup.soloTestCases) {
-                        if (this.isExcludedByTag(testCase, true)) {
-                            testCase.isIncluded = false;
                         } else {
                             testCase.isIncluded = true;
+                            if (testCase.isIgnored) {
+                                if (!testCase.isParamTest) {
+                                    this.ignoredTestNames.push(testCase.name);
+                                } else if (testCase.paramTestIndex === 0) {
+                                    let testCaseName = testCase.name;
+                                    if (testCaseName.length > 1 && testCaseName.substr(testCaseName.length - 1) === '0') {
+                                        testCaseName = testCaseName.substr(0, testCaseName.length - 1);
+                                    }
+                                    this.ignoredTestNames.push(testCaseName);
+                                }
+                            }
                         }
                     }
 
@@ -189,25 +160,11 @@ export class SessionInfo {
     }
 
     private resetCounts() {
-
-        this.hasSoloTests = false;
-        this.hasSoloGroups = false;
-        this.hasSoloSuites = false;
+        this.shouldRunSolo = false;
 
         for (let testSuite of [...this.testSuites.values()]) {
-
             if (testSuite.isValid && !this.isExcludedByTag(testSuite, false)) {
-                if (testSuite.isSolo) {
-                    this.hasSoloSuites = !this.hasSoloGroups && !this.hasSoloTests;
-                }
-                if (testSuite.hasSoloGroups) {
-                    this.hasSoloGroups = !this.hasSoloTests;
-                }
-                if (testSuite.hasSoloTests) {
-                    this.hasSoloTests = true;
-                    this.hasSoloGroups = false;
-                    this.hasSoloSuites = false;
-                }
+                this.shouldRunSolo = this.shouldRunSolo || testSuite.isSolo || testSuite.hasSoloGroups || testSuite.hasSoloTests;
             }
         }
         this.suitesCount = this.testSuites.size;
