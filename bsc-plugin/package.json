@@ -9,7 +9,6 @@
         "prepublishOnly": "npm run build",
         "lint": "eslint \"src/**\"",
         "build": "npm run compile && cp -r ../framework/src ./dist/lib/framework",
-        "postinstall": "ropm copy",
         "test": "nyc mocha",
         "test:nocover": "mocha",
         "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -17,7 +16,10 @@
         "publish-npm:beta": "npm run test && npm publish --tag=beta",
         "local": "ts-node scripts/install-local.js",
         "remote": "ts-node scripts/install-npm.js",
-        "cli": "ts-node src/cli.ts"
+        "cli": "ts-node src/cli.ts",
+        "prepack": "node scripts/pack.js --pre",
+        "postpack": "node scripts/pack.js --post",
+        "postinstall": "ropm copy"
     },
     "repository": {
         "type": "git",
