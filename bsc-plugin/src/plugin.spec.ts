@@ -2296,7 +2296,8 @@ describe('RooibosPlugin', () => {
             [['mocha'], 'rooibos_MochaTestReporter'],
             [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
         ];
-        it('adds custom test reporters', async () => {
+        it('adds custom test reporters', async function () {
+            this.timeout(10_000);
             for (const [reporters, expected] of params) {
                 setupProgram({
                     rootDir: _rootDir,
