@@ -631,7 +631,7 @@ describe('RooibosPlugin', () => {
                                     isIgnored: false
                                     isAsync: false
                                     filename: "${s`source/test.spec.bs`}"
-                                    lineNumber: "3"
+                                    lineNumber: "4"
                                     setupFunctionName: ""
                                     tearDownFunctionName: ""
                                     beforeEachFunctionName: ""
@@ -647,10 +647,9 @@ describe('RooibosPlugin', () => {
                                             slow: 1000
                                             isParamTest: false
                                             name: "is test1"
-                                            lineNumber: 8
+                                            lineNumber: 7
                                             paramLineNumber: 0
                                             assertIndex: 0
-                                            assertLineNumberMap: {}
                                             rawParams: invalid
                                             paramTestIndex: 0
                                             expectedNumberOfParams: 0
