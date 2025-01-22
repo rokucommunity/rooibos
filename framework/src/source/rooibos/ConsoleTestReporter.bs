@@ -129,7 +129,7 @@ namespace rooibos
         locationLine = StrI(test.lineNumber).trim()
       else if test.result.isFail
         testChar = "-"
-        locationLine = StrI(test.result.lineNumber + 1).trim()
+        locationLine = StrI(test.result.lineNumber).trim()
       else
         testChar = "|"
         locationLine = StrI(test.lineNumber).trim()
@@ -182,7 +182,7 @@ namespace rooibos
       else if test.result.isFail
         m.printLine(0, " | " + insetText + "  |--Failed at: " + locationText)
         if test.isParamTest = true
-          m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(test.paramLineNumber - 1).trim())
+          m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(test.paramLineNumber).trim())
         end if
         m.printLine(0, " | " + insetText + "  |--Error Message: " + test.result.message)
         m.printLine(0, " | ")
