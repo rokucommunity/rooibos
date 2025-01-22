@@ -682,10 +682,9 @@ namespace tests
       m.assertInvalid(invalid)
     end function
 
-    @it("passes roInvalid from parseJson")
+    @it("passes roInvalid object equivalent for intrinsic type 'Invalid'")
     function _()
-      result = parseJson(formatJson({ a: 1, b: "test", c: createObject("roTimespan") }))
-      m.assertInvalid(result)
+      m.assertInvalid(createObject("roInvalid"))
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

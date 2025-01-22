@@ -953,6 +953,11 @@ namespace tests
       m.assertNotInvalid(invalid)
     end function
 
+    @it("failed assertInvalid on roInvalid object equivalent for intrinsic type 'Invalid'")
+    function _()
+      m.assertNotInvalid(createObject("roInvalid"))
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests AssertAAHasKey fail")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

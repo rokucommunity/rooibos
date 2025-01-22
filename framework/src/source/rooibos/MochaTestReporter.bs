@@ -178,10 +178,18 @@ namespace rooibos
           end if
 
           if test.isParamTest
-            resultMessage += `${string(1, chr(9))}params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber + 1)})\n`
-            resultMessage += `${string(1, chr(9))}assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+            resultMessage += `${string(1, chr(9))}params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber)})\n`
+            if test.result.lineNumber > -1
+              resultMessage += `${string(1, chr(9))}assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.result.lineNumber)})\n`
+            else
+              resultMessage += `${string(1, chr(9))}test at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+            end if
           else
-            resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+            if test.result.lineNumber > -1
+              resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.result.lineNumber)})\n`
+            else
+              resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
+            end if
           end if
           print resultMessage
         end if

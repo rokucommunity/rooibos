@@ -520,7 +520,7 @@ namespace rooibos
       end if
 
       try
-        if type(value) <> "Invalid"
+        if rooibos.common.getSafeType(value) <> "Invalid"
           if msg = ""
             actual = rooibos.common.asMultilineString(value, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to be invalid`
@@ -552,7 +552,7 @@ namespace rooibos
         return false
       end if
       try
-        if value = invalid
+        if rooibos.common.getSafeType(value) = "Invalid"
           if msg = ""
             actual = rooibos.common.asMultilineString(value, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to not be invalid`
