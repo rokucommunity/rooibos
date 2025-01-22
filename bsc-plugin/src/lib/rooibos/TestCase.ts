@@ -15,7 +15,6 @@ export class TestCase {
         this.lineNumber = lineNumber;
         this.paramLineNumber = paramLineNumber;
         this.assertIndex = 0;
-        this.assertLineNumberMap = {};
         this.rawParams = params;
         this.expectedNumberOfParams = expectedNumberOfParams;
         this.paramTestIndex = paramTestIndex;
@@ -37,7 +36,6 @@ export class TestCase {
     public paramLineNumber: number;
     public assertIndex: number;
     public expectedNumberOfParams: number;
-    public assertLineNumberMap: any;
     public rawParams: any[];
     public paramTestIndex: number;
 
@@ -55,20 +53,14 @@ export class TestCase {
           slow: ${this.slow}
           isParamTest: ${this.isParamTest}
           name: ${sanitizeBsJsonString(this.name)}
-          lineNumber: ${this.lineNumber + 2}
-          paramLineNumber: ${this.paramLineNumber}
+          lineNumber: ${this.lineNumber + 1}
+          paramLineNumber: ${this.isParamTest ? this.paramLineNumber + 1 : 0}
           assertIndex: ${this.assertIndex}
-          assertLineNumberMap: ${JSON.stringify(this.assertLineNumberMap)}
           rawParams: ${rawParamsText}
           paramTestIndex: ${this.paramTestIndex}
           expectedNumberOfParams: ${this.expectedNumberOfParams}
           isParamsValid: ${(this.rawParams || []).length === this.expectedNumberOfParams}
         }`;
-    }
-
-    public addAssertLine(lineNumber: number) {
-        this.assertLineNumberMap[this.assertIndex.toString().trim()] = lineNumber;
-        this.assertIndex++;
     }
 
     fixBadJson(o) {
