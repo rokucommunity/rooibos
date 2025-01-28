@@ -186,6 +186,9 @@ export class TestSuiteBuilder {
     }
 
     private sanitizeFunctionName(name: string) {
+        if (/^\d/.test(name)) {
+            name = '_' + name;
+        }
         return name.replace(/[^0-9_a-z]/ig, '_');
     }
     public createTestCases(statement: ClassMethodStatement, annotation: RooibosAnnotation): boolean {

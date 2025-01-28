@@ -9,7 +9,7 @@ namespace rooibos
     public message = ""
     public lineNumber = -1
     public test = invalid
-    public time = 0
+    public time = -1
     public error = invalid
     public throwOnFailedAssertion = false
 
@@ -31,7 +31,7 @@ namespace rooibos
     function reset() as void
       m.isFail = false
       m.isCrash = false
-      m.time = 0
+      m.time = -1
       m.message = ""
       m.lineNumber = -1
     end function

@@ -32,6 +32,9 @@ namespace rooibos
     protected __stubId = -1
     protected __mockId = -1
     protected __mockTargetId = -1
+    protected currentExecutionTime = 0
+    protected timedOut = false
+    public deferred = invalid
 
     'special values
     protected invalidValue = "#ROIBOS#INVALID_VALUE" ' special value used in mock arguments
@@ -80,6 +83,11 @@ namespace rooibos
         m.nodeName = data.nodeName
         m.generatedNodeName = data.generatedNodeName
         m.isFailingFast = false
+
+        if m.isNodeTest
+          m.deferred = rooibos.promises.create()
+        end if
+
         m.stats = new rooibos.Stats()
       end if
     end function
@@ -112,7 +120,7 @@ namespace rooibos
       m.notifyReportersOnSuiteBegin()
       rooibos.common.logTrace(">>>>>>>>>>>>")
       rooibos.common.logTrace("RUNNING TEST SUITE")
-      if m.isAsync = true
+      if m.isNodeTest = true
         rooibos.common.logTrace("THIS GROUP IS ASYNC")
         m.runAsync()
       else
@@ -140,15 +148,6 @@ namespace rooibos
         end if
 
       end for
-
-      if m.isNodeTest and m.testRunner.top <> invalid
-        m.testRunner.top.addFields({ asyncRooibosTestResult: {
-            stats: m.stats
-            tests: m.tests
-            groups: m.groups
-          }
-        })
-      end if
       m.notifyReportersOnSuiteComplete()
     end function
 
@@ -172,24 +171,17 @@ namespace rooibos
       m.currentGroupIndex++
       m.currentGroup = m.groups[m.currentGroupIndex]
       if m.currentGroup = invalid
-        m.setTestTimer(0)
         rooibos.common.logTrace("All groups are finished")
         'finished
-        m.finishAsyncGroups()
+        m.testSuiteDone()
       else
         group = m.currentGroup
-        m.testRunner.top.rooibosGroupFinished = false
-
-        m.testRunner.top.observeFieldScoped("rooibosGroupFinished", "rooibos_onGroupComplete")
-
-        completed = group.run()
-
-        if group.stats.hasFailures
-          rooibos.common.logDebug("Group failed before any async code could be executed")
-          m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
-          ' m.testGroupDone()
-          m.onAsyncGroupComplete(group)
-        else if m.testRunner.top.rooibosGroupFinished
+        group.run()
+        if rooibos.promises.isPromise(group.deferred)
+          rooibos.promises.onFinally(group.deferred, sub(context)
+            context.self.onAsyncGroupComplete(context.group)
+          end sub, { group: group, self: m })
+        else
           m.onAsyncGroupComplete(group)
         end if
       end if
@@ -197,7 +189,6 @@ namespace rooibos
 
     private function onAsyncGroupComplete(group = invalid) as void
       rooibos.common.logTrace("++ CURRENT GROUP COMPLETED")
-      m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
 
       group = group = invalid ? m.currentGroup : group
       if group = invalid
@@ -210,41 +201,19 @@ namespace rooibos
       if m.stats.hasFailures and m.isFailingFast
         rooibos.common.logTrace("Terminating group due to failed test")
         m.isTestFailedDueToEarlyExit = true
-        m.finishAsyncGroups()
+        m.testSuiteDone()
       else
         m.runNextAsync()
       end if
-
     end function
 
-    private function finishAsyncGroups()
-      m.testRunner.top.unobserveFieldScoped("rooibosGroupFinished")
-
-      m.testRunner.top.addFields({ asyncRooibosTestResult: {
-          stats: m.stats
-          tests: m.tests
-          groups: m.groups
-        }
-      })
-      rooibos.common.logTrace("Indicating test suite is done")
-      m.testSuiteDone()
-    end function
-
-    private function setTestTimer(duration)
-      rooibos.common.logTrace(`SETTING TIMER FOR ${duration}`)
-      if m.testTimer = invalid
-        m.testTimer = createObject("roSGNode", "Timer")
+    ' calculate if the suite has timed out. Will return true if the suite flipped the timedOut flag
+    function isSuiteTimedOut()
+      if m.isNodeTest and m.asyncTimeout > 0 and m.currentExecutionTime >= m.asyncTimeout
+        m.timedOut = true
+        return true
       end if
-      if duration = 0
-        m.testTimer.unobserveFieldScoped("fire")
-        m.testTimer.control = "stop"
-      else
-        m.currentTimeout = duration
-        m.testTimer.observeFieldScoped("fire", "rooibos_onTestTimer")
-
-        m.testTimer.duration = duration / 1000.0
-        m.testTimer.control = "start"
-      end if
+      return false
     end function
 
     function runTest(test as rooibos.Test)
@@ -253,11 +222,19 @@ namespace rooibos
         m.currentResult.skip("Test is ignored")
         return invalid
       end if
+
+      ' Fail the test if the suite has timed out.
+      ' Currently, this will only happen if the suite is a node test.
+      if m.isNodeTest and m.timedOut
+        m.currentResult.fail("Suite test execution exceeded " + m.asyncTimeout.toStr() + "ms")
+        return invalid
+      end if
+
       m.currentResult.throwOnFailedAssertion = m.throwOnFailedAssertion
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
           test.run()
-          if m.isAutoAssertingMocks = true and not test.isAsync
+          if m.isAutoAssertingMocks = true and test.deferred = invalid
             m.AssertMocks()
             m.CleanMocks()
             m.CleanStubs()
@@ -268,12 +245,14 @@ namespace rooibos
         end try
       else
         test.run()
-        if m.isAutoAssertingMocks = true and not test.isAsync
+        if m.isAutoAssertingMocks = true and test.deferred = invalid
           m.AssertMocks()
           m.CleanMocks()
           m.CleanStubs()
         end if
       end if
+
+      return test.deferred
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -3079,30 +3058,27 @@ namespace rooibos
       wait(delay, port)
     end function
 
-    function setAsync(isAsync as boolean)
-      rooibos.common.logTrace(`Setting current test to async ${isAsync}`)
-      m.top.rooibosTestIsAsync = isAsync
-    end function
-
     function done()
       rooibos.common.logTrace("Async test is complete")
       if m.isDoneCalled = false
         m.isDoneCalled = true
-        m.top.rooibosTestFinished = true
+        deferred = m.currentGroup?.currentTest?.deferred
+        if rooibos.promises.isPromise(deferred)
+          rooibos.promises.resolve(true, deferred)
+        end if
       else
         rooibos.common.logWarning("extra done call after test is done! Did you properly clean up your observers?")
       end if
     end function
 
     function testSuiteDone()
-      rooibos.common.logTrace("Async suite is complete")
+      rooibos.common.logTrace("Indicating test suite is done")
       m.notifyReportersOnSuiteComplete()
-      m.top.rooibosSuiteFinished = true
-    end function
-
-    function testGroupDone()
-      rooibos.common.logTrace("Async group is complete")
-      m.top.rooibosGroupFinished = true
+      m.testRunner.top.rooibosTestResult = {
+        stats: m.stats
+        tests: m.tests
+        groups: m.groups
+      }
     end function
 
     function assertAsyncField(target, fieldName, delay = 500, maxAttempts = 10)
@@ -3165,19 +3141,8 @@ namespace rooibos
         end if
       end for
     end sub
-
   end class
 
-
-  function onGroupComplete()
-    rooibos.common.logTrace("++++++++ THE GROUP COMPLETED")
-    m.testRunner.currentTestSuite.onAsyncGroupComplete()
-  end function
-
-  function onTestTimer()
-    rooibos.common.logTrace("++++++++ TEST TIMED OUT")
-    m.testRunner.currentTestSuite.failBecauseOfTimeOut()
-  end function
 
   function getMocksByFunctionName()
     if m._rMocksByFunctionName = invalid

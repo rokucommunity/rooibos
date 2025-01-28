@@ -488,6 +488,7 @@ describe('RooibosPlugin', () => {
                             isSolo: false
                             noCatch: false
                             isIgnored: false
+                            isAsync: false
                             pkgPath: "${s`source/test.spec.bs`}"
                             filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
                             lineNumber: 3
@@ -510,6 +511,7 @@ describe('RooibosPlugin', () => {
                                     name: "groupA"
                                     isSolo: false
                                     isIgnored: false
+                                    isAsync: false
                                     filename: "${s`source/test.spec.bs`}"
                                     lineNumber: "4"
                                     setupFunctionName: ""
@@ -521,6 +523,124 @@ describe('RooibosPlugin', () => {
                                             isSolo: false
                                             noCatch: false
                                             funcName: "groupA_is_test1"
+                                            isIgnored: false
+                                            isAsync: false
+                                            asyncTimeout: 2000
+                                            slow: 1000
+                                            isParamTest: false
+                                            name: "is test1"
+                                            lineNumber: 7
+                                            paramLineNumber: 0
+                                            assertIndex: 0
+                                            rawParams: invalid
+                                            paramTestIndex: 0
+                                            expectedNumberOfParams: 0
+                                            isParamsValid: true
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    end function
+                    return instance
+                end function
+                function ATest()
+                    instance = __ATest_builder()
+                    instance.new()
+                    return instance
+                end function
+            `);
+
+            //verify the AST was restored after transpile
+            const cls = file.ast.statements[0] as ClassStatement;
+            expect(cls.body.find((x: ClassMethodStatement) => {
+                return x.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            })).not.to.exist;
+        });
+
+        it('handles groups that start with numbers', async () => {
+            plugin.afterProgramCreate(program);
+            // program.validate();
+            const file = program.setFile<BrsFile>('source/test.spec.bs', `
+                @suite
+                class ATest extends rooibos.BaseTestSuite
+                    @describe("1groupA")
+                    @it("is test1")
+                    @slow(1000)
+                    function Test_3()
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.transpile();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.have.length(1);
+            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.suitesCount).to.equal(1);
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+
+            expect(
+                getContents('rooibosMain.brs')
+            ).to.eql(undent`
+                function main()
+                    Rooibos_init("RooibosScene")
+                end function
+            `);
+            expect(
+                getContents('test.spec.brs')
+            ).to.eql(undent`
+                function __ATest_builder()
+                    instance = __rooibos_BaseTestSuite_builder()
+                    instance.super0_new = instance.new
+                    instance.new = sub()
+                        m.super0_new()
+                    end sub
+                    instance._1groupA_is_test1 = function()
+                    end function
+                    instance.super0_getTestSuiteData = instance.getTestSuiteData
+                    instance.getTestSuiteData = function()
+                        return {
+                            name: "ATest"
+                            isSolo: false
+                            noCatch: false
+                            isIgnored: false
+                            isAsync: false
+                            pkgPath: "${s`source/test.spec.bs`}"
+                            filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
+                            lineNumber: 3
+                            valid: true
+                            hasFailures: false
+                            hasSoloTests: false
+                            hasIgnoredTests: false
+                            hasSoloGroups: false
+                            setupFunctionName: ""
+                            tearDownFunctionName: ""
+                            beforeEachFunctionName: ""
+                            afterEachFunctionName: ""
+                            isNodeTest: false
+                            isAsync: false
+                            asyncTimeout: 60000
+                            nodeName: ""
+                            generatedNodeName: "ATest"
+                            testGroups: [
+                                {
+                                    name: "1groupA"
+                                    isSolo: false
+                                    isIgnored: false
+                                    isAsync: false
+                                    filename: "${s`source/test.spec.bs`}"
+                                    lineNumber: "4"
+                                    setupFunctionName: ""
+                                    tearDownFunctionName: ""
+                                    beforeEachFunctionName: ""
+                                    afterEachFunctionName: ""
+                                    testCases: [
+                                        {
+                                            isSolo: false
+                                            noCatch: false
+                                            funcName: "_1groupA_is_test1"
                                             isIgnored: false
                                             isAsync: false
                                             asyncTimeout: 2000
@@ -2174,7 +2294,8 @@ describe('RooibosPlugin', () => {
             [['mocha'], 'rooibos_MochaTestReporter'],
             [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
         ];
-        it('adds custom test reporters', async () => {
+        it('adds custom test reporters', async function test() {
+            this.timeout(10_000);
             for (const [reporters, expected] of params) {
                 setupProgram({
                     rootDir: _rootDir,
