@@ -35,7 +35,7 @@ namespace rooibos
         symbol = "✔"
         symbolColor = rooibos.reporters.mocha.colors.checkmark
       else if status = "FAIL" or status = "CRASH"
-        symbol = "✖️"
+        symbol = "✖"
         symbolColor = rooibos.reporters.mocha.colors.brightFail
       else if status = "SKIP"
         symbol = "-"
@@ -965,4 +965,3 @@ namespace rooibos
     end namespace
   end namespace
 end namespace
-

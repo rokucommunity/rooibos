@@ -26,6 +26,7 @@ namespace rooibos
     nodeName = invalid
     testsData = invalid
     tests = []
+    public deferred = invalid
 
     function new(testSuite, data)
       m.testSuite = testSuite
@@ -37,13 +38,17 @@ namespace rooibos
       m.isAsync = data.isAsync
       m.asyncTimeout = data.asyncTimeout
       m.testsData = data.testCases
-      m.isNodeTest = false
+      m.isNodeTest = testSuite.isNodeTest
       m.nodeName = invalid
       m.setupFunctionName = data.setupFunctionName
       m.tearDownFunctionName = data.tearDownFunctionName
       m.beforeEachFunctionName = data.beforeEachFunctionName
       m.afterEachFunctionName = data.afterEachFunctionName
       m.lineNumber = data.lineNumber
+
+      if m.isNodeTest
+        m.deferred = rooibos.promises.create()
+      end if
 
       'bs:disable-next-line
       m.global = testSuite.global
@@ -63,11 +68,10 @@ namespace rooibos
       rooibos.common.logTrace("RUNNING TEST GROUP")
       m.testRunner = m.testSuite.testRunner
       m.notifyReportersOnTestGroupBegin()
-      m.testSuite.setTestTimer(0)
-      if m.testSuite.isAsync = true
+      if m.testSuite.isNodeTest = true
         rooibos.common.logTrace("THIS GROUP IS ASYNC")
         m.runAsync()
-        return false
+        return m.deferred
       else
         rooibos.common.logTrace("THIS GROUP IS SYNC")
         m.runSync()
@@ -145,40 +149,36 @@ namespace rooibos
         m.finishAsyncTests()
       else
         test = m.currentTest
-        if test.isIgnored
+        ' Check to see if the test is ignored or if the suite is timed out
+        ' and skip the before and after hooks
+        if test.isIgnored or m.testSuite.isSuiteTimedOut()
           m.notifyReportersOnTestBegin(test)
           m.testSuite.runTest(test)
-          m.testRunner.top.rooibosTestFinished = true
           m.onAsyncTestComplete()
           return invalid
         end if
 
-        m.testRunner.top.rooibosTestFinished = false
         isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
         if isOk
-          'TODO - set a timeout here
-          if test.isAsync <> true
-            rooibos.common.logDebug("Executing test synchronously")
-            m.notifyReportersOnTestBegin(test)
-            m.testSuite.runTest(test)
-            m.testRunner.top.rooibosTestFinished = true
-            m.onAsyncTestComplete()
-          else
-            m.testRunner.top.observeFieldScoped("rooibosTestFinished", "rooibos_onTestComplete")
-            if test.isAsync = true
-              m.testSuite.setTestTimer(test.asyncTimeout)
-            end if
-            m.notifyReportersOnTestBegin(test)
-            m.testSuite.runTest(test)
+          m.notifyReportersOnTestBegin(test)
 
-            if test.result.isFail
-              rooibos.common.logTrace("Test failed before any async code could be executed")
-              m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
-              m.testRunner.top.rooibosTestFinished = true
-              m.onAsyncTestComplete()
-            end if
-          end if
+          m.testSuite.runTest(test)
+          rooibos.common.logDebug("Waiting on deferred test results")
 
+          rooibos.promises.chain(test.deferred, { self: m, test: test }).then(function(_, context)
+            rooibos.common.logDebug("Promise resolved")
+            context.self.testSuite.done()
+          end function).catch(function(error, context)
+            rooibos.common.logDebug("Promise rejected")
+            if rooibos.common.isAssociativeArray(error) and not error.isEmpty() and rooibos.common.isArray(error.backtrace) and not error.backtrace.isEmpty() and rooibos.common.isBoolean(error.rethrown)
+              context.self.testSuite.failCrash(error)
+            else
+              context.self.testSuite.fail("Test failed due to promise rejection")
+            end if
+            context.self.testSuite.done()
+          end function).finally(function(context)
+            context.self.onAsyncTestComplete()
+          end function)
         else
           rooibos.common.logTrace("Error running test before each function")
           m.isTestFailedDueToEarlyExit = true
@@ -191,10 +191,6 @@ namespace rooibos
       rooibos.common.logTrace("++ CURRENT TEST COMPLETED")
       m.notifyReportersOnTestComplete(m.currentTest)
       m.runSuiteFunction(m.afterEachFunctionName, "afterEach", m.currentTest)
-
-      m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
-
-      m.currentTest.result.time = m.testTimer.totalMilliseconds()
       m.stats.appendTestResult(m.currentTest.result)
 
       if m.stats.hasFailures and m.testSuite.isFailingFast
@@ -208,17 +204,10 @@ namespace rooibos
     end function
 
     private function finishAsyncTests()
-      m.testRunner.top.unobserveFieldScoped("rooibosTestFinished")
-      m.testSuite.setTestTimer(0)
       m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
       rooibos.common.logTrace("Indicating test suite is done")
-      ' m.testRunner.top.addFields({ asyncRooibosTestResult: {
-      '     stats: m.stats
-      '     tests: m.tests
-      '   }
-      ' })
       m.notifyReportersOnTestGroupComplete()
-      m.testSuite.testGroupDone()
+      rooibos.promises.resolve(true, m.deferred)
     end function
 
     private function runSuiteFunction(methodName, defaultMethodName, test = invalid)
@@ -227,17 +216,23 @@ namespace rooibos
         methodName = defaultMethodName
       end if
       if m.testSuite.catchCrashes and not m.testSuite.noCatch and not (test <> invalid and test.noCatch)
+        ' Add the users suite functions execution time to the suites current execution time
+        timespan = createObject("roTimespan")
         try
           m.testSuite[methodName]()
+          m.testSuite.currentExecutionTime += timespan.totalMilliseconds()
           return true
         catch error
           if test <> invalid
             'bs:disable-next-line
             test.result.crash("function " + methodName + "crashed!", error)
+            m.testSuite.currentExecutionTime += timespan.totalMilliseconds()
           end if
         end try
       else
+        timespan = createObject("roTimespan")
         m.testSuite[methodName]()
+        m.testSuite.currentExecutionTime += timespan.totalMilliseconds()
         return true
       end if
 
@@ -262,6 +257,11 @@ namespace rooibos
     end sub
 
     private sub notifyReportersOnTestComplete(test as rooibos.Test)
+      if test.result.time > 0
+        ' Add the test execution time to the suites current execution time
+        m.testSuite.currentExecutionTime += test.result.time
+      end if
+
       for each reporter in m.testSuite.testReporters
         if rooibos.common.isFunction(reporter.onTestComplete)
           reporter.onTestComplete({ test: test })
@@ -277,9 +277,4 @@ namespace rooibos
       end for
     end sub
   end class
-
-  function onTestComplete()
-    rooibos.common.logTrace("++++++++ THE TEST COMPLETED")
-    m.testRunner.currentGroup.onAsyncTestComplete()
-  end function
 end namespace

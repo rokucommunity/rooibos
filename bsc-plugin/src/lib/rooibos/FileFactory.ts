@@ -24,7 +24,7 @@ export class FileFactory {
         this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.frameworkSourcePath, '/source/rooibos/CodeCoverage.brs'), 'utf8');
     }
 
-    public addedSourceFrameworkFilePaths: string[] = [];
+    public sourceFilesToAutoImport: string[] = [];
     public addedFrameworkFiles: BscFile[] = [];
 
     public addFrameworkFiles(program: Program) {
@@ -43,10 +43,10 @@ export class FileFactory {
         });
 
         for (let filePath of globedFiles) {
-            if (/^source[/\\]rooibos[/\\]/g.test(filePath)) {
+            if (this.shouldAddFileToImportList(filePath)) {
                 // Save a list of all source files added to the program
                 // to be imported by node test components
-                this.addedSourceFrameworkFilePaths.push(filePath);
+                this.sourceFilesToAutoImport.push(filePath);
             }
             let sourcePath = path.resolve(this.frameworkSourcePath, filePath);
             let fileContents = fs.readFileSync(sourcePath, 'utf8').toString();
@@ -67,7 +67,7 @@ export class FileFactory {
 
     public createTestXML(name: string, baseName: string, suite?: TestSuite): string {
         let scriptImports = [];
-        for (let filePath of this.addedSourceFrameworkFilePaths) {
+        for (let filePath of this.sourceFilesToAutoImport) {
             scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${filePath}" />`);
         }
 
@@ -115,6 +115,16 @@ export class FileFactory {
         }
         );
         return result !== undefined;
+    }
+
+    private shouldAddFileToImportList(destFilePath): boolean {
+        const pathDetails = path.parse(destFilePath);
+        if (pathDetails.dir === 'source' || pathDetails.dir.startsWith('source\\') || pathDetails.dir.startsWith('source/')) {
+            if (pathDetails.ext === '.brs' || (pathDetails.ext === '.bs' && !pathDetails.name.endsWith('.d'))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public addFile(program, projectPath: string, contents: string) {

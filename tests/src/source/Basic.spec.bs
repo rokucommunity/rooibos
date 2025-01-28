@@ -57,13 +57,27 @@ namespace tests
     @it("times out")
     @slow(150)
     function _()
-      item = { "id": "item" }
+      task = createObject("roSgNode", "TaskExample")
+      task.sleepTime = 2000
+      task.control = "run"
 
-      m.assertAsyncField(item, "id", 10)
+      m.assertAsyncField(task, "result", 10)
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
       m.assertTrue(isFail)
 
+    end function
+
+    @it("does not timeout")
+    @slow(150)
+    function _()
+      task = createObject("roSgNode", "TaskExample")
+      task.sleepTime = 50
+      task.control = "run"
+
+      m.assertAsyncField(task, "result", 10)
+      isFail = m.currentResult.isFail
+      m.assertFalse(isFail)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

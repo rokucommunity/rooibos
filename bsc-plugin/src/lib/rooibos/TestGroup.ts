@@ -208,6 +208,7 @@ export class TestGroup extends TestBlock {
                 name: ${sanitizeBsJsonString(this.name)}
                 isSolo: ${this.isSolo}
                 isIgnored: ${this.isIgnored}
+                isAsync: ${this.isAsync}
                 filename: "${this.pkgPath}"
                 lineNumber: "${this.annotation.annotation.range.start.line + 1}"
                 setupFunctionName: "${this.setupFunctionName || ''}"
