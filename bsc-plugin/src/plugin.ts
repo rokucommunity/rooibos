@@ -35,7 +35,7 @@ export class RooibosPlugin implements CompilerPlugin {
 
         this.config = this.getConfig((builder.options as any).rooibos || {});
 
-        this.fileFactory = new FileFactory(this.config);
+        this.fileFactory = new FileFactory();
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
