@@ -47,7 +47,7 @@ namespace rooibos
 
       for each reporter in m.testReporters
         if rooibos.common.isFunction(reporter.onBegin)
-          reporter.onBegin({})
+          reporter.onBegin({ runner: m })
         end if
       end for
 
@@ -66,6 +66,8 @@ namespace rooibos
         testSuite = invalid
         if suiteClass <> invalid
           testSuite = suiteClass()
+          testSuite.testRunner = m
+          testSuite.testReporters = m.testReporters
           testSuite.global = m.nodeContext.global
           testSuite.context = m.nodeContext
           testSuite.top = m.nodeContext.top
@@ -89,7 +91,7 @@ namespace rooibos
             testSuite.scene.failedText = "Failed Suites: " + chr(10) + failedText
           end if
         else
-          ? "ERROR! could not create test for suite : "; name
+          rooibos.common.logError(`Could not create test for suite : ${name}`)
           failedText = "COULD NOT CREATE suite " + name + chr(10) + failedText
           testSuite.scene.failedText = "Failed Suites: " + chr(10) + failedText
         end if
@@ -124,8 +126,15 @@ namespace rooibos
           rooibos.Coverage.printLCovInfo()
         end if
       else
-        ? "rooibos.Coverage.reportCodeCoverage is not a function"
+        rooibos.common.logDebug("rooibos.Coverage.reportCodeCoverage is not a function")
       end if
+
+      ' Final results to be logged after all test reporters have finished
+      resultStatus = "PASS"
+      if isFailed then resultStatus = "FAIL"
+      print "[Rooibos Result]: " + resultStatus
+      print "[Rooibos Shutdown]"
+
       if m.config.sendHomeOnFinish <> false
         m.sendHomeKeypress()
       end if
@@ -138,6 +147,7 @@ namespace rooibos
 
       if suiteClass <> invalid
         testSuite = suiteClass()
+        testSuite.testReporters = m.testReporters
         testSuite.global = m.nodeContext.global
         testSuite.node = m.nodeContext
         testSuite.top = m.nodeContext.top
@@ -160,21 +170,21 @@ namespace rooibos
         m.currentTestSuite = testSuite
         testSuite.testRunner = m
         if testSuite.isAsync = true
-          ? "Running suite asynchronously!"
+          rooibos.common.logDebug("Running suite asynchronously!")
           m.nodeContext.top.observeFieldScoped("rooibosSuiteFinished", "Rooibos_onTestSuiteComplete")
           testSuite.run()
           return invalid
         else
-          ? "Running suite synchronously!"
+          rooibos.common.logDebug("Running suite synchronously!")
           testSuite.run()
           return m.onTestSuiteComplete()
         end if
 
       else
-        ? "[ERROR] could not create test suite " ; nodeTestName
+        rooibos.common.logError(`Could not create test suite ${nodeTestName}`)
       end if
 
-      ? "ERROR! (runInNodeMode) executing node test " + nodeTestName + " was unsuccessful."
+      rooibos.common.logError(`(runInNodeMode) executing node test ${nodeTestName} was unsuccessful.`)
 
       return invalid
     end function
@@ -188,17 +198,15 @@ namespace rooibos
         }
 
       else
-        ? "[ERROR] could not create test suite " ; m.testRunner.nodeTestName
+        rooibos.common.logError(`could not create test suite ${m.testRunner.nodeTestName}`)
       end if
 
-      ? "ERROR! (onTestSuiteComplete) executing node test " + m.testRunner.nodeTestName + " was unsuccessful."
+      rooibos.common.logError(`(onTestSuiteComplete) executing node test ${m.testRunner.nodeTestName} was unsuccessful.`)
       return invalid
     end function
 
     private function runTestSuite(testSuite) as void
       if testSuite.groupsData <> invalid and testSuite.groupsData.count() > 0
-        ? ""
-        ? rooibos.common.fillText("> SUITE: " + testSuite.name, ">", 80)
         m.testSuites.push(testSuite)
 
         if testSuite.isNodeTest
@@ -225,7 +233,7 @@ namespace rooibos
         if attempts = maxAttempts
           return false
         end if
-        ' ? "waiting for signal field '" ; fieldName "' - " ; attempts " VALUE " target[fieldName]
+        rooibos.common.logTrace(`waiting for signal field '${fieldName}' - ${attempts} VALUE ${target[fieldName]}`)
       end while
 
       return true
@@ -238,8 +246,7 @@ namespace rooibos
 
     private function runNodeTest(testSuite) as void
       if testSuite.generatedNodeName <> ""
-        ? " +++++RUNNING NODE TEST"
-        ? " node type is " ; testSuite.generatedNodeName
+        rooibos.common.logDebug(`+++++RUNNING NODE TEST${chr(10)}node type is ${testSuite.generatedNodeName}`)
 
         node = m.testScene.createChild(testSuite.generatedNodeName)
         'wait on the field
@@ -256,7 +263,7 @@ namespace rooibos
             if node.rooibosSuiteFinished = false
               timeout = testSuite.asyncTimeout = invalid ? 60000 : testSuite.asyncTimeout
 
-              ? "Waiting max " timeout "ms for the test suite to finish"
+              rooibos.common.logDebug(`Waiting max ${timeout}ms for the test suite to finish`)
               t = createObject("roTimespan")
               while node.rooibosSuiteFinished = false
                 m.wait(10)
@@ -271,19 +278,17 @@ namespace rooibos
             testSuite.stats.merge(nodeResults.stats)
             m.mergeGroups(testSuite, nodeResults.groups)
           else
-            ? " ERROR! The node test"; testSuite.name; " did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes"
+            rooibos.common.logError(`The node test ${testSuite.name} did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes`)
           end if
           m.testScene.removeChild(node)
           return
 
         else
-          ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
-          ? " Node of type " ; testSuite.generatedNodeName ; " was not found/could not be instantiated"
+          rooibos.common.logError(`Could not create node required to execute tests for ${testSuite.name}${chr(10)}Node of type ${testSuite.generatedNodeName} was not found/could not be instantiated`)
         end if
 
       else
-        ? " ERROR!! - could not create node required to execute tests for " ; testSuite.name
-        ? " No node type was provided"
+        rooibos.common.logError(`Could not create node required to execute tests for ${testSuite.name}${chr(10)}No node type was provided`)
       end if
 
       testSuite.stats.hasFailures = true
@@ -315,16 +320,16 @@ namespace rooibos
     end function
 
     private function getTestReporters()
-      reporters = []
+      testReporters = []
       for each factory in m.config.reporters
         if rooibos.common.isFunction(factory)
-          reporters.push(factory(m))
+          testReporters.push(factory(m))
         end if
       end for
-      if reporters.isEmpty()
-        reporters.push(new rooibos.ConsoleTestReporter(m))
+      if testReporters.isEmpty()
+        testReporters.push(new rooibos.ConsoleTestReporter(m))
       end if
-      return reporters
+      return testReporters
     end function
 
   end class
@@ -340,7 +345,7 @@ namespace rooibos
       m.top.AppendChild(node)
       return node
     else
-      ? " Error creating test node of type " ; nodeType
+      rooibos.common.logError(`Error creating test node of type ${nodeType}`)
       return invalid
     end if
   end function

@@ -57,7 +57,6 @@ namespace tests
       m.age = age
 
       callback = function()
-        ? "*** timer triggering anonymous callback function"
         m.testSuite.assertTrue(m.testSuite.age >= 18)
         m.testSuite.done()
       end function
@@ -95,6 +94,5 @@ namespace tests
 end namespace
 
 function OnTimer()
-  ? " TIMER IS FIRED"
   m.testSuite.done()
 end function

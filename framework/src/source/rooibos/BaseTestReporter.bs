@@ -1,27 +1,87 @@
 namespace rooibos
-  interface ITestReporterOnEndEvent
-    stats as rooibos.Stats
-  end interface
-
   class BaseTestReporter
 
     public testRunner = invalid
     public config = invalid
     public allStats = invalid
+    public colorizeOutput = false
 
-    function new(runner as dynamic)
+    sub new(runner as dynamic)
       m.testRunner = runner
       m.config = runner.config
       m.allStats = runner.stats
-    end function
+      m.colorizeOutput = runner.config.colorizeOutput = true
+    end sub
 
-    function onBegin(ev as dynamic)
+    sub onBegin(event as rooibos.TestReporterOnBeginEvent)
       'override me
-    end function
+      rooibos.common.logDebug("BaseTestReporter.onBegin")
+    end sub
 
-    function onEnd(ev as rooibos.ITestReporterOnEndEvent)
+    sub onSuiteBegin(event as rooibos.TestReporterOnSuiteBeginEvent)
       'override me
-    end function
+    end sub
+
+    sub onTestGroupBegin(event as rooibos.TestReporterOnTestGroupBeginEvent)
+      'override me
+    end sub
+
+    sub onTestBegin(event as rooibos.TestReporterOnTestBeginEvent)
+      'override me
+    end sub
+
+    sub onTestComplete(event as rooibos.TestReporterOnTestCompleteEvent)
+      'override me
+    end sub
+
+    sub onTestGroupComplete(event as rooibos.TestReporterOnTestGroupCompleteEvent)
+      'override me
+    end sub
+
+    sub onSuiteComplete(event as rooibos.TestReporterOnSuiteCompleteEvent)
+      'override me
+    end sub
+
+    sub onEnd(event as rooibos.TestReporterOnEndEvent)
+      'override me
+      rooibos.common.logDebug("BaseTestReporter.onEnd")
+    end sub
 
   end class
+
+  interface TestReporterOnBeginEvent
+    runner as rooibos.TestRunner
+  end interface
+
+  interface TestReporterOnSuiteBeginEvent
+    suite as rooibos.BaseTestSuite
+  end interface
+
+  interface TestReporterOnTestGroupBeginEvent
+    group as rooibos.TestGroup
+  end interface
+
+  interface TestReporterOnTestBeginEvent
+    test as rooibos.Test
+  end interface
+
+  interface TestReporterOnTestCompleteEvent
+    test as rooibos.Test
+  end interface
+
+  interface TestReporterOnTestGroupCompleteEvent
+    group as rooibos.TestGroup
+  end interface
+
+  interface TestReporterOnSuiteCompleteEvent
+    suite as rooibos.BaseTestSuite
+  end interface
+
+  ' @depreciated use rooibos.TestReporterOnEndEvent
+  interface ITestReporterOnEndEvent
+    stats as rooibos.Stats
+  end interface
+  interface TestReporterOnEndEvent
+    stats as rooibos.Stats
+  end interface
 end namespace

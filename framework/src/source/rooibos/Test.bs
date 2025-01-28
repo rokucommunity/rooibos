@@ -28,6 +28,7 @@ namespace rooibos
       m.isIgnored = data.isIgnored
       m.isAsync = data.isAsync
       m.asyncTimeout = data.asyncTimeout
+      m.slow = data.slow
       m.name = data.name
       m.lineNumber = data.lineNumber
       m.paramLineNumber = data.paramLineNumber

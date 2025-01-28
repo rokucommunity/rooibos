@@ -47,6 +47,10 @@ export class TestBlock {
         return this.annotation.isIgnore;
     }
 
+    public set isIgnored(value: boolean) {
+        this.annotation.isIgnore = value;
+    }
+
     public isValid = false;
     public isIncluded = false;
 

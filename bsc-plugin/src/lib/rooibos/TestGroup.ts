@@ -32,6 +32,7 @@ export class TestGroup extends TestBlock {
         if (testCase.isIgnored) {
             this.ignoredTestCases.push(testCase);
             this.hasIgnoredTests = true;
+            this.soloTestCases.push(testCase);
         } else if (testCase.isSolo) {
             this.hasSoloTests = true;
             this.soloTestCases.push(testCase);
@@ -78,7 +79,7 @@ export class TestGroup extends TestBlock {
                                     const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
                                     editor.arraySplice(owner, key + 1, 0, trailingLine);
                                 }
-                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.range.start.line}`).ast.statements[0];
+                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.range.start.line + 1}`).ast.statements[0];
                                 editor.arraySplice(owner, key, 0, leadingLine);
                             }
                         }
@@ -220,7 +221,7 @@ export class TestGroup extends TestBlock {
                 isSolo: ${this.isSolo}
                 isIgnored: ${this.isIgnored}
                 filename: "${this.pkgPath}"
-                lineNumber: "${this.annotation.annotation.range.start.line}"
+                lineNumber: "${this.annotation.annotation.range.start.line + 1}"
                 setupFunctionName: "${this.setupFunctionName || ''}"
                 tearDownFunctionName: "${this.tearDownFunctionName || ''}"
                 beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"

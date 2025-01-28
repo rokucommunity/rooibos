@@ -77,7 +77,7 @@ export class SessionInfo {
             } else if (this.hasSoloSuites && !testSuite.isSolo) {
                 testSuite.isIncluded = false;
             } else if (testSuite.isIgnored) {
-                testSuite.isIncluded = false;
+                testSuite.isIncluded = true;
                 this.ignoredTestNames.push(testSuite.name + ' [WHOLE SUITE]');
                 this.ignoredCount++;
             } else {
@@ -88,62 +88,73 @@ export class SessionInfo {
             }
             //'testSuite  ' + testSuite.name);
             for (let testGroup of testSuite.getTestGroups()) {
+                if (testSuite.isIgnored) {
+                    testGroup.isIgnored = true;
+                }
 
                 //'GROUP  ' + testGroup.name);
                 if (testGroup.isIgnored) {
                     this.ignoredCount += testGroup.ignoredTestCases.length;
                     this.ignoredTestNames.push(testGroup.name + ' [WHOLE GROUP]');
+                    testGroup.isIncluded = true;
+                }
+
+                if (testGroup.ignoredTestCases.length > 0) {
+                    this.ignoredTestNames.push(testGroup.name);
+                    this.ignoredCount += testGroup.ignoredTestCases.length;
+                    for (let ignoredTestCase of testGroup.ignoredTestCases) {
+                        if (!ignoredTestCase.isParamTest) {
+                            this.ignoredTestNames.push(ignoredTestCase.name);
+                        } else if (ignoredTestCase.paramTestIndex === 0) {
+                            let testCaseName = ignoredTestCase.name;
+                            if (testCaseName.length > 1 && testCaseName.substr(testCaseName.length - 1) === '0') {
+                                testCaseName = testCaseName.substr(0, testCaseName.length - 1);
+                            }
+                            this.ignoredTestNames.push(testCaseName);
+                        }
+                    }
+                }
+                if (this.isExcludedByTag(testGroup, true)) {
+                    testGroup.isIncluded = false;
+                } else if (this.hasSoloTests && !testGroup.hasSoloTests) {
+                    testGroup.isIncluded = false;
+                } else if (this.hasSoloGroups && !testGroup.isSolo) {
                     testGroup.isIncluded = false;
                 } else {
-                    if (testGroup.ignoredTestCases.length > 0) {
-                        this.ignoredTestNames.push(testGroup.name);
-                        this.ignoredCount += testGroup.ignoredTestCases.length;
-                        for (let ignoredTestCase of testGroup.ignoredTestCases) {
-                            if (!ignoredTestCase.isParamTest) {
-                                this.ignoredTestNames.push(ignoredTestCase.name);
-                            } else if (ignoredTestCase.paramTestIndex === 0) {
-                                let testCaseName = ignoredTestCase.name;
-                                if (testCaseName.length > 1 && testCaseName.substr(testCaseName.length - 1) === '0') {
-                                    testCaseName = testCaseName.substr(0, testCaseName.length - 1);
-                                }
-                                this.ignoredTestNames.push(testCaseName);
-                            }
-                        }
-                    }
-                    if (this.isExcludedByTag(testGroup, true)) {
-                        testGroup.isIncluded = false;
-                    } else if (this.hasSoloTests && !testGroup.hasSoloTests) {
-                        testGroup.isIncluded = false;
-                    } else if (this.hasSoloGroups && !testGroup.isSolo) {
-                        testGroup.isIncluded = false;
-                    } else {
-                        testGroup.isIncluded = true;
-                    }
+                    testGroup.isIncluded = true;
+                }
 
-                    if (testGroup.isIncluded) {
-                        this.groupsCount++;
-                        let testCases = [...testGroup.testCases.values()];
+                if (testGroup.isIncluded) {
+                    this.groupsCount++;
+                    let testCases = [...testGroup.testCases.values()];
 
-                        for (let testCase of testCases) {
-                            if (this.isExcludedByTag(testCase, true)) {
-                                testCase.isIncluded = false;
-                            } else if (testCase.isIgnored) {
-                                testCase.isIncluded = false;
-                            } else if (this.hasSoloTests && !testCase.isSolo) {
-                                testCase.isIncluded = false;
-                            } else {
-                                testCase.isIncluded = testGroup.isIncluded || testCase.isSolo;
-                                this.testsCount++;
-                            }
+                    for (let testCase of testCases) {
+                        if (testGroup.isIgnored) {
+                            testCase.isIgnored = true;
                         }
 
-                        for (let testCase of testGroup.soloTestCases) {
-                            if (this.isExcludedByTag(testCase, true)) {
-                                testCase.isIncluded = false;
-                            } else {
-                                testCase.isIncluded = true;
-                                this.testsCount++;
-                            }
+                        if (this.isExcludedByTag(testCase, true)) {
+                            testCase.isIncluded = false;
+                        } else if (testCase.isIgnored) {
+                            testCase.isIncluded = true;
+                        } else if (this.hasSoloTests && !testCase.isSolo) {
+                            testCase.isIncluded = false;
+                        } else {
+                            testCase.isIncluded = testGroup.isIncluded || testCase.isSolo;
+                        }
+                    }
+
+                    for (let testCase of testGroup.soloTestCases) {
+                        if (this.isExcludedByTag(testCase, true)) {
+                            testCase.isIncluded = false;
+                        } else {
+                            testCase.isIncluded = true;
+                        }
+                    }
+
+                    for (let testCase of testCases) {
+                        if (testCase.isIncluded) {
+                            this.testsCount++;
                         }
                     }
                 }

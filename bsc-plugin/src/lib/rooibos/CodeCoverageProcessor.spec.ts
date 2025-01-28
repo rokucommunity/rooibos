@@ -67,8 +67,8 @@ describe('RooibosPlugin', () => {
             it('adds code coverage to a brs file', async () => {
                 program.setFile('source/code.brs', `
                     function new(a1, a2)
-                    c = 0
-                    text = ""
+                        c = 0
+                        text = ""
                         for i = 0 to 10
                             text = text + "hello"
                             c++
