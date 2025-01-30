@@ -16,10 +16,7 @@
         "publish-npm:beta": "npm run test && npm publish --tag=beta",
         "local": "ts-node scripts/install-local.js",
         "remote": "ts-node scripts/install-npm.js",
-        "cli": "ts-node src/cli.ts",
-        "prepack": "node scripts/pack.js --pre",
-        "postpack": "node scripts/pack.js --post",
-        "postinstall": "ropm copy"
+        "cli": "ts-node src/cli.ts"
     },
     "repository": {
         "type": "git",

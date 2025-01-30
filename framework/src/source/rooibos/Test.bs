@@ -83,7 +83,7 @@ namespace rooibos
         m.recordExecutionTime()
       end if
 
-      return m.differed
+      return m.deferred
     end function
 
     ' Sets up a promise chain to link the deferred to the test promise results
