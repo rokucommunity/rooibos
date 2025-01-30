@@ -4,7 +4,7 @@ namespace tests
 	class PromisesTests extends rooibos.BaseTestSuite
 
 		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		@describe("tests that should as fail")
+		@describe("tests that should fail")
 		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 		@it("fail the test as the returned to the test promise that will reject")
@@ -46,7 +46,7 @@ namespace tests
 		end function
 
 		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		@describe("tests that should as fail as crashes")
+		@describe("tests that should fail as crashes")
 		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 		@async(100)
