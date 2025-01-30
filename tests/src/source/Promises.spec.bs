@@ -1,6 +1,5 @@
 namespace tests
 	@suite
-	@only()
 	@async
 	class PromisesTests extends rooibos.BaseTestSuite
 
