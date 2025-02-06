@@ -9,8 +9,8 @@
     "test": "source .env && npx ts-node ../bsc-plugin/src/cli.ts --host=$ROKU_HOST --password=$ROKU_PASSWORD"
   },
   "devDependencies": {
-    "@rokucommunity/bslint": "^1.0.0-alpha.43",
-    "brighterscript": "../../brighterscript",
+    "@rokucommunity/bslint": "^1.0.0-alpha.44",
+    "brighterscript": "^1.0.0-alpha.44",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "roku-debug": "^0.21.10",
