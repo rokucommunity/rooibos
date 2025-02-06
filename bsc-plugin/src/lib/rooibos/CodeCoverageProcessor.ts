@@ -58,6 +58,7 @@ export class CodeCoverageProcessor {
     private coverageMap: Map<number, number>;
     private fileFactory: FileFactory;
     private processedStatements: Set<Statement>;
+    private addedStatements: Set<Statement>;
     private astEditor: Editor;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
@@ -76,6 +77,7 @@ export class CodeCoverageProcessor {
         this.coverageMap = new Map<number, number>();
         this.executableLines = new Map<number, Statement>();
         this.processedStatements = new Set<Statement>();
+        this.addedStatements = new Set<Statement>();
         this.astEditor = astEditor;
         file.program.logger.info(RooibosLogPrefix, 'Processing file for code coverage:', this.fileId, file.pkgPath);
 
@@ -198,13 +200,14 @@ export class CodeCoverageProcessor {
     }
 
     private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
-        if (this.processedStatements.has(statement)) {
+        if (this.processedStatements.has(statement) || this.addedStatements.has(statement)) {
             return;
         }
 
         const lineNumber = statement.location.range.start.line;
         this.coverageMap.set(lineNumber, coverageType);
         const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
+        this.addedStatements.add(parsed);
         this.astEditor.arraySplice(owner, key, 0, parsed);
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);

@@ -1238,12 +1238,7 @@ describe('RooibosPlugin', () => {
                             m.stubCall(m.thing@.getFunction("a", "b"))
                             m.stubCall(m.thing@.getFunction("a", "b"), "return")
                         end function
-                        thing as Klass
-                    end class
-
-                    class Klass
-                        function getFunction()
-                        end function
+                        thing as roSGNode
                     end class
                 `);
                 program.validate();
@@ -1746,7 +1741,7 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                            thing = {}
+                            thing = {} as roSGNode
                             m.expectNotCalled(thing@.getFunction())
                             m.expectNotCalled(thing@.getFunction("arg1", "arg2"))
                         end function
@@ -2092,7 +2087,7 @@ describe('RooibosPlugin', () => {
                         m.testSuites = {}
                         m.testSuites = m.getTestSuiteClassMap()
                     end function
-                    ' bs:disable-next-line LINT2004
+                    ' bs:disable-next-line LINT2004 return-type-coercion-mismatch
                     instance.getVersionText = function() as string
                         return "${version}"
                         ' filled in by plugin

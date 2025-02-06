@@ -66,7 +66,7 @@ namespace tests
 
     @it("supports function pointer - therefore ignoring the params")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
 
       'don't care about the args
       m.expectCalled(item.getText, "some return value I want")
@@ -96,14 +96,14 @@ namespace tests
 
     @it("simple")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.expectCalled(item@.getText(), "test")
       m.assertEqual(item@.getText(), "test")
     end function
 
     @it("expected param")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.expectCalled(item@.getText("expected"), "test")
       m.assertEqual(item@.getText("expected"), "test")
 
@@ -112,7 +112,7 @@ namespace tests
 
     @it("not matching on param")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.expectCalled(item@.getText("expected"), "test")
 
       m.assertEqual(item@.getText("not expected"), "test")
@@ -388,7 +388,7 @@ namespace tests
 
     @it("not matching on param")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.stubCall(item@.getText("expected"), "test")
 
       m.assertEqual(item@.getText("not expected"), "test")
@@ -398,14 +398,14 @@ namespace tests
 
     @it("simple")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.stubCall(item@.getText(), "test")
       m.assertEqual(item@.getText(), "test")
     end function
 
     @it("expected param")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.stubCall(item@.getText("expected"), "test")
       m.assertEqual(item@.getText("expected"), "test")
 
@@ -456,14 +456,14 @@ namespace tests
 
     @it("passes when not called")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.expectNotCalled(item@.getText())
       m.assertRunningTestIsPassed()
     end function
 
     @it("fails when called")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.expectNotCalled(item@.getText())
       item@.getText()
 
@@ -472,7 +472,7 @@ namespace tests
 
     @it("fails when called, with params")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.expectNotCalled(item@.getText())
       item@.getText("expected")
 
@@ -481,7 +481,7 @@ namespace tests
 
     @it("fails when called, with params on expect too")
     function _()
-      item = {"id": "node"}
+      item = {"id": "node"} as roSGNode
       m.expectNotCalled(item@.getText("expected"))
       item@.getText("not expected")
 
