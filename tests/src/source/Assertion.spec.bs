@@ -39,6 +39,10 @@ namespace tests
       m.assertTrue(isFail)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertTrue tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     @it("AssertTrue")
     @params(true, true)
     @params(false, false)
@@ -47,15 +51,15 @@ namespace tests
     @params(1, false)
     @params("test", false)
     function _(value, expectedAssertResult)
-
       m.assertTrue(value)
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
-
-
       m.assertEqual(isFail, not expectedAssertResult)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertFalse tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("AssertFalse")
     @params(false, true)
@@ -65,18 +69,766 @@ namespace tests
     @params(1, false)
     @params("test", false)
     function _(value, expectedAssertResult)
-
       m.assertFalse(value)
-
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
-
-
       m.assertEqual(isFail, not expectedAssertResult)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests AssertArrayContainsAAs")
+    @describe("AssertEqual tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes with equal strings")
+    function _()
+      m.assertEqual("test", "test")
+    end function
+
+    @it("passes with equal numbers")
+    function _()
+      m.assertEqual(1, 1)
+      m.assertEqual(1.0!, 1.0!)
+      m.assertEqual(1.0#, 1.0#)
+      m.assertEqual(1&, 1&)
+    end function
+
+    @it("passes with equal booleans")
+    function _()
+      m.assertEqual(true, true)
+      m.assertEqual(false, false)
+    end function
+
+    @it("passes with equal associative arrays")
+    function _()
+      m.assertEqual({"test": 1}, {"test": 1})
+    end function
+
+    @it("passes with equal arrays")
+    function _()
+      m.assertEqual(["test", 1], ["test", 1])
+    end function
+
+    @it("passes with equal Nodes")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertEqual(node, node)
+    end function
+
+    @it("passes with complex objects")
+    function _()
+      node = createObject("roSGNode", "Node")
+      func = function()
+        return 1
+      end function
+      obj = {
+        "mockMethod": func
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+        node: node
+      }
+
+      obj2 = {
+        "mockMethod": func
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+        node: node
+      }
+
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("passes with invalid")
+    function _()
+      m.assertEqual(invalid, invalid)
+    end function
+
+    @it("passes with uninitialized")
+    function _()
+      m.assertEqual(uninitialized, uninitialized)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertLike tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes with equal strings")
+    function _()
+      m.assertLike("test", "test")
+    end function
+
+    @it("passes with equal numbers")
+    function _()
+      m.assertLike(1, 1)
+      m.assertLike(1.0!, 1.0!)
+      m.assertLike(1.0!, 1.0#)
+      m.assertLike(1.0#, 1.0#)
+      m.assertLike(1&, 1&)
+
+    end function
+
+    @it("passes with equal booleans")
+    function _()
+      m.assertLike(true, true)
+      m.assertLike(false, false)
+    end function
+
+    @it("passes with equal associative arrays")
+    function _()
+      m.assertLike({"test": 1}, {"test": 1})
+    end function
+
+    @it("passes with equal arrays")
+    function _()
+      m.assertLike(["test", 1], ["test", 1])
+    end function
+
+    @it("passes with equal Nodes")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertLike(node, node)
+    end function
+
+    @it("passes with complex objects")
+    function _()
+      node = createObject("roSGNode", "Node")
+      func = function()
+        return 1
+      end function
+      obj = {
+        "mockMethod": func
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+        node: node
+      }
+
+      obj2 = {
+        "mockMethod": func
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+        node: node
+      }
+
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("passes with invalid")
+    function _()
+      m.assertLike(invalid, invalid)
+    end function
+
+    @it("passes with uninitialized")
+    function _()
+      m.assertLike(uninitialized, uninitialized)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNotEqual tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNotEqual on object vs uninitialized")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = uninitialized
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on uninitialized vs object")
+    function _()
+      obj = uninitialized
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on object vs invalid")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = invalid
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on invalid vs object")
+    function _()
+      obj = invalid
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on object vs array")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = [1, 2, 4, 3]
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on array vs object")
+    function _()
+      obj = [1, 2, 3]
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on object1 vs object1")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on object2 vs object1")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on object vs string")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = "myString"
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on string vs object")
+    function _()
+      obj = "myString"
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on object vs integer")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = 10
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on integer vs object")
+    function _()
+      obj = 10
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on object vs boolean")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = true
+      m.assertNotEqual(obj, obj2)
+    end function
+    @it("passes assertNotEqual on boolean vs object")
+    function _()
+      obj = true
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on uninitialized vs node")
+    function _()
+      obj = uninitialized
+      obj2 = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on node vs uninitialized")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = uninitialized
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on node vs invalid")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = invalid
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on invalid vs node")
+    function _()
+      obj = invalid
+      obj2 = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on node vs node")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on node vs boolean")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = true
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on boolean vs node")
+    function _()
+      obj = true
+      obj2 = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on node vs string")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = "Node"
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on string vs node")
+    function _()
+      obj = "Node"
+      obj2 = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on node vs integer")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = 1
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on integer vs node")
+    function _()
+      obj = 1
+      obj2 = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on node vs array")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = [1, 2, 4, 3]
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on array vs node")
+    function _()
+      obj = [1, 2, 4, 3]
+      obj2 = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on node vs AA")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = {"key": "value"}
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on AA vs node")
+    function _()
+      obj = {"key": "value"}
+      obj2 = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on boolean vs uninitialized")
+    function _()
+      obj = true
+      obj2 = uninitialized
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on uninitialized vs boolean")
+    function _()
+      obj = uninitialized
+      obj2 = true
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on boolean vs invalid")
+    function _()
+      obj = true
+      obj2 = invalid
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on invalid vs boolean")
+    function _()
+      obj = invalid
+      obj2 = true
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on boolean vs array")
+    function _()
+      obj = true
+      obj2 = [1, 2, 4, 3]
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on array vs boolean")
+    function _()
+      obj = [1, 2, 4, 3]
+      obj2 = true
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on boolean vs string")
+    function _()
+      obj = true
+      obj2 = "true"
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on string vs boolean")
+    function _()
+      obj = "true"
+      obj2 = true
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on boolean vs integer")
+    function _()
+      obj = true
+      obj2 = 1
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on integer vs boolean")
+    function _()
+      obj = 1
+      obj2 = true
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on integer vs uninitialized")
+    function _()
+      obj = 1
+      obj2 = uninitialized
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on uninitialized vs integer")
+    function _()
+      obj = uninitialized
+      obj2 = 1
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on integer vs invalid")
+    function _()
+      obj = 1
+      obj2 = invalid
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on invalid vs integer")
+    function _()
+      obj = invalid
+      obj2 = 1
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on integer vs string")
+    function _()
+      obj = 1
+      obj2 = "1"
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    @it("passes assertNotEqual on string vs integer")
+    function _()
+      obj = "1"
+      obj2 = 1
+      m.assertNotEqual(obj, obj2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertInvalid tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes literal invalid")
+    function _()
+      m.assertInvalid(invalid)
+    end function
+
+    @it("passes roInvalid object equivalent for intrinsic type 'Invalid'")
+    function _()
+      m.assertInvalid(createObject("roInvalid"))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNotInvalid tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes when provided a string")
+    function _()
+      m.assertNotInvalid("test")
+    end function
+
+    @it("passes when provided a number")
+    function _()
+      m.assertNotInvalid(1)
+      m.assertNotInvalid(1.0!)
+      m.assertNotInvalid(1.0#)
+      m.assertNotInvalid(1&)
+    end function
+
+    @it("passes when provided a boolean")
+    function _()
+      m.assertNotInvalid(true)
+      m.assertNotInvalid(false)
+    end function
+
+    @it("passes when provided an associative array")
+    function _()
+      m.assertNotInvalid({})
+      m.assertNotInvalid({"test": 1})
+    end function
+
+    @it("passes when provided an array")
+    function _()
+      m.assertNotInvalid([])
+      m.assertNotInvalid(["test", 1])
+    end function
+
+    @it("passes when provided a node")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNotInvalid(node)
+    end function
+
+    @it("passes when provided a function")
+    function _()
+      func = function()
+        return 1
+      end function
+      m.assertNotInvalid(func)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertAAHasKey tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes when aa has requested key")
+    function _()
+      aa = {"test": 1}
+      m.assertAAHasKey(aa, "test")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertAANotHasKey tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes when aa does not have requested key")
+    function _()
+      aa = {"test": 1}
+      m.assertAANotHasKey(aa, "missing")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertAAHasKeys tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes when aa has requested keys")
+    function _()
+      aa = {"one": 1, "two": 2, "three": 3}
+      m.assertAAHasKeys(aa, ["one", "two"])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertAANotHasKeys tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes when aa does not have requested keys")
+    function _()
+      aa = {"one": 1, "two": 2, "three": 3}
+      m.assertAANotHasKeys(aa, ["four", "five"])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertArrayContains tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertArrayContains when value is in array with boolean search")
+    function _()
+      m.assertArrayContains([true], true)
+    end function
+
+    @it("passes assertArrayContains when value is in array with integer search")
+    function _()
+      m.assertArrayContains([1], 1)
+    end function
+
+    @it("passes assertArrayContains when value is in array with AA search")
+    function _()
+      m.assertArrayContains([{one: 1, two: 2, three: 3}], {one: 1, two: 2, three: 3})
+    end function
+
+    @it("passes assertArrayContains when value is in array with node search")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayContains([node], node)
+    end function
+
+    @it("passes assertArrayContains when value is in AA")
+    function _()
+      m.assertArrayContains({one: 1, two: 2, three: 3}, {one: 1, two: 2, three: 3})
+    end function
+
+    @it("passes assertArrayContains when value is in AA with boolean search")
+    function _()
+      m.assertArrayContains({one: true}, {one: true})
+    end function
+
+    @it("passes assertArrayContains when value is in AA with integer search")
+    function _()
+      m.assertArrayContains({one: 1}, {one: 1})
+    end function
+
+    @it("passes assertArrayContains when value is in AA with array search")
+    function _()
+      m.assertArrayContains({one: [1]}, {one: [1]})
+    end function
+
+    @it("passes assertArrayContains when value is in AA with node search")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayContains({one: node}, {one: node})
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertArrayContainsAAs tests")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("Fail")
@@ -97,16 +849,11 @@ namespace tests
     @params([{"one": 1}, {"two": 2}], [{"one": "1"}, {"two": "a"}])
     @params([{"one": 1}, {"two": 2}], [{"a": 1}, {"a": 1}, {"a": 1}])
     function _(expectedAAs, items)
-
       m.assertArrayContainsAAs(items, expectedAAs)
-
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
-
-
       m.assertTrue(isFail)
     end function
-
 
     @it("pass")
     @params([], [])
@@ -117,15 +864,413 @@ namespace tests
     @params([{"one": 1, "two": 2}, {"one": 1}], [{"one": 1}, {"two": 2, "one": 1}])
     @params([{"one": 1, "two": 2}, {"one": 1}, {"three": 3}], [{"one": 1}, {"three": 3}, {"two": 2, "one": 1}])
     function _(expectedAAs, items)
-
       m.assertArrayContainsAAs(items, expectedAAs)
-
       isFail = m.currentResult.isFail
-
       m.currentResult.Reset()
-
       m.assertFalse(isFail)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertArrayNotContains tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertArrayNotContains when value is not in array")
+    function _()
+      m.assertArrayNotContains(["one"], invalid)
+    end function
+
+    @it("passes assertArrayNotContains when value is not in AA")
+    function _()
+      m.assertArrayNotContains({one: 1, two: 2, three: 3}, invalid)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertArrayContainsSubset tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertArrayContainsSubset with actual as array and subset found string")
+    function _()
+      m.assertArrayContainsSubset(["one", "two", "three"], ["three"])
+    end function
+
+    @it("passes assertArrayContainsSubset with actual as array and subset found boolean")
+    function _()
+      m.assertArrayContainsSubset([true, false], [true])
+    end function
+
+    @it("passes assertArrayContainsSubset with actual as array and subset found integer")
+    function _()
+      m.assertArrayContainsSubset([1, 2, 3], [3])
+    end function
+
+    @it("passes assertArrayContainsSubset with actual as array and subset found node")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayContainsSubset([node], [node])
+    end function
+
+    @it("passes assertArrayContainsSubset with actual as AA and subset found string")
+    function _()
+      m.assertArrayContainsSubset({one: "1", two: "2", three: "3"}, {three: "3"})
+    end function
+
+    @it("passes assertArrayContainsSubset with actual as AA and subset found boolean")
+    function _()
+      m.assertArrayContainsSubset({one: true, two: false}, {two: false})
+    end function
+
+    @it("passes assertArrayContainsSubset with actual as AA and subset found integer")
+    function _()
+      m.assertArrayContainsSubset({one: 1, two: 2, three: 3}, {three: 3})
+    end function
+
+    @it("passes assertArrayContainsSubset with actual as AA and subset found node")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayContainsSubset({one: node}, {one: node})
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertArrayNotContainsSubset tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertArrayNotContainsSubset with actual as array and subset not found")
+    function _()
+      m.assertArrayNotContainsSubset(["one", "two", "three"], ["four"])
+    end function
+
+    @it("passes assertArrayNotContainsSubset with actual as AA and subset not found")
+    function _()
+      m.assertArrayNotContainsSubset({one: 1, two: 2, three: 3}, {four: 3})
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertArrayCount tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertArrayCount on matching count on array")
+    function _()
+      m.assertArrayCount([1, 2], 2)
+    end function
+
+    @it("passes assertArrayCount on matching count on AA")
+    function _()
+      m.assertArrayCount({one: 1, two: 2}, 2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertArrayNotCount tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes AssertArrayNotCount miss match count on array")
+    function _()
+      m.assertArrayNotCount([1, 2], 1)
+    end function
+
+    @it("passes AssertArrayNotCount miss match count on AA")
+    function _()
+      m.assertArrayNotCount({one: 1, two: 2}, 1)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertEmpty tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertEmpty on empty array")
+    function _()
+      m.assertEmpty([])
+    end function
+
+    @it("passes assertEmpty on empty aa")
+    function _()
+      m.assertEmpty({})
+    end function
+
+    @it("passes assertEmpty on empty string")
+    function _()
+      m.assertEmpty("")
+    end function
+
+    @it("pass")
+    @params([])
+    @params({})
+    @params("")
+    function _(values)
+      m.assertEmpty(values)
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.assertFalse(isFail)
+    end function
+
+    @it("fail")
+    @params(1)
+    @params(invalid)
+    @params(["one", "two", "three"])
+    @params([1, 2, 3])
+    @params([true])
+    @params([[true, true], [false, false]])
+    @params([{"test": 1}])
+    @params("not empty")
+    @params([invalid])
+    function _(values)
+      m.assertEmpty(values)
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.assertTrue(isFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNotEmpty tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertEmpty on non-empty array")
+    function _()
+      m.assertNotEmpty([1])
+    end function
+
+    @it("passes assertEmpty on non-empty aa")
+    function _()
+      m.assertNotEmpty({one: 1})
+    end function
+
+    @it("passes assertEmpty on non-empty string")
+    function _()
+      m.assertNotEmpty("2")
+    end function
+
+    @it("pass")
+    @params(["one", "two", "three"])
+    @params([1, 2, 3])
+    @params([true])
+    @params([[true, true], [false, false]])
+    @params([{"test": 1}])
+    @params("not empty")
+    @params([invalid])
+    function _(values)
+      m.assertNotEmpty(values)
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.assertFalse(isFail)
+    end function
+
+    @it("fail")
+    @params(invalid)
+    @params([])
+    @params({})
+    @params(1)
+    @params("")
+    function _(values)
+      m.assertNotEmpty(values)
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.assertTrue(isFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertArrayContainsOnlyValuesOfType tests ")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("pass")
+    @params(["one", "two", "three"], "String")
+    @params([1, 2, 3], "Integer")
+    @params([true, true, false], "Boolean")
+    @params([[true, true], [false, false]], "Array")
+    @params([{"test": 1}, {"test": 1}], "AssociativeArray")
+    function _(values, typeName)
+      m.assertArrayContainsOnlyValuesOfType(values, typeName)
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.assertFalse(isFail)
+    end function
+
+    @it("fail")
+    @params(["one", 2, "three"], "String")
+    @params([1, "two", 3], "Integer")
+    @params([true, "true", false], "Boolean")
+    @params([[true, true], false, false], "Array")
+    @params([{"test": 1}, "notAA"], "AssociativeArray")
+    @params(["one", "two", "three"], "UnknownType")
+    @params(["one", "two", "three"], "Integer")
+    @params([1, 2, 3], "String")
+    @params([true, true, false], "String")
+    @params([[true, true], [false, false]], "AssociativeArray")
+    @params([{"test": 1}, {"test": 1}], "Array")
+    function _(values, typeName)
+      m.assertArrayContainsOnlyValuesOfType(values, typeName)
+      isFail = m.currentResult.isFail
+      m.currentResult.Reset()
+      m.assertTrue(isFail)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertType tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertType on type match string")
+    function _()
+      m.assertType("", "String")
+    end function
+
+    @it("passes assertType on type match boolean")
+    function _()
+      m.assertType(true, "Boolean")
+      m.assertType(false, "Boolean")
+    end function
+
+    @it("passes assertType on type match integer")
+    function _()
+      m.assertType(1, "Integer")
+    end function
+
+    @it("passes assertType on type match AA")
+    function _()
+      m.assertType({}, "roAssociativeArray")
+    end function
+
+    @it("passes assertType on type match array")
+    function _()
+      m.assertType([], "roArray")
+    end function
+
+    @it("passes assertType on type match node")
+    function _()
+      m.assertType(createObject("roSGNode", "Node"), "roSGNode")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertSubType tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertType on type match subtypes")
+    function _()
+      m.assertSubType(createObject("roSgNode", "Node"), "Node")
+      m.assertSubType(createObject("roSgNode", "NodeExample"), "NodeExample")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertClass tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes AssertClass on class name match")
+    @params({__classname: "myClass"})
+    function _(value)
+      m.assertClass(value, "myClass")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeCount tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeCount on child count match")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeCount(node, 10)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeNotCount tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeNotCount on child count miss match")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotCount(node, 5)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeEmpty tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeEmpty on empty node")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeEmpty(node)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeNotEmpty tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeNotEmpty on non-empty node")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotEmpty(node)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeContains tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeContains when child is found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeContains(node, node.getChild(5))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeContainsOnly tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeContainsOnly when child is found and contains not other children")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(1, "Group")
+      m.assertNodeContainsOnly(node, node.getChild(0))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeNotContains tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeNotContains when child is not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotContains(node, createObject("roSGNode", "Node"))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeContainsFields tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeContainsFields fields are found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeContainsFields(node, {"id": "", "focusable": false})
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertNodeNotContainsFields tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("passes assertNodeNotContainsFields legacy find child support in array subset")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotContainsFields(node, [createObject("roSGNode", "Node"), createObject("roSGNode", "Node")])
+    end function
+
+    @it("passes assertNodeNotContainsFields subset AA of fields does not match on node")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeNotContainsFields(node, {"focusable": true})
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("AssertAAContainsSubset tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    @it("passes assertAAContainsSubset with matching subset of values")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertAAContainsSubset({one: 1, two: 2, three: 3}, {one: 1, two: 2})
+    end function
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests global is present on testSuite")
@@ -151,131 +1296,6 @@ namespace tests
       m.assertNotInvalid(m.global)
       m.assertNotInvalid(m.beforeEachGlobal)
       m.assertNotInvalid(m.afterEachGlobal)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests AssertArrayContainsOnlyValuesOfType")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("pass")
-    @params(["one", "two", "three"], "String")
-    @params([1, 2, 3], "Integer")
-    @params([true, true, false], "Boolean")
-    @params([[true, true], [false, false]], "Array")
-    @params([{"test": 1}, {"test": 1}], "AssociativeArray")
-    function _(values, typeName)
-
-      m.assertArrayContainsOnlyValuesOfType(values, typeName)
-      isFail = m.currentResult.isFail
-
-      m.currentResult.Reset()
-
-      m.assertFalse(isFail)
-
-    end function
-
-    @it("fail")
-    @params(["one", 2, "three"], "String")
-    @params([1, "two", 3], "Integer")
-    @params([true, "true", false], "Boolean")
-    @params([[true, true], false, false], "Array")
-    @params([{"test": 1}, "notAA"], "AssociativeArray")
-    @params(["one", "two", "three"], "UnknownType")
-    @params(["one", "two", "three"], "Integer")
-    @params([1, 2, 3], "String")
-    @params([true, true, false], "String")
-    @params([[true, true], [false, false]], "AssociativeArray")
-    @params([{"test": 1}, {"test": 1}], "Array")
-    function _(values, typeName)
-
-      m.assertArrayContainsOnlyValuesOfType(values, typeName)
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
-
-
-      m.assertTrue(isFail)
-
-
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests AssertNotEmpty")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("pass")
-    @params(["one", "two", "three"])
-    @params([1, 2, 3])
-    @params([true])
-    @params([[true, true], [false, false]])
-    @params([{"test": 1}])
-    @params("not empty")
-    @params([invalid])
-    function _(values)
-
-      m.assertNotEmpty(values)
-      isFail = m.currentResult.isFail
-
-      m.currentResult.Reset()
-
-      m.assertFalse(isFail)
-
-    end function
-
-    @it("fail")
-    @params(invalid)
-    @params([])
-    @params({})
-    @params(1)
-    @params("")
-    function _(values)
-
-      m.assertNotEmpty(values)
-      isFail = m.currentResult.isFail
-
-      m.currentResult.Reset()
-
-      m.assertTrue(isFail)
-
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests AssertEmpty")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("pass")
-    @params([])
-    @params({})
-    @params("")
-    function _(values)
-
-      m.assertEmpty(values)
-      isFail = m.currentResult.isFail
-
-      m.currentResult.Reset()
-
-      m.assertFalse(isFail)
-
-    end function
-
-    @it("fail")
-    @params(1)
-    @params(invalid)
-    @params(["one", "two", "three"])
-    @params([1, 2, 3])
-    @params([true])
-    @params([[true, true], [false, false]])
-    @params([{"test": 1}])
-    @params("not empty")
-    @params([invalid])
-    function _(values)
-
-      m.assertEmpty(values)
-      isFail = m.currentResult.isFail
-
-      m.currentResult.Reset()
-
-      m.assertTrue(isFail)
-
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -589,40 +1609,11 @@ namespace tests
 
     end function
 
-    'ASSERTIONS TO WRITE TESTS FOR!
+    'ASSERTIONS TO WRITE OR CLARIFY TESTS FOR!
 
     'This is coming soon!
 
-    '    AssertEqual
     '    AssertLike
-    '    AssertNotEqual
-    '    AssertInvalid
-    '    AssertNotInvalid
-    '    AssertAAHasKey
-    '    AssertAANotHasKey
-    '    AssertAAHasKeys
-    '    AssertAANotHasKeys
-    '    AssertArrayNotContains
-    '    AssertArrayContainsSubset
-    '    AssertArrayNotContainsSubsetet
-    '    AssertArrayCount
-    '    AssertArrayNotCount
-    '    AssertArrayContainsOnly
-    '    AssertType
-    '    AssertSubType
-    '
-    '    'Node extensions
-    '    AssertNodeCount
-    '    AssertNodeNotCount
-    '    AssertNodeEmpty
-    '    AssertNodeNotEmpty
-    '    AssertNodeContains
-    '    AssertNodeNotContains
-    '    AssertNodeContainsFields
-    '    AssertNodeNotContainsFields
-
-    '    AssertArray
-    '    AssertAAContainsSubset
     '
     '    'Mocking and stubbing
     '    AssertMocks

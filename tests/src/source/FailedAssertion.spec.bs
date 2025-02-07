@@ -1,0 +1,1658 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+namespace tests
+
+  @noEarlyExit
+  @suite("Rooibos failed assertion tests")
+  class FailedAssertionTests extends rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("automatically failing tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fails on crash in the test function")
+    function _()
+      ' Make sure a passed assertion is superseded by a crash
+      m.assertTrue(true)
+      throw "some error"
+    end function
+
+    @it("fails if returned a promise from a non-node test")
+    function _()
+      ' Make sure a passed assertion is superseded by fact a promise was returned
+      m.assertTrue(true)
+      return rooibos.promises.resolve(true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertTrue fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("AssertTrue with message")
+    @params(false)
+    @params(invalid)
+    @params(0)
+    @params(1)
+    @params("test")
+    @params({})
+    @params([])
+    function _(value)
+      m.assertTrue(value)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertFalse fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("AssertFalse")
+    @params(true)
+    @params(invalid)
+    @params(0)
+    @params(1)
+    @params("test")
+    @params({})
+    @params([])
+    function _(value)
+      m.assertFalse(value)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertEqual fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("assertEqual fail on object vs uninitialized")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = uninitialized
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on uninitialized vs object")
+    function _()
+      obj = uninitialized
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on object vs invalid")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = invalid
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on invalid vs object")
+    function _()
+      obj = invalid
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on object vs array")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = [1, 2, 4, 3]
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on array vs object")
+    function _()
+      obj = [1, 2, 3]
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on object1 vs object1")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on object2 vs object1")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on object vs string")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = "myString"
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on string vs object")
+    function _()
+      obj = "myString"
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on object vs integer")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = 10
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on integer vs object")
+    function _()
+      obj = 10
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on object vs boolean")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = true
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on boolean vs object")
+    function _()
+      obj = true
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on uninitialized vs node")
+    function _()
+      obj = uninitialized
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs uninitialized")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = uninitialized
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs invalid")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = invalid
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on invalid vs node")
+    function _()
+      obj = invalid
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs node")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs boolean")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = true
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on boolean vs node")
+    function _()
+      obj = true
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs string")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = "Node"
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on string vs node")
+    function _()
+      obj = "Node"
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs integer")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = 1
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on integer vs node")
+    function _()
+      obj = 1
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs array")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = [1, 2, 4, 3]
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on array vs node")
+    function _()
+      obj = [1, 2, 4, 3]
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on node vs AA")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      obj2 = { "key": "value" }
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on AA vs node")
+    function _()
+      obj = { "key": "value" }
+      obj2 = createObject("roSgNode", "Node")
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on boolean vs uninitialized")
+    function _()
+      obj = true
+      obj2 = uninitialized
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on uninitialized vs boolean")
+    function _()
+      obj = uninitialized
+      obj2 = true
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on boolean vs invalid")
+    function _()
+      obj = true
+      obj2 = invalid
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on invalid vs boolean")
+    function _()
+      obj = invalid
+      obj2 = true
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on boolean vs array")
+    function _()
+      obj = true
+      obj2 = [1, 2, 4, 3]
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on array vs boolean")
+    function _()
+      obj = [1, 2, 4, 3]
+      obj2 = true
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on boolean vs string")
+    function _()
+      obj = true
+      obj2 = "true"
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on string vs boolean")
+    function _()
+      obj = "true"
+      obj2 = true
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on boolean vs integer")
+    function _()
+      obj = true
+      obj2 = 1
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on integer vs boolean")
+    function _()
+      obj = 1
+      obj2 = true
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on integer vs uninitialized")
+    function _()
+      obj = 1
+      obj2 = uninitialized
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on uninitialized vs integer")
+    function _()
+      obj = uninitialized
+      obj2 = 1
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on integer vs invalid")
+    function _()
+      obj = 1
+      obj2 = invalid
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on invalid vs integer")
+    function _()
+      obj = invalid
+      obj2 = 1
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on integer vs string")
+    function _()
+      obj = 1
+      obj2 = "1"
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual fail on string vs integer")
+    function _()
+      obj = "1"
+      obj2 = 1
+      m.assertEqual(obj, obj2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertLike fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("assertLike fail on object vs uninitialized")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = uninitialized
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on uninitialized vs object")
+    function _()
+      obj = uninitialized
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on object vs invalid")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = invalid
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on invalid vs object")
+    function _()
+      obj = invalid
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on object vs array")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = [1, 2, 4, 3]
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on array vs object")
+    function _()
+      obj = [1, 2, 3]
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on object1 vs object1")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on object2 vs object1")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on object vs string")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = "myString"
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on string vs object")
+    function _()
+      obj = "myString"
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on object vs integer")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = 10
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on integer vs object")
+    function _()
+      obj = 10
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on object vs boolean")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      obj2 = true
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on boolean vs object")
+    function _()
+      obj = true
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+      }
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on boolean vs uninitialized")
+    function _()
+      obj = true
+      obj2 = uninitialized
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on uninitialized vs boolean")
+    function _()
+      obj = uninitialized
+      obj2 = true
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on boolean vs invalid")
+    function _()
+      obj = true
+      obj2 = invalid
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on invalid vs boolean")
+    function _()
+      obj = invalid
+      obj2 = true
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on boolean vs array")
+    function _()
+      obj = true
+      obj2 = [1, 2, 4, 3]
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on array vs boolean")
+    function _()
+      obj = [1, 2, 4, 3]
+      obj2 = true
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on boolean vs string")
+    function _()
+      obj = true
+      obj2 = "true"
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on string vs boolean")
+    function _()
+      obj = "true"
+      obj2 = true
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on boolean vs integer")
+    function _()
+      obj = true
+      obj2 = 1
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on integer vs boolean")
+    function _()
+      obj = 1
+      obj2 = true
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on integer vs uninitialized")
+    function _()
+      obj = 1
+      obj2 = uninitialized
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on uninitialized vs integer")
+    function _()
+      obj = uninitialized
+      obj2 = 1
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on integer vs invalid")
+    function _()
+      obj = 1
+      obj2 = invalid
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on invalid vs integer")
+    function _()
+      obj = invalid
+      obj2 = 1
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on integer vs string")
+    function _()
+      obj = 1
+      obj2 = "1"
+      m.assertLike(obj, obj2)
+    end function
+
+    @it("assertLike fail on string vs integer")
+    function _()
+      obj = "1"
+      obj2 = 1
+      m.assertLike(obj, obj2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNotEqual fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNotEqual on node vs node")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on object vs object")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on array vs array")
+    function _()
+      obj = [1, 2, 3]
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on string vs string")
+    function _()
+      obj = "myString"
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on integer vs integer")
+    function _()
+      obj = 10
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on boolean vs boolean")
+    function _()
+      obj = true
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on uninitialized vs uninitialized")
+    function _()
+      obj = uninitialized
+      m.assertNotEqual(obj, obj)
+    end function
+
+    @it("fail assertNotEqual on invalid vs invalid")
+    function _()
+      obj = invalid
+      m.assertNotEqual(obj, obj)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertInvalid fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertInvalid on node")
+    function _()
+      obj = createObject("roSgNode", "Node")
+      m.assertInvalid(obj)
+    end function
+
+    @it("fail assertInvalid on object")
+    function _()
+      obj = {
+        "mockMethod": function()
+          return 1
+        end function
+        key: "value"
+        object: {
+          "otherKey": "value"
+        }
+        array: [1, 2, 3]
+      }
+      m.assertInvalid(obj)
+    end function
+
+    @it("fail assertInvalid on array")
+    function _()
+      m.assertInvalid([1, 2, 3])
+    end function
+
+    @it("fail assertInvalid on string")
+    function _()
+      m.assertInvalid("myString")
+    end function
+
+    @it("fail assertInvalid on integer")
+    function _()
+      m.assertInvalid(10)
+    end function
+
+    @it("fail assertInvalid on boolean")
+    function _()
+      m.assertInvalid(true)
+    end function
+
+    @it("fail assertInvalid on uninitialized")
+    function _()
+      m.assertInvalid(uninitialized)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNotInvalid fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNotInvalid on invalid")
+    function _()
+      m.assertNotInvalid(invalid)
+    end function
+
+    @it("failed assertInvalid on roInvalid object equivalent for intrinsic type 'Invalid'")
+    function _()
+      m.assertNotInvalid(createObject("roInvalid"))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertAAHasKey fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertAAHasKey on invalid")
+    function _()
+      m.assertAAHasKey(invalid, "one")
+    end function
+
+    @it("fail assertAAHasKey on missing key")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertAAHasKey(obj, "four")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertAAHasKeys fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertAAHasKeys with missing actual AA")
+    function _()
+      m.assertAAHasKeys(invalid, ["one"])
+    end function
+
+    @it("fail assertAAHasKeys when keys are found")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertAAHasKeys(obj, ["one", "two", "three", "four", "five", "six'", "seven"""])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertAANotHasKey fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertAANotHasKey on invalid")
+    function _()
+      m.assertAANotHasKey(invalid, "one")
+    end function
+
+    @it("fail assertAANotHasKey on found key")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertAANotHasKey(obj, "one")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayContains fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail AssertArrayContains with missing actual array")
+    function _()
+      m.AssertArrayContains(invalid, "one")
+    end function
+
+    @it("fail AssertArrayContains when value is not in array")
+    function _()
+      m.AssertArrayContains(["one"], invalid)
+    end function
+
+    @it("fail AssertArrayContains when value is not in AA")
+    function _()
+      m.AssertArrayContains({ one: 1, two: 2, three: 3 }, invalid)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayContainsAAs fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayContainsAAs with missing actual array")
+    function _()
+      m.assertArrayContainsAAs(invalid, [{ "one": 1, "two": 2, "three": 3, "four": 4 }])
+    end function
+
+    @it("fail assertArrayContainsAAs with missing search array")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertArrayContainsAAs([obj], invalid)
+    end function
+
+    @it("fail assertArrayContainsAAs with invalid value in search array")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertArrayContainsAAs([obj], [invalid])
+    end function
+
+    @it("fail assertArrayContainsAAs did not contain aa")
+    function _()
+      obj = {
+        one: 1
+        two: 2
+        three: 3
+      }
+      m.assertArrayContainsAAs([obj], [{ "one": 1, "two": 2, "three": 3, "four": 4 }])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayNotContains fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayNotContains with missing actual array")
+    function _()
+      m.assertArrayNotContains(invalid, "one")
+    end function
+
+    @it("fail assertArrayNotContains when value is in array")
+    function _()
+      m.assertArrayNotContains(["one"], "one")
+    end function
+
+    @it("fail assertArrayNotContains when value is in array with boolean search")
+    function _()
+      m.assertArrayNotContains([true], true)
+    end function
+
+    @it("fail assertArrayNotContains when value is in array with integer search")
+    function _()
+      m.assertArrayNotContains([1], 1)
+    end function
+
+    @it("fail assertArrayNotContains when value is in array with AA search")
+    function _()
+      m.assertArrayNotContains([{ one: 1, two: 2, three: 3 }], { one: 1, two: 2, three: 3 })
+    end function
+
+    @it("fail assertArrayNotContains when value is in array with node search")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayNotContains([node], node)
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA")
+    function _()
+      m.assertArrayNotContains({ one: 1, two: 2, three: 3 }, { one: 1, two: 2, three: 3 })
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA with boolean search")
+    function _()
+      m.assertArrayNotContains({ one: true }, { one: true })
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA with integer search")
+    function _()
+      m.assertArrayNotContains({ one: 1 }, { one: 1 })
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA with array search")
+    function _()
+      m.assertArrayNotContains({ one: [1] }, { one: [1] })
+    end function
+
+    @it("fail assertArrayNotContains when value is in AA with node search")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayNotContains({ one: node }, { one: node })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayContainsSubset fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayContainsSubset with missing actual array")
+    function _()
+      m.assertArrayContainsSubset(invalid, [])
+    end function
+
+    @it("fail assertArrayContainsSubset with missing actual subset")
+    function _()
+      m.assertArrayContainsSubset([], invalid)
+    end function
+
+    @it("fail assertArrayContainsSubset with actual as array and subset as AA")
+    function _()
+      m.assertArrayContainsSubset([], {})
+    end function
+
+    @it("fail assertArrayContainsSubset with actual as AA and subset as array")
+    function _()
+      m.assertArrayContainsSubset({}, [])
+    end function
+
+    @it("fail assertArrayContainsSubset with actual as array and subset not found")
+    function _()
+      m.assertArrayContainsSubset(["one", "two", "three"], ["four"])
+    end function
+
+    @it("fail assertArrayContainsSubset with actual as AA and subset not found")
+    function _()
+      m.assertArrayContainsSubset({ one: 1, two: 2, three: 3 }, { four: 3 })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayNotContainsSubset fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayNotContainsSubset with missing actual array")
+    function _()
+      m.assertArrayNotContainsSubset(invalid, [])
+    end function
+
+    @it("fail assertArrayNotContainsSubset with missing actual subset")
+    function _()
+      m.assertArrayNotContainsSubset([], invalid)
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as array and subset as AA")
+    function _()
+      m.assertArrayNotContainsSubset([], {})
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset as array")
+    function _()
+      m.assertArrayNotContainsSubset({}, [])
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as array and subset found string")
+    function _()
+      m.assertArrayNotContainsSubset(["one", "two", "three"], ["three"])
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as array and subset found boolean")
+    function _()
+      m.assertArrayNotContainsSubset([true, false], [true])
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as array and subset found integer")
+    function _()
+      m.assertArrayNotContainsSubset([1, 2, 3], [3])
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as array and subset found node")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayNotContainsSubset([node], [node])
+    end function
+
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset found string")
+    function _()
+      m.assertArrayNotContainsSubset({ one: "1", two: "2", three: "3" }, { three: "3" })
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset found boolean")
+    function _()
+      m.assertArrayNotContainsSubset({ one: true, two: false }, { two: false })
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset found integer")
+    function _()
+      m.assertArrayNotContainsSubset({ one: 1, two: 2, three: 3 }, { three: 3 })
+    end function
+
+    @it("fail assertArrayNotContainsSubset with actual as AA and subset found node")
+    function _()
+      node = createObject("roSgNode", "Node")
+      m.assertArrayNotContainsSubset({ one: node }, { one: node })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayCount fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayCount missing array")
+    function _()
+      m.assertArrayCount(invalid, 1)
+    end function
+
+    @it("fail assertArrayCount miss match count on array")
+    function _()
+      m.assertArrayCount([1, 2], 1)
+    end function
+
+    @it("fail assertArrayCount miss match count on AA")
+    function _()
+      m.assertArrayCount({ one: 1, two: 2 }, 1)
+    end function
+
+    @it("fail assertArrayCount bad count value")
+    function _()
+      m.assertArrayCount({ one: 1, two: 2 }, "1")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayNotCount fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayNotCount missing array")
+    function _()
+      m.assertArrayNotCount(invalid, 1)
+    end function
+
+    @it("fail assertArrayNotCount miss match count on array")
+    function _()
+      m.assertArrayNotCount([1, 2], 2)
+    end function
+
+    @it("fail assertArrayNotCount miss match count on AA")
+    function _()
+      m.assertArrayNotCount({ one: 1, two: 2 }, 2)
+    end function
+
+    @it("fail assertArrayNotCount bad count value")
+    function _()
+      m.assertArrayNotCount({ one: 1, two: 2 }, "2")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertEmpty fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertEmpty bad input")
+    function _()
+      m.assertEmpty(invalid)
+    end function
+
+    @it("fail assertEmpty non empty array")
+    function _()
+      m.assertEmpty([1])
+    end function
+
+    @it("fail assertEmpty non empty aa")
+    function _()
+      m.assertEmpty({ one: 1 })
+    end function
+
+    @it("fail assertEmpty non empty string")
+    function _()
+      m.assertEmpty("2")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNotEmpty fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNotEmpty bad input")
+    function _()
+      m.assertNotEmpty(invalid)
+    end function
+
+    @it("fail assertNotEmpty empty array")
+    function _()
+      m.assertNotEmpty([])
+    end function
+
+    @it("fail assertNotEmpty empty aa")
+    function _()
+      m.assertNotEmpty({})
+    end function
+
+    @it("fail assertNotEmpty empty string")
+    function _()
+      m.assertNotEmpty("")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertArrayContainsOnlyValuesOfType fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertArrayContainsOnlyValuesOfType bad input type")
+    function _()
+      m.assertArrayContainsOnlyValuesOfType(invalid, "bad value")
+    end function
+
+    @it("fail assertArrayContainsOnlyValuesOfType bad input value")
+    function _()
+      m.assertArrayContainsOnlyValuesOfType(invalid, "String")
+    end function
+
+    @it("fail assertArrayContainsOnlyValuesOfType array of invalid values")
+    function _()
+      m.assertArrayContainsOnlyValuesOfType([invalid], "String")
+    end function
+
+    @it("fail assertArrayContainsOnlyValuesOfType AA of invalid values")
+    function _()
+      m.assertArrayContainsOnlyValuesOfType({ key: invalid }, "String")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertType fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertType type mismatch string")
+    function _()
+      m.assertType(invalid, "string")
+    end function
+
+    @it("fail assertType type mismatch boolean")
+    function _()
+      m.assertType(invalid, "boolean")
+    end function
+
+    @it("fail assertType type mismatch integer")
+    function _()
+      m.assertType(invalid, "integer")
+    end function
+
+    @it("fail assertType type mismatch AA")
+    function _()
+      m.assertType(invalid, "roAssociativeArray")
+    end function
+
+    @it("fail assertType type mismatch array")
+    function _()
+      m.assertType(invalid, "roArray")
+    end function
+
+    @it("fail assertType type mismatch node")
+    function _()
+      m.assertType(invalid, "roSGNode")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertSubType fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertType type mismatch non-node")
+    function _()
+      m.assertSubType(createObject("roDateTime"), "MyNode")
+    end function
+
+    @it("fail assertType type mismatch primitive")
+    function _()
+      m.assertSubType(true, "MyNode")
+    end function
+
+    @it("fail assertType type mismatch subtypes")
+    function _()
+      m.assertSubType(createObject("roSgNode", "Node"), "MyNode")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertClass fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fails if not passed a class")
+    @params(invalid)
+    @params([])
+    @params("wrong")
+    function _(value)
+      m.assertClass(value, "myClass")
+    end function
+
+    @it("fails if wrong class name")
+    @params({})
+    @params({ __classname: invalid })
+    @params({ __classname: "other" })
+    function _(value)
+      m.assertClass(value, "myClass")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeCount fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeCount missing node")
+    function _()
+      m.assertNodeCount(invalid, 0)
+    end function
+
+    @it("fail assertNodeCount on count miss match")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeCount(node, 5)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeNotCount fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeNotCount missing node")
+    function _()
+      m.assertNodeNotCount(invalid, 0)
+    end function
+
+    @it("fail assertNodeNotCount on count miss match")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotCount(node, 10)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeEmpty fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeEmpty missing node")
+    function _()
+      m.assertNodeEmpty(invalid)
+    end function
+
+    @it("fail assertNodeEmpty on non-empty node")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeEmpty(node)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeNotEmpty fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeNotEmpty missing node")
+    function _()
+      m.assertNodeNotEmpty(invalid)
+    end function
+
+    @it("fail assertNodeNotEmpty on empty node")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeNotEmpty(node)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeContains fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeContains missing node")
+    function _()
+      m.assertNodeContains(invalid, invalid)
+    end function
+
+    @it("fail assertNodeContains when child not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeContains(node, createObject("roSGNode", "Group"))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeContainsOnly fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeContainsOnly missing node")
+    function _()
+      m.assertNodeContainsOnly(invalid, invalid)
+    end function
+
+    @it("fail assertNodeContainsOnly when child if found but contains other children")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeContainsOnly(node, node.getChild(0))
+    end function
+
+    @it("fail assertNodeContainsOnly when child is not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(1, "Group")
+      m.assertNodeContainsOnly(node, createObject("roSGNode", "Group"))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeNotContains fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeNotContains missing node")
+    function _()
+      m.assertNodeNotContains(invalid, invalid)
+    end function
+
+    @it("fail assertNodeNotContains when child is found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotContains(node, node.getChild(5))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeContainsFields fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeContainsFields missing node")
+    function _()
+      m.assertNodeContainsFields(invalid, invalid)
+    end function
+
+    @it("fail assertNodeContainsFields bad subset value")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeContainsFields(node, [])
+    end function
+
+    @it("fail assertNodeContainsFields fields are not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeContainsFields(node, { "field": "value", "id": "", "focusable": false, "": false })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertNodeNotContainsFields fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertNodeNotContainsFields with missing node")
+    function _()
+      m.assertNodeNotContainsFields(invalid, [])
+    end function
+
+    @it("fail assertNodeNotContainsFields with missing subset")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeNotContainsFields(node, invalid)
+    end function
+
+    @it("fail assertNodeNotContainsFields legacy find child support in array subset")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.createChildren(10, "Group")
+      m.assertNodeNotContainsFields(node, [node.getChild(5)])
+    end function
+
+    @it("fail assertNodeNotContainsFields subset AA of fields")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertNodeNotContainsFields(node, { "focusable": false })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests AssertAAContainsSubset fail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("fail assertAAContainsSubset with missing actual AA")
+    function _()
+      m.assertAAContainsSubset(invalid, {})
+    end function
+
+    @it("fail assertAAContainsSubset with missing subset")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertAAContainsSubset({ one: 1, two: 2, three: 3 }, invalid)
+    end function
+
+    @it("fail assertAAContainsSubset with subset item not found")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertAAContainsSubset({ one: 1, two: 2, three: 3 }, { three: 4 })
+    end function
+
+    'ASSERTIONS TO WRITE TESTS FOR!
+
+    'This is coming soon!
+
+    '    AssertEqual
+    '    AssertLike
+    '    AssertNotEqual
+    '    AssertInvalid
+    '    AssertNotInvalid
+    '    AssertAAHasKey
+    '    AssertAANotHasKey
+    '    AssertAAHasKeys
+    '    AssertAANotHasKeys
+    '    AssertArrayNotContains
+    '    AssertArrayContainsSubset
+    '    AssertArrayNotContainsSubsetet
+    '    AssertArrayCount
+    '    AssertArrayNotCount
+    '    AssertArrayContainsOnly
+    '    AssertType
+    '    AssertSubType
+    '
+    '    'Node extensions
+    '    AssertNodeCount
+    '    AssertNodeNotCount
+    '    AssertNodeEmpty
+    '    AssertNodeNotEmpty
+    '    AssertNodeContains
+    '    AssertNodeNotContains
+    '    AssertNodeContainsFields
+    '    AssertNodeNotContainsFields
+
+    '    AssertArray
+    '    AssertAAContainsSubset
+    '
+    '    'Mocking and stubbing
+    '    AssertMocks
+    '    MockFail
+  end class
+end namespace

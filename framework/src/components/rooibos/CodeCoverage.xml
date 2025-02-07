@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="CodeCoverage"
-           extends="ContentNode"
+    extends="ContentNode"
 >
-    <script type="text/brightscript" uri="CodeCoverage.brs" />
+    <script type="text/brightscript" uri="../../source/rooibos/CodeCoverage.brs" />
     <interface>
         <field id="entry" type="assocarray" />
         <field id="save" type="boolean" />

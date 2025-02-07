@@ -4,7 +4,12 @@
   "autoImportComponentScript": true,
   "createPackage": false,
   "stagingDir": "build",
-  "diagnosticFilters": [],
+  "diagnosticFilters": [{
+    "files": ["**/roku_modules/**/*.*", "**/*.d.bs"]
+  }, {
+    "codes": ["LINT2004", "LINT3003"],
+    "files": ["**/ConsoleTestReporter.bs"]
+  }],
   "plugins": [
     "../../bslint/src/index.ts"
   ],

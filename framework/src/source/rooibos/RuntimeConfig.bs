@@ -22,7 +22,7 @@ namespace rooibos
       ' filled in by plugin
     end function
 
-    function getTestSuiteClassWithName(name as string) as BaseTestSuite
+    function getTestSuiteClassWithName(name as string) as function
       return m.testSuites[name]
     end function
 

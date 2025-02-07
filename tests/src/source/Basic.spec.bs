@@ -53,16 +53,30 @@ namespace tests
     @describe("assertAsyncField")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @ignore("takes ages")
     @it("times out")
+    @slow(150)
     function _()
-      item = {"id": "item"}
+      task = createObject("roSgNode", "TaskExample")
+      task.sleepTime = 2000
+      task.control = "run"
 
-      m.assertAsyncField(item, "id")
+      m.assertAsyncField(task, "result", 10)
       isFail = m.currentResult.isFail
       m.currentResult.Reset()
       m.assertTrue(isFail)
 
+    end function
+
+    @it("does not timeout")
+    @slow(150)
+    function _()
+      task = createObject("roSgNode", "TaskExample")
+      task.sleepTime = 50
+      task.control = "run"
+
+      m.assertAsyncField(task, "result", 10)
+      isFail = m.currentResult.isFail
+      m.assertFalse(isFail)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -189,7 +203,7 @@ namespace tests
       m.currentResult.Reset()
       m.assertTrue(isFail)
 
-      m.assertEqual(msg, `["one", "two", "three"] != ["2one", "2two", "2three"]`)
+      m.assertEqual(msg, `expected "[ "one", "two", "three" ]" to equal "[ "2one", "2two", "2three" ]"`)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

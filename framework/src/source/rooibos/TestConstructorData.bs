@@ -36,7 +36,7 @@ namespace rooibos
     tearDownFunctionName as string
     beforeEachFunctionName as string
     afterEachFunctionName as string
-    testCases as TestCaseData []
+    testCases as TestCaseData[]
   end interface
 
   interface TestCaseData
@@ -46,6 +46,7 @@ namespace rooibos
     isIgnored as boolean
     isAsync as boolean
     asyncTimeout as integer
+    slow as integer
     isParamTest as boolean
     name as string
     lineNumber as integer

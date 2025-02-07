@@ -22,23 +22,12 @@ export class TestGroup extends TestBlock {
 
     public testSuite: TestSuite;
     public testCases = new Map<string, TestCase>();
-    public ignoredTestCases: TestCase[] = [];
-    public soloTestCases: TestCase[] = [];
 
     public addTestCase(testCase: TestCase) {
-
         this.testCases.set(testCase.name + (testCase.isParamTest ? testCase.paramTestIndex.toString() : ''), testCase);
-
-        if (testCase.isIgnored) {
-            this.ignoredTestCases.push(testCase);
-            this.hasIgnoredTests = true;
-        } else if (testCase.isSolo) {
-            this.hasSoloTests = true;
-            this.soloTestCases.push(testCase);
-            this.hasAsyncTests = testCase.isAsync;
-        } else {
-            this.hasAsyncTests = testCase.isAsync;
-        }
+        this.hasIgnoredTests = this.hasIgnoredTests || testCase.isIgnored;
+        this.hasSoloTests = this.hasSoloTests || testCase.isSolo;
+        this.hasAsyncTests = this.hasAsyncTests || testCase.isAsync;
     }
 
     public getTestCases(): TestCase[] {
@@ -75,7 +64,7 @@ export class TestGroup extends TestBlock {
                                     const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
                                     editor.arraySplice(owner, key + 1, 0, trailingLine);
                                 }
-                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.location.range.start.line}`).ast.statements[0];
+                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.location.range.start.line + 1}`).ast.statements[0];
                                 editor.arraySplice(owner, key, 0, leadingLine);
                             }
                         }
@@ -232,8 +221,9 @@ export class TestGroup extends TestBlock {
                 name: ${sanitizeBsJsonString(this.name)}
                 isSolo: ${this.isSolo}
                 isIgnored: ${this.isIgnored}
-                fileName: "${this.destPath}"
-                lineNumber: ${this.annotation.annotation.location.range.start.line}
+                isAsync: ${this.isAsync}
+                filename: "${this.pkgPath}"
+                lineNumber: ${this.annotation.annotation.location.range.start.line + 1}
                 setupFunctionName: "${this.setupFunctionName || ''}"
                 tearDownFunctionName: "${this.tearDownFunctionName || ''}"
                 beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"

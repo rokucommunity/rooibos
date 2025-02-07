@@ -1,5 +1,6 @@
 import * as path from 'path';
 import type { Editor, BrsFile, ClassStatement } from 'brighterscript';
+import { nodes } from 'brighterscript/dist/roku-types';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
 
@@ -8,6 +9,8 @@ import type { RooibosAnnotation } from './Annotation';
 import type { TestGroup } from './TestGroup';
 import { addOverriddenMethod, sanitizeBsJsonString } from './Utils';
 import type { RooibosSession } from './RooibosSession';
+
+const nativeNodeNames = Object.keys(nodes);
 
 /**
  * base of test suites and blocks..
@@ -48,6 +51,10 @@ export class TestBlock {
 
     public get isIgnored(): boolean {
         return this.annotation.isIgnore;
+    }
+
+    public set isIgnored(value: boolean) {
+        this.annotation.isIgnore = value;
     }
 
     public isValid = false;
@@ -93,18 +100,10 @@ export class TestSuite extends TestBlock {
 
     public addGroup(group: TestGroup) {
         this.testGroups.set(group.name, group);
-        if (group.ignoredTestCases.length > 0) {
-            this.hasIgnoredTests = true;
-        }
-        if (group.hasSoloTests) {
-            this.hasSoloTests = true;
-        }
-        if (group.hasAsyncTests) {
-            this.annotation.isAsync = true;
-        }
-        if (group.isSolo) {
-            this.hasSoloGroups = true;
-        }
+        this.hasIgnoredTests = this.hasIgnoredTests || group.hasIgnoredTests;
+        this.hasSoloTests = this.hasSoloTests || group.hasSoloTests;
+        this.hasSoloGroups = this.hasSoloGroups || group.isSolo;
+        this.annotation.isAsync = this.annotation.isAsync || group.hasAsyncTests;
         this.isValid = true;
     }
 
@@ -123,7 +122,7 @@ export class TestSuite extends TestBlock {
         if (this.isNodeTest) {
             if (!this.nodeName) {
                 diagnosticNodeTestRequiresNode(this.file, this.annotation.annotation);
-            } else if (!this.file.program.getComponent(this.nodeName)) {
+            } else if (!this.file.program.getComponent(this.nodeName) && !nativeNodeNames.includes(this.nodeName.toLowerCase())) {
                 diagnosticNodeTestIllegalNode(this.file, this.annotation.annotation, this.nodeName);
             }
         }
@@ -137,6 +136,7 @@ export class TestSuite extends TestBlock {
       isSolo: ${this.isSolo}
       noCatch: ${this.annotation.noCatch}
       isIgnored: ${this.isIgnored}
+      isAsync: ${this.isAsync}
       pkgPath: "${this.pkgPath}"
       destPath: "${this.destPath}"
       filePath: "${this.filePath}"

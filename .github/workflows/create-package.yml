@@ -35,6 +35,7 @@ jobs:
           echo "ARTIFACT_URL=$ARTIFACT_URL" >> $GITHUB_ENV
 
       - run: cd bsc-plugin && npm ci
+      - run: cd bsc-plugin && npx ropm copy
       - run: cd bsc-plugin && npm version "$BUILD_VERSION" --no-git-tag-version
       - run: cd bsc-plugin && npm pack
 
