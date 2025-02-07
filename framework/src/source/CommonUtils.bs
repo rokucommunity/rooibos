@@ -36,7 +36,7 @@ namespace rooibos.common
   '  * @function
   '  * @description looks up the function by name, for the function map
   '  * @memberof module:CommonUtils
-  '  * @param {filename} string - name of the file where the function was found
+  '  * @param {string} filename - name of the file where the function was found
   '  * @param {String} functionName - name of the function to locate
   '  * @returns {Function} - function pointer or invalid
   '  */
@@ -73,7 +73,7 @@ namespace rooibos.common
   '  * @description looks up the function by name, from any function map
   '  *            in future
   '  * @memberof module:CommonUtils
-  '  * @param {filename} string - name of the file where the function was found
+  '  * @param {string} filename - name of the file where the function was found
   '  * @param {String} functionName - name of the function to locate
   '  * @returns {Function} - function pointer or invalid
   '  */
@@ -477,7 +477,7 @@ namespace rooibos.common
   '  * @description if type of value equals array return value, else return array with one element [value]
   '  * @memberof module:CommonUtils
   '  * @param {Dynamic} value - value to check
-  '  * @returns {Array} - converted array
+  '  * @returns {roArray} - converted array
   '  */
   function asArray(value) as object
     if rooibos.common.isValid(value)
@@ -827,7 +827,7 @@ namespace rooibos.common
       contentName = parts[i]
       i++
       if type(content) <> "roAssociativeArray"
-        content = { id: contentName }
+        content = {id: contentName}
       end if
       part = content
       while i < numParts and part <> invalid
@@ -848,7 +848,7 @@ namespace rooibos.common
 
         if nextPart = invalid or type(nextPart) <> "roAssociativeArray"
           if (not isIndexNumber and type(part) = "roAssociativeArray") or (isIndexNumber and (rooibos.common.isArray(part)))
-            nextPart = { id: index }
+            nextPart = {id: index}
             part[index] = nextPart
           else
             'index type mismatch, gonna have to bail

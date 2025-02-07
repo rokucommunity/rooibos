@@ -114,7 +114,7 @@ namespace tests
     @it("supports callfunc invalid")
     function _()
       item = {
-        service: invalid
+        service: invalid as roSGNode
       }
       m.expectCalled(item.service@.say("hello"), "hi")
 
@@ -125,7 +125,7 @@ namespace tests
     function _()
       item = {
         service: {
-          caller: invalid
+          caller: invalid as roSGNode
         }
       }
       m.expectCalled(item.service.caller@.say("hello"), "hi")
@@ -162,7 +162,7 @@ namespace tests
     @it("supports callfunc invalid")
     function _()
       item = {
-        service: invalid
+        service: invalid as roSGNode
       }
       m.stubCall(item.service@.say(), "hi")
 
@@ -173,7 +173,7 @@ namespace tests
     function _()
       item = {
         service: {
-          caller: invalid
+          caller: invalid as roSGNode
         }
       }
       m.stubCall(item.service.caller@.say(), "hi")

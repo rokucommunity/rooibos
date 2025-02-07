@@ -1682,9 +1682,9 @@ namespace rooibos
     '  * @function
     '  * @instance
     '  * @description Asserts the associative array contains the fields contained in subset; while ignoring the fields in the ignoredFields array
-    '  * @param {assocarray} array - associative array  to check
-    '  * @param {assocarray} subset - associative array of values to check for
-    '  * @param {array} ignoredFields - array of fieldnames to ignore while comparing
+    '  * @param {roAssociativeArray} array - associative array  to check
+    '  * @param {roAssociativeArray} subset - associative array of values to check for
+    '  * @param {string[]} ignoredFields - array of fieldnames to ignore while comparing
     '  * @param {string} [msg=""] - alternate error message
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
@@ -2651,10 +2651,10 @@ namespace rooibos
     '  * @instance
     '  * @function
     '  * @description observeField doesn't work in regular unit tests, so we have to wait for the result. We can use this to wait for a network task, foe example, and pass the result directly to a handler. Note - we wait for the value TO CHANGE - so make sure that will be the case, or you'll get stuck forever :)
-    '  * @param {any} target to observe
+    '  * @param {dynamic} target to observe
     '  * @param {string} field to observe
-    '  * @param {int} delay for each wait
-    '  * @param {int} max attempts
+    '  * @param {integer} delay for each wait
+    '  * @param {integer} max attempts
     '  */
     function waitForField(target, fieldName, delay = 500, maxAttempts = 10)
       attempts = 0
