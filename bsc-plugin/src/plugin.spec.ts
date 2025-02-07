@@ -12,7 +12,7 @@ let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
 
-describe.only('RooibosPlugin', () => {
+describe('RooibosPlugin', () => {
     let program: Program;
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
@@ -2553,7 +2553,7 @@ describe.only('RooibosPlugin', () => {
                         }
                         ' filled in by plugin
                     end function
-                    instance.getTestSuiteClassWithName = function(name as string) as dynamic
+                    instance.getTestSuiteClassWithName = function(name as string) as function
                         return m.testSuites[name]
                     end function
                     instance.getAllTestSuitesNames = function() as object
@@ -2653,7 +2653,7 @@ describe.only('RooibosPlugin', () => {
                             return {}
                             ' filled in by plugin
                         end function
-                        instance.getTestSuiteClassWithName = function(name as string) as dynamic
+                        instance.getTestSuiteClassWithName = function(name as string) as function
                             return m.testSuites[name]
                         end function
                         instance.getAllTestSuitesNames = function() as object

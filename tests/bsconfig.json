@@ -9,7 +9,7 @@
   "stagingDir": "build",
   "diagnosticFilters": [
     {
-      "src": "**/roku_modules/**/*.*",
+      "files": "**/roku_modules/**/*.*",
       "codes": [
         1107,
         1009

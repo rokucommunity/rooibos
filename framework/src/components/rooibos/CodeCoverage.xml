@@ -2,7 +2,8 @@
 <component name="CodeCoverage"
     extends="ContentNode"
 >
-    <script type="text/brightscript" uri="../../source/rooibos/CodeCoverage.brs" />
+    <!-- bs:disable-next-line file-not-found-->
+    <script type="text/brightscript" uri="CodeCoverage.brs" />
     <interface>
         <field id="entry" type="assocarray" />
         <field id="save" type="boolean" />

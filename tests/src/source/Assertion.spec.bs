@@ -150,7 +150,7 @@ namespace tests
 
     @it("passes with uninitialized")
     function _()
-      m.assertEqual(uninitialized, uninitialized)
+      m.assertEqual(uninitialized, uninitialized) ' bs:disable-line LINT1001
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -230,7 +230,7 @@ namespace tests
 
     @it("passes with uninitialized")
     function _()
-      m.assertLike(uninitialized, uninitialized)
+      m.assertLike(uninitialized, uninitialized) ' bs:disable-line LINT1001
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -249,13 +249,13 @@ namespace tests
         }
         array: [1, 2, 3]
       }
-      obj2 = uninitialized
+      obj2 = uninitialized ' bs:disable-line LINT1001
       m.assertNotEqual(obj, obj2)
     end function
 
     @it("passes assertNotEqual on uninitialized vs object")
     function _()
-      obj = uninitialized
+      obj = uninitialized ' bs:disable-line LINT1001
       obj2 = {
         "mockMethod": invalid
         key: "value1"
@@ -458,7 +458,7 @@ namespace tests
 
     @it("passes assertNotEqual on uninitialized vs node")
     function _()
-      obj = uninitialized
+      obj = uninitialized ' bs:disable-line LINT1001
       obj2 = createObject("roSgNode", "Node")
       m.assertNotEqual(obj, obj2)
     end function
@@ -466,7 +466,7 @@ namespace tests
     @it("passes assertNotEqual on node vs uninitialized")
     function _()
       obj = createObject("roSgNode", "Node")
-      obj2 = uninitialized
+      obj2 = uninitialized ' bs:disable-line LINT1001
       m.assertNotEqual(obj, obj2)
     end function
 
@@ -564,13 +564,13 @@ namespace tests
     @it("passes assertNotEqual on boolean vs uninitialized")
     function _()
       obj = true
-      obj2 = uninitialized
+      obj2 = uninitialized ' bs:disable-line LINT1001
       m.assertNotEqual(obj, obj2)
     end function
 
     @it("passes assertNotEqual on uninitialized vs boolean")
     function _()
-      obj = uninitialized
+      obj = uninitialized ' bs:disable-line LINT1001
       obj2 = true
       m.assertNotEqual(obj, obj2)
     end function
@@ -634,13 +634,13 @@ namespace tests
     @it("passes assertNotEqual on integer vs uninitialized")
     function _()
       obj = 1
-      obj2 = uninitialized
+      obj2 = uninitialized ' bs:disable-line LINT1001
       m.assertNotEqual(obj, obj2)
     end function
 
     @it("passes assertNotEqual on uninitialized vs integer")
     function _()
-      obj = uninitialized
+      obj = uninitialized ' bs:disable-line LINT1001
       obj2 = 1
       m.assertNotEqual(obj, obj2)
     end function
@@ -1267,7 +1267,6 @@ namespace tests
 
     @it("passes assertAAContainsSubset with matching subset of values")
     function _()
-      node = createObject("roSGNode", "Node")
       m.assertAAContainsSubset({one: 1, two: 2, three: 3}, {one: 1, two: 2})
     end function
 

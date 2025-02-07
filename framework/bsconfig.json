@@ -5,7 +5,7 @@
   "createPackage": false,
   "stagingDir": "build",
   "diagnosticFilters": [{
-    "files": ["**/roku_modules/**/*.*", "**/*.d.bs"]
+    "files": ["**/roku_modules/**/*.*", "**/*.d.bs", "roku_modules/rooibos_promises/promises.d.bs"]
   }, {
     "codes": ["LINT2004", "LINT3003"],
     "files": ["**/ConsoleTestReporter.bs"]
