@@ -47,7 +47,7 @@ export class TestGroup extends TestBlock {
                     let callExpression = expressionStatement.expression as CallExpression;
                     if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
-                        let isSub = isFunctionExpression(callExpression.parent.parent.parent) && callExpression.parent.parent.parent.functionType.kind === TokenKind.Sub;
+                        let isSub = callExpression.findAncestor<brighterscript.FunctionExpression>(isFunctionExpression)?.functionType.kind === TokenKind.Sub;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.name.text)) {
                             if (dge.name.text === 'stubCall') {
