@@ -669,7 +669,24 @@ describe('RooibosPlugin', () => {
                     @it("is test1")
                     @slow(1000)
                     function Test_3()
+                        m.assertEqual(1, 1)
+                        if 1 = 1
+                            m.assertEqual(2, 2)
+                            if 2 = 2
+                                m.assertTrue(false)
+                            end if
+                        end if
                     end function
+                    @it("is test2")
+                    sub Test_4()
+                        m.assertEqual(1, 1)
+                        if 1 = 1
+                            m.assertEqual(2, 2)
+                            if 2 = 2
+                                m.assertTrue(false)
+                            end if
+                        end if
+                    end sub
                 end class
             `);
             program.validate();
@@ -680,7 +697,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
             expect(plugin.session.sessionInfo.suitesCount).to.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
-            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(2);
 
             expect(
                 getContents('rooibosMain.brs')
@@ -699,7 +716,53 @@ describe('RooibosPlugin', () => {
                         m.super0_new()
                     end sub
                     instance.groupA_is_test1 = function()
+                        m.currentAssertLineNumber = 8
+                        m.assertEqual(1, 1)
+                        if m.currentResult?.isFail = true then
+                            m.done()
+                            return invalid
+                        end if
+                        if 1 = 1
+                            m.currentAssertLineNumber = 10
+                            m.assertEqual(2, 2)
+                            if m.currentResult?.isFail = true then
+                                m.done()
+                                return invalid
+                            end if
+                            if 2 = 2
+                                m.currentAssertLineNumber = 12
+                                m.assertTrue(false)
+                                if m.currentResult?.isFail = true then
+                                    m.done()
+                                    return invalid
+                                end if
+                            end if
+                        end if
                     end function
+                    instance.groupA_is_test2 = sub()
+                        m.currentAssertLineNumber = 18
+                        m.assertEqual(1, 1)
+                        if m.currentResult?.isFail = true then
+                            m.done()
+                            return
+                        end if
+                        if 1 = 1
+                            m.currentAssertLineNumber = 20
+                            m.assertEqual(2, 2)
+                            if m.currentResult?.isFail = true then
+                                m.done()
+                                return
+                            end if
+                            if 2 = 2
+                                m.currentAssertLineNumber = 22
+                                m.assertTrue(false)
+                                if m.currentResult?.isFail = true then
+                                    m.done()
+                                    return
+                                end if
+                            end if
+                        end if
+                    end sub
                     instance.super0_getTestSuiteData = instance.getTestSuiteData
                     instance.getTestSuiteData = function()
                         return {
@@ -749,6 +812,24 @@ describe('RooibosPlugin', () => {
                                             isParamTest: false
                                             name: "is test1"
                                             lineNumber: 7
+                                            paramLineNumber: 0
+                                            assertIndex: 0
+                                            rawParams: invalid
+                                            paramTestIndex: 0
+                                            expectedNumberOfParams: 0
+                                            isParamsValid: true
+                                        }
+                                        {
+                                            isSolo: false
+                                            noCatch: false
+                                            funcName: "groupA_is_test2"
+                                            isIgnored: false
+                                            isAsync: false
+                                            asyncTimeout: 2000
+                                            slow: 75
+                                            isParamTest: false
+                                            name: "is test2"
+                                            lineNumber: 17
                                             paramLineNumber: 0
                                             assertIndex: 0
                                             rawParams: invalid
