@@ -3,6 +3,7 @@ import { TokenKind, isXmlScope } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
+import * as path from 'path';
 
 export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
     let functionSource = `
@@ -36,6 +37,42 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
 
 export function sanitizeBsJsonString(text: string) {
     return `"${text ? text.replace(/"/g, '\'') : ''}"`;
+}
+
+/**
+ * Replace all directory separators with current OS separators,
+ * force all drive letters to lower case (because that's what VSCode does sometimes so this makes it consistent)
+ * @param thePath
+ */
+export function standardizePath(thePath: string) {
+    if (!thePath) {
+        return thePath;
+    }
+    let normalizedPath = path.normalize(
+        thePath.replace(/[\/\\]+/g, path.sep)
+    );
+    //force the drive letter to lower case
+    normalizedPath = driveLetterToLower(normalizedPath);
+    return normalizedPath;
+}
+
+/**
+ * Force the drive letter to lower case
+ * @param fullPath
+ */
+export function driveLetterToLower(fullPath: string) {
+    if (fullPath) {
+        let firstCharCode = fullPath.charCodeAt(0);
+        if (
+            //is upper case A-Z
+            firstCharCode >= 65 && firstCharCode <= 90 &&
+            //next char is colon
+            fullPath[1] === ':'
+        ) {
+            fullPath = fullPath[0].toLowerCase() + fullPath.substring(1);
+        }
+    }
+    return fullPath;
 }
 
 export function functionRequiresReturnValue(statement: FunctionStatement) {

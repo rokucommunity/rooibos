@@ -29,6 +29,7 @@ import {
     diagnosticTestWithArgsButNoParams
 } from '../utils/Diagnostics';
 import type { RooibosSession } from './RooibosSession';
+import { standardizePath } from './Utils';
 
 export class TestSuiteBuilder {
     constructor(public session: RooibosSession) {
@@ -187,7 +188,7 @@ export class TestSuiteBuilder {
 
     private createTestCaseFunctionName() {
         const md5sum = crypto.createHash('md5');
-        md5sum.update(this.testSuite.name + this.file.pkgPath);
+        md5sum.update(this.testSuite.name + standardizePath(this.file.pkgPath));
         return `rooiboos_test_case_${md5sum.digest('hex')}_${this.testSuite.registeredTestCount++}`;
     }
 
