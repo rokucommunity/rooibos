@@ -351,8 +351,8 @@ describe('RooibosPlugin', () => {
 
         it('finds a @async and applies timeout override', () => {
             program.setFile('source/test.spec.bs', `
-            @async(1)
-            @suite("named")
+                @async(1)
+                @suite("named")
                 class ATest
                 @describe("groupA")
 
@@ -1446,9 +1446,9 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.setFile('source/code.bs', `
-                function sayHello(firstName = "" as string, lastName = "" as string)
-                    print firstName + " " + lastName
-                end function
+                    function sayHello(firstName = "" as string, lastName = "" as string)
+                        print firstName + " " + lastName
+                    end function
                 `);
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
@@ -1458,65 +1458,66 @@ describe('RooibosPlugin', () => {
                 expect(
                     testText
                 ).to.eql(undent`
-                item = {
-                    id: "item"
-                }
-                m.currentAssertLineNumber = 8
-                m._expectCalled(sayHello, "sayHello", invalid, invalid, [
-                    "arg1"
-                    "arg2"
-                ], "return")
-                if m.currentResult?.isFail = true then
-                    m.done()
-                    return invalid
-                end if
-                m.currentAssertLineNumber = 9
-                m._expectCalled(sayHello, "sayHello", invalid, invalid, [])
-                if m.currentResult?.isFail = true then
-                    m.done()
-                    return invalid
-                end if
-                m.currentAssertLineNumber = 10
-                m._expectCalled(sayHello, "sayHello", invalid, invalid, [], "return")
-                if m.currentResult?.isFail = true then
-                    m.done()
-                    return invalid
-                end if
-                m.currentAssertLineNumber = 11
-                m._expectCalled(sayHello, "sayHello", invalid, invalid, [
-                    "arg1"
-                    "arg2"
-                ])
-                if m.currentResult?.isFail = true then
-                    m.done()
-                    return invalid
-                end if
-`);
+                    item = {
+                        id: "item"
+                    }
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(sayHello, "sayHello", invalid, invalid, [
+                        "arg1"
+                        "arg2"
+                    ], "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(sayHello, "sayHello", invalid, invalid, [])
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 10
+                    m._expectCalled(sayHello, "sayHello", invalid, invalid, [], "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 11
+                    m._expectCalled(sayHello, "sayHello", invalid, invalid, [
+                        "arg1"
+                        "arg2"
+                    ])
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
 
                 let codeText = getContents('code.brs');
                 expect(codeText).to.equal(undent`
-                function sayHello(firstName = "", lastName = "")
-                    __stubs_globalAa = getGlobalAa()
-                    if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
-                        return __stubOrMockResult
-                    else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
-                        __stubFunction = __stubs_globalAa.__globalStubs.sayhello
-                        __stubOrMockResult = __stubFunction(firstName, lastName)
-                        return __stubOrMockResult
-                    else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
-                        value = __stubs_globalAa.__globalStubs.sayhello
-                        return value
-                    end if
-                    print firstName + " " + lastName
-                end function
+                    function sayHello(firstName = "", lastName = "")
+                        __stubs_globalAa = getGlobalAa()
+                        if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
+                            return __stubOrMockResult
+                        else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
+                            __stubFunction = __stubs_globalAa.__globalStubs.sayhello
+                            __stubOrMockResult = __stubFunction(firstName, lastName)
+                            return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
+                            value = __stubs_globalAa.__globalStubs.sayhello
+                            return value
+                        end if
+                        print firstName + " " + lastName
+                    end function
 
-                function RBS_SM_1_getMocksByFunctionName()
-                    if m._rMocksByFunctionName = invalid
-                        m._rMocksByFunctionName = {}
-                    end if
-                    return m._rMocksByFunctionName
-                end function`);
+                    function RBS_SM_1_getMocksByFunctionName()
+                        if m._rMocksByFunctionName = invalid
+                            m._rMocksByFunctionName = {}
+                        end if
+                        return m._rMocksByFunctionName
+                    end function
+                `);
             });
             it('correctly transpiles namespaced function calls', async () => {
                 plugin.config.isGlobalMethodMockingEnabled = true;
@@ -1535,11 +1536,11 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.setFile('source/code.bs', `
-                namespace utils
-                    function sayHello(firstName = "" as string, lastName = "" as string)
-                        print firstName + " " + lastName
-                    end function
-                end namespace
+                    namespace utils
+                        function sayHello(firstName = "" as string, lastName = "" as string)
+                            print firstName + " " + lastName
+                        end function
+                    end namespace
                 `);
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
@@ -1586,29 +1587,29 @@ describe('RooibosPlugin', () => {
 
                 let codeText = getContents('code.brs');
                 expect(codeText).to.equal(undent(`
-                function utils_sayHello(firstName = "", lastName = "")
-                    __stubs_globalAa = getGlobalAa()
-                    if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
-                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
-                        return __stubOrMockResult
-                    else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
-                        __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
-                        __stubOrMockResult = __stubFunction(firstName, lastName)
-                        return __stubOrMockResult
-                    else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("utils_sayhello")
-                        value = __stubs_globalAa.__globalStubs.utils_sayhello
-                        return value
-                    end if
-                    print firstName + " " + lastName
-                end function
+                    function utils_sayHello(firstName = "", lastName = "")
+                        __stubs_globalAa = getGlobalAa()
+                        if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
+                            return __stubOrMockResult
+                        else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
+                            __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
+                            __stubOrMockResult = __stubFunction(firstName, lastName)
+                            return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("utils_sayhello")
+                            value = __stubs_globalAa.__globalStubs.utils_sayhello
+                            return value
+                        end if
+                        print firstName + " " + lastName
+                    end function
 
-                function RBS_SM_1_getMocksByFunctionName()
-                    if m._rMocksByFunctionName = invalid
-                        m._rMocksByFunctionName = {}
-                    end if
-                    return m._rMocksByFunctionName
-                end function
-            `));
+                    function RBS_SM_1_getMocksByFunctionName()
+                        if m._rMocksByFunctionName = invalid
+                            m._rMocksByFunctionName = {}
+                        end if
+                        return m._rMocksByFunctionName
+                    end function
+                `));
             });
         });
 
@@ -2284,7 +2285,8 @@ describe('RooibosPlugin', () => {
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
-                    end if                `);
+                    end if
+                `);
             });
 
             it('correctly transpiles function invocations - simple object', async () => {
