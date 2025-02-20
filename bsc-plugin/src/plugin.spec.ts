@@ -251,7 +251,7 @@ describe('RooibosPlugin', () => {
             let suiteOneGroups = [...suiteOne.testGroups.values()];
             let suiteOneTests = [];
             for (let group of suiteOneGroups) {
-                suiteOneTests.push(...group.testCases.values());
+                suiteOneTests.push(...group.testCases);
             }
             expect(suiteOne.name).to.equal('named1');
             expect(suiteOneGroups).to.be.length(2);
@@ -266,7 +266,7 @@ describe('RooibosPlugin', () => {
             let suiteTwoGroups = [...suiteTwo.testGroups.values()];
             let suiteTwoTests = [];
             for (let group of suiteTwoGroups) {
-                suiteTwoTests.push(...group.testCases.values());
+                suiteTwoTests.push(...group.testCases);
             }
             expect(suiteTwo.name).to.equal('named2');
             expect(suiteTwoGroups).to.be.length(2);
@@ -281,7 +281,7 @@ describe('RooibosPlugin', () => {
             let suiteThreeGroups = [...suiteThree.testGroups.values()];
             let suiteThreeTests = [];
             for (let group of suiteThreeGroups) {
-                suiteThreeTests.push(...group.testCases.values());
+                suiteThreeTests.push(...group.testCases);
             }
             expect(suiteThree.name).to.equal('named3');
             expect(suiteThreeGroups).to.be.length(2);
@@ -296,7 +296,7 @@ describe('RooibosPlugin', () => {
             let suiteFourGroups = [...suiteFour.testGroups.values()];
             let suiteFourTests = [];
             for (let group of suiteFourGroups) {
-                suiteFourTests.push(...group.testCases.values());
+                suiteFourTests.push(...group.testCases);
             }
             expect(suiteFour.name).to.equal('named4');
             expect(suiteFourGroups).to.be.length(2);
@@ -311,7 +311,7 @@ describe('RooibosPlugin', () => {
             let suiteFiveGroups = [...suiteFive.testGroups.values()];
             let suiteFiveTests = [];
             for (let group of suiteFiveGroups) {
-                suiteFiveTests.push(...group.testCases.values());
+                suiteFiveTests.push(...group.testCases);
             }
             expect(suiteFive.name).to.equal('named5');
             expect(suiteFiveGroups).to.be.length(1);
@@ -344,7 +344,7 @@ describe('RooibosPlugin', () => {
             expect(suite.name).to.equal('ATest');
             expect(suite.isAsync).to.be.true;
             expect(suite.asyncTimeout).to.equal(60000);
-            let test = suite.testGroups.get('groupA').testCases.get('is test1');
+            let test = suite.testGroups.get('groupA').testCases[0];
             expect(test.isAsync).to.be.true;
             expect(test.asyncTimeout).to.equal(2000);
         });
@@ -370,7 +370,7 @@ describe('RooibosPlugin', () => {
             expect(suite.name).to.equal('named');
             expect(suite.isAsync).to.be.true;
             expect(suite.asyncTimeout).to.equal(1);
-            let test = suite.testGroups.get('groupA').testCases.get('is test1');
+            let test = suite.testGroups.get('groupA').testCases[0];
             expect(test.isAsync).to.be.true;
             expect(test.asyncTimeout).to.equal(2);
         });
@@ -395,7 +395,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
             expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(true);
             expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(true);
-            expect([...[...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
         });
 
         it('ignores a group', () => {
@@ -418,7 +418,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
             expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(false);
             expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(true);
-            expect([...[...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
         });
 
         it('ignores a test', () => {
@@ -442,7 +442,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
             expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(false);
             expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(false);
-            expect([...[...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
         });
 
         it('multiple groups', () => {
@@ -497,8 +497,15 @@ describe('RooibosPlugin', () => {
                 end class
             `);
             program.validate();
-            expect(program.getDiagnostics()).to.not.be.empty;
-            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
+
+            expect(program.getDiagnostics()).to.be.empty;
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].name).to.equal('is test1');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[0].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[0].name).to.equal('is test1');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[1].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_2');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[1].name).to.equal('is test1');
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.length(1);
         });
 
         it('empty test group', () => {
@@ -637,7 +644,7 @@ describe('RooibosPlugin', () => {
                     instance = {}
                     instance.new = sub()
                     end sub
-                    instance.groupB_is_test1 = function()
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
                         number = 123
                         m.assertEqual("123", ("alpha-" + bslib_toString(number) + "-beta"))
                         m.assertEqual(123, 123)
@@ -715,7 +722,7 @@ describe('RooibosPlugin', () => {
                     instance.new = sub()
                         m.super0_new()
                     end sub
-                    instance.groupA_is_test1 = function()
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
                         m.currentAssertLineNumber = 8
                         m.assertEqual(1, 1)
                         if m.currentResult?.isFail = true then
@@ -739,7 +746,7 @@ describe('RooibosPlugin', () => {
                             end if
                         end if
                     end function
-                    instance.groupA_is_test2 = sub()
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1 = sub()
                         m.currentAssertLineNumber = 18
                         m.assertEqual(1, 1)
                         if m.currentResult?.isFail = true then
@@ -804,7 +811,7 @@ describe('RooibosPlugin', () => {
                                         {
                                             isSolo: false
                                             noCatch: false
-                                            funcName: "groupA_is_test1"
+                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
                                             isIgnored: false
                                             isAsync: false
                                             asyncTimeout: 2000
@@ -822,7 +829,7 @@ describe('RooibosPlugin', () => {
                                         {
                                             isSolo: false
                                             noCatch: false
-                                            funcName: "groupA_is_test2"
+                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1"
                                             isIgnored: false
                                             isAsync: false
                                             asyncTimeout: 2000
@@ -897,7 +904,7 @@ describe('RooibosPlugin', () => {
                     instance.new = sub()
                         m.super0_new()
                     end sub
-                    instance._1groupA_is_test1 = function()
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
                     end function
                     instance.super0_getTestSuiteData = instance.getTestSuiteData
                     instance.getTestSuiteData = function()
@@ -940,7 +947,7 @@ describe('RooibosPlugin', () => {
                                         {
                                             isSolo: false
                                             noCatch: false
-                                            funcName: "_1groupA_is_test1"
+                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
                                             isIgnored: false
                                             isAsync: false
                                             asyncTimeout: 2000
@@ -2801,7 +2808,7 @@ function getTestFunctionContents() {
 
 function getTestSubContents() {
     const contents = getContents('test.spec.brs');
-    const [, body] = /groupA_test1 \= sub\(\)([\S\s]*|.*)(?=end sub)/gim.exec(contents);
+    const [, body] = /rooiboos_test_case_[a-z0-9]+_\d+ \= sub\(\)([\S\s]*|.*)(?=end sub)/gim.exec(contents);
     let result = undent(
         body.split('end sub')[0]
     );

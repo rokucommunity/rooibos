@@ -1159,12 +1159,12 @@ function assertSuiteError(testSuite: TestSuite) {
 }
 
 function assertGroupCount(testSuite: TestSuite, groupIndex: number, expectedTests: number) {
-    expect(testSuite.getTestGroups()[groupIndex].getTestCases()).to.have.lengthOf(expectedTests);
+    expect(testSuite.getTestGroups()[groupIndex].testCases).to.have.lengthOf(expectedTests);
 }
 
 function getTestCase(testSuite: TestSuite, groupIndex: number, testIndex: number): TestCase {
     let group = testSuite.getTestGroups()[groupIndex];
-    return group.getTestCases()[testIndex];
+    return group.testCases[testIndex];
 }
 
 function getGroup(testSuite: TestSuite, groupIndex: number): TestGroup {
