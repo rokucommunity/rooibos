@@ -163,7 +163,7 @@ describe('TestSuiteBuilder tests ', () => {
       end class
       end namespace
       `);
-            assertSuiteError(ts);
+            assertSuite(ts, 1);
         });
 
     });
