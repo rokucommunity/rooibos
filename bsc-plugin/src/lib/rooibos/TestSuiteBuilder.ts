@@ -29,7 +29,6 @@ import {
     diagnosticTestWithArgsButNoParams
 } from '../utils/Diagnostics';
 import type { RooibosSession } from './RooibosSession';
-import { standardizePath } from './Utils';
 
 export class TestSuiteBuilder {
     constructor(public session: RooibosSession) {
