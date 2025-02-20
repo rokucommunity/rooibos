@@ -188,7 +188,7 @@ export class TestSuiteBuilder {
 
     private createTestCaseFunctionName() {
         const md5sum = crypto.createHash('md5');
-        md5sum.update(this.testSuite.name + standardizePath(this.file.pkgPath));
+        md5sum.update(this.testSuite.name + this.file.pkgPath.replace(/[\/\\]+/g, '/'));
         return `rooiboos_test_case_${md5sum.digest('hex')}_${this.testSuite.registeredTestCount++}`;
     }
 
