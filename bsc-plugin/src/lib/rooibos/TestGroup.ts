@@ -21,17 +21,13 @@ export class TestGroup extends TestBlock {
     }
 
     public testSuite: TestSuite;
-    public testCases = new Map<string, TestCase>();
+    public testCases: Array<TestCase> = [];
 
     public addTestCase(testCase: TestCase) {
-        this.testCases.set(testCase.name + (testCase.isParamTest ? testCase.paramTestIndex.toString() : ''), testCase);
+        this.testCases.push(testCase);
         this.hasIgnoredTests = this.hasIgnoredTests || testCase.isIgnored;
         this.hasSoloTests = this.hasSoloTests || testCase.isSolo;
         this.hasAsyncTests = this.hasAsyncTests || testCase.isAsync;
-    }
-
-    public getTestCases(): TestCase[] {
-        return [...this.testCases.values()];
     }
 
     public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
@@ -201,7 +197,7 @@ export class TestGroup extends TestBlock {
     }
 
     public asText(): string {
-        let testCaseText = [...this.testCases.values()].filter((tc) => tc.isIncluded).map((tc) => tc.asText());
+        let testCaseText = [...this.testCases].filter((tc) => tc.isIncluded).map((tc) => tc.asText());
 
         return `
             {

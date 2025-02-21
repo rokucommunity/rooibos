@@ -91,7 +91,7 @@ export class SessionInfo {
                     testGroup.isIncluded = true;
                     if (testGroup.isIgnored) {
                         this.ignoredTestNames.push(testGroup.name + ' [WHOLE GROUP]');
-                        this.ignoredCount += testGroup.testCases.size;
+                        this.ignoredCount += testGroup.testCases.length;
                     }
                 }
 
@@ -99,7 +99,7 @@ export class SessionInfo {
                     if (testGroup.isIncluded) {
                         this.groupsCount++;
                     }
-                    let testCases = [...testGroup.testCases.values()];
+                    let testCases = [...testGroup.testCases];
 
                     for (let testCase of testCases) {
                         testCase.isIncluded = false;
