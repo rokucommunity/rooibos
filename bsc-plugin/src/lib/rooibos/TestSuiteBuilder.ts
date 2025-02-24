@@ -15,13 +15,13 @@ import { RooibosAnnotation, AnnotationType } from './Annotation';
 import { TestCase } from './TestCase';
 import { TestSuite } from './TestSuite';
 
+import * as crypto from 'crypto';
+
 import {
     diagnosticDuplicateSuite,
     diagnosticErrorProcessingFile,
     diagnosticGroupWithNameAlreadyDefined,
-    // diagnosticIncompatibleAnnotation,
     diagnosticNoGroup,
-    diagnosticTestWithNameAlreadyDefined,
     diagnosticWrongAnnotation,
     diagnosticWrongParameterCount,
     diagnosticWrongTestParameterCount,
@@ -110,7 +110,7 @@ export class TestSuiteBuilder {
                 }
                 if (this.currentGroup) {
                     this.testSuite.addGroup(this.currentGroup);
-                    if (this.currentGroup.testCases.size === 0) {
+                    if (this.currentGroup.testCases.length === 0) {
                         diagnosticEmptyGroup(this.file, this.currentGroup.annotation);
                     }
                 }
@@ -185,23 +185,18 @@ export class TestSuiteBuilder {
         }
     }
 
-    private sanitizeFunctionName(name: string) {
-        if (/^\d/.test(name)) {
-            name = '_' + name;
-        }
-        return name.replace(/[^0-9_a-z]/ig, '_');
+    private createTestCaseFunctionName() {
+        const md5sum = crypto.createHash('md5');
+        md5sum.update(this.testSuite.name + this.file.pkgPath.replace(/[\/\\]+/g, '/'));
+        return `rooiboos_test_case_${md5sum.digest('hex')}_${this.testSuite.registeredTestCount++}`;
     }
+
     public createTestCases(statement: ClassMethodStatement, annotation: RooibosAnnotation): boolean {
         const lineNumber = statement.func.range.start.line;
         const numberOfArgs = statement.func.parameters.length;
         const numberOfParams = annotation.params.length;
-        if (this.currentGroup.testCases.has(annotation.name) || this.currentGroup.testCases.get(annotation.name + '0')?.paramLineNumber) {
-            diagnosticTestWithNameAlreadyDefined(annotation);
 
-            return false;
-        }
-
-        let sanitizedTestName = this.sanitizeFunctionName(this.currentGroup.name) + '_' + this.sanitizeFunctionName(annotation.name);
+        const sanitizedTestName = this.createTestCaseFunctionName();
         statement.name.text = sanitizedTestName;
         statement.func.functionStatement.name.text = sanitizedTestName;
 
