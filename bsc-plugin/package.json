@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "5.15.3",
+    "version": "5.15.4",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "scripts": {
         "preversion": "npm run build && npm run lint && npm run test",
