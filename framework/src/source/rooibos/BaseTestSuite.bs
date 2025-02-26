@@ -593,7 +593,7 @@ namespace rooibos
           return false
         end if
 
-        if not aa.DoesExist(key)
+        if not aa.ifAssociativeArray.DoesExist(key)
           if msg = ""
             actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to have property "${key}"`
@@ -635,7 +635,7 @@ namespace rooibos
           return false
         end if
 
-        if aa.DoesExist(key)
+        if aa.ifAssociativeArray.DoesExist(key)
           if msg = ""
             actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to not have property "${key}"`
@@ -688,7 +688,7 @@ namespace rooibos
         foundKeys = []
         missingKeys = []
         for each key in keys
-          if not aa.DoesExist(key)
+          if not aa.ifAssociativeArray.DoesExist(key)
             missingKeys.push(key)
           else
             foundKeys.push(key)
@@ -747,7 +747,7 @@ namespace rooibos
 
         foundKeys = []
         for each key in keys
-          if aa.DoesExist(key)
+          if aa.ifAssociativeArray.DoesExist(key)
             foundKeys.push(formatJson(key))
           end if
         end for
@@ -1121,11 +1121,17 @@ namespace rooibos
           return false
         end if
 
-        if array.count() <> count
+        if rooibos.common.isAssociativeArray(array)
+          actualCount = array.ifAssociativeArray.count()
+        else
+          actualCount = array.count()
+        end if
+
+        if actualCount <> count
           if msg = ""
-            msg = `expected count "${array.Count()}" to be "${count}"`
+            msg = `expected count "${actualCount}" to be "${count}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, rooibos.common.asMultilineString(array.count(), true), rooibos.common.asMultilineString(count, true))
+          m.currentResult.fail(msg, m.currentAssertLineNumber, rooibos.common.asMultilineString(actualCount, true), rooibos.common.asMultilineString(count, true))
           return false
         end if
         return true
@@ -1169,9 +1175,15 @@ namespace rooibos
           return false
         end if
 
-        if array.count() = count
+        if rooibos.common.isAssociativeArray(array)
+          actualCount = array.ifAssociativeArray.count()
+        else
+          actualCount = array.count()
+        end if
+
+        if actualCount = count
           if msg = ""
-            msg = `expected count "${array.count()}" to not be "${count}"`
+            msg = `expected count "${actualCount}" to not be "${count}"`
           end if
           m.currentResult.fail(msg, m.currentAssertLineNumber)
           return false
@@ -1927,7 +1939,7 @@ namespace rooibos
           end if
         end for
 
-        if foundValues.count() <> filteredSubset.count()
+        if foundValues.ifAssociativeArray.count() <> filteredSubset.ifAssociativeArray.count()
           actual = rooibos.common.asMultilineString(foundValues, true)
           expected = rooibos.common.asMultilineString(filteredSubset, true)
           if msg = ""
@@ -1997,7 +2009,7 @@ namespace rooibos
             end if
           end for
 
-          if foundValues.count() > 0
+          if foundValues.ifAssociativeArray.count() > 0
             actual = rooibos.common.asMultilineString(foundValues, true)
             expected = rooibos.common.asMultilineString({}, true)
             if msg = ""
@@ -2082,7 +2094,7 @@ namespace rooibos
           end if
         end for
 
-        if foundValues.count() <> filteredSubset.count()
+        if foundValues.ifAssociativeArray.count() <> filteredSubset.ifAssociativeArray.count()
           actual = rooibos.common.asMultilineString(foundValues, true)
           expected = rooibos.common.asMultilineString(filteredSubset, true)
           if msg = ""
@@ -2528,7 +2540,7 @@ namespace rooibos
             throw m.errorToThrow
           end if
           'bs:disable-next-line
-          if type(m.returnValue) = "roAssociativeArray" and m.returnValue.doesExist("multiResult")
+          if type(m.returnValue) = "roAssociativeArray" and m.returnValue.ifAssociativeArray.doesExist("multiResult")
             'bs:disable-next-line
             returnValues = m.returnValue["multiResult"]
             'bs:disable-next-line
@@ -2561,7 +2573,7 @@ namespace rooibos
     function combineFakes(fake, otherFake)
       'add on the expected invoked args
       lineNumber = m.currentAssertLineNumber
-      if type(fake.expectedArgs) <> "roAssociativeArray" or not fake.expectedArgs.doesExist("multiInvoke")
+      if type(fake.expectedArgs) <> "roAssociativeArray" or not fake.expectedArgs.ifAssociativeArray.doesExist("multiInvoke")
         currentExpectedArgsArgs = fake.expectedArgs
         fake.expectedArgs = {
           "multiInvoke": [currentExpectedArgsArgs]
@@ -2572,7 +2584,7 @@ namespace rooibos
       end for
 
       'add on the expected return values
-      if type(fake.returnValue) <> "roAssociativeArray" or not fake.returnValue.doesExist("multiResult")
+      if type(fake.returnValue) <> "roAssociativeArray" or not fake.returnValue.ifAssociativeArray.doesExist("multiResult")
         currentReturnValue = fake.returnValue
         fake.returnValue = {
           "multiResult": [currentReturnValue]
@@ -2613,7 +2625,14 @@ namespace rooibos
             else
               expectedArgs = mock.expectedArgs
             end if
-            for i = 0 to expectedArgs.count() - 1
+
+            if rooibos.common.isAssociativeArray(expectedArgs)
+              expectedArgsCount = expectedArgs.ifAssociativeArray.count()
+            else
+              expectedArgsCount = expectedArgs.count()
+            end if
+
+            for i = 0 to expectedArgsCount - 1
               value = invokedArgs[i]
               expected = expectedArgs[i]
               didNotExpectArg = rooibos.common.isString(expected) and expected = m.invalidValue
