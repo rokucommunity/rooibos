@@ -242,6 +242,9 @@ namespace rooibos
         catch error
           'bs:disable-next-line
           m.currentResult.crash("test crashed!", error)
+          if rooibos.promises.isPromise(test.deferred)
+            rooibos.promises.reject(error, test.deferred)
+          end if
         end try
       else
         test.run()
