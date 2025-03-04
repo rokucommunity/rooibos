@@ -50,5 +50,16 @@ namespace tests
 
       delayCall(0.02, SetLabelText)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("Crashes in Node tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @async
+    @it("should capture the crash and fail")
+    function _()
+      throw "some error in node tests"
+    end function
+
   end class
 end namespace
