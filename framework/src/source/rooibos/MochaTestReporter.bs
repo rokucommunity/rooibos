@@ -166,11 +166,7 @@ namespace rooibos
           resultMessage += `${string(2, chr(9))}${testGroup.name}\n`
           resultMessage += `${string(3, chr(9))}${test.name}:\n\n`
           if not test.result.isCrash
-            if test.result.error <> invalid
-              resultMessage += `${string(1, chr(9))}AssertionError: ${m.getStackTrace(test.result.error, false)}`
-            else
-              resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
-            end if
+            resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
 
             if (test.result.actual <> "" or test.result.expected <> "") and (test.result.actual <> test.result.expected)
               resultMessage += m.unifiedDiff(test.result.actual, test.result.expected)
@@ -181,19 +177,18 @@ namespace rooibos
             resultMessage += `${string(1, chr(9))}Error: ${m.getStackTrace(test.result.error)}\n`
           end if
 
+          if test.result.error <> invalid and not test.result.isCrash
+            resultMessage += m.getStackTrace(test.result.error, false) + chr(10)
+          end if
+
           if test.isParamTest
-            resultMessage += `${string(1, chr(9))}params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber)})\n`
-            if test.result.lineNumber > -1
-              resultMessage += `${string(1, chr(9))}assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.result.lineNumber)})\n`
-            else
-              resultMessage += `${string(1, chr(9))}test at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
-            end if
+            resultMessage += `${string(6, " ")}${m.colorLines(rooibos.reporters.mocha.colors.errorStack, `params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber)})`)}\n`
+          end if
+
+          if test.result.lineNumber > -1
+            resultMessage += `${string(6, " ")}${m.colorLines(rooibos.reporters.mocha.colors.errorStack, `assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.result.lineNumber)})`)}\n`
           else
-            if test.result.lineNumber > -1
-              resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.result.lineNumber)})\n`
-            else
-              resultMessage += `${string(1, chr(9))}at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})\n`
-            end if
+            resultMessage += `${string(6, " ")}${m.colorLines(rooibos.reporters.mocha.colors.errorStack, `test at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})`)}\n`
           end if
           print resultMessage
         end if
@@ -216,13 +211,13 @@ namespace rooibos
     '        rooibos_init(testscenename As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
     '        main(args As Dynamic) As Dynamic (pkg:/source/Main.brs:2)
     function getStackTrace(error, fullTrace = true) as string
-      ' if fullTrace
-        output = `${error.message}\n`
-        indent = 2
-      ' else
-      '   output = ""
-      '   indent = 1
-      ' end if
+      if fullTrace
+        output = m.colorLines(rooibos.reporters.mocha.colors.errorTitle, `${error.message}\n`)
+        indent = 6
+      else
+        output = ""
+        indent = 6
+      end if
 
       foundNonFrameworkFile = false
 
@@ -231,7 +226,7 @@ namespace rooibos
         isFrameworkFile = e.filename.instr("pkg:/source/rooibos") > -1 or e.filename.instr("pkg:/components/rooibos/generated") > -1
 
         if fullTrace or not isFrameworkFile
-          output += `${string(indent, chr(9))}${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})\n`
+          output += m.colorLines(rooibos.reporters.mocha.colors.errorStack, `${string(indent, " ")}${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})`) + chr(10)
           foundNonFrameworkFile = true
         end if
 
