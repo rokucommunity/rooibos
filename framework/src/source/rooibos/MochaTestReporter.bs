@@ -166,7 +166,11 @@ namespace rooibos
           resultMessage += `${string(2, chr(9))}${testGroup.name}\n`
           resultMessage += `${string(3, chr(9))}${test.name}:\n\n`
           if not test.result.isCrash
-            resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
+            if test.result.error <> invalid
+              resultMessage += `${string(1, chr(9))}AssertionError: ${m.getStackTrace(test.result.error, false)}`
+            else
+              resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
+            end if
 
             if (test.result.actual <> "" or test.result.expected <> "") and (test.result.actual <> test.result.expected)
               resultMessage += m.unifiedDiff(test.result.actual, test.result.expected)
@@ -174,7 +178,7 @@ namespace rooibos
 
             resultMessage += chr(10)
           else
-            resultMessage += `${string(1, chr(9))}Error: ${m.getStackTrace(test.result.error)}`
+            resultMessage += `${string(1, chr(9))}Error: ${m.getStackTrace(test.result.error)}\n`
           end if
 
           if test.isParamTest
@@ -211,16 +215,30 @@ namespace rooibos
     '        $anon_322() As Dynamic (pkg:/source/rooibos/TestRunner.brs:72)
     '        rooibos_init(testscenename As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
     '        main(args As Dynamic) As Dynamic (pkg:/source/Main.brs:2)
-    function getStackTrace(error) as string
-      output = `${error.message}\n`
+    function getStackTrace(error, fullTrace = true) as string
+      ' if fullTrace
+        output = `${error.message}\n`
+        indent = 2
+      ' else
+      '   output = ""
+      '   indent = 1
+      ' end if
+
+      foundNonFrameworkFile = false
 
       for i = error.backTrace.count() - 1 to 0 step -1
         e = error.backTrace[i]
-        ' if e.filename.instr("pkg:/source/rooibos") = -1
-        output += `${string(2, chr(9))}${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})\n`
-        ' end if
+        isFrameworkFile = e.filename.instr("pkg:/source/rooibos") > -1 or e.filename.instr("pkg:/components/rooibos/generated") > -1
+
+        if fullTrace or not isFrameworkFile
+          output += `${string(indent, chr(9))}${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})\n`
+          foundNonFrameworkFile = true
+        end if
+
+        if not fullTrace and (foundNonFrameworkFile and isFrameworkFile)
+          return output
+        end if
       end for
-      output += chr(10)
       return output
     end function
 

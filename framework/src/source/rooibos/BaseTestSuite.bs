@@ -271,14 +271,23 @@ namespace rooibos
     '  * @param {Dynamic} [msg=""] - message to display in the test report
     '  * @returns {boolean} - true if the assert was satisfied, false otherwise
     '  */
-    function fail(msg = "Error" as string, actual = "" as string, expected = "" as string) as dynamic
+    function fail(msg = "Error" as string, actual = "" as string, expected = "" as string, createError = false as boolean) as dynamic
       if m.currentResult.isFail
         if m.throwOnFailedAssertion
           throw m.currentResult.getMessage()
         end if
         return false
       end if
-      m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+
+      error = invalid
+      if createError
+        try
+          throw msg
+        catch error
+        end try
+      end if
+
+      m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected, error)
       return false
     end function
 
@@ -357,7 +366,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(actual)}" to be ${rooibos.common.truncateString(expected)}`
           end if
-          return m.fail(msg, actual, expected)
+          return m.fail(msg, actual, expected, true)
         end if
         return true
       catch error
@@ -388,7 +397,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(actual)}" to be ${rooibos.common.truncateString(expected)}`
           end if
-          return m.fail(msg, actual, expected)
+          return m.fail(msg, actual, expected, true)
         end if
 
         return true
@@ -423,7 +432,7 @@ namespace rooibos
             messageExpected = rooibos.common.truncateString(expected)
             msg = `expected "${messageActual}" to equal "${messageExpected}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -459,7 +468,7 @@ namespace rooibos
             messageExpected = rooibos.common.truncateString(expected)
             msg = `expected "${messageActual}" to be like "${messageExpected}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -495,7 +504,7 @@ namespace rooibos
             messageExpected = rooibos.common.truncateString(expected)
             msg = `expected "${messageActual}" to not equal "${messageExpected}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -528,7 +537,7 @@ namespace rooibos
             actual = rooibos.common.asMultilineString(value, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to be invalid`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -560,7 +569,7 @@ namespace rooibos
             actual = rooibos.common.asMultilineString(value, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to not be invalid`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -592,7 +601,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to be an AssociativeArray`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -601,7 +610,7 @@ namespace rooibos
             actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to have property "${key}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -634,7 +643,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to be an AssociativeArray`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -643,7 +652,7 @@ namespace rooibos
             actual = rooibos.common.asMultilineString(aa, true)
             msg = `expected "${rooibos.common.truncateString(actual)}" to not have property "${key}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -676,7 +685,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to be an AssociativeArray`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -684,7 +693,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(keys, true))}" to be an Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -704,7 +713,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to have properties ${rooibos.common.truncateString(missingKeys.join(", "))}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -736,7 +745,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to be an AssociativeArray`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -744,7 +753,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(keys, true))}" to be an Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -759,7 +768,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(aa, true))}" to not have properties ${rooibos.common.truncateString(foundKeys.join(", "))}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -796,7 +805,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -804,7 +813,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -837,7 +846,7 @@ namespace rooibos
           if msg = ""
             msg = `expected value "${rooibos.common.truncateString(rooibos.common.asMultilineString(values, true))}" must be an Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -845,7 +854,7 @@ namespace rooibos
           if msg = ""
             msg = `actual value "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" must be an Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -855,7 +864,7 @@ namespace rooibos
             if msg = ""
               msg = `expected search value "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}" to be an AssociativeArray`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
           for each item in array
@@ -880,7 +889,7 @@ namespace rooibos
             if msg = ""
               msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
 
@@ -916,7 +925,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -924,7 +933,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to not contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -957,7 +966,7 @@ namespace rooibos
           if msg = ""
             msg = `expected target "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -965,7 +974,7 @@ namespace rooibos
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -973,7 +982,7 @@ namespace rooibos
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray to match type "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -981,7 +990,7 @@ namespace rooibos
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an Array to match type "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1001,7 +1010,7 @@ namespace rooibos
                 msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
               end if
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         end for
@@ -1035,7 +1044,7 @@ namespace rooibos
           if msg = ""
             msg = `expected target "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1043,7 +1052,7 @@ namespace rooibos
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1051,7 +1060,7 @@ namespace rooibos
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray to match type "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1059,7 +1068,7 @@ namespace rooibos
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an Array to match type "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1079,7 +1088,7 @@ namespace rooibos
                 msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to not contain "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}"`
               end if
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         end for
@@ -1112,7 +1121,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1120,7 +1129,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(count, true))}" to be an Number`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1134,7 +1143,7 @@ namespace rooibos
           if msg = ""
             msg = `expected count "${actualCount}" to be "${count}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, rooibos.common.asMultilineString(actualCount, true), rooibos.common.asMultilineString(count, true))
+          m.fail(msg, rooibos.common.asMultilineString(actualCount, true), rooibos.common.asMultilineString(count, true), true)
           return false
         end if
         return true
@@ -1166,7 +1175,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1174,7 +1183,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(count, true))}" to be an Number`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1188,7 +1197,7 @@ namespace rooibos
           if msg = ""
             msg = `expected count "${actualCount}" to not be "${count}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1222,7 +1231,7 @@ namespace rooibos
             if msg = ""
               msg = `expected "${rooibos.common.truncateString(actual)}" to be empty`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, rooibos.common.asMultilineString({}, true))
+            m.fail(msg, actual, rooibos.common.asMultilineString({}, true), true)
             return false
           end if
         else if rooibos.common.isArray(item)
@@ -1231,7 +1240,7 @@ namespace rooibos
             if msg = ""
               msg = `expected "${rooibos.common.truncateString(actual)}" to be empty`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, rooibos.common.asMultilineString([], true))
+            m.fail(msg, actual, rooibos.common.asMultilineString([], true), true)
             return false
           end if
         else if rooibos.common.isString(item)
@@ -1240,14 +1249,14 @@ namespace rooibos
             if msg = ""
               msg = `expected ${rooibos.common.truncateString(actual)} to be empty`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, "")
+            m.fail(msg, actual, "", true)
             return false
           end if
         else
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be an AssociativeArray, Array, or String`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -1280,7 +1289,7 @@ namespace rooibos
               actual = rooibos.common.asMultilineString(item, true)
               msg = `expected "${rooibos.common.truncateString(actual)}" to not be empty`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         else if rooibos.common.isArray(item)
@@ -1289,7 +1298,7 @@ namespace rooibos
               actual = rooibos.common.asMultilineString(item, true)
               msg = `expected "${rooibos.common.truncateString(actual)}" to not be empty`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         else if rooibos.common.isString(item)
@@ -1298,14 +1307,14 @@ namespace rooibos
               actual = rooibos.common.asMultilineString(item, true)
               msg = `expected ${rooibos.common.truncateString(actual)} to be empty`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         else
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be an AssociativeArray, Array, or String`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -1337,7 +1346,7 @@ namespace rooibos
           if msg = ""
             msg = `expect type ${rooibos.common.asMultilineString(typeStr, true)} to be "Boolean", "String", "Integer", "Array", or "AssociativeArray"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1345,7 +1354,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray or Array`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1367,7 +1376,7 @@ namespace rooibos
                   msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(item, true))}" to be type ${rooibos.common.asMultilineString(typeStr, true)}`
                 end if
               end if
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              m.fail(msg, "", "", true)
               return false
             end if
           end for
@@ -1443,7 +1452,7 @@ namespace rooibos
           if msg = ""
             msg = `expected ${rooibos.common.truncateString(actual)} to be type ${rooibos.common.truncateString(expected)}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1478,7 +1487,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         else if value.subType() <> typeStr
           actual = rooibos.common.getTypeWithComponentWrapper(value, true)
@@ -1486,7 +1495,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1510,7 +1519,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}" to be an instance of ${rooibos.common.truncateString(rooibos.common.asMultilineString(expectedClassName, true))}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1518,7 +1527,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(value, true))}" to be an instance of ${rooibos.common.truncateString(rooibos.common.asMultilineString(expectedClassName, true))}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1536,7 +1545,7 @@ namespace rooibos
           if msg = ""
             msg = `expected class ${rooibos.common.truncateString(actual)} to be an instance of ${rooibos.common.truncateString(expected)}`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -1581,7 +1590,7 @@ namespace rooibos
             if msg = ""
               msg = `expected count "${actual}" to be "${expected}"`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+            m.fail(msg, actual, expected, true)
             return false
           end if
         else
@@ -1590,7 +1599,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1630,7 +1639,7 @@ namespace rooibos
             if msg = ""
               msg = `expected count "${actual}" to not be "${expected}"`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+            m.fail(msg, actual, expected, true)
             return false
           end if
         else
@@ -1639,7 +1648,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1676,7 +1685,7 @@ namespace rooibos
             if msg = ""
               msg = `expected child count "${childCount}" to be "0"`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         else
@@ -1685,7 +1694,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1723,7 +1732,7 @@ namespace rooibos
             if msg = ""
               msg = `expected child count "${childCount}" to be greater then "0"`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         else
@@ -1732,7 +1741,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1765,7 +1774,7 @@ namespace rooibos
             if msg = ""
               msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         else
@@ -1774,7 +1783,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1806,7 +1815,7 @@ namespace rooibos
             if msg = ""
               msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           else
             if node.isSubType("mc_Node")
@@ -1819,7 +1828,7 @@ namespace rooibos
               if msg = ""
                 msg = `expected child count "${childCount}" to be "1"`
               end if
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              m.fail(msg, "", "", true)
               return false
             end if
           end if
@@ -1829,7 +1838,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1863,7 +1872,7 @@ namespace rooibos
             if msg = ""
               msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to not contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber)
+            m.fail(msg, "", "", true)
             return false
           end if
         else
@@ -1872,7 +1881,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1907,7 +1916,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
 
@@ -1915,7 +1924,7 @@ namespace rooibos
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -1950,7 +1959,7 @@ namespace rooibos
               msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to have properties "${rooibos.common.truncateString(rooibos.common.asMultilineString(missingValues))}"`
             end if
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -1985,7 +1994,7 @@ namespace rooibos
           if msg = ""
             msg = `expected type "${rooibos.common.truncateString(actual)}" to be type "${rooibos.common.truncateString(expected)}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
 
@@ -1998,7 +2007,7 @@ namespace rooibos
               if msg = ""
                 msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to not contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
               end if
-              m.currentResult.fail(msg, m.currentAssertLineNumber)
+              m.fail(msg, "", "", true)
               return false
             end if
           end for
@@ -2018,14 +2027,14 @@ namespace rooibos
             if msg = ""
               msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to have not have properties "${rooibos.common.truncateString(rooibos.common.asMultilineString(foundValues))}"`
             end if
-            m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+            m.fail(msg, actual, expected, true)
             return false
           end if
         else
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
         return true
@@ -2062,7 +2071,7 @@ namespace rooibos
           if msg = ""
             msg = `expected target "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to be an AssociativeArray`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -2070,7 +2079,7 @@ namespace rooibos
           if msg = ""
             msg = `expected subset "${rooibos.common.truncateString(rooibos.common.asMultilineString(subset, true))}" to be an AssociativeArray`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber)
+          m.fail(msg, "", "", true)
           return false
         end if
 
@@ -2103,7 +2112,7 @@ namespace rooibos
           if msg = ""
             msg = `expected "${rooibos.common.truncateString(rooibos.common.asMultilineString(array, true))}" to have properties "${rooibos.common.truncateString(rooibos.common.asMultilineString(missingValues))}"`
           end if
-          m.currentResult.fail(msg, m.currentAssertLineNumber, actual, expected)
+          m.fail(msg, actual, expected, true)
           return false
         end if
         return true
@@ -2199,7 +2208,7 @@ namespace rooibos
         return m.mock(target, methodName, 1, expectedArgs, returnValue, true)
       catch error
         'bs:disable-next-line
-        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        m.fail("Setting up mock failed: " + error.message, "", "", true)
       end try
       return invalid
     end function
@@ -2234,7 +2243,7 @@ namespace rooibos
         return m.stub(target, methodName, returnValue, true)
       catch error
         'bs:disable-next-line
-        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        m.fail("Setting up mock failed: " + error.message, "", "", true)
         return false
       end try
       return false
@@ -2253,7 +2262,7 @@ namespace rooibos
         return m.mock(target, methodName, 0, invalid, invalid, true)
       catch error
         'bs:disable-next-line
-        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        m.fail("Setting up mock failed: " + error.message, "", "", true)
         return false
       end try
       return false
@@ -2283,7 +2292,7 @@ namespace rooibos
       return m.mock(target, methodName, 1, expectedArgs, returnValue, allowNonExistingMethods)
       ' catch error
       'bs:disable-next-line
-      '   m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+      '   m.fail("Setting up mock failed: " + error.message, "", "", true)
       '   return false
       ' end try
       ' return false
@@ -2312,7 +2321,7 @@ namespace rooibos
         end if
       catch error
         'bs:disable-next-line
-        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        m.fail("Setting up mock failed: " + error.message, "", "", true)
       end try
       return false
     end function
@@ -2333,7 +2342,7 @@ namespace rooibos
         return m.mock(target, methodName, 0, invalid, invalid, allowNonExistingMethods)
       catch error
         'bs:disable-next-line
-        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        m.fail("Setting up mock failed: " + error.message, "", "", true)
       end try
       return false
     end function
@@ -2357,7 +2366,7 @@ namespace rooibos
         return m.mock(target, methodName, expectedInvocations, expectedArgs, returnValue, allowNonExistingMethods)
       catch error
         'bs:disable-next-line
-        m.currentResult.fail("Setting up mock failed: " + error.message, m.currentAssertLineNumber)
+        m.fail("Setting up mock failed: " + error.message, "", "", true)
       end try
       return false
     end function
@@ -2717,7 +2726,7 @@ namespace rooibos
       if m.currentResult.isFail
         return false
       end if
-      m.currentResult.fail("mock failure on '" + methodName + "' : " + message, lineNumber)
+      m.fail("mock failure on '" + methodName + "' : " + message, "", "", true)
       return false
     end function
 
@@ -3109,12 +3118,12 @@ namespace rooibos
           return false
         end if
         if target = invalid
-          m.fail("Target was invalid")
+          m.fail("Target was invalid", "", "", true)
         end if
 
         result = m.waitForField(target, fieldName, delay, maxAttempts)
         if not result
-          return m.fail("Timeout waiting for targetField " + fieldName + " to be set on target")
+          return m.fail("Timeout waiting for targetField " + fieldName + " to be set on target", "", "", true)
         end if
 
         return true
