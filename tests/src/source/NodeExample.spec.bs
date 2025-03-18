@@ -40,7 +40,7 @@ namespace tests
       text = HelloFromNode(name, age)
       m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
       m.timer = createObject("roSGNode", "Timer")
-      m.timer.duration = 0.5
+      m.timer.duration = 0.01
       m.timer.observeFieldScoped("fire", "OnTimer")
       m.timer.control = "start"
     end function
@@ -57,14 +57,13 @@ namespace tests
       m.age = age
 
       callback = function()
-        ? "*** timer triggering anonymous callback function"
         m.testSuite.assertTrue(m.testSuite.age >= 18)
         m.testSuite.done()
       end function
       callback = callback.toStr().tokenize(" ").peek()
 
       m.timer = createObject("roSGNode", "Timer")
-      m.timer.duration = 0.1
+      m.timer.duration = 0.01
       m.timer.observeFieldScoped("fire", callback)
       m.timer.control = "start"
     end function
@@ -95,6 +94,5 @@ namespace tests
 end namespace
 
 function OnTimer()
-  ? " TIMER IS FIRED"
   m.testSuite.done()
 end function

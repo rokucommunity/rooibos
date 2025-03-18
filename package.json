@@ -1,5 +1,5 @@
 {
-  "name": "rooibos",
+  "name": "rooibos-roku",
   "version": "1.0.0",
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "scripts": {
@@ -11,7 +11,7 @@
   ],
   "devDependencies": {
     "@rokucommunity/bslint": "^0.5.0",
-    "brighterscript": "^0.61.3",
+    "brighterscript": "^0.68.3",
     "ropm": "^0.5.0"
   },
   "repository": {
