@@ -1,5 +1,5 @@
 import type { AstEditor, CallExpression, DottedGetExpression, Expression, NamespaceContainer, Scope } from 'brighterscript';
-import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode } from 'brighterscript';
+import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode, util } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
@@ -46,6 +46,12 @@ export class TestGroup extends TestBlock {
                         let isSub = callExpression.findAncestor<brighterscript.FunctionExpression>(isFunctionExpression)?.functionType.kind === TokenKind.Sub;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.name.text)) {
+                            // get the path to the call expression
+                            // `m`.assert*(...)
+                            // `m.testSuite`.assert*(...)
+                            // `someMagicVar`.assert*(...)
+                            const callPath = util.getAllDottedGetParts(callExpression.callee.obj).map((part) => part.text).join('.');
+
                             if (dge.name.text === 'stubCall') {
                                 this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 return expressionStatement;
@@ -60,10 +66,10 @@ export class TestGroup extends TestBlock {
                                 }
 
                                 if (!noEarlyExit) {
-                                    const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
+                                    const trailingLine = Parser.parse(`if ${callPath}.currentResult?.isFail = true then ${callPath}.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
                                     editor.arraySplice(owner, key + 1, 0, trailingLine);
                                 }
-                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.range.start.line + 1}`).ast.statements[0];
+                                const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${callExpression.range.start.line + 1}`).ast.statements[0];
                                 editor.arraySplice(owner, key, 0, leadingLine);
                             }
                         }
