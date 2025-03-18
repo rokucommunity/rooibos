@@ -36,7 +36,7 @@ namespace rooibos
       m.lineNumber = -1
     end function
 
-    function fail(message as string, lineNumber = -1, actual = "", expected = "")
+    function fail(message as string, lineNumber = -1, actual = "", expected = "", error = invalid)
       if message <> "" and not m.isFail
         if not m.isFail
           m.lineNumber = lineNumber
@@ -44,6 +44,7 @@ namespace rooibos
           m.message = message
           m.actual = actual
           m.expected = expected
+          m.error = error
         end if
       end if
       if m.throwOnFailedAssertion
