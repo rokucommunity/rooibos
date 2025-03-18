@@ -1081,10 +1081,10 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.expectCalled(m.thing@.getFunction())
-                        m.expectCalled(m.thing@.getFunction(), "return")
-                        m.expectCalled(m.thing@.getFunction("a", "b"))
-                        m.expectCalled(m.thing@.getFunction("a", "b"), "return")
+                            m.expectCalled(m.thing@.getFunction())
+                            m.expectCalled(m.thing@.getFunction(), "return")
+                            m.expectCalled(m.thing@.getFunction("a", "b"))
+                            m.expectCalled(m.thing@.getFunction("a", "b"), "return")
                         end function
                     end class
                 `);
@@ -1142,8 +1142,8 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.expectCalled(m.thing.getFunctionField)
-                        m.expectCalled(m.thing.getFunctionField, "return")
+                            m.expectCalled(m.thing.getFunctionField)
+                            m.expectCalled(m.thing.getFunctionField, "return")
                         end function
                     end class
                 `);
@@ -1176,10 +1176,10 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.expectCalled(m.thing.getFunction())
-                        m.expectCalled(m.thing.getFunction(), "return")
-                        m.expectCalled(m.thing.getFunction("arg1", "arg2"))
-                        m.expectCalled(m.thing.getFunction("arg1", "arg2"), "return")
+                            m.expectCalled(m.thing.getFunction())
+                            m.expectCalled(m.thing.getFunction(), "return")
+                            m.expectCalled(m.thing.getFunction("arg1", "arg2"))
+                            m.expectCalled(m.thing.getFunction("arg1", "arg2"), "return")
                         end function
                     end class
                 `);
@@ -1230,10 +1230,10 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         sub _()
-                        m.expectCalled(m.thing.getFunction())
-                        m.expectCalled(m.thing.getFunction(), "return")
-                        m.expectCalled(m.thing.getFunction("arg1", "arg2"))
-                        m.expectCalled(m.thing.getFunction("arg1", "arg2"), "return")
+                            m.expectCalled(m.thing.getFunction())
+                            m.expectCalled(m.thing.getFunction(), "return")
+                            m.expectCalled(m.thing.getFunction("arg1", "arg2"))
+                            m.expectCalled(m.thing.getFunction("arg1", "arg2"), "return")
                         end sub
                     end class
                 `);
@@ -1276,6 +1276,7 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
             });
+
             it('does not break when validating again after a transpile', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1283,10 +1284,10 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.expectCalled(m.thing.getFunction())
-                        m.expectCalled(m.thing.getFunction(), "return")
-                        m.expectCalled(m.thing.getFunction("arg1", "arg2"))
-                        m.expectCalled(m.thing.getFunction("arg1", "arg2"), "return")
+                            m.expectCalled(m.thing.getFunction())
+                            m.expectCalled(m.thing.getFunction(), "return")
+                            m.expectCalled(m.thing.getFunction("arg1", "arg2"))
+                            m.expectCalled(m.thing.getFunction("arg1", "arg2"), "return")
                         end function
                     end class
                 `);
@@ -1371,6 +1372,44 @@ describe('RooibosPlugin', () => {
                 `);
             });
 
+            it('correctly transpiles async asserts', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                            callback = sub()
+                                b = { someValue: "value"}
+                                m.testSuite.assertEqual(b, { someValue: "value"})
+                            end sub
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                // expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const testContents = getTestFunctionContents();
+                expect(
+                    testContents
+                ).to.eql(undent`
+                    callback = sub()
+                        b = {
+                            someValue: "value"
+                        }
+                        m.testSuite.currentAssertLineNumber = 9
+                        m.testSuite.assertEqual(b, {
+                            someValue: "value"
+                        })
+                        if m.testSuite.currentResult?.isFail = true then
+                            m.testSuite.done()
+                            return
+                        end if
+                    end sub
+                `);
+            });
+
             it('correctly transpiles function invocations - simple object', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -1378,11 +1417,11 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        item = {id: "item"}
-                        m.expectCalled(item.getFunction())
-                        m.expectCalled(item.getFunction(), "return")
-                        m.expectCalled(item.getFunction("arg1", "arg2"))
-                        m.expectCalled(item.getFunction("arg1", "arg2"), "return")
+                            item = {id: "item"}
+                            m.expectCalled(item.getFunction())
+                            m.expectCalled(item.getFunction(), "return")
+                            m.expectCalled(item.getFunction("arg1", "arg2"))
+                            m.expectCalled(item.getFunction("arg1", "arg2"), "return")
                         end function
                     end class
                 `);
@@ -1437,11 +1476,11 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        item = {id: "item"}
-                        m.expectCalled(sayHello("arg1", "arg2"), "return")
-                        m.expectCalled(sayHello())
-                        m.expectCalled(sayHello(), "return")
-                        m.expectCalled(sayHello("arg1", "arg2"))
+                            item = {id: "item"}
+                            m.expectCalled(sayHello("arg1", "arg2"), "return")
+                            m.expectCalled(sayHello())
+                            m.expectCalled(sayHello(), "return")
+                            m.expectCalled(sayHello("arg1", "arg2"))
                         end function
                     end class
                 `);
@@ -1527,11 +1566,11 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        item = {id: "item"}
-                        m.expectCalled(utils.sayHello("arg1", "arg2"), "return")
-                        m.expectCalled(utils.sayHello())
-                        m.expectCalled(utils.sayHello(), "return")
-                        m.expectCalled(utils.sayHello("arg1", "arg2"))
+                            item = {id: "item"}
+                            m.expectCalled(utils.sayHello("arg1", "arg2"), "return")
+                            m.expectCalled(utils.sayHello())
+                            m.expectCalled(utils.sayHello(), "return")
+                            m.expectCalled(utils.sayHello("arg1", "arg2"))
                         end function
                     end class
                 `);
@@ -1649,8 +1688,8 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.stubCall(m.thing.getFunctionField)
-                        m.stubCall(m.thing.getFunctionField, "return")
+                            m.stubCall(m.thing.getFunctionField)
+                            m.stubCall(m.thing.getFunctionField, "return")
                         end function
                     end class
                 `);
@@ -1673,9 +1712,9 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        item = {id:"item"}
-                        m.stubCall(item.getFunctionField)
-                        m.stubCall(item.getFunctionField, "return")
+                            item = {id:"item"}
+                            m.stubCall(item.getFunctionField)
+                            m.stubCall(item.getFunctionField, "return")
                         end function
                     end class
                 `);
@@ -1701,10 +1740,10 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        m.stubCall(m.thing.getFunction())
-                        m.stubCall(m.thing.getFunction(), "return")
-                        m.stubCall(m.thing.getFunction("arg1", "arg2"))
-                        m.stubCall(m.thing.getFunction("arg1", "arg2"), "return")
+                            m.stubCall(m.thing.getFunction())
+                            m.stubCall(m.thing.getFunction(), "return")
+                            m.stubCall(m.thing.getFunction("arg1", "arg2"))
+                            m.stubCall(m.thing.getFunction("arg1", "arg2"), "return")
                         end function
                     end class
                 `);
@@ -1729,11 +1768,11 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        item = {id: "item"}
-                        m.stubCall(item.getFunction())
-                        m.stubCall(item.getFunction(), "return")
-                        m.stubCall(item.getFunction("arg1", "arg2"))
-                        m.stubCall(item.getFunction("arg1", "arg2"), "return")
+                            item = {id: "item"}
+                            m.stubCall(item.getFunction())
+                            m.stubCall(item.getFunction(), "return")
+                            m.stubCall(item.getFunction("arg1", "arg2"))
+                            m.stubCall(item.getFunction("arg1", "arg2"), "return")
                         end function
                     end class
                 `);
