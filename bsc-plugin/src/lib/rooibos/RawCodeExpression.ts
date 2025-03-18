@@ -16,6 +16,10 @@ export class RawCodeExpression extends Expression {
         super();
     }
 
+    public clone() {
+        return new RawCodeExpression(this.source, this.sourceFile, this.range);
+    }
+
     public transpile(state: BrsTranspileState) {
         return [new SourceNode(
             this.range.start.line + 1,

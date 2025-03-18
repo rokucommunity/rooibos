@@ -31,6 +31,9 @@ namespace rooibos
         m.crashedCount++
       else if result.isFail
         m.failedCount++
+      else if result.isSkipped
+        m.ignoredTestNames.push(result.test.name)
+        m.ignoredCount++
       else
         m.passedCount++
       end if

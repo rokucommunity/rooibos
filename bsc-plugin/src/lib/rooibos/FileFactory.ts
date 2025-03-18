@@ -1,72 +1,65 @@
-import type { BrsFile, Program, XmlFile } from 'brighterscript';
+import type { BrsFile, BscFile, Program, XmlFile } from 'brighterscript';
 import { standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import type { CoverageMap } from './CodeCoverageProcessor';
+import * as fastGlob from 'fast-glob';
 import type { TestSuite } from './TestSuite';
 
 export class FileFactory {
     private coverageComponentXmlTemplate;
     private coverageComponentBrsTemplate;
+    private frameworkSourcePath: string;
 
-    constructor(
-        private options?: {
-            frameworkSourcePath?: string;
-        }
-    ) {
-        this.options = this.options ?? {};
-        if (!this.options.frameworkSourcePath) {
-            if (__filename.endsWith('.ts')) {
-                //load the files directly from their source location. (i.e. the plugin is running as a typescript file from within ts-node)
-                this.options.frameworkSourcePath = s`${__dirname}/../../../../framework/src/source`;
-            } else {
-                //load the framework files from the dist folder (i.e. the plugin is running as a node_module)
-                this.options.frameworkSourcePath = s`${__dirname}/../framework`;
-            }
+    constructor() {
+        if (__filename.endsWith('.ts')) {
+            //load the files directly from their source location. (i.e. the plugin is running as a typescript file from within ts-node)
+            this.frameworkSourcePath = s`${__dirname}/../../../../framework/src`;
+        } else {
+            //load the framework files from the dist folder (i.e. the plugin is running as a node_module)
+            this.frameworkSourcePath = s`${__dirname}/../framework`;
         }
 
-        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.xml'), 'utf8');
-        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.options.frameworkSourcePath, 'CodeCoverage.brs'), 'utf8');
+        this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.frameworkSourcePath, '/components/rooibos/CodeCoverage.xml'), 'utf8');
+        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.frameworkSourcePath, '/source/rooibos/CodeCoverage.brs'), 'utf8');
     }
 
-    private frameworkFileNames = [
-        'BaseTestSuite',
-        'CommonUtils',
-        'Coverage',
-        'Matchers',
-        'Rooibos',
-        'RuntimeConfig',
-        'Stats',
-        'Test',
-        'TestGroup',
-        'BaseTestReporter',
-        'ConsoleTestReporter',
-        'JUnitTestReporter',
-        'TestResult',
-        'TestRunner',
-        'Utils'
-    ];
-
-    private targetPath = 'source/rooibos/';
-    private targetCompsPath = 'components/rooibos/';
-    public addedFrameworkFiles = [];
+    public sourceFilesToAutoImport: string[] = [];
+    public addedFrameworkFiles: BscFile[] = [];
 
     public addFrameworkFiles(program: Program) {
         this.addedFrameworkFiles = [];
-        for (let fileName of this.frameworkFileNames) {
-            let sourcePath = path.resolve(path.join(this.options.frameworkSourcePath, `${fileName}.bs`));
-            let fileContents = fs.readFileSync(sourcePath, 'utf8');
-            let destPath = path.join(this.targetPath, `${fileName}.bs`);
-            let entry = { src: sourcePath, dest: destPath };
+        let globedFiles = fastGlob.sync([
+            '**/*.{bs,brs,xml}',
+            '!**/bslib.brs',
+            '!**/manifest',
+            '!**/CodeCoverage.{brs,xml}',
+            '!**/RooibosScene.xml'
+        ], {
+            cwd: this.frameworkSourcePath,
+            absolute: false,
+            followSymbolicLinks: true,
+            onlyFiles: true
+        });
+
+        for (let filePath of globedFiles) {
+            if (this.shouldAddFileToImportList(filePath)) {
+                // Save a list of all source files added to the program
+                // to be imported by node test components
+                this.sourceFilesToAutoImport.push(filePath);
+            }
+            let sourcePath = path.resolve(this.frameworkSourcePath, filePath);
+            let fileContents = fs.readFileSync(sourcePath, 'utf8').toString();
+            let entry = { src: sourcePath, dest: filePath };
             this.addedFrameworkFiles.push(
                 program.setFile(entry, fileContents)
             );
         }
 
         let entry = {
-            src: s`${this.options.frameworkSourcePath}/RooibosScene.xml`,
-            dest: s`${this.targetCompsPath}/RooibosScene.xml`
+            src: s`${this.frameworkSourcePath}/components/RooibosScene.xml`,
+            dest: s`components/rooibos/RooibosScene.xml`
         };
         this.addedFrameworkFiles.push(
             program.setFile(entry, this.createTestXML('RooibosScene', 'Scene'))
@@ -75,8 +68,8 @@ export class FileFactory {
 
     public createTestXML(name: string, baseName: string, suite?: TestSuite): string {
         let scriptImports = [];
-        for (let fileName of this.frameworkFileNames) {
-            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${this.targetPath}${fileName}.bs" />`);
+        for (let filePath of this.sourceFilesToAutoImport) {
+            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${filePath}" />`);
         }
 
         // Add the test spec file rather then relying on auto imports
@@ -117,11 +110,21 @@ export class FileFactory {
 
     public isIgnoredFile(file: BrsFile | XmlFile): boolean {
         let name = file.pkgPath.toLowerCase();
-        let result = this.frameworkFileNames.find((f) => {
-            return name === path.join(this.targetPath, `${f}.bs`).toLowerCase();
+        let result = this.addedFrameworkFiles.find((f) => {
+            return name === f.pkgPath.toLowerCase();
         }
         );
         return result !== undefined;
+    }
+
+    private shouldAddFileToImportList(destFilePath): boolean {
+        const pathDetails = path.parse(destFilePath);
+        if (pathDetails.dir === 'source' || pathDetails.dir.startsWith('source\\') || pathDetails.dir.startsWith('source/')) {
+            if (pathDetails.ext === '.brs' || (pathDetails.ext === '.bs' && !pathDetails.name.endsWith('.d'))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public addFile(program, projectPath: string, contents: string) {

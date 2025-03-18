@@ -1,7 +1,7 @@
 namespace rooibos
   class JUnitTestReporter extends rooibos.BaseTestReporter
 
-    override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
+    override function onEnd(event as rooibos.TestReporterOnEndEvent)
       root = createObject("roXMLElement")
       root.SetName("testsuites")
       properties = root.addElement("properties")

@@ -1,5 +1,5 @@
 import type { AnnotationExpression, BrsFile, Statement } from 'brighterscript';
-import { diagnosticIllegalParams, diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined } from '../utils/Diagnostics';
+import { diagnosticIllegalParams, diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined, diagnosticSlowAnnotationRequiresNumber } from '../utils/Diagnostics';
 
 export enum AnnotationType {
     None = 'none',
@@ -9,6 +9,7 @@ export enum AnnotationType {
     Ignore = 'ignore',
     Solo = 'only',
     NodeTest = 'sgnode',
+    Slow = 'slow',
     Setup = 'setup',
     TearDown = 'teardown',
     BeforeEach = 'beforeeach',
@@ -30,6 +31,7 @@ let annotationLookup = {
     only: AnnotationType.Solo,
     sgnode: AnnotationType.NodeTest,
     setup: AnnotationType.Setup,
+    slow: AnnotationType.Slow,
     teardown: AnnotationType.TearDown,
     beforeeach: AnnotationType.BeforeEach,
     aftereach: AnnotationType.AfterEach,
@@ -46,6 +48,8 @@ interface ParsedComment {
     blockAnnotation?: RooibosAnnotation;
     testAnnotation?: RooibosAnnotation;
 }
+
+const defaultSlowDuration = 75;
 
 export class AnnotationParams {
 
@@ -82,7 +86,8 @@ export class RooibosAnnotation {
         public nodeName?: string,
         rawTags: string[] = [],
         public noCatch = false,
-        public noEarlyExit = false
+        public noEarlyExit = false,
+        public slow = defaultSlowDuration
     ) {
         this.tags = new Set<string>(rawTags);
     }
@@ -136,13 +141,18 @@ export class RooibosAnnotation {
                 isSolo = getAnnotationsOfType(AnnotationType.Solo).length > 0;
                 isIgnore = getAnnotationsOfType(AnnotationType.Ignore).length > 0;
 
+                for (const annotation of getAnnotationsOfType(AnnotationType.NodeTest)) {
+                    nodeName = annotation.getArguments()[0] as string;
+                }
+
                 for (const annotation of getAnnotationsOfType(AnnotationType.Async)) {
                     async = true;
                     asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : -1;
-                }
-
-                for (const annotation of getAnnotationsOfType(AnnotationType.NodeTest)) {
-                    nodeName = annotation.getArguments()[0] as string;
+                    if (nodeName === null) {
+                        // If the test is async, it must be a node test
+                        // Default to `Node` if no node is specified
+                        nodeName = 'Node';
+                    }
                 }
 
                 for (const annotation of getAnnotationsOfType(AnnotationType.Tags)) {
@@ -188,6 +198,20 @@ export class RooibosAnnotation {
                 for (const annotation of getAnnotationsOfType(AnnotationType.Params, AnnotationType.SoloParams, AnnotationType.IgnoreParams)) {
                     if (testAnnotation) {
                         testAnnotation.parseParams(file, annotation, getAnnotationType(annotation.name), noCatch);
+                    } else {
+                        //error
+                    }
+                }
+
+                for (const annotation of getAnnotationsOfType(AnnotationType.Slow)) {
+                    if (testAnnotation) {
+                        let slow = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : defaultSlowDuration;
+                        if (isNaN(slow)) {
+                            diagnosticSlowAnnotationRequiresNumber(file, annotation);
+                            testAnnotation.slow = defaultSlowDuration;
+                        } else {
+                            testAnnotation.slow = slow;
+                        }
                     } else {
                         //error
                     }

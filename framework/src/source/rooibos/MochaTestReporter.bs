@@ -1,0 +1,980 @@
+namespace rooibos
+  class MochaTestReporter extends rooibos.BaseTestReporter
+
+    sub new(runner)
+      'bs:disable-next-line
+      super(runner)
+    end sub
+
+    private failureCount = 0
+
+    ' override function onBegin(event as rooibos.TestReporterOnBeginEvent)
+    '   'override me
+    ' end function
+
+    override sub onSuiteBegin(event as rooibos.TestReporterOnSuiteBeginEvent)
+      print m.colorLines(rooibos.reporters.mocha.colors.suite, event.suite.name)
+    end sub
+
+    override sub onTestGroupBegin(event as rooibos.TestReporterOnTestGroupBeginEvent)
+      print tab(2) m.colorLines(rooibos.reporters.mocha.colors.suite, event.group.name)
+    end sub
+
+    ' override function onTestBegin(event as rooibos.TestReporterOnTestBeginEvent)
+    '   'override me
+    ' end function
+
+    override sub onTestComplete(event as rooibos.TestReporterOnTestCompleteEvent)
+      test = event.test
+      status = test.result.getStatusText()
+
+      lineColor = rooibos.reporters.mocha.colors.light
+      symbolColor = ""
+      symbol = "?"
+      if status = "PASS"
+        symbol = "✔"
+        symbolColor = rooibos.reporters.mocha.colors.checkmark
+      else if status = "FAIL" or status = "CRASH"
+        symbol = "✖"
+        symbolColor = rooibos.reporters.mocha.colors.brightFail
+      else if status = "SKIP"
+        symbol = "-"
+        symbolColor = rooibos.reporters.mocha.colors.pending
+        lineColor = rooibos.reporters.mocha.colors.pending
+      end if
+
+      params = ""
+      if test.isParamTest
+        rawParams = invalid
+        if type(test.rawParams) = "roAssociativeArray"
+          rawParams = {}
+          for each key in test.rawParams
+            if type(test.rawParams[key]) <> "Function" and type(test.rawParams[key]) <> "roFunction"
+              rawParams[key] = test.rawParams[key]
+            end if
+          end for
+        else
+          rawParams = test.rawParams
+        end if
+
+        params = " " + formatJson(rawParams)
+      end if
+
+      duration = ""
+      if test.result.time > test.slow
+        duration = m.colorLines(rooibos.reporters.mocha.colors.slow, ` (${test.result.time}ms)`)
+      else if test.result.time > test.slow / 2
+        duration = m.colorLines(rooibos.reporters.mocha.colors.medium, ` (${test.result.time}ms)`)
+      ' else if test.result.time > slow / 4
+      '   duration = m.colorLines(rooibos.reporters.mocha.colors.fast, ` (${test.result.time}ms)`)
+      end if
+
+      print tab(4) m.colorLines(symbolColor, symbol) + " " + m.colorLines(lineColor, test.name + params) + duration
+    end sub
+
+    ' override function onTestGroupComplete(event as rooibos.TestReporterOnTestGroupCompleteEvent)
+    '   'override me
+    ' end function
+
+    ' override function onSuiteComplete(event as rooibos.TestReporterOnSuiteCompleteEvent)
+    '   'override me
+    ' end function
+
+    override sub onEnd(event as rooibos.TestReporterOnEndEvent)
+      print m.formatStatsString(event.stats)
+
+      for each testSuite in m.testRunner.testSuites
+        for each testGroup in testSuite.groups
+          m.logFailures(testGroup)
+        end for
+      end for
+    end sub
+
+    ' Creates a formatted string from the stats object
+    ' example:
+    '`
+    '     327 passed (5113ms)
+    '     1 crashed
+    '     207 failing
+    '     8 skipped
+    '`
+    function formatStatsString(stats as rooibos.Stats) as string
+      statusString = chr(10)
+
+      indent = string(1, chr(9))
+      statusString += `${indent}${m.colorLines(rooibos.reporters.mocha.colors.brightPass, `${stats.passedCount} passed`)} ${m.colorLines(rooibos.reporters.mocha.colors.light, ` (${stats.time}ms)`)}`
+
+      if stats.crashedCount > 0
+        statusString += chr(10) + m.colorLines(rooibos.reporters.mocha.colors.fail, `${indent}${stats.crashedCount} crashed`)
+      end if
+
+      if stats.failedCount > 0
+        statusString += chr(10) + m.colorLines(rooibos.reporters.mocha.colors.fail, `${indent}${stats.failedCount} failing`)
+      end if
+
+      if stats.ignoredCount > 0
+        statusString += chr(10) + m.colorLines(rooibos.reporters.mocha.colors.pending, `${indent}${stats.ignoredCount} skipped`)
+      end if
+
+      statusString += chr(10)
+      return statusString
+    end function
+
+
+    ' Logs all failures for a given test group
+    ' example:
+
+    '    1) Rooibos failed assertion tests
+    '      tests fail on crash
+    '        reports error:
+    '
+    '    Error: some error
+    '        $anon_6c() As Dynamic (pkg:/source/FailedAssertion.spec.brs:11)
+    '        $anon_303() As Dynamic (pkg:/source/rooibos/Test.brs:45)
+    '        $anon_1f2(test As Object) As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:243)
+    '        $anon_30a() As Dynamic (pkg:/source/rooibos/TestGroup.brs:88)
+    '        $anon_309() As Dynamic (pkg:/source/rooibos/TestGroup.brs:68)
+    '        $anon_1ec() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:131)
+    '        $anon_1eb() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:121)
+    '        $anon_325(testsuite As Dynamic) As Void (pkg:/source/rooibos/TestRunner.brs:191)
+    '        $anon_322() As Dynamic (pkg:/source/rooibos/TestRunner.brs:72)
+    '        rooibos_init(testscenename As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
+    '        main(args As Dynamic) As Dynamic (pkg:/source/Main.brs:2)
+    '
+    '    at (file:///Users/chris/roku/rooibos/tests/src/source/FailedAssertion.spec.bs:15)
+    '
+    '    2) Rooibos failed assertion tests
+    '        tests AssertTrue fail
+    '            AssertTrue with message 0:
+    '
+    '    AssertionError: expected "false (Boolean)" to be true (Boolean)
+    '      + expected - actual
+    '
+    '      -false (Boolean)
+    '      +true (Boolean)
+    '
+    '    params at (file:///Users/chris/roku/rooibos/tests/src/source/FailedAssertion.spec.bs:23)
+    '    assertion at (file:///Users/chris/roku/rooibos/tests/src/source/FailedAssertion.spec.bs:31)
+    '
+    sub logFailures(testGroup)
+      for each test in testGroup.tests
+        if test.result.isFail
+          m.failureCount++
+
+          resultMessage = ""
+          resultMessage += `${string(1, chr(9))}${m.failureCount.toStr()}) ${test.testSuite.name}\n`
+          resultMessage += `${string(2, chr(9))}${testGroup.name}\n`
+          resultMessage += `${string(3, chr(9))}${test.name}:\n\n`
+          if not test.result.isCrash
+            resultMessage += `${string(1, chr(9))}AssertionError: ${test.result.getMessage()}`
+
+            if (test.result.actual <> "" or test.result.expected <> "") and (test.result.actual <> test.result.expected)
+              resultMessage += m.unifiedDiff(test.result.actual, test.result.expected)
+            end if
+
+            resultMessage += chr(10)
+          else
+            resultMessage += `${string(1, chr(9))}Error: ${m.getStackTrace(test.result.error)}\n`
+          end if
+
+          if test.result.error <> invalid and not test.result.isCrash
+            resultMessage += m.getStackTrace(test.result.error, false) + chr(10)
+          end if
+
+          if test.isParamTest
+            resultMessage += `${string(6, " ")}${m.colorLines(rooibos.reporters.mocha.colors.errorStack, `params at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.paramLineNumber)})`)}\n`
+          end if
+
+          if test.result.lineNumber > -1
+            resultMessage += `${string(6, " ")}${m.colorLines(rooibos.reporters.mocha.colors.errorStack, `assertion at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.result.lineNumber)})`)}\n`
+          else
+            resultMessage += `${string(6, " ")}${m.colorLines(rooibos.reporters.mocha.colors.errorStack, `test at (file://${test.testSuite.filePath.trim()}:${Rooibos.Common.AsString(test.lineNumber)})`)}\n`
+          end if
+          print resultMessage
+        end if
+
+      end for
+    end sub
+
+    ' Returns a string representation of the stack trace
+    ' example:
+    '    Error: some error
+    '        $anon_6c() As Dynamic (pkg:/source/FailedAssertion.spec.brs:11)
+    '        $anon_303() As Dynamic (pkg:/source/rooibos/Test.brs:45)
+    '        $anon_1f2(test As Object) As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:243)
+    '        $anon_30a() As Dynamic (pkg:/source/rooibos/TestGroup.brs:88)
+    '        $anon_309() As Dynamic (pkg:/source/rooibos/TestGroup.brs:68)
+    '        $anon_1ec() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:131)
+    '        $anon_1eb() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:121)
+    '        $anon_325(testsuite As Dynamic) As Void (pkg:/source/rooibos/TestRunner.brs:191)
+    '        $anon_322() As Dynamic (pkg:/source/rooibos/TestRunner.brs:72)
+    '        rooibos_init(testscenename As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
+    '        main(args As Dynamic) As Dynamic (pkg:/source/Main.brs:2)
+    function getStackTrace(error, fullTrace = true) as string
+      if fullTrace
+        output = m.colorLines(rooibos.reporters.mocha.colors.errorTitle, `${error.message}\n`)
+        indent = 6
+      else
+        output = ""
+        indent = 6
+      end if
+
+      foundNonFrameworkFile = false
+
+      for i = error.backTrace.count() - 1 to 0 step -1
+        e = error.backTrace[i]
+        isFrameworkFile = e.filename.instr("pkg:/source/rooibos") > -1 or e.filename.instr("pkg:/components/rooibos/generated") > -1
+
+        if fullTrace or not isFrameworkFile
+          output += m.colorLines(rooibos.reporters.mocha.colors.errorStack, `${string(indent, " ")}${e["function"]} (${e.filename.trim()}:${Rooibos.Common.AsString(e.line_number)})`) + chr(10)
+          foundNonFrameworkFile = true
+        end if
+
+        if not fullTrace and (foundNonFrameworkFile and isFrameworkFile)
+          return output
+        end if
+      end for
+      return output
+    end function
+
+    ' Returns a unified diff string based on the actual and expected string values
+    ' example:
+    '      + expected - actual
+    '
+    '      -0 (Integer)
+    '      +true (Boolean)
+    function unifiedDiff(actual, expected)
+      cleanUp = function(line, m)
+        indent = "      "
+        if line.left(1) = "+"
+          return indent + m.colorLines(rooibos.reporters.mocha.colors.diffAdded, line)
+        end if
+        if line.left(1) = "-"
+          return indent + m.colorLines(rooibos.reporters.mocha.colors.diffRemoved, line)
+        end if
+        if CreateObject("roRegex", "@@", "").isMatch(line)
+          return "--"
+        end if
+        if CreateObject("roRegex", "\\ No newline", "").isMatch(line)
+          return invalid
+        end if
+        return indent + line
+      end function
+
+      msg = m.createPatch("string", actual, expected)
+      lines = msg.split(chr(10)).slice(5)
+
+      final = chr(10) + "      " + m.colorLines(rooibos.reporters.mocha.colors.diffAdded, "+ expected") + " " + m.colorLines(rooibos.reporters.mocha.colors.diffRemoved, "- actual")
+      final += chr(10) + chr(10)
+
+      cleanLines = []
+      for i = 0 to lines.count() - 1
+        cleaned = cleanUp(lines[i], m)
+        if cleaned <> invalid
+          cleanLines.push(cleaned)
+        end if
+      end for
+
+      return final + cleanLines.join(chr(10))
+    end function
+
+    ' Applies Asci colors to each line of a string based on the supplied color type
+    function colorLines(name as dynamic, targetString as string) as string
+      lines = targetString.split(chr(10))
+
+      for i = 0 to lines.count() - 1
+        lines[i] = m.colors(name, lines[i])
+      end for
+
+      return lines.join(chr(10))
+    end function
+
+    ' Applies Asci colors the supplied of a string based on the supplied color type
+    function colors(colorType, targetString)
+      ' colors = {
+      '   pass: 90,
+      '   fail: 31,
+      '   "bright pass": 92,
+      '   "bright fail": 91,
+      '   "bright yellow": 93,
+      '   pending: 36,
+      '   suite: 0,
+      '   "error title": 0,
+      '   "error message": 31,
+      '   "error stack": 90,
+      '   checkmark: 32,
+      '   fast: 90,
+      '   medium: 33,
+      '   slow: 31,
+      '   green: 32,
+      '   light: 90,
+      '   "diff gutter": 90,
+      '   "diff added": 32,
+      '   "diff removed": 31,
+      '   "diff added inline": "30;42",
+      '   "diff removed inline": "30;41"
+      ' }
+
+      if m.colorizeOutput
+        return chr(27) + "[" + colorType + "m" + targetString + chr(27) + "[0m"
+        ' return chr(27) + "[" + colors[colorType].toStr() + "m" + targetString + chr(27) + "[0m"
+        ' return "\u001b[" + colors[colorType].toStr() + "m" + targetString + "\u001b[0m"
+      else
+        return targetString
+      end if
+    end function
+
+    ' Creates a patch file string based on the the differences of the two supplied strings
+    function createPatch(fileName, oldStr, newStr)
+      result = m.structuredPatch(fileName, fileName, oldStr, newStr, invalid, invalid, {
+        context: 4,
+        newlineIsToken: false
+      })
+      if result <> invalid
+        return m.formatPatch(result)
+      end if
+      return invalid
+    end function
+
+    ' Generate a structured patch object from two strings
+    function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options)
+      if options = invalid
+        options = {}
+      end if
+      if options.context = invalid
+        options.context = 4
+      end if
+      if options.newlineIsToken = true
+        throw "newlineIsToken may not be used with patch-generation functions, only with diffing functions"
+      end if
+
+      return m.diffLinesResultToPatch(m.diffLines(oldStr, newStr, options), oldFileName, newFileName, oldHeader, newHeader, options)
+    end function
+
+    ' Diff two sets of strings, comparing them line by line
+    function diffLines(oldStr, newStr, callback)
+      lineDiff = rooibos.reporters.mocha.new_lineDiff()
+
+      return lineDiff.diff(oldStr, newStr, {
+        ignoreCase: false,
+        comparator: invalid,
+        useLongestToken: false,
+        oneChangePerToken: false,
+        maxEditLength: invalid
+      })
+    end function
+
+    ' Convert a diff result into a patch
+    function diffLinesResultToPatch(diff, oldFileName, newFileName, oldHeader, newHeader, options)
+      ' STEP 1: Build up the patch with no "\ No newline at end of file" lines and with the arrays
+      '         of lines containing trailing newline characters. We'll tidy up later...
+
+      if diff = invalid
+        return invalid
+      end if
+
+      diff.push({ value: "", lines: [] }) ' Append an empty value to make cleanup easier
+
+      hunks = []
+      oldRangeStart = 0
+      newRangeStart = 0
+      curRange = []
+      oldLine = 1
+      newLine = 1
+      for i = 0 to diff.count() - 1
+        current = diff[i]
+        if current.lines <> invalid
+          lines = current.lines
+        else
+          lines = m.splitLines(current.value)
+        end if
+        current.lines = lines
+
+        if current.added = true or current.removed = true
+          ' If we have previous context, start with that
+          if not (oldRangeStart) = true
+            prev = diff[i - 1]
+            oldRangeStart = oldLine
+            newRangeStart = newLine
+
+            if prev <> invalid
+              if options.context > 0
+                curRange = m.contextLines(prev.lines.slice(-options.context))
+              else
+                curRange = []
+              end if
+              oldRangeStart -= curRange.count()
+              newRangeStart -= curRange.count()
+            end if
+          end if
+
+          ' Output our changes
+          for each entry in lines
+            if current.added
+              curRange.push("+" + entry)
+            else
+              curRange.push("-" + entry)
+            end if
+          end for
+
+          ' Track the updated file position
+          if current.added
+            newLine += lines.count()
+          else
+            oldLine += lines.count()
+          end if
+        else
+          ' Identical context lines. Track line changes
+          if oldRangeStart
+            ' Close out any changes that have been output (or join overlapping)
+            if lines.count() <= options.context * 2 and i < diff.count() - 2
+              ' Overlapping
+              curRange.append(m.contextLines(lines))
+            else
+              ' end the range and output
+              contextSize = rooibos.reporters.mocha.min(lines.count(), options.context)
+              curRange.append(m.contextLines(lines.slice(0, contextSize)))
+
+              hunk = {
+                oldStart: oldRangeStart,
+                oldLines: (oldLine - oldRangeStart + contextSize),
+                newStart: newRangeStart,
+                newLines: (newLine - newRangeStart + contextSize),
+                lines: curRange
+              }
+              hunks.push(hunk)
+
+              oldRangeStart = 0
+              newRangeStart = 0
+              curRange = []
+            end if
+          end if
+          oldLine += lines.count()
+          newLine += lines.count()
+        end if
+      end for
+
+      ' Step 2: eliminate the trailing `\n` from each line of each hunk, and, where needed, add
+      '         "\ No newline at end of file".
+      for each hunk in hunks
+        for i = 0 to hunk.lines.count() - 1
+          if hunk.lines[i].endsWith(chr(10))
+            hunk.lines[i] = hunk.lines[i].mid(0, len(hunk.lines[i]) - 1)
+          else
+            hunk.lines = rooibos.reporters.mocha.arraySplice(hunk.lines, i + 1, 0, ["\ No newline at end of file"])
+            i++ ' Skip the line we just added, then continue iterating
+          end if
+        end for
+      end for
+
+      return {
+        oldFileName: oldFileName,
+        newFileName: newFileName,
+        oldHeader: oldHeader,
+        newHeader: newHeader,
+        hunks: hunks
+      }
+    end function
+
+    ' Split `text` into an array of lines, including the trailing newline character (where present)
+    function splitLines(text)
+      hasTrailingNl = text.endsWith(chr(10))
+      result = rooibos.reporters.mocha.arrayMap(text.split(chr(10)), function(line, _ = invalid)
+        return line + chr(10)
+      end function)
+      if hasTrailingNl
+        result.pop()
+      else
+        lastEntry = result.pop()
+        result.push(lastEntry.mid(0, len(lastEntry) - 1))
+      end if
+      return result
+    end function
+
+    function contextLines(lines)
+      return rooibos.reporters.mocha.arrayMap(lines, function(entry, _ = invalid)
+        return " " + entry
+      end function)
+    end function
+
+    ' Return a unified patch file contents from a structured patch
+    function formatPatch(diff, _ = invalid)
+      if type(diff) = "roArray"
+        return rooibos.reporters.mocha.arrayMap(diff, m.formatPatch).join(chr(10))
+      end if
+
+      ret = []
+      if diff.oldFileName = diff.newFileName
+        ret.push("Index: " + diff.oldFileName)
+      end if
+
+      ret.push("===================================================================")
+      if diff.oldHeader <> invalid
+        ret.push("--- " + diff.oldFileName + chr(9) + diff.oldHeader)
+      else
+        ret.push("--- " + diff.oldFileName)
+      end if
+
+      if diff.newHeader <> invalid
+        ret.push("+++ " + diff.newFileName + chr(9) + diff.newHeader)
+      else
+        ret.push("+++ " + diff.newFileName)
+      end if
+
+      for i = 0 to diff.hunks.count() - 1
+        hunk = diff.hunks[i]
+        ' Unified Diff Format quirk: If the chunk size is 0,
+        ' the first number is one lower than one would expect.
+        ' https://www.artima.com/weblogs/viewpost.jsp?thread=164293
+        if hunk.oldLines = 0
+          hunk.oldStart -= 1
+        end if
+        if hunk.newLines = 0
+          hunk.newStart -= 1
+        end if
+
+        ret.push("@@ -" + hunk.oldStart.toStr() + "," + hunk.oldLines.toStr() + " +" + hunk.newStart.toStr() + "," + hunk.newLines.toStr() + " @@")
+        ret.append(hunk.lines)
+      end for
+
+      return ret.join(chr(10)) + chr(10)
+    end function
+
+  end class
+
+  namespace reporters
+    namespace mocha
+      enum colors
+        pass = "90"
+        fail = "31"
+        brightPass = "92"
+        brightFail = "91"
+        brightYellow = "93"
+        pending = "36"
+        suite = "0"
+        errorTitle = "0"
+        errorMessage = "31"
+        errorStack = "90"
+        checkmark = "32"
+        fast = "90"
+        medium = "33"
+        slow = "31"
+        green = "32"
+        light = "90"
+        diffGutter = "90"
+        diffAdded = "32"
+        diffRemoved = "31"
+        diffAddedInline = "30;42"
+        diffRemovedInline = "30;41"
+      end enum
+
+      function buildValues(diff, lastComponent, newString, oldString, useLongestToken)
+        ' First we convert our linked list of components in reverse order to an
+        ' array in the right order:
+        components = []
+        nextComponent = invalid
+        while lastComponent <> invalid
+          components.push(lastComponent)
+          nextComponent = lastComponent.previousComponent
+          lastComponent.delete("previousComponent")
+          lastComponent = nextComponent
+        end while
+        components.reverse()
+
+        componentPos = 0
+        componentLen = components.count()
+        newPos = 0
+        oldPos = 0
+
+        for componentPos = 0 to componentLen - 1
+          component = components[componentPos]
+          if not component.removed
+            if not component.added and useLongestToken = true
+              value = newString.slice(newPos, newPos + component.count)
+
+              newValue = createObject("roArray", component.count(), true)
+              for i = 0 to value.count() - 1
+                currentValue = value[i]
+                oldValue = oldString[oldPos + i]
+                if len(oldValue) > len(currentValue)
+                  newValue[i] = oldValue
+                else
+                  newValue[i] = currentValue
+                end if
+              end for
+
+              value = newValue
+              component.value = diff.join(value)
+            else
+              component.value = diff.join(newString.slice(newPos, newPos + component.count))
+            end if
+            newPos += component.count
+
+            ' Common case
+            if not component.added
+              oldPos += component.count
+            end if
+          else
+            component.value = diff.join(oldString.slice(oldPos, oldPos + component.count))
+            oldPos += component.count
+          end if
+        end for
+
+        return components
+      end function
+
+      function new_Diff()
+        return {
+          ' bs:disable-next-line
+          diff: function(oldString, newString, options = {})
+            Infinity = 2147483647
+
+            oldString = m.removeEmpty(m.tokenize(oldString, options))
+            newString = m.removeEmpty(m.tokenize(newString, options))
+            newLen = newString.count()
+            oldLen = oldString.count()
+
+            editLength = 1
+            maxEditLength = newLen + oldLen
+            if options.maxEditLength <> invalid
+              maxEditLength = rooibos.reporters.mocha.min(maxEditLength, options.maxEditLength)
+            end if
+
+            maxExecutionTime = Infinity
+            abortAfterTimestamp = CreateObject("roDateTime").asSeconds() + maxExecutionTime
+
+            bestPath = rooibos.reporters.mocha.new_objectArray()
+
+            ' bestPath = [{ oldPos: -1, lastComponent: invalid }]
+            bestPath.set(0, { oldPos: -1, lastComponent: invalid })
+
+            ' Seed editLength = 0, i.e. the content starts with the same values
+            ' newPos = m.extractCommon(bestPath[0], newString, oldString, 0, options)
+            newPos = m.extractCommon(bestPath.get(0), newString, oldString, 0, options)
+            if bestPath.get(0).oldPos + 1 >= oldLen and newPos + 1 >= newLen
+              ' Identity per the equality and tokenizer
+              ' return m.done(buildValues(m, bestPath[0].lastComponent, newString, oldString, m.useLongestToken))
+              return m.done(rooibos.reporters.mocha.buildValues(m, bestPath.get(0).lastComponent, newString, oldString, m.useLongestToken), options)
+            end if
+
+            ' Once we hit the right edge of the edit graph on some diagonal k, we can
+            ' definitely reach the end of the edit graph in no more than k edits, so
+            ' there's no point in considering any moves to diagonal k+1 any more (from
+            ' which we're guaranteed to need at least k+1 more edits).
+            ' Similarly, once we've reached the bottom of the edit graph, there's no
+            ' point considering moves to lower diagonals.
+            ' We record this fact by setting minDiagonalToConsider and
+            ' maxDiagonalToConsider to some finite value once we've hit the edge of
+            ' the edit graph.
+            ' This optimization is not faithful to the original algorithm presented in
+            ' Myers's paper, which instead pointlessly extends D-paths off the end of
+            ' the edit graph - see page 7 of Myers's paper which notes this point
+            ' explicitly and illustrates it with a diagram. This has major performance
+            ' implications for some common scenarios. For instance, to compute a diff
+            ' where the new text simply appends d characters on the end of the
+            ' original text of length n, the true Myers algorithm will take O(n+d^2)
+            ' time while this optimization needs only O(n+d) time.
+            minDiagonalToConsider = -Infinity
+            maxDiagonalToConsider = Infinity
+
+            ' Performs the length of edit iteration. Is a bit fugly as this has to support the
+            ' sync and async mode which is never fun. Loops over execEditLength until a value
+            ' is produced, or until the edit length exceeds options.maxEditLength (if given),
+            ' in which case it will return undefined.
+            execEditParams = {
+              bestPath: bestPath,
+              editLength: editLength,
+              newString: newString,
+              oldString: oldString,
+              minDiagonalToConsider: minDiagonalToConsider,
+              maxDiagonalToConsider: maxDiagonalToConsider,
+              options: options,
+              newLen: newLen,
+              oldLen: oldLen
+            }
+            while execEditParams.editLength <= maxEditLength and CreateObject("roDateTime").asSeconds() <= abortAfterTimestamp
+              execEdit = m.execEditLength(execEditParams)
+              execEditParams = execEdit
+              if execEdit.ret <> invalid
+                return execEdit.ret
+              end if
+            end while
+          end function
+
+          ' Main worker method. checks all permutations of a given edit length for acceptance.
+          execEditLength: function(execEditParams)
+            startingDiagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
+            diagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
+            ' while diagonalPath <= min(execEditParams.maxDiagonalToConsider, execEditParams.editLength)
+            for diagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength) to rooibos.reporters.mocha.min(execEditParams.maxDiagonalToConsider, execEditParams.editLength) step 2
+              removePath = execEditParams.bestPath.get(diagonalPath - 1)
+              addPath = execEditParams.bestPath.get(diagonalPath + 1)
+              if removePath <> invalid
+                ' No one else is going to attempt to use this value, clear it
+                execEditParams.bestPath.set(diagonalPath - 1, invalid)
+              end if
+
+              canAdd = false
+              if addPath <> invalid
+                ' what newPos will be after we do an insertion:
+                addPathNewPos = addPath.oldPos - diagonalPath
+                canAdd = addPath <> invalid and 0 <= addPathNewPos and addPathNewPos < execEditParams.newLen
+              end if
+
+              canRemove = removePath <> invalid and removePath.oldPos + 1 < execEditParams.oldLen
+              if not canAdd and not canRemove
+                ' If this path is a terminal then prune
+                execEditParams.bestPath.set(diagonalPath, invalid)
+                continue for
+              end if
+
+              ' Select the diagonal that we want to branch from. We select the prior
+              ' path whose position in the old string is the farthest from the origin
+              ' and does not pass the bounds of the diff graph
+              if not canRemove or (canAdd and removePath.oldPos < addPath.oldPos)
+                basePath = m.addToPath(addPath, true, false, 0, execEditParams.options)
+              else
+                basePath = m.addToPath(removePath, false, true, 1, execEditParams.options)
+              end if
+
+              newPos = m.extractCommon(basePath, execEditParams.newString, execEditParams.oldString, diagonalPath, execEditParams.options)
+
+              if basePath.oldPos + 1 >= execEditParams.oldLen and newPos + 1 >= execEditParams.newLen
+                ' If we have hit the end of both strings, then we are done
+                execEditParams.ret = m.done(rooibos.reporters.mocha.buildValues(m, basePath.lastComponent, execEditParams.newString, execEditParams.oldString, m.useLongestToken), execEditParams.options)
+                return execEditParams
+              else
+                execEditParams.bestPath.set(diagonalPath, basePath)
+                if basePath.oldPos + 1 >= execEditParams.oldLen
+                  execEditParams.maxDiagonalToConsider = rooibos.reporters.mocha.min(execEditParams.maxDiagonalToConsider, diagonalPath - 1)
+                end if
+                if newPos + 1 >= execEditParams.newLen
+                  execEditParams.minDiagonalToConsider = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, diagonalPath + 1)
+                end if
+              end if
+            end for
+
+            execEditParams.editLength++
+            return execEditParams
+          end function
+
+          addToPath: function(path, added, removed, oldPosInc, options)
+            last = path.lastComponent
+            if last <> invalid and not options.oneChangePerToken and last.added = added and last.removed = removed
+              return {
+                oldPos: path.oldPos + oldPosInc,
+                lastComponent: { count: last.count + 1, added: added, removed: removed, previousComponent: last.previousComponent }
+              }
+            else
+              return {
+                oldPos: path.oldPos + oldPosInc,
+                lastComponent: { count: 1, added: added, removed: removed, previousComponent: last }
+              }
+            end if
+          end function
+
+          extractCommon: function(basePath, newString, oldString, diagonalPath, options)
+            newLen = newString.count()
+            oldLen = oldString.count()
+            oldPos = basePath.oldPos
+            newPos = oldPos - diagonalPath
+
+            commonCount = 0
+            while newPos + 1 < newLen and oldPos + 1 < oldLen and m.equals(oldString[oldPos + 1], newString[newPos + 1], options)
+              newPos++
+              oldPos++
+              commonCount++
+              if options.oneChangePerToken
+                basePath.lastComponent = { count: 1, previousComponent: basePath.lastComponent, added: false, removed: false }
+              end if
+            end while
+
+            if commonCount and not options.oneChangePerToken
+              basePath.lastComponent = { count: commonCount, previousComponent: basePath.lastComponent, added: false, removed: false }
+            end if
+
+            basePath.oldPos = oldPos
+            return newPos
+          end function
+
+          equals: function(left, right, options)
+            if options.comparator <> invalid
+              return options.comparator(left, right)
+            else
+              return left = right or (options.ignoreCase = true and lCase(left) = lCase(right))
+            end if
+          end function
+
+          removeEmpty: function(array)
+            ret = []
+            for i = 0 to array.count() - 1
+              if array[i] <> ""
+                ret.push(array[i])
+              end if
+            end for
+            return ret
+          end function
+
+          tokenize: function(value, options)
+            return value.split("")
+          end function
+
+          join: function(chars)
+            return chars.join("")
+          end function
+
+          postProcess: function(changeObjects, options)
+            return changeObjects
+          end function
+
+          done: function(value, options)
+            value = m.postProcess(value, options)
+            return value
+          end function
+        }
+      end function
+
+      function arrayMap(arr as object, callback as function) as object
+        if type(arr) <> "roArray"
+          print "Error: First argument must be an array."
+          return invalid
+        end if
+
+        if type(callback) <> "Function"
+          print "Error: Second argument must be a function."
+          return invalid
+        end if
+
+        ' Create a new array to store the results
+        result = []
+        for each item in arr
+          ' Apply the callback function to the item
+          transformedItem = callback(item)
+          result.Push(transformedItem)
+        end for
+
+        return result
+      end function
+
+      function min(a as dynamic, b as dynamic) as dynamic
+        if a < b
+          return a
+        else
+          return b
+        end if
+      end function
+
+      function max(a as dynamic, b as dynamic) as dynamic
+        if a > b
+          return a
+        else
+          return b
+        end if
+      end function
+
+      function arraySplice(array, start, deleteCount, items = [])
+        partOne = array.slice(0, start)
+        partTwo = array.slice(start + deleteCount)
+
+        if items <> invalid
+          partOne.append(items)
+        end if
+
+        partOne.append(partTwo)
+        return partOne
+      end function
+
+      function new_lineDiff()
+        lineDiff = rooibos.reporters.mocha.new_Diff()
+        lineDiff.tokenize = function(value, options)
+          if options.stripTrailingCr = true
+            ' remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
+            value = CreateObject("roRegex", "\r\n", "g").ReplaceAll(value, chr(10))
+          end if
+
+          retLines = []
+          linesAndNewlines = CreateObject("roRegex", "(\n|\r\n)", "g").split(value).toArray()
+
+          ' Ignore the final empty token that occurs if the string ends with a new line
+          if linesAndNewlines[linesAndNewlines.count() - 1] = ""
+            linesAndNewlines.pop()
+          end if
+
+          ' Add the newlines back that where stripped out by the split
+          for i = 0 to linesAndNewlines.count() - 2
+            linesAndNewlines[i] = linesAndNewlines[i] + chr(10)
+          end for
+
+          ' Merge the content and line separators into single tokens
+          ' for  i = 0 to linesAndNewlines.count() - 1
+          '   line = linesAndNewlines[i]
+
+          '   if i mod 2 and not options.newlineIsToken = true
+          '     retLines[retLines.count() - 1] = retLines[retLines.count() - 1] + line
+          '   else
+          '     retLines.push(line)
+          '   end if
+          ' end for
+
+          return linesAndNewlines
+        end function
+
+        lineDiff.equals = function(leftPart, rightPart, options)
+          ' If we're ignoring whitespace, we need to normalise lines by stripping
+          ' whitespace before checking equality. (This has an annoying interaction
+          ' with newlineIsToken that requires special handling: if newlines get their
+          ' own token, then we DON'T want to trim the *newline* tokens down to empty
+          ' strings, since this would cause us to treat whitespace-only line content
+          ' as equal to a separator between lines, which would be weird and
+          ' inconsistent with the documented behavior of the options.)
+          if options.ignoreWhitespace = true
+            if not options.newlineIsToken = true or leftPart.inStr(0, chr(10)) > -1
+              leftPart = leftPart.trim()
+            end if
+            if not options.newlineIsToken = true or rightPart.inStr(0, chr(10)) > -1
+              rightPart = rightPart.trim()
+            end if
+          else if options.ignoreNewlineAtEof = true and not options.newlineIsToken = true
+            if leftPart.endsWith(chr(10))
+              leftPart = leftPart.mid(0, len(leftPart) - 1)
+            end if
+            if rightPart.endsWith(chr(10))
+              rightPart = rightPart.mid(0, len(rightPart) - 1)
+            end if
+          end if
+          return rooibos.reporters.mocha.new_Diff().equals(leftPart, rightPart, options)
+        end function
+
+        return lineDiff
+      end function
+
+      function new_objectArray()
+        return {
+          array: []
+          aa: {}
+
+          count: function()
+            return m.array.count()
+          end function
+
+          set: sub(index, value)
+            if index >= 0
+              m.array[index] = value
+            else
+              m.aa[index.toStr()] = value
+            end if
+          end sub
+
+          get: function(index)
+            if index >= 0
+              return m.array[index]
+            else
+              return m.aa[index.toStr()]
+            end if
+          end function
+        }
+      end function
+
+    end namespace
+  end namespace
+end namespace

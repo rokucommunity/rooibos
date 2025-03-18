@@ -17,7 +17,8 @@
       ]
     },
     1128,
-    1001
+    1001,
+    1140
   ],
   "plugins": [
     "../bsc-plugin/src/plugin.ts"
@@ -27,14 +28,19 @@
   ],
   "rooibos": {
     "showOnlyFailures": true,
-    "catchCrashes": false,
+    "catchCrashes": true,
+    "colorizeOutput": true,
     "lineWidth": 70,
     "failFast": false,
     "sendHomeOnFinish": false,
     "keepAppOpen": true,
     "isGlobalMethodMockingEnabled": true,
     "isRecordingCodeCoverage": false,
-    "printLcov": false
+    "printLcov": false,
+    "reporters": [
+      "mocha"
+    ]
   },
-  "sourceMap": true
+  "sourceMap": true,
+  "retainStagingDir": true
 }
