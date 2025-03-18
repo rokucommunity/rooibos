@@ -230,6 +230,7 @@ namespace rooibos
         return invalid
       end if
 
+      m.currentAssertLineNumber = -1
       m.currentResult.throwOnFailedAssertion = m.throwOnFailedAssertion
       if m.catchCrashes and not test.noCatch and not m.noCatch
         try
