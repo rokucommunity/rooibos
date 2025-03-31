@@ -336,7 +336,7 @@ namespace rooibos.common
       end if
 
       text = "{" + chr(10)
-      keys = input.keys()
+      keys = input.ifAssociativeArray.keys()
       keys.sort()
       for each key in keys
         if rooibos.common.canSafelyIterateAAKey(input, key)
@@ -413,7 +413,7 @@ namespace rooibos.common
         'bs:disable-next-line
         isFirst = false
       end if
-      keys = input.keys()
+      keys = input.ifAssociativeArray.keys()
       keys.sort()
       for each key in keys
         if rooibos.common.canSafelyIterateAAKey(input, key)
@@ -614,7 +614,7 @@ namespace rooibos.common
         compareValue = array[i]
 
         if compareAttribute <> invalid and rooibos.common.isAssociativeArray(compareValue)
-          compareValue = compareValue.lookupCI(compareAttribute)
+          compareValue = compareValue.ifAssociativeArray.lookupCI(compareAttribute)
         end if
 
         if rooibos.common.eqValues(compareValue, value, callCount + 1)
@@ -862,14 +862,14 @@ namespace rooibos.common
     if not rooibos.common.isAssociativeArray(Value1) or not rooibos.common.isAssociativeArray(Value2)
       return false
     end if
-    l1 = Value1.Count()
-    l2 = Value2.Count()
+    l1 = Value1.ifAssociativeArray.Count()
+    l2 = Value2.ifAssociativeArray.Count()
 
     if not l1 = l2
       return false
     else
       for each k in Value1
-        if not Value2.DoesExist(k)
+        if not Value2.ifAssociativeArray.DoesExist(k)
           return false
         else
           if rooibos.common.canSafelyIterateAAKey(Value1, k) and rooibos.common.canSafelyIterateAAKey(Value2, k)

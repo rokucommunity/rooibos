@@ -150,6 +150,40 @@ namespace tests
       m.assertEqual(obj, obj2)
     end function
 
+    @it("assertEqual handles actual objects with keys, DoesExist, and count properties")
+    function _()
+      obj = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+        keys: "not a function"
+        DoesExist: "not a function"
+        count: "not a function"
+      }
+      obj2 = [1, 2, 3]
+      m.assertEqual(obj, obj2)
+    end function
+
+    @it("assertEqual handles expected objects with keys, DoesExist, and count properties")
+    function _()
+      obj = [1, 2, 3]
+      obj2 = {
+        "mockMethod": invalid
+        key: "value1"
+        object: {
+          "otherKey1": "value"
+        }
+        array: [1, 2, 4, 3]
+        keys: "not a function"
+        DoesExist: "not a function"
+        count: "not a function"
+      }
+      m.assertEqual(obj, obj2)
+    end function
+
     @it("assertEqual fail on object1 vs object1")
     function _()
       obj = {

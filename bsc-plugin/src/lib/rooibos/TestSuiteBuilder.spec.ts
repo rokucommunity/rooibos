@@ -36,208 +36,216 @@ describe('TestSuiteBuilder tests ', () => {
     describe('No suites', () => {
         it('no suite', () => {
             let testSuite = createTestSuite('test1.bs', `
-      `);
+            `);
             expect(testSuite).to.be.null;
         });
 
         it('no suite - namespace', () => {
-            let testSuite = createTestSuite('test1.bs', `namespace empty
-      end namespace
-      `);
+            let testSuite = createTestSuite('test1.bs', `
+                namespace empty
+                end namespace
+            `);
             expect(testSuite).to.be.null;
         });
 
         it('no suite - namespace with funcs', () => {
-            let testSuite = createTestSuite('test1.bs', `namespace empty
-      function foo()
-      end function
-      end namespace
-      `);
+            let testSuite = createTestSuite('test1.bs', `
+                namespace empty
+                    function foo()
+                    end function
+                end namespace
+            `);
             expect(testSuite).to.be.null;
         });
 
         it('no suite - namespace with class', () => {
-            let testSuite = createTestSuite('test1.bs', `namespace empty
-      class fooClass
-      end class
-      end namespace
-      `);
+            let testSuite = createTestSuite('test1.bs', `
+                namespace empty
+                    class fooClass
+                    end class
+                end namespace
+            `);
             expect(testSuite).to.be.null;
         });
 
         it('no suite - class', () => {
-            let testSuite = createTestSuite('test1.bs', `class fooClass
-      end class
-      `);
+            let testSuite = createTestSuite('test1.bs', `
+                class fooClass
+                end class
+            `);
             expect(testSuite).to.be.null;
         });
     });
 
     describe('Suite issues', () => {
-
         it('duplicate suite name - different files', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("one")
+                        function test_one()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
-            let testSuite2 = createTestSuite('test2.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let testSuite2 = createTestSuite('test2.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("one")
+                        function test_one()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuiteError(testSuite2);
             expect(ts.isValid).to.be.false;
         });
 
         it('duplicate suite name - same file', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
-      end class
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+                        @it("one")
+                        function test_one()
+                        end function
+                    end class
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("one")
+                        function test_one()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuiteError(ts);
         });
 
         it('duplicate group', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @describe("group1")
+                        @describe("group1")
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuiteError(ts);
         });
 
         it('duplicate test', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @it("one")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
-            assertSuiteError(ts);
+                        @it("one")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
+            assertSuite(ts, 1);
         });
 
     });
 
     describe('Has valid suites', () => {
         it('class with 1 group, 1 test', () => {
-            let testSuite = createTestSuite('test1.bs', `namespace Tests
+            let testSuite = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
 
-  @suite("Rooibos assertion tests")
-  class AssertionTests extends rooibos.BaseTestSuite
+                        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        @describe("group1")
+                        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("group1")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("one")
-    function test_one()
-    end function
-  end class
-end namespace
-      `);
+                        @it("one")
+                        function test_one()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(testSuite, 1);
             assertGroupCount(testSuite, 0, 1);
         });
     });
 
     it('class with 1 group 2 tests', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+        let testSuite = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
 
-  @suite("Rooibos assertion tests")
-  class AssertionTests extends rooibos.BaseTestSuite
+                    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    @describe("group1")
+                    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("group1")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    @it("one")
+                    function test_one()
+                    end function
 
-    @it("one")
-    function test_one()
-    end function
-
-    @it("two")
-    function test_two()
-    end function
-end class
-end namespace
-      `);
+                    @it("two")
+                    function test_two()
+                    end function
+                end class
+            end namespace
+        `);
         assertSuite(testSuite, 1);
         assertGroupCount(testSuite, 0, 2);
     });
 
     it('class with 2 group, 1 test each', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+        let testSuite = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
 
-    @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
+                    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    @describe("group1")
+                    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("group1")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    @it("one")
+                    function test_one()
+                    end function
 
-    @it("one")
-    function test_one()
-    end function
+                    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    @describe("group2")
+                    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("group2")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("two")
-    function test_two()
-    end function
-    end class
-    end namespace
-    `);
+                    @it("two")
+                    function test_two()
+                    end function
+                end class
+            end namespace
+        `);
         assertSuite(testSuite, 2);
         assertGroupCount(testSuite, 0, 1);
         assertGroupCount(testSuite, 1, 1);
@@ -245,25 +253,24 @@ end namespace
     });
 
     it('class with 2 group, 1 test each - concise syntax', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+        let testSuite = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
 
-    @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
+                    @it("one")
+                    function test_one()
+                    end function
 
-    @describe("group1")
+                    @describe("group2")
 
-    @it("one")
-    function test_one()
-    end function
-
-    @describe("group2")
-
-    @it("two")
-    function test_two()
-    end function
-    end class
-    end namespace
-    `);
+                    @it("two")
+                    function test_two()
+                    end function
+                end class
+            end namespace
+        `);
         assertSuite(testSuite, 2);
         assertGroupCount(testSuite, 0, 1);
         assertGroupCount(testSuite, 1, 1);
@@ -271,41 +278,39 @@ end namespace
     });
 
     it('Valid params', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+        let testSuite = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
 
-    @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-
-    @describe("group1")
-
-    @it("one")
-    @params(true, "one")
-    function test_one(v1, v2)
-    end function
-    end class
-    end namespace
-    `);
+                    @it("one")
+                    @params(true, "one")
+                    function test_one(v1, v2)
+                    end function
+                end class
+            end namespace
+        `);
         assertSuite(testSuite, 1);
         assertGroupCount(testSuite, 0, 1);
         assertParamTestCase(testSuite, 0, 0, 0);
     });
 
     it('Valid params 2 params', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+        let testSuite = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
 
-    @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-
-    @describe("group1")
-
-    @it("one")
-    @params(true, "one")
-    @params(true, "one")
-    function test_one(v1, v2)
-    end function
-    end class
-    end namespace
-    `);
+                    @it("one")
+                    @params(true, "one")
+                    @params(true, "one")
+                    function test_one(v1, v2)
+                    end function
+                end class
+            end namespace
+        `);
         assertSuite(testSuite, 1);
         assertGroupCount(testSuite, 0, 2);
         assertParamTestCase(testSuite, 0, 0, 0);
@@ -313,24 +318,23 @@ end namespace
     });
 
     it('Valid params 5 params', () => {
-        let testSuite = createTestSuite('test1.bs', `namespace Tests
+        let testSuite = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
 
-    @suite("Rooibos assertion tests")
-    class AssertionTests extends rooibos.BaseTestSuite
-
-    @describe("group1")
-
-    @it("one")
-    @params(true, "1")
-    @params(true, "2")
-    @params(true, "3")
-    @params(true, "4")
-    @params(true, "5")
-    function test_one(v1, v2)
-    end function
-    end class
-    end namespace
-    `);
+                    @it("one")
+                    @params(true, "1")
+                    @params(true, "2")
+                    @params(true, "3")
+                    @params(true, "4")
+                    @params(true, "5")
+                    function test_one(v1, v2)
+                    end function
+                end class
+            end namespace
+        `);
         assertSuite(testSuite, 1);
         assertGroupCount(testSuite, 0, 5);
         assertParamTestCase(testSuite, 0, 0, 0);
@@ -341,22 +345,23 @@ end namespace
     });
     describe('only tags', () => {
         it('only suite', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @only
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @only
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isSolo).to.be.true;
@@ -368,22 +373,23 @@ end namespace
 
         });
         it('only group', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @only
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @only
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isSolo).to.be.false;
@@ -395,22 +401,23 @@ end namespace
 
         });
         it('only test', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @only
-      @it("one")
-      function test_one()
-      end function
+                        @only
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isSolo).to.be.false;
@@ -422,23 +429,24 @@ end namespace
 
         });
         it('two tests', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @only
-      @it("one")
-      function test_one()
-      end function
+                        @only
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @only
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @only
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isSolo).to.be.false;
@@ -449,24 +457,25 @@ end namespace
             expect(ts.hasSoloGroups).to.be.false;
         });
         it('two tests and group', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @only
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @only
+                        @describe("group1")
 
-      @only
-      @it("one")
-      function test_one()
-      end function
+                        @only
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @only
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @only
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isSolo).to.be.false;
@@ -477,25 +486,26 @@ end namespace
             expect(ts.hasSoloGroups).to.be.true;
         });
         it('all', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @only
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @only
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @only
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @only
+                        @describe("group1")
 
-      @only
-      @it("one")
-      function test_one()
-      end function
+                        @only
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @only
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @only
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isSolo).to.be.true;
@@ -506,30 +516,31 @@ end namespace
             expect(ts.hasSoloGroups).to.be.true;
         });
         it('two groups', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @only
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @only
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @only
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @only
+                        @describe("group1")
 
-      @only
-      @it("one")
-      function test_one()
-      end function
+                        @only
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @only
-      @it("two")
-      function test_Two()
-      end function
-      @describe("group2")
+                        @only
+                        @it("two")
+                        function test_Two()
+                        end function
+                        @describe("group2")
 
-      @it("one")
-      function test_g2_one()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("one")
+                        function test_g2_one()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 2);
             assertGroupCount(ts, 0, 2);
             expect(ts.isSolo).to.be.true;
@@ -543,30 +554,31 @@ end namespace
             expect(ts.hasSoloGroups).to.be.true;
         });
         it('mixup', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @only
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @only
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                @only
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @only
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @only
-      @it("two")
-      function test_Two()
-      end function
-      @describe("group2")
+                        @only
+                        @it("two")
+                        function test_Two()
+                        end function
+                        @describe("group2")
 
-      @only
-      @it("one")
-      function test_g2_one()
-      end function
-      end class
-      end namespace
-      `);
+                        @only
+                        @it("one")
+                        function test_g2_one()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 2);
             assertGroupCount(ts, 0, 2);
             expect(ts.isSolo).to.be.true;
@@ -580,25 +592,26 @@ end namespace
             expect(ts.hasSoloGroups).to.be.true;
         });
         it('only on param block', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @Only
-      @it("one")
-      @params("1")
-      @params("2")
-      @params("3")
-      function test_one(value)
-      end function
+                        @Only
+                        @it("one")
+                        @params("1")
+                        @params("2")
+                        @params("3")
+                        function test_one(value)
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 4);
             expect(ts.isSolo).to.be.false;
@@ -613,24 +626,25 @@ end namespace
         });
 
         it('onlyparams', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      @params("1")
-      @onlyParams("2")
-      @params("3")
-      function test_one(value)
-      end function
+                        @it("one")
+                        @params("1")
+                        @onlyParams("2")
+                        @params("3")
+                        function test_one(value)
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 4);
             expect(ts.isSolo).to.be.false;
@@ -645,24 +659,25 @@ end namespace
         });
 
         it('onlyparams 2', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      @onlyParams("1")
-      @params("2")
-      @onlyParams("3")
-      function test_one(value)
-      end function
+                        @it("one")
+                        @onlyParams("1")
+                        @params("2")
+                        @onlyParams("3")
+                        function test_one(value)
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 4);
             expect(ts.isSolo).to.be.false;
@@ -680,22 +695,23 @@ end namespace
 
     describe('ignore tags', () => {
         it('ignore suite', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @ignore
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @ignore
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isIgnored).to.be.true;
@@ -706,22 +722,23 @@ end namespace
 
         });
         it('ignore group', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @ignore
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @ignore
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isIgnored).to.be.false;
@@ -731,22 +748,23 @@ end namespace
             expect(ts.hasIgnoredTests).to.be.false;
         });
         it('ignore test', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @ignore
-      @it("one")
-      function test_one()
-      end function
+                        @ignore
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isIgnored).to.be.false;
@@ -758,23 +776,24 @@ end namespace
 
         });
         it('two tests', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @ignore
-      @it("one")
-      function test_one()
-      end function
+                        @ignore
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @ignore
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @ignore
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isIgnored).to.be.false;
@@ -785,24 +804,25 @@ end namespace
             expect(ts.hasIgnoredTests).to.be.true;
         });
         it('two tests and group', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @ignore
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @ignore
+                        @describe("group1")
 
-      @ignore
-      @it("one")
-      function test_one()
-      end function
+                        @ignore
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @ignore
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @ignore
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isIgnored).to.be.false;
@@ -813,25 +833,26 @@ end namespace
             expect(ts.hasIgnoredTests).to.be.true;
         });
         it('all', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @ignore
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @ignore
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @ignore
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @ignore
+                        @describe("group1")
 
-      @ignore
-      @it("one")
-      function test_one()
-      end function
+                        @ignore
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @ignore
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @ignore
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 2);
             expect(ts.isIgnored).to.be.true;
@@ -843,30 +864,31 @@ end namespace
             expect(ts.hasIgnoredTests).to.be.true;
         });
         it('two groups', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @ignore
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @ignore
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @ignore
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @ignore
+                        @describe("group1")
 
-      @ignore
-      @it("one")
-      function test_one()
-      end function
+                        @ignore
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @ignore
-      @it("two")
-      function test_Two()
-      end function
-      @describe("group2")
+                        @ignore
+                        @it("two")
+                        function test_Two()
+                        end function
+                        @describe("group2")
 
-      @it("one")
-      function test_g2_one()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("one")
+                        function test_g2_one()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 2);
             assertGroupCount(ts, 0, 2);
             expect(ts.isIgnored).to.be.true;
@@ -882,30 +904,31 @@ end namespace
             expect(ts.hasIgnoredTests).to.be.true;
         });
         it('mixup', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @ignore
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @ignore
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @ignore
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @ignore
+                        @describe("group1")
 
-      @it("one")
-      function test_one()
-      end function
+                        @it("one")
+                        function test_one()
+                        end function
 
-      @ignore
-      @it("two")
-      function test_Two()
-      end function
-      @describe("group2")
+                        @ignore
+                        @it("two")
+                        function test_Two()
+                        end function
+                        @describe("group2")
 
-      @ignore
-      @it("one")
-      function test_g2_one()
-      end function
-      end class
-      end namespace
-      `);
+                        @ignore
+                        @it("one")
+                        function test_g2_one()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 2);
             assertGroupCount(ts, 0, 2);
             expect(ts.isIgnored).to.be.true;
@@ -921,25 +944,26 @@ end namespace
             expect(ts.hasIgnoredTests).to.be.true;
         });
         it('ignore on param block', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @ignore
-      @it("one")
-      @params("1")
-      @params("2")
-      @params("3")
-      function test_one(value)
-      end function
+                        @ignore
+                        @it("one")
+                        @params("1")
+                        @params("2")
+                        @params("3")
+                        function test_one(value)
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 4);
             expect(ts.isIgnored).to.be.false;
@@ -954,24 +978,25 @@ end namespace
         });
 
         it('ignoreParams', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      @params("1")
-      @ignoreParams("2")
-      @params("3")
-      function test_one(value)
-      end function
+                        @it("one")
+                        @params("1")
+                        @ignoreParams("2")
+                        @params("3")
+                        function test_one(value)
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 4);
             expect(ts.isIgnored).to.be.false;
@@ -986,24 +1011,25 @@ end namespace
         });
 
         it('ignoreParams 2', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      @ignoreParams("1")
-      @params("2")
-      @ignoreParams("3")
-      function test_one(value)
-      end function
+                        @it("one")
+                        @ignoreParams("1")
+                        @params("2")
+                        @ignoreParams("3")
+                        function test_one(value)
+                        end function
 
-      @it("two")
-      function test_Two()
-      end function
-      end class
-      end namespace
-      `);
+                        @it("two")
+                        function test_Two()
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 4);
             expect(ts.isIgnored).to.be.false;
@@ -1021,127 +1047,135 @@ end namespace
     describe('params', () => {
 
         it('simple params', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      @params("1")
-      @params("2")
-      @params("3")
-      function test_one(value)
-      end function
-      end class
-      end namespace
-      `);
+                        @it("one")
+                        @params("1")
+                        @params("2")
+                        @params("3")
+                        function test_one(value)
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 3);
         });
 
         it('2 params', () => {
-            let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+            let ts = createTestSuite('test1.bs', `
+                namespace Tests
+                    @suite("Rooibos assertion tests")
+                    class AssertionTests extends rooibos.BaseTestSuite
+                        @describe("group1")
 
-      @it("one")
-      @params("1", true)
-      @params("2", false)
-      @params("3", true)
-      function test_one(value, arg2)
-      end function
-      end class
-      end namespace
-      `);
+                        @it("one")
+                        @params("1", true)
+                        @params("2", false)
+                        @params("3", true)
+                        function test_one(value, arg2)
+                        end function
+                    end class
+                end namespace
+            `);
             assertSuite(ts, 1);
             assertGroupCount(ts, 0, 3);
         });
     });
 
     it('2 with url and chars', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+        let ts = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
 
-      @it("one")
-      @params("http://google.com/thing", true)
-      @params("#'_!!@#%", false)
-      @params("3", true)
-      function test_one(value, arg2)
-      end function
-      end class
-      end namespace
-      `);
+                    @it("one")
+                    @params("http://google.com/thing", true)
+                    @params("#'_!!@#%", false)
+                    @params("3", true)
+                    function test_one(value, arg2)
+                    end function
+                end class
+            end namespace
+        `);
         assertSuite(ts, 1);
         assertGroupCount(ts, 0, 3);
     });
 
     it('param mismatch -no params', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+        let ts = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
 
-      @it("one")
-      function test_one(value, arg2)
-      end function
-      end class
-      end namespace
-      `);
+                    @it("one")
+                    function test_one(value, arg2)
+                    end function
+                end class
+            end namespace
+        `);
         assertSuiteError(ts);
     });
     it('param mismatch -one', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+        let ts = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
 
-      @it("one")
-      @params("http://google.com/thing")
-      @params("#'_!!@#%", false)
-      @params("3", true)
-      function test_one(value, arg2)
-      end function
-      end class
-      end namespace
-      `);
+                    @it("one")
+                    @params("http://google.com/thing")
+                    @params("#'_!!@#%", false)
+                    @params("3", true)
+                    function test_one(value, arg2)
+                    end function
+                end class
+            end namespace
+        `);
         assertSuiteError(ts);
     });
 
     it('param mismatch -all', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
-      @it("one")
-      @params("http://google.com/thing", true)
-      @params("#'_!!@#%", false)
-      @params("3", true)
-      function test_one(value)
-      end function
-      end class
-      end namespace
-      `);
+        let ts = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
+
+                    @it("one")
+                    @params("http://google.com/thing", true)
+                    @params("#'_!!@#%", false)
+                    @params("3", true)
+                    function test_one(value)
+                    end function
+                end class
+            end namespace
+        `);
         assertSuiteError(ts);
     });
 
     it('cannot parse', () => {
-        let ts = createTestSuite('test1.bs', `namespace Tests
-      @suite("Rooibos assertion tests")
-      class AssertionTests extends rooibos.BaseTestSuite
-      @describe("group1")
+        let ts = createTestSuite('test1.bs', `
+            namespace Tests
+                @suite("Rooibos assertion tests")
+                class AssertionTests extends rooibos.BaseTestSuite
+                    @describe("group1")
 
-      @it("one")
-      @params("http://google.com/thing", true ")
-      @params("#'_!!@#%", false)
-      @params("3", true)
-      function test_one(value, value)
-      end function
-      end class
-      end namespace
-      `);
+                    @it("one")
+                    @params("http://google.com/thing", true ")
+                    @params("#'_!!@#%", false)
+                    @params("3", true)
+                    function test_one(value, value)
+                    end function
+                end class
+            end namespace
+        `);
         assertSuiteError(ts);
     });
 });
@@ -1158,12 +1192,12 @@ function assertSuiteError(testSuite: TestSuite) {
 }
 
 function assertGroupCount(testSuite: TestSuite, groupIndex: number, expectedTests: number) {
-    expect(testSuite.getTestGroups()[groupIndex].getTestCases()).to.have.lengthOf(expectedTests);
+    expect(testSuite.getTestGroups()[groupIndex].testCases).to.have.lengthOf(expectedTests);
 }
 
 function getTestCase(testSuite: TestSuite, groupIndex: number, testIndex: number): TestCase {
     let group = testSuite.getTestGroups()[groupIndex];
-    return group.getTestCases()[testIndex];
+    return group.testCases[testIndex];
 }
 
 function getGroup(testSuite: TestSuite, groupIndex: number): TestGroup {

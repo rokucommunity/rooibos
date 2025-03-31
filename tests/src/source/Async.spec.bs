@@ -51,5 +51,16 @@ namespace tests
 
       delayCall(0.02, SetLabelText) 'bs:disable-line 1140  LINT1001
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("Crashes in Node tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @async
+    @it("should capture the crash and fail")
+    function _()
+      throw "some error in node tests"
+    end function
+
   end class
 end namespace

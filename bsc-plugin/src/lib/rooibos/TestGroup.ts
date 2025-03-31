@@ -1,5 +1,5 @@
 import type { Editor, CallExpression, DottedGetExpression, Expression, NamespaceContainer, Scope } from 'brighterscript';
-import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode } from 'brighterscript';
+import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode, util } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
@@ -21,17 +21,13 @@ export class TestGroup extends TestBlock {
     }
 
     public testSuite: TestSuite;
-    public testCases = new Map<string, TestCase>();
+    public testCases: Array<TestCase> = [];
 
     public addTestCase(testCase: TestCase) {
-        this.testCases.set(testCase.name + (testCase.isParamTest ? testCase.paramTestIndex.toString() : ''), testCase);
+        this.testCases.push(testCase);
         this.hasIgnoredTests = this.hasIgnoredTests || testCase.isIgnored;
         this.hasSoloTests = this.hasSoloTests || testCase.isSolo;
         this.hasAsyncTests = this.hasAsyncTests || testCase.isAsync;
-    }
-
-    public getTestCases(): TestCase[] {
-        return [...this.testCases.values()];
     }
 
     public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
@@ -47,9 +43,15 @@ export class TestGroup extends TestBlock {
                     let callExpression = expressionStatement.expression as CallExpression;
                     if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
-                        let isSub = isFunctionExpression(callExpression.parent.parent.parent) && callExpression.parent.parent.parent.tokens.functionType.kind === TokenKind.Sub;
+                        let isSub = callExpression.findAncestor<brighterscript.FunctionExpression>(isFunctionExpression)?.tokens.functionType.kind === TokenKind.Sub;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.tokens.name.text)) {
+                            // get the path to the call expression
+                            // `m`.assert*(...)
+                            // `m.testSuite`.assert*(...)
+                            // `someMagicVar`.assert*(...)
+                            const callPath = util.getAllDottedGetParts(callExpression.callee.obj).map((part) => part.text).join('.');
+
                             if (dge.tokens.name.text === 'stubCall') {
                                 this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                 return expressionStatement;
@@ -61,10 +63,10 @@ export class TestGroup extends TestBlock {
                                 }
 
                                 if (!noEarlyExit) {
-                                    const trailingLine = Parser.parse(`if m.currentResult?.isFail = true then m.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
+                                    const trailingLine = Parser.parse(`if ${callPath}.currentResult?.isFail = true then ${callPath}.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
                                     editor.arraySplice(owner, key + 1, 0, trailingLine);
                                 }
-                                const leadingLine = Parser.parse(`m.currentAssertLineNumber = ${callExpression.location.range.start.line + 1}`).ast.statements[0];
+                                const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${callExpression.location.range.start.line + 1}`).ast.statements[0];
                                 editor.arraySplice(owner, key, 0, leadingLine);
                             }
                         }
@@ -214,7 +216,7 @@ export class TestGroup extends TestBlock {
     }
 
     public asText(): string {
-        let testCaseText = [...this.testCases.values()].filter((tc) => tc.isIncluded).map((tc) => tc.asText());
+        let testCaseText = [...this.testCases].filter((tc) => tc.isIncluded).map((tc) => tc.asText());
 
         return `
             {

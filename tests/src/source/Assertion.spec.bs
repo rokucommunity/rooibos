@@ -143,6 +143,11 @@ namespace tests
       m.assertEqual(obj, obj2)
     end function
 
+    @it("handles AA with keys properties")
+    function _()
+      m.assertEqual({keys: [1, 2, 3]}, {keys: [1, 2, 3]})
+    end function
+
     @it("passes with invalid")
     function _()
       m.assertEqual(invalid, invalid)
@@ -746,6 +751,12 @@ namespace tests
       m.assertAAHasKey(aa, "test")
     end function
 
+    @it("supports aa with DoesExist property")
+    function _()
+      aa = {"DoesExist": 1}
+      m.assertAAHasKey(aa, "DoesExist")
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("AssertAANotHasKey tests")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -753,6 +764,12 @@ namespace tests
     @it("passes when aa does not have requested key")
     function _()
       aa = {"test": 1}
+      m.assertAANotHasKey(aa, "missing")
+    end function
+
+    @it("supports aa with DoesExist property")
+    function _()
+      aa = {"DoesExist": 1}
       m.assertAANotHasKey(aa, "missing")
     end function
 
@@ -766,6 +783,12 @@ namespace tests
       m.assertAAHasKeys(aa, ["one", "two"])
     end function
 
+    @it("supports aa with DoesExist property")
+    function _()
+      aa = {"one": 1, "two": 2, "three": 3, "DoesExist": true}
+      m.assertAAHasKeys(aa, ["one", "two"])
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("AssertAANotHasKeys tests")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -773,6 +796,12 @@ namespace tests
     @it("passes when aa does not have requested keys")
     function _()
       aa = {"one": 1, "two": 2, "three": 3}
+      m.assertAANotHasKeys(aa, ["four", "five"])
+    end function
+
+    @it("supports aa with DoesExist property")
+    function _()
+      aa = {"one": 1, "two": 2, "three": 3, "DoesExist": true}
       m.assertAANotHasKeys(aa, ["four", "five"])
     end function
 
@@ -958,6 +987,11 @@ namespace tests
       m.assertArrayCount({one: 1, two: 2}, 2)
     end function
 
+    @it("supports aa with count property")
+    function _()
+      m.assertArrayCount({one: 1, count: 2}, 2)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("AssertArrayNotCount tests")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -970,6 +1004,11 @@ namespace tests
     @it("passes AssertArrayNotCount miss match count on AA")
     function _()
       m.assertArrayNotCount({one: 1, two: 2}, 1)
+    end function
+
+    @it("supports aa with count property")
+    function _()
+      m.assertArrayNotCount({one: 1, count: 2}, 1)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1243,6 +1282,13 @@ namespace tests
       m.assertNodeContainsFields(node, {"id": "", "focusable": false})
     end function
 
+    @it("supports node with count property")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.update({count: "not a function"}, true) 'bs:disable-line argument-type-mismatch
+      m.assertNodeContainsFields(node, {"id": "", "focusable": false, count: "not a function"})
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("AssertNodeNotContainsFields tests")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1260,6 +1306,13 @@ namespace tests
       m.assertNodeNotContainsFields(node, {"focusable": true})
     end function
 
+    @it("supports node with count property")
+    function _()
+      node = createObject("roSGNode", "Node")
+      node.update({count: "not a function"}, true) 'bs:disable-line argument-type-mismatch
+      m.assertNodeNotContainsFields(node, {"count": true})
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("AssertAAContainsSubset tests")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1268,6 +1321,12 @@ namespace tests
     @it("passes assertAAContainsSubset with matching subset of values")
     function _()
       m.assertAAContainsSubset({one: 1, two: 2, three: 3}, {one: 1, two: 2})
+    end function
+
+    @it("supports aa with count property")
+    function _()
+      node = createObject("roSGNode", "Node")
+      m.assertAAContainsSubset({one: 1, two: 2, three: 3, count: false}, {one: 1, two: 2, count: false})
     end function
 
 
@@ -1304,7 +1363,7 @@ namespace tests
     @it("multi return values")
     function _()
       obj = {}
-      m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"]}, true)
+      m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"], doesExist: "not a function"}, true)
 
       result = obj.mockMethod()
       m.assertEqual(result, "one")

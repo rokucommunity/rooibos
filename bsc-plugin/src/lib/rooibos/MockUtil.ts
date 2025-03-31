@@ -134,7 +134,7 @@ export class MockUtil {
     gatherGlobalMethodMocks(testSuite: TestSuite) {
         // console.log('gathering global method mocks for testSuite', testSuite.name);
         for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
-            for (let testCase of [...group.testCases.values()].filter((tc) => tc.isIncluded)) {
+            for (let testCase of [...group.testCases].filter((tc) => tc.isIncluded)) {
                 this.gatherMockedGlobalMethods(testSuite, testCase);
             }
         }

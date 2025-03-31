@@ -97,6 +97,7 @@ export class TestSuite extends TestBlock {
     public hasSoloGroups = false;
     public isNodeTest = false;
     public session: RooibosSession;
+    public registeredTestCount = 0;
 
     public addGroup(group: TestGroup) {
         this.testGroups.set(group.name, group);

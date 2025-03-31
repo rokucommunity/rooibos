@@ -168,14 +168,14 @@ export function diagnosticGroupWithNameAlreadyDefined(file: BrsFile, annotation:
     );
 }
 
-export function diagnosticTestWithNameAlreadyDefined(annotation: RooibosAnnotation) {
-    addDiagnosticForAnnotation(
-        annotation.file,
-        2210,
-        `Test with name ${annotation.name}, is already declared in this group. Ignoring`,
-        annotation.annotation
-    );
-}
+// export function diagnosticTestWithNameAlreadyDefined(annotation: RooibosAnnotation) {
+//     addDiagnosticForAnnotation(
+//         annotation.file,
+//         2210,
+//         `Test with name ${annotation.name}, is already declared in this group. Ignoring`,
+//         annotation.annotation
+//     );
+// }
 
 export function diagnosticIncompatibleAnnotation(annotation: RooibosAnnotation) {
     addDiagnosticForAnnotation(
