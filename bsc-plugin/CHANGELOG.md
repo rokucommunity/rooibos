@@ -4,25 +4,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [v5.15.6](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.44...v5.15.6)
-
-- playing with creating stack traces for reporters on failed assertions [`#324`](https://github.com/rokucommunity/rooibos/pull/324)
-- Bugfix/wrong line number for async tests [`#323`](https://github.com/rokucommunity/rooibos/pull/323)
-- Fixed a bug where crashes in node tests would stall rooibos [`#322`](https://github.com/rokucommunity/rooibos/pull/322)
-- Fixed a bunch of potential crashes due to prop name conflicts with native functions [`#319`](https://github.com/rokucommunity/rooibos/pull/319)
-- Added the ability to have duplicate test names [`#317`](https://github.com/rokucommunity/rooibos/pull/317)
-- Clean up test files [`#318`](https://github.com/rokucommunity/rooibos/pull/318)
-- chore(deps): bump serialize-javascript and mocha in /bsc-plugin [`#316`](https://github.com/rokucommunity/rooibos/pull/316)
-- Fix nested assertions causing compilation error when using `sub _` [`#314`](https://github.com/rokucommunity/rooibos/pull/314)
-- Remove the ropm step, devs just need to do this manually [`#310`](https://github.com/rokucommunity/rooibos/pull/310)
-- Bugfix/only annotation not always applied correctly [`#308`](https://github.com/rokucommunity/rooibos/pull/308)
-- promises support in tests [`#307`](https://github.com/rokucommunity/rooibos/pull/307)
-- Feature/mocha test reporter [`#305`](https://github.com/rokucommunity/rooibos/pull/305)
-- Task/update framework folder to match structure on device [`#306`](https://github.com/rokucommunity/rooibos/pull/306)
-- Cleaned up formatting [`852cd15`](https://github.com/rokucommunity/rooibos/commit/852cd15ea0d99cf7fafc6ff2531290c87ca3371b)
-- more indentation clean up [`973d6f2`](https://github.com/rokucommunity/rooibos/commit/973d6f23c7304163fe35dc031cb64624217510d0)
-- Fixed a bunch of potental crashes due to prop name conflicts with native functions [`0b23f1f`](https://github.com/rokucommunity/rooibos/commit/0b23f1f33a2c76254abdf67cd062374c4bd63d58)
-
 #### [v6.0.0-alpha.44](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.41...v6.0.0-alpha.44)
 
 > 7 February 2025
@@ -61,6 +42,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > 1 October 2024
 
 - Adds a CLI to Rooibos (current version) [`#295`](https://github.com/rokucommunity/rooibos/pull/295)
+
+#### [v5.15.6](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.44...v5.15.6)
+
+- playing with creating stack traces for reporters on failed assertions [`#324`](https://github.com/rokucommunity/rooibos/pull/324)
+- Bugfix/wrong line number for async tests [`#323`](https://github.com/rokucommunity/rooibos/pull/323)
+- Fixed a bug where crashes in node tests would stall rooibos [`#322`](https://github.com/rokucommunity/rooibos/pull/322)
+- Fixed a bunch of potential crashes due to prop name conflicts with native functions [`#319`](https://github.com/rokucommunity/rooibos/pull/319)
+- Added the ability to have duplicate test names [`#317`](https://github.com/rokucommunity/rooibos/pull/317)
+- Clean up test files [`#318`](https://github.com/rokucommunity/rooibos/pull/318)
+- chore(deps): bump serialize-javascript and mocha in /bsc-plugin [`#316`](https://github.com/rokucommunity/rooibos/pull/316)
+- Fix nested assertions causing compilation error when using `sub _` [`#314`](https://github.com/rokucommunity/rooibos/pull/314)
+- Remove the ropm step, devs just need to do this manually [`#310`](https://github.com/rokucommunity/rooibos/pull/310)
+- Bugfix/only annotation not always applied correctly [`#308`](https://github.com/rokucommunity/rooibos/pull/308)
+- promises support in tests [`#307`](https://github.com/rokucommunity/rooibos/pull/307)
+- Feature/mocha test reporter [`#305`](https://github.com/rokucommunity/rooibos/pull/305)
+- Task/update framework folder to match structure on device [`#306`](https://github.com/rokucommunity/rooibos/pull/306)
+- Cleaned up formatting [`852cd15`](https://github.com/rokucommunity/rooibos/commit/852cd15ea0d99cf7fafc6ff2531290c87ca3371b)
+- more indentation clean up [`973d6f2`](https://github.com/rokucommunity/rooibos/commit/973d6f23c7304163fe35dc031cb64624217510d0)
+- Fixed a bunch of potental crashes due to prop name conflicts with native functions [`0b23f1f`](https://github.com/rokucommunity/rooibos/commit/0b23f1f33a2c76254abdf67cd062374c4bd63d58)
 
 #### [v5.15.5](https://github.com/rokucommunity/rooibos/compare/v5.15.4...v5.15.5)
 
