@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > 7 February 2025
 
 - Upgraded to BSCv1.0.0-alpha.44 and fixed issues [`#312`](https://github.com/rokucommunity/rooibos/pull/312)
-- Alllll places need to not use local... double duh [`e54c95d`](https://github.com/rokucommunity/rooibos/commit/e54c95d93cabb8c5617c1443ae9b4d36794c43b8)
-- Dont use local brighterscript, duh [`765fe82`](https://github.com/rokucommunity/rooibos/commit/765fe82b99931180909e1033a1adc826cc52c503)
-- JSON formatting change [`92566db`](https://github.com/rokucommunity/rooibos/commit/92566db9826e0f710d8a9e5106b51e13e15a5a19)
 
 #### [v6.0.0-alpha.41](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.40...v6.0.0-alpha.41)
 
