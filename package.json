@@ -4,7 +4,8 @@
   "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps",
   "scripts": {
     "build": "npx bsc",
-    "test": "npx bsc --project ./bsconfig-tests.json"
+    "test": "npx bsc --project ./bsconfig-tests.json",
+    "package": "npm ci && npm run build && npm pack"
   },
   "files": [
     "dist/**/!(manifest)*"
