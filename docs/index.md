@@ -18,7 +18,7 @@ Simple, mocha-inspired, flexible, fun Brightscript test framework for ROKU apps
  - [Node specific assertions](#node-specific-assertions)
  - [Parameterized testing](#parameterized-testing)
  - [Mocks and stubs](#mocks-and-stubs)
- - [Execute tests on scenegraph nodes](#execute-tests-on-scenegraph-nodes)
+ - [Execute tests on SceneGraph nodes](#execute-tests-on-scenegraph-nodes)
  - [Incorporate your own util methods](#incorporate-your-own-util-methods)
  - [Hook into your global setup mechanisms](#hook-into-your-global-setup-mechanisms)
  - [Only show output for failed tests](#only-show-output-for-failed-tests)
@@ -96,7 +96,7 @@ The easiest thing to do is to clone that project and
  - merge the contents of the files in .vscode folder
  - merge the contents of package.json into your project
 
-You can do the setup from scratch as followes:
+You can do the setup from scratch as follows:
 
 1. Ensure your project is set up for use with npm (`npm init`, and follow the steps)
 2. Install brighterscript: `npm install brighterscript --save-dev`
@@ -165,6 +165,7 @@ Here is the information converted into a Markdown table:
 | printTestTimes?                    | boolean         | If true, then the time each test took is output                                                                                                                                                    |
 | lineWidth?                         | number          | Width of test output lines in columns                                                                                                                                                              |
 | catchCrashes?                      | boolean         | If true, then any crashes will report CRASH statement, and note halt test execution - very useful for running a whole suite                                                                        |
+| colorizeOutput?                    | boolean         | If true, reporters will add asci colorization to the console output if supported. (currently supported by the `mocha` reporter)                                                                    |
 | throwOnFailedAssertion?            | boolean         | If true, then any failure will result in a runtime crash. Very useful for inspecting the stack frames and jumping right to the first failed test.                                                  |
 | sendHomeOnFinish?                  | boolean         | If true, then the app will exit upon finish. The default is true. Useful to set to false for local test suites                                                                                     |
 | keepAppOpen?                       | boolean         | When true, the app will remain open upon test completion. The default is true. Set false to return execution to Main                                                                               |
@@ -174,8 +175,8 @@ Here is the information converted into a Markdown table:
 | isGlobalMethodMockingEnabled       | boolean         | Default is false. Enables mocking and stubbing support for global and namespace functions                                                                                                          |
 | isGlobalMethodMockingEfficientMode | boolean         | default to true, when set causes rooibos to modify only those functions that were mocked or stubbed                                                                                                |
 | globalMethodMockingExcludedFiles   | string[]        | Files that rooibos will not modify when adding global function or namespace function mocking support                                                                                               |
-| reporter? @deprecated <sup>1</sup> | string          | The built-in reporter to use. Defaults to empty. Possible values are `console` and `junit`.                                                                                                        |
-| reporters? <sup>2</sup>            | string[]        | An array of factory functions/classes which implement `rooibos.BaseTestReporter`. Built-in reporters include `console` and `junit`. Defaults to `["console"]`.                                     |
+| reporter? @deprecated <sup>1</sup> | string          | The built-in reporter to use. Defaults to empty. Possible values are `console`, `junit`, and `mocha`.                                                                                              |
+| reporters? <sup>2</sup>            | string[]        | An array of factory functions/classes which implement `rooibos.BaseTestReporter`. Built-in reporters include `console`, `junit`, and `mocha`. Defaults to `["console"]`.                           |
 
 **<sup>1</sup>** This parameter is deprecated, use `reporters` instead. When specified, the reporter will be appended to the list of `reporters`.
 **<sup>2</sup>** Custom reporters are not currently supported on [node-based tests](#testing-nodes), because rooibos does not know which files it should include in the generated test components. This will be addressed in a future Rooibos version (see issue [#266](https://github.com/rokucommunity/rooibos/issues/266)).
@@ -222,7 +223,7 @@ namespace tests
     function _()
       m.assertNotInvalid(m.node)
       Tests.doSomethingInNodeScope(true)
-      m.assertIonvalid(m._isNodeScopeVarSet)
+      m.assertInvalid(m._isNodeScopeVarSet)
       m.assertTrue(m.node._isNodeScopeVarSet)
     end function
 
@@ -247,7 +248,7 @@ namespace tests
     sub _()
       m.assertNotInvalid(m.node)
       Tests.doSomethingInNodeScope(true)
-      m.assertIonvalid(m._isNodeScopeVarSet)
+      m.assertInvalid(m._isNodeScopeVarSet)
       m.assertTrue(m.node._isNodeScopeVarSet)
     end sub
 
@@ -277,7 +278,7 @@ NOTE - these are official bsc compiler annotations; not like comments in the pre
 
 Where `ANNOTATION`, is the roku annotation and DATA is the data passed to it. e.g. `@it("that it handles an empty collection")`, defines a test case, with the title `that it handles an empty collection`
 
-Some annotations act as modifiers. In these cases, they will affect some other annotation. For example `@only`, and `@ignore` will affect the following `@suite`, `@it` or `@it` annotation.
+Some annotations act as modifiers. In these cases, they will affect some other annotation. For example `@only`, and `@ignore` will affect the following `@suite`, `@describe` or `@it` annotation.
 
 The following annotations are supported.
 
@@ -293,13 +294,14 @@ The following annotations are supported.
 | @it                         | Indicates a test. Must directly precede a function definition                                                                                                                                                                                                                                                 | The name of the test case, which will be reported in the test output                              |
 | @only                       | Precedes a Suite, Describe group, or it test, to indicate that _only that item_ should be executed. This can be used to rapidly filter out tests. Only other `@only` items will be run.                                                                                                                       |                                                                                                   |
 | @ignore                     | Precedes a suite, Describe group or it test, to indicate that that item should be ignored. If an `@ignore` tag is found before an item, then it will not be executed as part of the test run                                                                                                                  |                                                                                                   |
-| @params[p1,p2,...,p6]       | Indicates a Parameterized test. Must come _after_ a `@it` annotation. Can accept up to 6 arguments, which are comma separated. When using parameterized tests, the test function signatrue _must_ accept the same number of arguments, and each of params statemens, must also have the same number of params | Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function |
+| @params[p1,p2,...,p6]       | Indicates a Parameterized test. Must come _after_ a `@it` annotation. Can accept up to 6 arguments, which are comma separated. When using parameterized tests, the test function signature _must_ accept the same number of arguments, and each of params statement, must also have the same number of params | Up to 6 arguments can be any valid brightscript code, which can be parsed with an `eval` function |
 | @ignoreParams[p1,p2,...,p6] | A Convenience tag, which makes it easy to temporarily _comment out_ params tests we do not want to run.                                                                                                                                                                                                       | As per `@params`                                                                                  |
 | @onlyParams[p1,p2,...,p6]   | A Convenience tag, which makes it easy to temporarily run just one set of params, so you can run one or more of the params in a params block. Very useful for focusing on a failing test case                                                                                                                 | As per `@params`                                                                                  |
-| @tags("one","two"..."n")    | Allows indicating the tags to apply to the group,test or suite. This is a really effective way to categorise your test suite. These tags can be used to filter tests in your rooibos bsconfig options.                                                                                                        | List of tag names to apply                                                                        |
+| @tags("one","two"..."n")    | Allows indicating the tags to apply to the group,test or suite. This is a really effective way to categorize your test suite. These tags can be used to filter tests in your rooibos bsconfig options.                                                                                                        | List of tag names to apply                                                                        |
 | @noCatch                    | If present, will not catch errors for the test or suite it is placed on. This is handy when developing, and you want to debug the exact line on which an error occurred.                                                                                                                                      | none                                                                                              |
-| @noEarlyexit                | If present, will not exit a test on an assertion failure, which prevents crashes/skewed results. This annotation is mainly used for testing, such as testing rooibos framework itself. It is recommend that you _do not_ use this annotation.                                                                 | none                                                                                              |
+| @noEarlyExit                | If present, will not exit a test on an assertion failure, which prevents crashes/skewed results. This annotation is mainly used for testing, such as testing rooibos framework itself. It is recommend that you _do not_ use this annotation.                                                                 | none                                                                                              |
 | @async                      | If present, on a test suite or test case (e.g. @it) indicates that the test will execute asynchronously. This will allow you to use observeField in your tests. The only argument is timeout in ms  e.g. @async(2000). Default time out is 2000ms for a test, and 6000 for a test suite                       | max time in ms                                                                                    |
+| @slow                       | Some reporters will display test duration and flag tests that are slow (default: 75ms). This annotation lets you change the default for a single test. e.g. @slow(150)                                                                                                                                        | slow time in ms                                                                                   |
 
 
 
@@ -338,7 +340,7 @@ Rooibos provids many assertions to test your code with:
  - assertEqual
  - assertLike
  - assertNotEqual
- - assertIonvalid
+ - assertInvalid
  - assertNotInvalid
  - assertAAHasKey
  - assertAANotHasKey
@@ -390,7 +392,7 @@ This is useful in some scenarios, such as in maestro framework, where an object,
 
 ### Async tests
 
-Rooibos runs in sync mode. Due to scenegraph limitations, we can't use observefield. We can workaround this though, using `assertAsyncField`
+Rooibos runs in sync mode. Due to SceneGraph limitations, we can't use `observeField`. We can workaround this though, using `assertAsyncField`
 
 This assert allows you to wait on a field set on a task, or some other async manipulated object. Use as such:
 
@@ -412,7 +414,7 @@ You can control the timeout behavior by passing delay and maxAttempts, as follow
 If the field does not change during the retry period, the assertion will fail.
 
 ### Setting up and tearing down
-You may find that you have data which is common to all of your tests in a suite. In this case you can desginate functions to run, before and after **all** tests are executed in your suite. To achieve this, simply override the `setup` and `tearDown` functions. In our example above, we could do the following:
+You may find that you have data which is common to all of your tests in a suite. In this case you can designate functions to run, before and after **all** tests are executed in your suite. To achieve this, simply override the `setup` and `tearDown` functions. In our example above, we could do the following:
 
 ```
 override function setup()
@@ -460,7 +462,7 @@ namespace Tests
     function _()
       item = m.alternateDS.GetDataItemWithIndex(12)
 
-      m.assertIonvalid(item)
+      m.assertInvalid(item)
     end function
 
 
@@ -493,11 +495,11 @@ You can run the same test several times, by adding one or more `@params(...)` an
 @params(0, false)
 @params(1, false)
 @params("test", false)
-function _(value, expectedassertResult)
+function _(value, expectedAssertResult)
 ...
 ```
 
-In this case, the test will be run once for each of the `@params` annotations. Note that the method signatrue takes parameters which correspond to the arguments in the params arrays. Rooibos will give you a build time error, and diagnostic in the ide if you screw this up to save you scratching your head later.
+In this case, the test will be run once for each of the `@params` annotations. Note that the method signature takes parameters which correspond to the arguments in the params arrays. Rooibos will give you a build time error, and diagnostic in the ide if you screw this up to save you scratching your head later.
 
 This makes it easy for us to pass in values to our tests, and expected output values, e.g.
 
@@ -605,7 +607,7 @@ You can give a reason for ignoring a test, as part of the annotation's data. e.g
 function Simpl_Datastore_alternate_failures()
 	item = m.alternateDS.GetDataItemWithIndex(12)
 
-	m.assertIonvalid(item)
+	m.assertInvalid(item)
 end function
 ```
 
@@ -614,12 +616,12 @@ The log reporter will indicate which tests are ignored, if you have log verbosit
 ### Only annotation
 If you place `@only` above a test suite, describe group, or test case, it will run that test in solo mode. In solo mode, execution is limited to those suites, groups or test cases, which also have a `@only' annotation.
 
-A good working practice is to put a `@only` annotaiton on the suite for the class you are working on, then the group, then the individual test. You can then simply remove the annotation from the test when you have finished, and run the tests again, to see if you caused regression in any of the group's tests, then remove from the group and run the suite, then finally remove the `@only` annotation from the suite. This will allow you to run the least amount of tests at any time, while you work, giving you the fastest testing turnaround time.
+A good working practice is to put a `@only` annotation on the suite for the class you are working on, then the group, then the individual test. You can then simply remove the annotation from the test when you have finished, and run the tests again, to see if you caused regression in any of the group's tests, then remove from the group and run the suite, then finally remove the `@only` annotation from the suite. This will allow you to run the least amount of tests at any time, while you work, giving you the fastest testing turnaround time.
 
 
 ### Only show output for failures
 <a name="only-show-output-for-failed-tests"></a>
-In addition to the the `@only` and `@ignore` annotations, Rooibos has another mechanism for aiding the TDD process. You are able to execute Rooibos in `showOnlyFailures` mode. In this mode, all tests are executed (according to the `@only` and `@ignore` annotations); but if any failures are encountered, then only the failures are displayed. If all tests pass, then the stanard test output is shown.
+In addition to the the `@only` and `@ignore` annotations, Rooibos has another mechanism for aiding the TDD process. You are able to execute Rooibos in `showOnlyFailures` mode. In this mode, all tests are executed (according to the `@only` and `@ignore` annotations); but if any failures are encountered, then only the failures are displayed. If all tests pass, then the standard test output is shown.
 
 This makes it easy to quickly dive into the test suite and see what regressions have been introduced, then you can simply navigate to the failed tests and annotate them with `@only` annotations (so that subsequent runs are much quicker)
 
@@ -686,10 +688,10 @@ m.assertFalse(detailsVM.isLoading)
 m.assertTrue(detailsVM.isShowingError)
 ```
 
-In this case, our detailsVM object, will not actually call executeNetRequests's source code; but will instead call a _fake_ (i.e fake method body), which can return predtermined values, or be later checked for invocation arg conformance.
+In this case, our detailsVM object, will not actually call executeNetRequests's source code; but will instead call a _fake_ (i.e fake method body), which can return predetermined values, or be later checked for invocation arg conformance.
 
 #### Mocks
-Mocks are _expected_ fakes. Your code will invoke the method, as if it _is_ the real method; but the difference is that Rooibos will track the invoction of mocks, and if the method was not invoked in the manner you expected (i.e. with the expected parameters and the expected number of invocations) then a unit test failure will result.
+Mocks are _expected_ fakes. Your code will invoke the method, as if it _is_ the real method; but the difference is that Rooibos will track the invocation of mocks, and if the method was not invoked in the manner you expected (i.e. with the expected parameters and the expected number of invocations) then a unit test failure will result.
 
 We create mocks by using the methods:
 
@@ -702,7 +704,7 @@ These are advanced functions, using the rooibos plugin to greatly simplify mocki
 - it will Create the underlying rooibos mock method for you
 - and will wire up the correct expected values and return values
 - it will automatically create the whole chain of objects required for the mock to work. For example, if you do
-  `m.expectCalled(m.screen.entitlementService.manager.isEntitled(), true)` and screen, entitlementServic or manager do not exist, rooibos will _automatically_ create the chain of objects as simple aa's with the relevant id, and setup the mock call for you.
+  `m.expectCalled(m.screen.entitlementService.manager.isEntitled(), true)` and screen, entitlementService or manager do not exist, rooibos will _automatically_ create the chain of objects as simple aa's with the relevant id, and setup the mock call for you.
 
 ### CallFunc @. nuances
 
@@ -716,9 +718,9 @@ You can also `expectNotCalled` on both; but there is a slight difference here:
 `m.expectNotCalled(m.screen.entitlementService.manager@.isEntitled())`
 
 For the regular class method variation, you can simply pass a pointer to the function, for the @.variation you must use an empty params invocation (to satisfy the brighterscript transpiler),
-  #### Legacy mocking methods
+#### Legacy mocking methods
 
-  Under the hood rooibos leverages these methods; but with the modern syntax you will not typicall interact with these methods.
+  Under the hood rooibos leverages these methods; but with the modern syntax you will not typically interact with these methods.
 
  - expect - Creates a generic mock
  - expectOnce - Creates a mock, which we expect to be called once _or can created individual overloaded calls to the same method_
@@ -1062,7 +1064,7 @@ The behavior of your unit tests is identical to unit testing any other class, wi
 ### Async testing
 To indicate a test suite will run in async mode you will mark the test suite with the @async annotation or mark one ore more tests with @async. This will cause rooibos to run the tests in async mode. If all tests in the suite do not complete within the timeout, then the suite will fail. The default time out is 60 seconds.
 
-When you mark any test in a suite with the @async annotation this will keep the test running in the background, waiting for a call to m.done(). If the call is not made within the timeout, then the test fails. Again, the default timeout for each test is 2 seconds.
+When you mark any test in a suite with the @async annotation this will keep the test running in the background, waiting for a call to `m.done()`. If the call is not made within the timeout, then the test fails. Again, the default timeout for each test is 2 seconds.
 
 Note: you are not required to add @async to your testSuite, it is implied when you add it one more more tests. However, you may wish to add tge async annotation to your suite, to override the default of 60 seconds (e.g. with the annotation `async(12000)` we are instructing rooibos to wait up to 2 minutes for the _whole_ suite).
 
@@ -1140,7 +1142,26 @@ function OnTimer()
   m.testSuite.done()
 end function
 ```
+#### Working with Promises
 
+Alternately, instead of using the `done()` callback, you may return a `Promise` from your test. The test will automaticly complete when the promise is completed. If the returned promise rejects the test will be considered failed.
+
+This is useful if the APIs you are testing return promises:
+
+```
+  @it('respond with matching records')
+  function _()
+    return rooibos.promises.chain(db.find({type: 'User'})).then(sub(result)
+      m.testSuite.assertEqual(result.count(), 3)
+    end sub).catch(sub(error)
+      m.testSuite.fail("should not reject")
+    end sub).toPromises()
+  end function
+```
+
+Rooibos implements the [rokucomunity/promises](https://github.com/rokucommunity/promises) library to enable this support. Please visit that project for more details and examples of promises.
+
+Note: `Promises` are only supported in Node tests and returning a promise from a non-Node test will automaticly fail the test.
 
 ## Advanced setup
 

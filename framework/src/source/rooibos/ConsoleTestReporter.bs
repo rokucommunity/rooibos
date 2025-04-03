@@ -13,16 +13,54 @@ namespace rooibos
       end if
     end function
 
-    override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
-      m.allStats = ev.stats
+    override function onSuiteBegin(event as rooibos.TestReporterOnSuiteBeginEvent)
+      if event.suite.isIgnored then return invalid
+      ? ""
+      ? rooibos.common.fillText("> SUITE: " + event.suite.name, ">", 80)
+    end function
+
+    override function onTestGroupBegin(event as rooibos.TestReporterOnTestGroupBeginEvent)
+      if event.group.isIgnored then return invalid
+      ? ""
+      ? rooibos.common.fillText(">>>> Describe: " + event.group.name, ">", 80)
+      'bs:disable-next-line
+      ? `  Location: file://${event.group.testSuite.filePath.trim()}:${event.group.lineNumber}`
+      ? ""
+    end function
+
+    override function onTestBegin(event as rooibos.TestReporterOnTestBeginEvent)
+      if event.test.isIgnored then return invalid
+      ? ""
+      ? rooibos.common.fillText(">>>>>> It: " + event.test.name, ">", 80)
+      ? `  Location: file://${event.test.testSuite.filePath.trim()}:${event.test.lineNumber}`
+      ? ""
+    end function
+
+    override function onTestComplete(event as rooibos.TestReporterOnTestCompleteEvent)
+      if event.test.isIgnored then return invalid
+      ? rooibos.common.fillText("<<<< END It: " + event.test.name + " (" + event.test.result.getStatusText() + ") ", "<", 80)
+    end function
+
+    ' override function onTestGroupComplete(event as rooibos.TestReporterOnTestGroupCompleteEvent)
+    '   'override me
+    ' end function
+
+    ' override function onSuiteComplete(event as rooibos.TestReporterOnSuiteCompleteEvent)
+    '   'override me
+    ' end function
+
+    override function onEnd(event as rooibos.TestReporterOnEndEvent)
+      m.allStats = event.stats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
-        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
-          m.printSuiteStart(testSuite)
+        if not testSuite.isIgnored
+          if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
+            m.printSuiteStart(testSuite)
 
-          for each group in testSuite.groups
-            m.printGroup(group)
-          end for
+            for each testGroup in testSuite.groups
+              m.printGroup(testGroup)
+            end for
+          end if
         end if
       end for
 
@@ -58,17 +96,20 @@ namespace rooibos
       m.endReport()
     end function
 
-    function printGroup(group as TestGroup)
+    function printGroup(testGroup)
+      if testGroup.isIgnored then return invalid
       isGroupPrinted = false
 
-      for each groupTest in group.tests
-        if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or groupTest.result.isFail)
-          if not isGroupPrinted
-            m.printGroupStart(group)
-            isGroupPrinted = true
-          end if
+      for each test in testGroup.tests
+        if not test.result.isSkipped
+          if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
+            if not isGroupPrinted
+              m.printGroupStart(testGroup)
+              isGroupPrinted = true
+            end if
 
-          m.printTest(groupTest)
+            m.printTest(test)
+          end if
         end if
       end for
 
@@ -88,7 +129,7 @@ namespace rooibos
         locationLine = StrI(rooibosTest.lineNumber).trim()
       else if rooibosTest.result.isFail
         testChar = "-"
-        locationLine = StrI(rooibosTest.result.lineNumber + 1).trim()
+        locationLine = StrI(test.result.lineNumber).trim()
       else
         testChar = "|"
         locationLine = StrI(rooibosTest.lineNumber).trim()
@@ -141,7 +182,7 @@ namespace rooibos
       else if rooibosTest.result.isFail
         m.printLine(0, " | " + insetText + "  |--Failed at: " + locationText)
         if rooibosTest.isParamTest = true
-          m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(rooibosTest.paramLineNumber - 1).trim())
+          m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(rooibosTest.paramLineNumber).trim())
         end if
         m.printLine(0, " | " + insetText + "  |--Error Message: " + rooibosTest.result.message)
         m.printLine(0, " | ")

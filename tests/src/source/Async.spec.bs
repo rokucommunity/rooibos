@@ -21,7 +21,6 @@ namespace tests
         m.wasCalled = true
         m.testSuite.assertTrue(true)
         m.testSuite.done()
-        ? "done one"
       end sub
 
       delayCall(0.02, callbackFunction) 'bs:disable-line 1140 LINT1001
@@ -35,7 +34,6 @@ namespace tests
         m.wasCalled = true
         m.testSuite.assertTrue(true)
         m.testSuite.done()
-        ? "done two"
       end function)
 
       delayCall(0.02, globalFunctionWithoutReturn) 'bs:disable-line 1140  LINT1001
@@ -49,10 +47,20 @@ namespace tests
         m.testSuite.assertEqual(text, "")
         m.testSuite.assertTrue(true)
         m.testSuite.done()
-        ? "done three"
       end function)
 
       delayCall(0.02, SetLabelText) 'bs:disable-line 1140  LINT1001
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("Crashes in Node tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @async
+    @it("should capture the crash and fail")
+    function _()
+      throw "some error in node tests"
+    end function
+
   end class
 end namespace

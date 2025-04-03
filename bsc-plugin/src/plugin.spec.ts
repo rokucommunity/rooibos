@@ -31,7 +31,7 @@ describe('RooibosPlugin', () => {
         program.plugins.add(plugin);
         program.createSourceScope(); //ensure source scope is created
         plugin.beforeProgramCreate({ builder: builder });
-        plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
+        plugin.fileFactory['frameworkSourcePath'] = path.resolve(path.join('../framework/src'));
         plugin.afterProgramCreate({ program: program, builder: builder });
     }
 
@@ -106,6 +106,225 @@ describe('RooibosPlugin', () => {
             expect(suite.isSolo).to.be.true;
         });
 
+        it('finds and combines onlys', () => {
+            program.setFile('source/test.spec.bs', `
+                @only
+                @suite("named1")
+                class ATest
+                    @describe("groupA")
+
+                    @it("is testA1")
+                    function Test()
+                    end function
+
+                    @it("is testA2")
+                    function Test()
+                    end function
+
+                    @describe("groupAA")
+
+                    @it("is testA1")
+                    function Test()
+                    end function
+
+                    @it("is testA2")
+                    function Test()
+                    end function
+
+                end class
+
+                @suite("named2")
+                class BTest
+                    @only
+                    @describe("groupB")
+
+                    @it("is testB1")
+                    function Test()
+                    end function
+
+                    @it("is testB2")
+                    function Test()
+                    end function
+
+                    @describe("groupBB")
+
+                    @it("is testBB1")
+                    function Test()
+                    end function
+
+                    @it("is testBB2")
+                    function Test()
+                    end function
+
+                end class
+
+                @suite("named3")
+                class CTest
+                    @describe("groupC")
+
+                    @it("is testC1")
+                    function Test()
+                    end function
+
+                    @only
+                    @it("is testC2")
+                    function Test()
+                    end function
+
+                    @describe("groupCC")
+
+                    @it("is testCC1")
+                    function Test()
+                    end function
+
+                    @it("is testCC2")
+                    function Test()
+                    end function
+
+                end class
+
+                @suite("named4")
+                class DTest
+                    @only
+                    @describe("groupD")
+
+                    @it("is testD1")
+                    function Test()
+                    end function
+
+                    @only
+                    @it("is testD2")
+                    function Test()
+                    end function
+
+                    @only
+                    @describe("groupDD")
+
+                    @it("is testDD1")
+                    function Test()
+                    end function
+
+                    @it("is testDD2")
+                    function Test()
+                    end function
+
+                end class
+
+                @only
+                @suite("named5")
+                class ETest
+                    @only
+                    @describe("groupE")
+
+                    @it("is testE1")
+                    function Test()
+                    end function
+
+                    @only
+                    @it("is testE2")
+                    function Test()
+                    end function
+
+                end class
+
+                @ignore
+                @suite("named6")
+                class FTest
+                    @describe("groupF")
+
+                    @it("is testF1")
+                    function Test()
+                    end function
+
+                    @it("is testF2")
+                    function Test()
+                    end function
+
+                end class
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.length(5);
+
+            const testSuitesToRun = plugin.session.sessionInfo.testSuitesToRun;
+
+            let suiteOne = testSuitesToRun[0];
+            let suiteOneGroups = [...suiteOne.testGroups.values()];
+            let suiteOneTests = [];
+            for (let group of suiteOneGroups) {
+                suiteOneTests.push(...group.testCases);
+            }
+            expect(suiteOne.name).to.equal('named1');
+            expect(suiteOneGroups).to.be.length(2);
+            expect(suiteOneTests).to.be.length(4);
+            expect(suiteOneGroups.map(group => group.name)).to.eql(['groupA', 'groupAA']);
+            expect(suiteOneTests.map(test => test.name)).to.eql(['is testA1', 'is testA2', 'is testA1', 'is testA2']);
+            expect(suiteOne.isSolo).to.be.true;
+            expect(suiteOne.hasSoloGroups).to.be.false;
+            expect(suiteOne.hasSoloTests).to.be.false;
+
+            let suiteTwo = testSuitesToRun[1];
+            let suiteTwoGroups = [...suiteTwo.testGroups.values()];
+            let suiteTwoTests = [];
+            for (let group of suiteTwoGroups) {
+                suiteTwoTests.push(...group.testCases);
+            }
+            expect(suiteTwo.name).to.equal('named2');
+            expect(suiteTwoGroups).to.be.length(2);
+            expect(suiteTwoTests).to.be.length(4);
+            expect(suiteTwoGroups.filter(group => group.isIncluded).map(group => group.name)).to.eql(['groupB']);
+            expect(suiteTwoTests.filter(test => test.isIncluded).map(test => test.name)).to.eql(['is testB1', 'is testB2']);
+            expect(suiteTwo.isSolo).to.be.false;
+            expect(suiteTwo.hasSoloGroups).to.be.true;
+            expect(suiteTwo.hasSoloTests).to.be.false;
+
+            let suiteThree = testSuitesToRun[2];
+            let suiteThreeGroups = [...suiteThree.testGroups.values()];
+            let suiteThreeTests = [];
+            for (let group of suiteThreeGroups) {
+                suiteThreeTests.push(...group.testCases);
+            }
+            expect(suiteThree.name).to.equal('named3');
+            expect(suiteThreeGroups).to.be.length(2);
+            expect(suiteThreeTests).to.be.length(4);
+            expect(suiteThreeGroups.filter(group => group.isIncluded).map(group => group.name)).to.eql(['groupC']);
+            expect(suiteThreeTests.filter(test => test.isIncluded).map(test => test.name)).to.eql(['is testC2']);
+            expect(suiteThree.isSolo).to.be.false;
+            expect(suiteThree.hasSoloGroups).to.be.false;
+            expect(suiteThree.hasSoloTests).to.be.true;
+
+            let suiteFour = testSuitesToRun[3];
+            let suiteFourGroups = [...suiteFour.testGroups.values()];
+            let suiteFourTests = [];
+            for (let group of suiteFourGroups) {
+                suiteFourTests.push(...group.testCases);
+            }
+            expect(suiteFour.name).to.equal('named4');
+            expect(suiteFourGroups).to.be.length(2);
+            expect(suiteFourTests).to.be.length(4);
+            expect(suiteFourGroups.filter(group => group.isIncluded).map(group => group.name)).to.eql(['groupD', 'groupDD']);
+            expect(suiteFourTests.filter(test => test.isIncluded).map(test => test.name)).to.eql(['is testD2', 'is testDD1', 'is testDD2']);
+            expect(suiteFour.isSolo).to.be.false;
+            expect(suiteFour.hasSoloGroups).to.be.true;
+            expect(suiteFour.hasSoloTests).to.be.true;
+
+            let suiteFive = testSuitesToRun[4];
+            let suiteFiveGroups = [...suiteFive.testGroups.values()];
+            let suiteFiveTests = [];
+            for (let group of suiteFiveGroups) {
+                suiteFiveTests.push(...group.testCases);
+            }
+            expect(suiteFive.name).to.equal('named5');
+            expect(suiteFiveGroups).to.be.length(1);
+            expect(suiteFiveTests).to.be.length(2);
+            expect(suiteFiveGroups.filter(group => group.isIncluded).map(group => group.name)).to.eql(['groupE']);
+            expect(suiteFiveTests.filter(test => test.isIncluded).map(test => test.name)).to.eql(['is testE2']);
+            expect(suiteFive.isSolo).to.be.true;
+            expect(suiteFive.hasSoloGroups).to.be.true;
+            expect(suiteFive.hasSoloTests).to.be.true;
+        });
+
         it('finds a @async', () => {
             program.setFile('source/test.spec.bs', `
                 @async
@@ -127,15 +346,15 @@ describe('RooibosPlugin', () => {
             expect(suite.name).to.equal('ATest');
             expect(suite.isAsync).to.be.true;
             expect(suite.asyncTimeout).to.equal(60000);
-            let test = suite.testGroups.get('groupA').testCases.get('is test1');
+            let test = suite.testGroups.get('groupA').testCases[0];
             expect(test.isAsync).to.be.true;
             expect(test.asyncTimeout).to.equal(2000);
         });
 
         it('finds a @async and applies timeout override', () => {
             program.setFile('source/test.spec.bs', `
-            @async(1)
-            @suite("named")
+                @async(1)
+                @suite("named")
                 class ATest
                 @describe("groupA")
 
@@ -153,7 +372,7 @@ describe('RooibosPlugin', () => {
             expect(suite.name).to.equal('named');
             expect(suite.isAsync).to.be.true;
             expect(suite.asyncTimeout).to.equal(1);
-            let test = suite.testGroups.get('groupA').testCases.get('is test1');
+            let test = suite.testGroups.get('groupA').testCases[0];
             expect(test.isAsync).to.be.true;
             expect(test.asyncTimeout).to.equal(2);
         });
@@ -173,7 +392,12 @@ describe('RooibosPlugin', () => {
             `);
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
-            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
         });
 
         it('ignores a group', () => {
@@ -191,8 +415,12 @@ describe('RooibosPlugin', () => {
             `);
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
-            expect(plugin.session.sessionInfo.groupsCount).to.equal(0);
-            expect(plugin.session.sessionInfo.testsCount).to.equal(0);
+            expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(false);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(true);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
         });
 
         it('ignores a test', () => {
@@ -208,10 +436,15 @@ describe('RooibosPlugin', () => {
 
                 end class
             `);
+
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
-            expect(plugin.session.sessionInfo.testsCount).to.equal(0);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(false);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(false);
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
         });
 
         it('multiple groups', () => {
@@ -266,8 +499,15 @@ describe('RooibosPlugin', () => {
                 end class
             `);
             program.validate();
-            expect(program.getDiagnostics()).to.not.be.empty;
-            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
+
+            expect(program.getDiagnostics()).to.be.empty;
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].name).to.equal('is test1');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[0].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[0].name).to.equal('is test1');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[1].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_2');
+            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[1].name).to.equal('is test1');
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.be.length(1);
         });
 
         it('empty test group', () => {
@@ -408,7 +648,7 @@ describe('RooibosPlugin', () => {
                     instance.new = sub()
                         m.super0_new()
                     end sub
-                    instance.groupB_is_test1 = function()
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
                         number = 123
                         m.assertEqual("123", ("alpha-" + bslib_toString(number) + "-beta"))
                         m.assertEqual(123, 123)
@@ -438,8 +678,26 @@ describe('RooibosPlugin', () => {
                 class ATest extends rooibos.BaseTestSuite
                     @describe("groupA")
                     @it("is test1")
+                    @slow(1000)
                     function Test_3()
+                        m.assertEqual(1, 1)
+                        if 1 = 1
+                            m.assertEqual(2, 2)
+                            if 2 = 2
+                                m.assertTrue(false)
+                            end if
+                        end if
                     end function
+                    @it("is test2")
+                    sub Test_4()
+                        m.assertEqual(1, 1)
+                        if 1 = 1
+                            m.assertEqual(2, 2)
+                            if 2 = 2
+                                m.assertTrue(false)
+                            end if
+                        end if
+                    end sub
                 end class
             `);
             program.validate();
@@ -448,7 +706,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
             expect(plugin.session.sessionInfo.suitesCount).to.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
-            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(2);
 
             expect(
                 getContents('rooibosMain.brs')
@@ -466,8 +724,54 @@ describe('RooibosPlugin', () => {
                     instance.new = sub()
                         m.super0_new()
                     end sub
-                    instance.groupA_is_test1 = function()
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
+                        m.currentAssertLineNumber = 8
+                        m.assertEqual(1, 1)
+                        if m.currentResult?.isFail = true then
+                            m.done()
+                            return invalid
+                        end if
+                        if 1 = 1
+                            m.currentAssertLineNumber = 10
+                            m.assertEqual(2, 2)
+                            if m.currentResult?.isFail = true then
+                                m.done()
+                                return invalid
+                            end if
+                            if 2 = 2
+                                m.currentAssertLineNumber = 12
+                                m.assertTrue(false)
+                                if m.currentResult?.isFail = true then
+                                    m.done()
+                                    return invalid
+                                end if
+                            end if
+                        end if
                     end function
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1 = sub()
+                        m.currentAssertLineNumber = 18
+                        m.assertEqual(1, 1)
+                        if m.currentResult?.isFail = true then
+                            m.done()
+                            return
+                        end if
+                        if 1 = 1
+                            m.currentAssertLineNumber = 20
+                            m.assertEqual(2, 2)
+                            if m.currentResult?.isFail = true then
+                                m.done()
+                                return
+                            end if
+                            if 2 = 2
+                                m.currentAssertLineNumber = 22
+                                m.assertTrue(false)
+                                if m.currentResult?.isFail = true then
+                                    m.done()
+                                    return
+                                end if
+                            end if
+                        end if
+                    end sub
                     instance.super0_getTestSuiteData = instance.getTestSuiteData
                     instance.getTestSuiteData = function()
                         return {
@@ -475,6 +779,7 @@ describe('RooibosPlugin', () => {
                             isSolo: false
                             noCatch: false
                             isIgnored: false
+                            isAsync: false
                             pkgPath: "${s`source/test.spec.brs`}"
                             destPath: "${s`source/test.spec.bs`}"
                             filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
@@ -498,8 +803,9 @@ describe('RooibosPlugin', () => {
                                     name: "groupA"
                                     isSolo: false
                                     isIgnored: false
-                                    fileName: "${s`source/test.spec.bs`}"
-                                    lineNumber: 3
+                                    isAsync: false
+                                    filename: "${s`source/test.spec.brs`}"
+                                    lineNumber: 4
                                     setupFunctionName: ""
                                     tearDownFunctionName: ""
                                     beforeEachFunctionName: ""
@@ -508,16 +814,152 @@ describe('RooibosPlugin', () => {
                                         {
                                             isSolo: false
                                             noCatch: false
-                                            funcName: "groupA_is_test1"
+                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
                                             isIgnored: false
                                             isAsync: false
                                             asyncTimeout: 2000
+                                            slow: 1000
                                             isParamTest: false
                                             name: "is test1"
                                             lineNumber: 7
                                             paramLineNumber: 0
                                             assertIndex: 0
-                                            assertLineNumberMap: {}
+                                            rawParams: invalid
+                                            paramTestIndex: 0
+                                            expectedNumberOfParams: 0
+                                            isParamsValid: true
+                                        }
+                                        {
+                                            isSolo: false
+                                            noCatch: false
+                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1"
+                                            isIgnored: false
+                                            isAsync: false
+                                            asyncTimeout: 2000
+                                            slow: 75
+                                            isParamTest: false
+                                            name: "is test2"
+                                            lineNumber: 17
+                                            paramLineNumber: 0
+                                            assertIndex: 0
+                                            rawParams: invalid
+                                            paramTestIndex: 0
+                                            expectedNumberOfParams: 0
+                                            isParamsValid: true
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    end function
+                    return instance
+                end function
+                function ATest()
+                    instance = __ATest_builder()
+                    instance.new()
+                    return instance
+                end function
+            `);
+
+            //verify the AST was restored after transpile
+            const cls = file.ast.statements[0] as ClassStatement;
+            expect(cls.body.find((x: MethodStatement) => {
+                return x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            })).not.to.exist;
+        });
+
+        it('handles groups that start with numbers', async () => {
+            plugin.afterProgramCreate({ program: program, builder: builder });
+            // program.validate();
+            const file = program.setFile<BrsFile>('source/test.spec.bs', `
+                @suite
+                class ATest extends rooibos.BaseTestSuite
+                    @describe("1groupA")
+                    @it("is test1")
+                    @slow(1000)
+                    function Test_3()
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.build();
+            console.log(builder.getDiagnostics());
+            expect(builder.getDiagnostics()).to.be.empty;
+            expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+            expect(plugin.session.sessionInfo.suitesCount).to.equal(1);
+            expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
+            expect(plugin.session.sessionInfo.testsCount).to.equal(1);
+
+            expect(
+                getContents('rooibosMain.brs')
+            ).to.eql(undent`
+                function main()
+                    Rooibos_init("RooibosScene")
+                end function
+            `);
+            expect(
+                getContents('test.spec.brs')
+            ).to.eql(undent`
+                function __ATest_builder()
+                    instance = __rooibos_BaseTestSuite_builder()
+                    instance.super0_new = instance.new
+                    instance.new = sub()
+                        m.super0_new()
+                    end sub
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
+                    end function
+                    instance.super0_getTestSuiteData = instance.getTestSuiteData
+                    instance.getTestSuiteData = function()
+                        return {
+                            name: "ATest"
+                            isSolo: false
+                            noCatch: false
+                            isIgnored: false
+                            isAsync: false
+                            pkgPath: "${s`source/test.spec.brs`}"
+                            destPath: "${s`source/test.spec.bs`}"
+                            filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
+                            lineNumber: 3
+                            valid: true
+                            hasFailures: false
+                            hasSoloTests: false
+                            hasIgnoredTests: false
+                            hasSoloGroups: false
+                            setupFunctionName: ""
+                            tearDownFunctionName: ""
+                            beforeEachFunctionName: ""
+                            afterEachFunctionName: ""
+                            isNodeTest: false
+                            isAsync: false
+                            asyncTimeout: 60000
+                            nodeName: ""
+                            generatedNodeName: "ATest"
+                            testGroups: [
+                                {
+                                    name: "1groupA"
+                                    isSolo: false
+                                    isIgnored: false
+                                    isAsync: false
+                                    filename: "${s`source/test.spec.brs`}"
+                                    lineNumber: 4
+                                    setupFunctionName: ""
+                                    tearDownFunctionName: ""
+                                    beforeEachFunctionName: ""
+                                    afterEachFunctionName: ""
+                                    testCases: [
+                                        {
+                                            isSolo: false
+                                            noCatch: false
+                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
+                                            isIgnored: false
+                                            isAsync: false
+                                            asyncTimeout: 2000
+                                            slow: 1000
+                                            isParamTest: false
+                                            name: "is test1"
+                                            lineNumber: 7
+                                            paramLineNumber: 0
+                                            assertIndex: 0
                                             rawParams: invalid
                                             paramTestIndex: 0
                                             expectedNumberOfParams: 0
@@ -682,7 +1124,7 @@ describe('RooibosPlugin', () => {
                 expect(
                     testContents
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                         "getFunction"
                     ])
@@ -690,7 +1132,7 @@ describe('RooibosPlugin', () => {
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                         "getFunction"
                     ], "return")
@@ -698,7 +1140,7 @@ describe('RooibosPlugin', () => {
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 8
+                    m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                         "getFunction"
                         "a"
@@ -708,7 +1150,7 @@ describe('RooibosPlugin', () => {
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 9
+                    m.currentAssertLineNumber = 10
                     m._expectCalled(m.thing, "callFunc", m, "m.thing", [
                         "getFunction"
                         "a"
@@ -747,13 +1189,13 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid)
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunctionField", m, "m.thing", invalid, "return")
                     if m.currentResult?.isFail = true then
                         m.done()
@@ -791,19 +1233,19 @@ describe('RooibosPlugin', () => {
                 expect(
                     testContents
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 8
+                    m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
                         "arg1"
                         "arg2"
@@ -812,7 +1254,7 @@ describe('RooibosPlugin', () => {
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 9
+                    m.currentAssertLineNumber = 10
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
                         "arg1"
                         "arg2"
@@ -850,19 +1292,19 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestSubContents()
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
                     if m.currentResult?.isFail = true then
                         m.done()
                         return
                     end if
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return
                     end if
-                    m.currentAssertLineNumber = 8
+                    m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
                         "arg1"
                         "arg2"
@@ -871,7 +1313,7 @@ describe('RooibosPlugin', () => {
                         m.done()
                         return
                     end if
-                    m.currentAssertLineNumber = 9
+                    m.currentAssertLineNumber = 10
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
                         "arg1"
                         "arg2"
@@ -882,6 +1324,7 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
             });
+
             it('does not break when validating again after a transpile', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -911,19 +1354,19 @@ describe('RooibosPlugin', () => {
                 expect(
                     testContents
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [], "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 8
+                    m.currentAssertLineNumber = 9
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
                         "arg1"
                         "arg2"
@@ -932,7 +1375,7 @@ describe('RooibosPlugin', () => {
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 9
+                    m.currentAssertLineNumber = 10
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [
                         "arg1"
                         "arg2"
@@ -973,7 +1416,7 @@ describe('RooibosPlugin', () => {
                     b = {
                         someValue: "value"
                     }
-                    m.currentAssertLineNumber = 12
+                    m.currentAssertLineNumber = 13
                     m.assertEqual(b, {
                         someValue: "value"
                     })
@@ -984,6 +1427,44 @@ describe('RooibosPlugin', () => {
                 `);
             });
 
+            it('correctly transpiles async asserts', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                            callback = sub()
+                                b = { someValue: "value"}
+                                m.testSuite.assertEqual(b, { someValue: "value"})
+                            end sub
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                // expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const testContents = getTestFunctionContents();
+                expect(
+                    testContents
+                ).to.eql(undent`
+                    callback = sub()
+                        b = {
+                            someValue: "value"
+                        }
+                        m.testSuite.currentAssertLineNumber = 9
+                        m.testSuite.assertEqual(b, {
+                            someValue: "value"
+                        })
+                        if m.testSuite.currentResult?.isFail = true then
+                            m.testSuite.done()
+                            return
+                        end if
+                    end sub
+                `);
+            });
+
             it('correctly transpiles function invocations - simple object', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -991,11 +1472,11 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        item = {id: "item"}
-                        m.expectCalled(item.getFunction())
-                        m.expectCalled(item.getFunction(), "return")
-                        m.expectCalled(item.getFunction("arg1", "arg2"))
-                        m.expectCalled(item.getFunction("arg1", "arg2"), "return")
+                            item = {id: "item"}
+                            m.expectCalled(item.getFunction())
+                            m.expectCalled(item.getFunction(), "return")
+                            m.expectCalled(item.getFunction("arg1", "arg2"))
+                            m.expectCalled(item.getFunction("arg1", "arg2"), "return")
                         end function
                     end class
                 `);
@@ -1010,19 +1491,19 @@ describe('RooibosPlugin', () => {
                     item = {
                         id: "item"
                     }
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectCalled(item, "getFunction", item, "item", [])
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 8
+                    m.currentAssertLineNumber = 9
                     m._expectCalled(item, "getFunction", item, "item", [], "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 9
+                    m.currentAssertLineNumber = 10
                     m._expectCalled(item, "getFunction", item, "item", [
                         "arg1"
                         "arg2"
@@ -1031,7 +1512,7 @@ describe('RooibosPlugin', () => {
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 10
+                    m.currentAssertLineNumber = 11
                     m._expectCalled(item, "getFunction", item, "item", [
                         "arg1"
                         "arg2"
@@ -1050,7 +1531,7 @@ describe('RooibosPlugin', () => {
                         @describe("groupA")
                         @it("test1")
                         function _()
-                        item = {id: "item"}
+                            item = {id: "item"}
                             m.expectCalled(sayHello("arg1", "arg2"), "return")
                             m.expectCalled(sayHello())
                             m.expectCalled(sayHello(), "return")
@@ -1059,100 +1540,9 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.setFile('source/code.bs', `
-                function sayHello(firstName = "" as string, lastName = "" as string)
-                    print firstName + " " + lastName
-                end function
-                `);
-                program.validate();
-                expect(program.getDiagnostics()).to.be.empty;
-                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
-                await builder.build();
-                const testText = getTestFunctionContents();
-                expect(
-                    testText
-                ).to.eql(undent`
-                item = {
-                    id: "item"
-                }
-                m.currentAssertLineNumber = 7
-                m._expectCalled(sayHello, "sayHello", invalid, invalid, [
-                    "arg1"
-                    "arg2"
-                ], "return")
-                if m.currentResult?.isFail = true then
-                    m.done()
-                    return invalid
-                end if
-                m.currentAssertLineNumber = 8
-                m._expectCalled(sayHello, "sayHello", invalid, invalid, [])
-                if m.currentResult?.isFail = true then
-                    m.done()
-                    return invalid
-                end if
-                m.currentAssertLineNumber = 9
-                m._expectCalled(sayHello, "sayHello", invalid, invalid, [], "return")
-                if m.currentResult?.isFail = true then
-                    m.done()
-                    return invalid
-                end if
-                m.currentAssertLineNumber = 10
-                m._expectCalled(sayHello, "sayHello", invalid, invalid, [
-                    "arg1"
-                    "arg2"
-                ])
-                if m.currentResult?.isFail = true then
-                    m.done()
-                    return invalid
-                end if
-`);
-
-                let codeText = getContents('code.brs');
-                expect(codeText).to.equal(undent`
-                function sayHello(firstName = "" as string, lastName = "" as string)
-                    __stubs_globalAa = getGlobalAa()
-                    if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
-                        return __stubOrMockResult
-                    else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
-                        __stubFunction = __stubs_globalAa.__globalStubs.sayhello
-                        __stubOrMockResult = __stubFunction(firstName, lastName)
-                        return __stubOrMockResult
-                    else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
-                        value = __stubs_globalAa.__globalStubs.sayhello
-                        return value
-                    end if
-                    print firstName + " " + lastName
-                end function
-
-                function RBS_SM_1_getMocksByFunctionName()
-                    if m._rMocksByFunctionName = invalid
-                        m._rMocksByFunctionName = {}
-                    end if
-                    return m._rMocksByFunctionName
-                end function`);
-            });
-            it('correctly transpiles namespaced function calls', async () => {
-                plugin.config.isGlobalMethodMockingEnabled = true;
-                program.setFile('source/test.spec.bs', `
-                    @suite
-                    class ATest extends Rooibos.BaseTestSuite
-                        @describe("groupA")
-                        @it("test1")
-                        function _()
-                        item = {id: "item"}
-                        m.expectCalled(utils.sayHello("arg1", "arg2"), "return")
-                        m.expectCalled(utils.sayHello())
-                        m.expectCalled(utils.sayHello(), "return")
-                        m.expectCalled(utils.sayHello("arg1", "arg2"))
-                        end function
-                    end class
-                `);
-                program.setFile('source/code.bs', `
-                namespace utils
                     function sayHello(firstName = "" as string, lastName = "" as string)
                         print firstName + " " + lastName
                     end function
-                end namespace
                 `);
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
@@ -1165,7 +1555,99 @@ describe('RooibosPlugin', () => {
                     item = {
                         id: "item"
                     }
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(sayHello, "sayHello", invalid, invalid, [
+                        "arg1"
+                        "arg2"
+                    ], "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 9
+                    m._expectCalled(sayHello, "sayHello", invalid, invalid, [])
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 10
+                    m._expectCalled(sayHello, "sayHello", invalid, invalid, [], "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 11
+                    m._expectCalled(sayHello, "sayHello", invalid, invalid, [
+                        "arg1"
+                        "arg2"
+                    ])
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+
+                let codeText = getContents('code.brs');
+                expect(codeText).to.equal(undent`
+                    function sayHello(firstName = "" as string, lastName = "" as string)
+                        __stubs_globalAa = getGlobalAa()
+                        if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
+                            return __stubOrMockResult
+                        else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
+                            __stubFunction = __stubs_globalAa.__globalStubs.sayhello
+                            __stubOrMockResult = __stubFunction(firstName, lastName)
+                            return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("sayhello")
+                            value = __stubs_globalAa.__globalStubs.sayhello
+                            return value
+                        end if
+                        print firstName + " " + lastName
+                    end function
+
+                    function RBS_SM_1_getMocksByFunctionName()
+                        if m._rMocksByFunctionName = invalid
+                            m._rMocksByFunctionName = {}
+                        end if
+                        return m._rMocksByFunctionName
+                    end function
+                `);
+            });
+            it('correctly transpiles namespaced function calls', async () => {
+                plugin.config.isGlobalMethodMockingEnabled = true;
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                            item = {id: "item"}
+                            m.expectCalled(utils.sayHello("arg1", "arg2"), "return")
+                            m.expectCalled(utils.sayHello())
+                            m.expectCalled(utils.sayHello(), "return")
+                            m.expectCalled(utils.sayHello("arg1", "arg2"))
+                        end function
+                    end class
+                `);
+                program.setFile('source/code.bs', `
+                    namespace utils
+                        function sayHello(firstName = "" as string, lastName = "" as string)
+                            print firstName + " " + lastName
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.build();
+                const testText = getTestFunctionContents();
+                expect(
+                    testText
+                ).to.eql(undent`
+                    item = {
+                        id: "item"
+                    }
+                    m.currentAssertLineNumber = 8
                     m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
                         "arg1"
                         "arg2"
@@ -1174,19 +1656,19 @@ describe('RooibosPlugin', () => {
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 8
+                    m.currentAssertLineNumber = 9
                     m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [])
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 9
+                    m.currentAssertLineNumber = 10
                     m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [], "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 10
+                    m.currentAssertLineNumber = 11
                     m._expectCalled(utils_sayhello, "utils_sayhello", invalid, invalid, [
                         "arg1"
                         "arg2"
@@ -1199,29 +1681,29 @@ describe('RooibosPlugin', () => {
 
                 let codeText = getContents('code.brs');
                 expect(codeText).to.equal(undent(`
-                function utils_sayHello(firstName = "" as string, lastName = "" as string)
-                    __stubs_globalAa = getGlobalAa()
-                    if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
-                        __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
-                        return __stubOrMockResult
-                    else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
-                        __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
-                        __stubOrMockResult = __stubFunction(firstName, lastName)
-                        return __stubOrMockResult
-                    else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("utils_sayhello")
-                        value = __stubs_globalAa.__globalStubs.utils_sayhello
-                        return value
-                    end if
-                    print firstName + " " + lastName
-                end function
+                    function utils_sayHello(firstName = "" as string, lastName = "" as string)
+                        __stubs_globalAa = getGlobalAa()
+                        if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
+                            return __stubOrMockResult
+                        else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
+                            __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
+                            __stubOrMockResult = __stubFunction(firstName, lastName)
+                            return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("utils_sayhello")
+                            value = __stubs_globalAa.__globalStubs.utils_sayhello
+                            return value
+                        end if
+                        print firstName + " " + lastName
+                    end function
 
-                function RBS_SM_1_getMocksByFunctionName()
-                    if m._rMocksByFunctionName = invalid
-                        m._rMocksByFunctionName = {}
-                    end if
-                    return m._rMocksByFunctionName
-                end function
-            `));
+                    function RBS_SM_1_getMocksByFunctionName()
+                        if m._rMocksByFunctionName = invalid
+                            m._rMocksByFunctionName = {}
+                        end if
+                        return m._rMocksByFunctionName
+                    end function
+                `));
             });
         });
 
@@ -1393,6 +1875,7 @@ describe('RooibosPlugin', () => {
 
                           m.assertTrue(globalFunctionWithReturn())
                           m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed() ' bs:disable-line: cannot-find-function
                         end function
                         wasCalled = false
                     end class
@@ -1416,18 +1899,24 @@ describe('RooibosPlugin', () => {
                         m.wasCalled = true
                         return true
                     end function)
-                    m.currentAssertLineNumber = 12
+                    m.currentAssertLineNumber = 13
                     m.assertTrue(globalFunctionWithReturn())
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 13
+                    m.currentAssertLineNumber = 14
                     m.assertTrue(getGlobalAA().wasCalled)
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
+                    m.currentAssertLineNumber = 15
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if ' bs:disable-line: cannot-find-function
                 `);
             });
 
@@ -1446,6 +1935,7 @@ describe('RooibosPlugin', () => {
 
                           m.assertTrue(testNamespace.functionWithReturn())
                           m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed() ' bs:disable-line: cannot-find-function
                         end function
                         wasCalled = false
                     end class
@@ -1470,18 +1960,24 @@ describe('RooibosPlugin', () => {
                         m.wasCalled = true
                         return true
                     end function)
-                    m.currentAssertLineNumber = 12
+                    m.currentAssertLineNumber = 13
                     m.assertTrue(testNamespace_functionWithReturn())
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 13
+                    m.currentAssertLineNumber = 14
                     m.assertTrue(getGlobalAA().wasCalled)
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
+                    m.currentAssertLineNumber = 15
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if ' bs:disable-line: cannot-find-function
                 `);
             });
 
@@ -1501,6 +1997,7 @@ describe('RooibosPlugin', () => {
 
                           m.assertTrue(testNamespace.functionWithReturn())
                           m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed() ' bs:disable-line: cannot-find-function
                         end function
                         wasCalled = false
                     end class
@@ -1526,18 +2023,24 @@ describe('RooibosPlugin', () => {
                         return true
                     end function
                     m.stubCall(testNamespace_functionWithReturn, stub)
-                    m.currentAssertLineNumber = 13
+                    m.currentAssertLineNumber = 14
                     m.assertTrue(testNamespace_functionWithReturn())
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 14
+                    m.currentAssertLineNumber = 15
                     m.assertTrue(getGlobalAA().wasCalled)
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
+                    m.currentAssertLineNumber = 16
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if ' bs:disable-line: cannot-find-function
                 `);
             });
 
@@ -1556,6 +2059,7 @@ describe('RooibosPlugin', () => {
 
                           m.assertTrue(testNamespace_functionWithReturn())
                           m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed() ' bs:disable-line: cannot-find-function
                         end function
                         wasCalled = false
                     end class
@@ -1580,18 +2084,24 @@ describe('RooibosPlugin', () => {
                         m.wasCalled = true
                         return true
                     end function)
-                    m.currentAssertLineNumber = 12
+                    m.currentAssertLineNumber = 13
                     m.assertTrue(testNamespace_functionWithReturn())
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 13
+                    m.currentAssertLineNumber = 14
                     m.assertTrue(getGlobalAA().wasCalled)
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
+                    m.currentAssertLineNumber = 15
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if ' bs:disable-line: cannot-find-function
                 `);
             });
 
@@ -1611,6 +2121,7 @@ describe('RooibosPlugin', () => {
 
                           m.assertTrue(testNamespace_functionWithReturn())
                           m.assertTrue(getGlobalAA().wasCalled)
+                          m.assertRunningTestIsPassed() ' bs:disable-line: cannot-find-function
                         end function
                     end class
 
@@ -1636,18 +2147,24 @@ describe('RooibosPlugin', () => {
                         return true
                     end function
                     m.stubCall(testNamespace_functionWithReturn, stub)
-                    m.currentAssertLineNumber = 13
+                    m.currentAssertLineNumber = 14
                     m.assertTrue(testNamespace_functionWithReturn())
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 14
+                    m.currentAssertLineNumber = 15
                     m.assertTrue(getGlobalAA().wasCalled)
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
+                    m.currentAssertLineNumber = 16
+                    m.assertRunningTestIsPassed()
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if ' bs:disable-line: cannot-find-function
                 `);
             });
         });
@@ -1686,7 +2203,7 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 15
+                    m.currentAssertLineNumber = 16
                     m.assertArrayContainsOnlyValuesOfType(values, typeName)
                     if m.currentResult?.isFail = true then
                         m.done()
@@ -1694,7 +2211,7 @@ describe('RooibosPlugin', () => {
                     end if
                     isFail = m.currentResult.isFail
                     m.currentResult.Reset()
-                    m.currentAssertLineNumber = 20
+                    m.currentAssertLineNumber = 21
                     m.assertFalse(isFail)
                     if m.currentResult?.isFail = true then
                         m.done()
@@ -1713,6 +2230,9 @@ describe('RooibosPlugin', () => {
                         @it("test1")
                         function _()
                             m.expectNotCalled(m.thing@.getFunction())
+                            m.expectNotCalled(m.thing@.getFunction(), "return")
+                            m.expectNotCalled(m.thing@.getFunction())
+                            m.expectNotCalled(m.thing@.getFunction(), "return")
                         end function
                         thing as roSgNode
                     end class
@@ -1725,8 +2245,26 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 8
+                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 9
+                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 10
+                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
@@ -1755,13 +2293,13 @@ describe('RooibosPlugin', () => {
                     getTestFunctionContents()
                 ).to.eql(undent`
                     thing = {}
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 8
+                    m.currentAssertLineNumber = 9
                     m._expectNotCalled(thing, "callFunc", thing, "thing")
                     if m.currentResult?.isFail = true then
                         m.done()
@@ -1802,7 +2340,7 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "getFunctionField", m, "m.thing")
                     if m.currentResult?.isFail = true then
                         m.done()
@@ -1826,6 +2364,9 @@ describe('RooibosPlugin', () => {
                         @it("test1")
                         function _()
                             m.expectNotCalled(m.thing.getFunction())
+                            m.expectNotCalled(m.thing.getFunction(), "return")
+                            m.expectNotCalled(m.thing.getFunction())
+                            m.expectNotCalled(m.thing.getFunction(), "return")
                         end function
                         thing = {}
                     end class
@@ -1838,8 +2379,26 @@ describe('RooibosPlugin', () => {
                 expect(
                     getTestFunctionContents()
                 ).to.eql(undent`
-                    m.currentAssertLineNumber = 6
+                    m.currentAssertLineNumber = 7
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 8
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 9
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    m.currentAssertLineNumber = 10
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
@@ -1871,13 +2430,13 @@ describe('RooibosPlugin', () => {
                     item = {
                         id: "item"
                     }
-                    m.currentAssertLineNumber = 7
+                    m.currentAssertLineNumber = 8
                     m._expectNotCalled(item, "getFunction", item, "item")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
                     end if
-                    m.currentAssertLineNumber = 8
+                    m.currentAssertLineNumber = 9
                     m._expectNotCalled(item, "getFunction", item, "item")
                     if m.currentResult?.isFail = true then
                         m.done()
@@ -2064,13 +2623,13 @@ describe('RooibosPlugin', () => {
                 item = {
                     id: "item"
                 }
-                m.currentAssertLineNumber = 7
+                m.currentAssertLineNumber = 8
                 m._expectNotCalled(item, "getFunction", item, "item")
                 if m.currentResult?.isFail = true then
                     m.done()
                     return invalid
                 end if
-                m.currentAssertLineNumber = 8
+                m.currentAssertLineNumber = 9
                 m._expectNotCalled(item, "getFunction", item, "item")
                 if m.currentResult?.isFail = true then
                     m.done()
@@ -2107,6 +2666,7 @@ describe('RooibosPlugin', () => {
                             "printLcov": false
                             "port": "invalid"
                             "catchCrashes": true
+                            "colorizeOutput": false
                             "throwOnFailedAssertion": false
                             "keepAppOpen": true
                             "isRecordingCodeCoverage": false
@@ -2121,7 +2681,7 @@ describe('RooibosPlugin', () => {
                         }
                         ' filled in by plugin
                     end function
-                    instance.getTestSuiteClassWithName = function(name as string) as dynamic
+                    instance.getTestSuiteClassWithName = function(name as string) as function
                         return m.testSuites[name]
                     end function
                     instance.getAllTestSuitesNames = function() as object
@@ -2153,12 +2713,13 @@ describe('RooibosPlugin', () => {
 
 
         describe('test reporters', function runTests() {
-            this.timeout(5000);
+            this.timeout(10_000);
             const sep = '\n';
             const params: [string[], string][] = [
                 [[], 'rooibos_ConsoleTestReporter'],
                 [['CONSOLE'], 'rooibos_ConsoleTestReporter'],
                 [['MyCustomReporter'], 'MyCustomReporter'],
+                [['mocha'], 'rooibos_MochaTestReporter'],
                 [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
             ];
 
@@ -2179,6 +2740,71 @@ describe('RooibosPlugin', () => {
                 const actualLines = noLeadingWhitespace.split(sep);
                 const start = actualLines.slice(actualLines.indexOf('"reporters": [') + 1);
                 const actualReporters = start.slice(0, start.indexOf(']'));
+                const expectedReporters = expected.join(`\n${' '.repeat(36)}`); // each is its own line, indented
+
+                let fullExpected = undent`
+                    function __rooibos_RuntimeConfig_builder()
+                        instance = {}
+                        instance.new = function()
+                            m.testSuites = {}
+                            m.testSuites = m.getTestSuiteClassMap()
+                        end function
+                        ' bs:disable-next-line LINT2004 return-type-coercion-mismatch
+                        instance.getVersionText = function() as string
+                            return "${version}"
+                            ' filled in by plugin
+                        end function
+                        ' bs:disable-next-line LINT2004
+                        instance.getRuntimeConfig = function() as dynamic
+                            return {
+                                "reporters": [
+                                    ${expectedReporters}
+                                ]
+                                "failFast": true
+                                "sendHomeOnFinish": true
+                                "logLevel": 0
+                                "showOnlyFailures": true
+                                "printTestTimes": true
+                                "lineWidth": 60
+                                "printLcov": false
+                                "port": "invalid"
+                                "catchCrashes": true
+                                "colorizeOutput": false
+                                "throwOnFailedAssertion": false
+                                "keepAppOpen": true
+                                "isRecordingCodeCoverage": false
+                            }
+                            ' filled in by plugin
+                        end function
+                        ' bs:disable-next-line LINT2004
+                        instance.getTestSuiteClassMap = function() as dynamic
+                            return {}
+                            ' filled in by plugin
+                        end function
+                        instance.getTestSuiteClassWithName = function(name as string) as function
+                            return m.testSuites[name]
+                        end function
+                        instance.getAllTestSuitesNames = function() as object
+                            return m.testSuites.keys()
+                        end function
+                        ' bs:disable-next-line LINT2004
+                        instance.getIgnoredTestInfo = function() as dynamic
+                            return {
+                                "count": 0
+                                "items": []
+                            }
+                            ' filled in by plugin
+                        end function
+                        return instance
+                    end function
+                    function rooibos_RuntimeConfig()
+                        instance = __rooibos_RuntimeConfig_builder()
+                        instance.new()
+                        return instance
+                    end function
+                `;
+
+                expect(content).to.eql(fullExpected);
 
                 expect(actualReporters).to.include.members(expected);
                 destroyProgram();
@@ -2268,6 +2894,7 @@ describe('RooibosPlugin', () => {
                 'rooibos': {
                     'showOnlyFailures': true,
                     'catchCrashes': true,
+                    'colorizeOutput': false,
                     'throwOnFailedAssertion': false,
                     'lineWidth': 70,
                     'failFast': false,
@@ -2383,7 +3010,7 @@ function getTestFunctionContents() {
 
 function getTestSubContents() {
     const contents = getContents('test.spec.brs');
-    const [, body] = /groupA_test1 \= sub\(\)([\S\s]*|.*)(?=end sub)/gim.exec(contents);
+    const [, body] = /rooiboos_test_case_[a-z0-9]+_\d+ \= sub\(\)([\S\s]*|.*)(?=end sub)/gim.exec(contents);
     let result = undent(
         body.split('end sub')[0]
     );

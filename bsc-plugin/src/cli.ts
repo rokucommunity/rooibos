@@ -63,8 +63,8 @@ async function main() {
     await telnet.activate();
     await telnet.connect();
 
-    const failRegex = /RESULT: Fail/g;
-    const endRegex = /\[END TEST REPORT\]/g;
+    const failRegex = /\[Rooibos Result\]: (FAIL|PASS)/g;
+    const endRegex = /\[Rooibos Shutdown\]/g;
 
     async function doExit(emitAppExit = false) {
         if (emitAppExit) {
@@ -80,7 +80,9 @@ async function main() {
         //check for Fails or Crashes
         let failMatches = failRegex.exec(output);
         if (failMatches && failMatches.length > 0) {
-            currentErrorCode = 1;
+            if (failMatches[1] === 'FAIL') {
+                currentErrorCode = 1;
+            }
         }
 
         let endMatches = endRegex.exec(output);

@@ -4,6 +4,7 @@ import { TokenKind, isXmlScope } from 'brighterscript';
 import * as brighterscript from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
+import * as path from 'path';
 
 export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: Editor): boolean {
     let functionSource = `

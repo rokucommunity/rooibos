@@ -4,44 +4,120 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [v6.0.0-alpha.44](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.41...v6.0.0-alpha.44)
 
+> 7 February 2025
 
-## [6.0.0-alpha.44](https://github.com/rokucommunity/bslint/compare/v6.0.0-alpha.41...v6.0.0-alpha.44) - 2024-02-07
-###
  - upgrade to [brighterscript@1.0.0-alpha.44](https://github.com/rokucommunity/brighterscript/blob/release-1.0.0/CHANGELOG.md#100-alpha44---2025-02-06)
 
 
+#### [v6.0.0-alpha.41](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.40...v6.0.0-alpha.41)
 
-## [6.0.0-alpha.41](https://github.com/rokucommunity/bslint/compare/v6.0.0-alpha.40...v6.0.0-alpha.41) - 2024-10-20
-### Changed
- - upgrade to [brighterscript@1.0.0-alpha.41](https://github.com/rokucommunity/brighterscript/blob/release-1.0.0/CHANGELOG.md#100-alpha41---2024-10-20)
+> 20 October 2024
 
+- update changelog for v6.0.0-alpha.41 [`48ba632`](https://github.com/rokucommunity/rooibos/commit/48ba632c3a9e6e2939d38c25de966724904cfc5d)
+- Upgrade to bsc@1.0.0-alpha.41 [`77c002d`](https://github.com/rokucommunity/rooibos/commit/77c002d0834260d125fede0b2ac61114c9f58b3f)
 
+#### [v6.0.0-alpha.40](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.39...v6.0.0-alpha.40)
 
-## [6.0.0-alpha.40](https://github.com/rokucommunity/bslint/compare/v6.0.0-alpha.39...v6.0.0-alpha.40) - 2024-10-20
-### Changed
- - set default types for `m.top` and `m.node` in BaseTestSuite ([#301](https://github.com/rokucommunity/rooibos/pull/301))
- - upgrade to [brighterscript@1.0.0-alpha.40](https://github.com/rokucommunity/brighterscript/blob/release-1.0.0/CHANGELOG.md#100-alpha40---2024-10-19)
+> 20 October 2024
 
+- Sets default types for `m.top` and `m.node` in BaseTestSuite [`#301`](https://github.com/rokucommunity/rooibos/pull/301)
+- upgade to bsc@1.0.0-alpha.40 [`f318f70`](https://github.com/rokucommunity/rooibos/commit/f318f703db384b7813ef2d6cfbaa72f2151f58e8)
+- update changelog for v6.0.0-alpha.40 [`92bb27b`](https://github.com/rokucommunity/rooibos/commit/92bb27be87bff56f665ddf34a75be09d4191e7f0)
 
+#### [v6.0.0-alpha.39](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.38...v6.0.0-alpha.39)
 
-## [6.0.0-alpha.39](https://github.com/rokucommunity/bslint/compare/v6.0.0-alpha.38...v6.0.0-alpha.39) - 2024-10-03
-### Changed
- - upgrade to [brighterscript@1.0.0-alpha.39](https://github.com/rokucommunity/brighterscript/blob/release-1.0.0/CHANGELOG.md#100-alpha39---2024-10-03)
+> 3 October 2024
 
+- Adds a CLI to Rooibos! [`#294`](https://github.com/rokucommunity/rooibos/pull/294)
+- Adds a CLI to Rooibos (current version) [`#295`](https://github.com/rokucommunity/rooibos/pull/295)
+- chore: release v5.14.0 [`e2d2a57`](https://github.com/rokucommunity/rooibos/commit/e2d2a574c78f2fa22f47427016437ee087653aaf)
+- Update changelog for v6.0.0-alpha.39 [`38e3cbe`](https://github.com/rokucommunity/rooibos/commit/38e3cbe3309666ce5daac248def66f3d256ff29c)
 
+#### [v6.0.0-alpha.38](https://github.com/rokucommunity/rooibos/compare/v5.15.5...v6.0.0-alpha.38)
 
-## [6.0.0-alpha.38](https://github.com/rokucommunity/brighterscript/compare/5.13.0...v6.0.0-alpha.38) - 2024-10-01
-### Changed
- - upgrade to brighterscript v1.0.0-alpha.38 and fix issues ([#299](https://github.com/rokucommunity/rooibos/pull/299))
- - this changelog now adopts the standard format from [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
- - the versioning for the 6.0.0 alphas will align with the version of brighterscript v1 alpha that it supports.
-
-
-#### [v5.14.0](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.38...v5.14.0)
 > 1 October 2024
 
 - Adds a CLI to Rooibos (current version) [`#295`](https://github.com/rokucommunity/rooibos/pull/295)
+
+#### [v5.15.6](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.44...v5.15.6)
+
+- playing with creating stack traces for reporters on failed assertions [`#324`](https://github.com/rokucommunity/rooibos/pull/324)
+- Bugfix/wrong line number for async tests [`#323`](https://github.com/rokucommunity/rooibos/pull/323)
+- Fixed a bug where crashes in node tests would stall rooibos [`#322`](https://github.com/rokucommunity/rooibos/pull/322)
+- Fixed a bunch of potential crashes due to prop name conflicts with native functions [`#319`](https://github.com/rokucommunity/rooibos/pull/319)
+- Added the ability to have duplicate test names [`#317`](https://github.com/rokucommunity/rooibos/pull/317)
+- Clean up test files [`#318`](https://github.com/rokucommunity/rooibos/pull/318)
+- chore(deps): bump serialize-javascript and mocha in /bsc-plugin [`#316`](https://github.com/rokucommunity/rooibos/pull/316)
+- Fix nested assertions causing compilation error when using `sub _` [`#314`](https://github.com/rokucommunity/rooibos/pull/314)
+- Remove the ropm step, devs just need to do this manually [`#310`](https://github.com/rokucommunity/rooibos/pull/310)
+- Bugfix/only annotation not always applied correctly [`#308`](https://github.com/rokucommunity/rooibos/pull/308)
+- promises support in tests [`#307`](https://github.com/rokucommunity/rooibos/pull/307)
+- Feature/mocha test reporter [`#305`](https://github.com/rokucommunity/rooibos/pull/305)
+- Task/update framework folder to match structure on device [`#306`](https://github.com/rokucommunity/rooibos/pull/306)
+- Cleaned up formatting [`852cd15`](https://github.com/rokucommunity/rooibos/commit/852cd15ea0d99cf7fafc6ff2531290c87ca3371b)
+- more indentation clean up [`973d6f2`](https://github.com/rokucommunity/rooibos/commit/973d6f23c7304163fe35dc031cb64624217510d0)
+- Fixed a bunch of potental crashes due to prop name conflicts with native functions [`0b23f1f`](https://github.com/rokucommunity/rooibos/commit/0b23f1f33a2c76254abdf67cd062374c4bd63d58)
+
+#### [v5.15.5](https://github.com/rokucommunity/rooibos/compare/v5.15.4...v5.15.5)
+
+> 4 March 2025
+
+- Fixed a bug where crashes in node tests would stall rooibos [`#322`](https://github.com/rokucommunity/rooibos/pull/322)
+- chore: release v5.15.5 [`30e5ec4`](https://github.com/rokucommunity/rooibos/commit/30e5ec402229a0abdb6f7daa118656907c680bcd)
+
+#### [v5.15.4](https://github.com/rokucommunity/rooibos/compare/v5.15.3...v5.15.4)
+
+> 26 February 2025
+
+- Fixed a bunch of potential crashes due to prop name conflicts with native functions [`#319`](https://github.com/rokucommunity/rooibos/pull/319)
+- Fixed a bunch of potental crashes due to prop name conflicts with native functions [`0b23f1f`](https://github.com/rokucommunity/rooibos/commit/0b23f1f33a2c76254abdf67cd062374c4bd63d58)
+- chore: release v5.15.4 [`023a363`](https://github.com/rokucommunity/rooibos/commit/023a36363a2dfc734d8eb0e922f270a68d698fd7)
+
+#### [v5.15.3](https://github.com/rokucommunity/rooibos/compare/v5.15.2...v5.15.3)
+
+> 24 February 2025
+
+- Added the ability to have duplicate test names [`#317`](https://github.com/rokucommunity/rooibos/pull/317)
+- Clean up test files [`#318`](https://github.com/rokucommunity/rooibos/pull/318)
+- chore(deps): bump serialize-javascript and mocha in /bsc-plugin [`#316`](https://github.com/rokucommunity/rooibos/pull/316)
+- Cleaned up formatting [`852cd15`](https://github.com/rokucommunity/rooibos/commit/852cd15ea0d99cf7fafc6ff2531290c87ca3371b)
+- more indentation clean up [`973d6f2`](https://github.com/rokucommunity/rooibos/commit/973d6f23c7304163fe35dc031cb64624217510d0)
+- File path standardization for test hashing [`e239045`](https://github.com/rokucommunity/rooibos/commit/e239045c69b2e0423e5c3bb7c24110d300d4521b)
+
+#### [v5.15.2](https://github.com/rokucommunity/rooibos/compare/v5.15.1...v5.15.2)
+
+> 17 February 2025
+
+- Fix nested assertions causing compilation error when using `sub _` [`#314`](https://github.com/rokucommunity/rooibos/pull/314)
+- Update unit test to account for this [`8c4d819`](https://github.com/rokucommunity/rooibos/commit/8c4d8194692cd72e22da6c0e9de7f42cd23ebed9)
+- chore: release v5.15.2 [`6de914b`](https://github.com/rokucommunity/rooibos/commit/6de914bd51c970d05a53e0e6a21a4ea5018b204b)
+- Fix lint error [`d55d1ee`](https://github.com/rokucommunity/rooibos/commit/d55d1ee4c0c18368082aa48f70c82773aecd5d51)
+
+#### [v5.15.1](https://github.com/rokucommunity/rooibos/compare/v5.15.0...v5.15.1)
+
+> 31 January 2025
+
+- Remove the ropm step, devs just need to do this manually [`#310`](https://github.com/rokucommunity/rooibos/pull/310)
+- chore: release v5.15.1 [`1655c55`](https://github.com/rokucommunity/rooibos/commit/1655c559aacbf17397049f47c461f55a2081846c)
+
+#### [v5.15.0](https://github.com/rokucommunity/rooibos/compare/v5.14.0...v5.15.0)
+
+> 28 January 2025
+
+- Bugfix/only annotation not always applied correctly [`#308`](https://github.com/rokucommunity/rooibos/pull/308)
+- promises support in tests [`#307`](https://github.com/rokucommunity/rooibos/pull/307)
+- Feature/mocha test reporter [`#305`](https://github.com/rokucommunity/rooibos/pull/305)
+- Task/update framework folder to match structure on device [`#306`](https://github.com/rokucommunity/rooibos/pull/306)
+- chore: release v5.15.0 [`397403f`](https://github.com/rokucommunity/rooibos/commit/397403f77496dc41d84fe48a4c3fdb8d53fbd93f)
+
+#### [v5.14.0](https://github.com/rokucommunity/rooibos/compare/v5.13.0...v5.14.0)
+
+> 3 October 2024
+
+- Adds a CLI to Rooibos (current version) [`#295`](https://github.com/rokucommunity/rooibos/pull/295)
+- chore: release v5.14.0 [`e2d2a57`](https://github.com/rokucommunity/rooibos/commit/e2d2a574c78f2fa22f47427016437ee087653aaf)
 
 #### [v5.13.0](https://github.com/rokucommunity/rooibos/compare/5.12.0...v5.13.0)
 

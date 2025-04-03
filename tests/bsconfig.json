@@ -9,14 +9,14 @@
   "stagingDir": "build",
   "diagnosticFilters": [
     {
-      "src": "**/roku_modules/**/*.*",
+      "files": "**/roku_modules/**/*.*",
       "codes": [
         1107,
         1009
       ]
     },
     1128,
-    1001, 
+    1001,
     1140
   ],
   "plugins": [
@@ -29,13 +29,17 @@
   ],
   "rooibos": {
     "showOnlyFailures": true,
-    "catchCrashes": false,
+    "catchCrashes": true,
+    "colorizeOutput": true,
     "lineWidth": 70,
     "failFast": false,
     "sendHomeOnFinish": false,
     "keepAppOpen": true,
     "isGlobalMethodMockingEnabled": true,
-    "isRecordingCodeCoverage": false
+    "isRecordingCodeCoverage": false,
+    "reporters": [
+      "mocha"
+    ]
   },
   "sourceMap": true,
   "retainStagingDir": true

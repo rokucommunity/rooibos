@@ -1,7 +1,7 @@
 namespace rooibos
   function init(testSceneName = invalid) as void
     if createObject("roAPPInfo").IsDev() <> true
-      ? " not running in dev mode! - rooibos tests only support sideloaded builds - aborting"
+      rooibos.common.logError(" not running in dev mode! - rooibos tests only support sideloaded builds - aborting")
       return
     end if
 
@@ -12,7 +12,7 @@ namespace rooibos
       testSceneName = "RooibosScene"
     end if
 
-    ? "Starting test using test scene with name: " ; testSceneName
+    rooibos.common.logInfo(`Starting test using test scene with name RooibosScene ${testSceneName}`)
     scene = screen.CreateScene(testSceneName)
     scene.id = "ROOT"
     screen.show()
@@ -24,16 +24,17 @@ namespace rooibos
     })
 
     if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false
-      ? "The scene is not ready yet - waiting for it to set isReadyToStartTests to true"
+      rooibos.common.logInfo("The scene is not ready yet - waiting for it to set isReadyToStartTests to true")
       scene.observeField("isReadyToStartTests", m.port)
 
     else
-      ? "scene is ready; running tests now"
+      rooibos.common.logInfo("scene is ready; running tests now")
+      print ""
       runner = new rooibos.TestRunner(scene, m)
       runner.Run()
 
       if runner.config.keepAppOpen = false
-        ? "keepAppOpen is false; exiting Rooibos"
+        rooibos.common.logInfo("keepAppOpen is false; exiting Rooibos")
         ' End statement will also exit the caller of this function
         ' leading to an instant exit of the application
 
@@ -53,7 +54,8 @@ namespace rooibos
       else if msgType = "roSGNodeEvent"
 
         if msg.getField() = "isReadyToStartTests" and msg.getData() = true
-          ? "scene is ready; running tests now"
+          rooibos.common.logInfo("scene is ready; running tests now")
+          print ""
           runner = new rooibos.TestRunner(scene, m)
           runner.Run()
         end if

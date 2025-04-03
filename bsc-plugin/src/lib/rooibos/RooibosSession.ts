@@ -162,6 +162,7 @@ export class RooibosSession {
                         "printLcov": ${this.config.printLcov ? 'true' : 'false'}
                         "port": "${this.config.port || 'invalid'}"
                         "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
+                        "colorizeOutput": ${this.config.colorizeOutput ? 'true' : 'false'}
                         "throwOnFailedAssertion": ${this.config.throwOnFailedAssertion ? 'true' : 'false'}
                         "keepAppOpen": ${this.config.keepAppOpen === undefined || this.config.keepAppOpen ? 'true' : 'false'}
                         "isRecordingCodeCoverage": ${this.config.isRecordingCodeCoverage ? 'true' : 'false'}
@@ -190,6 +191,7 @@ export class RooibosSession {
         switch (name.toLowerCase()) {
             case 'console': return 'rooibos_ConsoleTestReporter';
             case 'junit': return 'rooibos_JUnitTestReporter';
+            case 'mocha': return 'rooibos_MochaTestReporter';
         }
         // @todo: check if function name is valid
         return name;
@@ -236,6 +238,12 @@ export class RooibosSession {
 
         let bsFile = this.fileFactory.addFile(program, suite.bsPkgPath, undent`
             function init()
+                m.top.addField("rooibosRunSuite", "boolean", false)
+                m.top.observeFieldScoped("rooibosRunSuite", "rooibosRunSuite")
+            end function
+
+            function rooibosRunSuite()
+                m.top.unobserveFieldScoped("rooibosRunSuite")
                 nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
                 m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
             end function

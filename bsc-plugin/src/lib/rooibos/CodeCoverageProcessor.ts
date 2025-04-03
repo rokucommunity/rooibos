@@ -209,6 +209,7 @@ export class CodeCoverageProcessor {
         const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
         this.addedStatements.add(parsed);
         this.astEditor.arraySplice(owner, key, 0, parsed);
+        this.addedStatements.add(parsed);
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
     }
@@ -216,6 +217,9 @@ export class CodeCoverageProcessor {
     public addBrsAPIText(file: BrsFile, astEditor: Editor) {
         const astCodeToInject = Parser.parse(this.coverageBrsTemplate.replace(/\#ID\#/g, this.fileId.toString().trim())).ast.statements;
         astEditor.arrayPush(file.ast.statements, ...astCodeToInject);
+        for (let statement of astCodeToInject) {
+            this.addedStatements.add(statement);
+        }
     }
 
     private addStatement(statement: Statement, lineNumber?: number) {
