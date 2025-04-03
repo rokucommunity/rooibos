@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > 7 February 2025
 
-- Upgraded to BSCv1.0.0-alpha.44 and fixed issues [`#312`](https://github.com/rokucommunity/rooibos/pull/312)
+ - upgrade to [brighterscript@1.0.0-alpha.44](https://github.com/rokucommunity/brighterscript/blob/release-1.0.0/CHANGELOG.md#100-alpha44---2025-02-06)
+
 
 #### [v6.0.0-alpha.41](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.40...v6.0.0-alpha.41)
 
