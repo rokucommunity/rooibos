@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+#### [v6.0.0-alpha.45](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.44...v6.0.0-alpha.45)
+
+> 7 February 2025
+
+ - upgrade to [brighterscript@1.0.0-alpha.45](https://github.com/rokucommunity/brighterscript/blob/release-1.0.0/CHANGELOG.md#100-alpha45---2025-04-04)
+
+
 #### [v6.0.0-alpha.44](https://github.com/rokucommunity/rooibos/compare/v6.0.0-alpha.41...v6.0.0-alpha.44)
 
 > 7 February 2025
