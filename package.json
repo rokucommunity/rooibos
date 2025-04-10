@@ -10,8 +10,8 @@
     "rokutest": "npm --prefix ./tests run test"
   },
   "devDependencies": {
-    "@rokucommunity/bslint": "^1.0.0-alpha.44",
-    "brighterscript": "^1.0.0-alpha.44",
+    "@rokucommunity/bslint": "^1.0.0-alpha.45",
+    "brighterscript": "^1.0.0-alpha.45",
     "ropm": "^0.5.0",
     "ts-node": "^10.7.0"
   },
