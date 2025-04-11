@@ -1,52 +1,26 @@
+dist/
+out/
+node_modules/
 .DS_Store
 build
 .env
+yarn-error.log
+roku_modules/
+.vscode/.env
+tmp
+.tmp
 
-###BrightScript specific
-dist/apps
-out/
+logs
+*.log
+
 
 #Rooibos generated
 rooibosFunctionMap.brs
-
-### Eclipse project files
-
-.metadata
-bin/
-tmp/
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-.settings/
-.loadpath
-.recommenders
-
-# Eclipse Core
-.project
-.classpath
-
-# External tool builders
-.externalToolBuilders/
-
-# Locally stored "Eclipse launch configurations"
-*.launch
-
-#node
-node_modules/
-frameworkTests/source/tests/rooibosDist.brs
-outRun
-out
 rooibosDist.brs
 
-# Yarn
-yarn-error.log
-/outRun/
-node_modules/
-out
-**/roku_modules/
+# nyc test coverage
+.nyc_output
+coverage/
 
-!.vscode
-.vscode/.env
-dist/
+# Output of 'npm pack'
+*.tgz
