@@ -1,4 +1,5 @@
 namespace rooibos
+  ' @private
   class BaseTestReporter
 
     public testRunner = invalid
@@ -77,10 +78,12 @@ namespace rooibos
     suite as rooibos.BaseTestSuite
   end interface
 
-  ' @depreciated use rooibos.TestReporterOnEndEvent
+  ' @deprecated use rooibos.TestReporterOnEndEvent
+  ' @private
   interface ITestReporterOnEndEvent
     stats as rooibos.Stats
   end interface
+
   interface TestReporterOnEndEvent
     stats as rooibos.Stats
   end interface
