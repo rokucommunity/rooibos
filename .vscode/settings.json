@@ -18,6 +18,7 @@
     "**/.settings": true,
     "**/.factorypath": true,
     "/tmp/**": true,
+    ".tmp/**": true,
     "**/dist": true,
     "**/build": true,
     "**/out": true
