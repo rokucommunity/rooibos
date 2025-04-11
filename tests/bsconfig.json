@@ -21,7 +21,7 @@
     1140
   ],
   "plugins": [
-    "../bsc-plugin/src/plugin.ts"
+    "../src/plugin.ts"
   ],
   "require": [
     "ts-node/register"
