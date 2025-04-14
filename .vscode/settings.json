@@ -1,97 +1,25 @@
 {
-  "cSpell.ignorePaths": [
-    "**/package-lock.json",
-    "**/node_modules/**",
-    "**/vscode-extension/**",
-    "**/.git/objects/**",
-    ".vscode",
-    "dist",
-    "build"
-  ],
   "files.exclude": {
-    "build": true,
-    ".history": true,
-    "node_modules": true,
-    "out": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    "**/.settings": true,
-    "**/.factorypath": true,
-    "/tmp/**": true,
-    "**/dist": true,
-    "**/build": true,
-    "**/out": true
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/.nyc_output": true,
+    "**/coverage": true,
+    "**/dist": true
   },
   "search.exclude": {
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-    "**/node_modules/**": true,
-    "**/.meteor/local": true,
-    "**/build/**": true,
-    "build/**": true,
-    "**/.history/**": true,
-    ".history/**": true,
-    ".history/**/*": true,
-    "out/**": true,
-    "**/out/**": true,
-    "/tmp/**": true,
-    "**/dist": true,
-    "**/build": true,
-    "**/out": true
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/dist": true
   },
-  "files.useExperimentalFileWatcher": true,
-  "files.watcherExclude": {
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-    "**/node_modules/**": true,
-    "**/.meteor/local": true,
-    "**/build/**": true,
-    "**/.history/**": true,
-    ".history/**": true,
-    "**/out/**": true,
-    "**/dist": true,
-    "**/build": true,
-    "**/out": true
-  },
-  "cSpell.enableFiletypes": ["markdown"],
-
-  "xml.fileAssociations": [
-    {
-      "systemId": ".vscode/project.xsd",
-      "pattern": "**/*.xml"
-    }
-  ],
-  "xml.format.splitAttributes": true,
-  "xml.validation.enabled": false,
-  "xml.format.preserveEmptyContent": true,
-  "xml.preferences.quoteStyle": "single",
-  "xml.format.enforceQuoteStyle": "preferred",
   "editor.tabSize": 4,
-  "[brightscript]": {
-    "editor.tabSize": 2
-  },
-  "[brighterscript]": {
-    "editor.tabSize": 2
-  },
-  "[xml]": {
-    "editor.tabSize": 2
-  },
   "editor.insertSpaces": true,
   "typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": true,
+  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": false,
   "files.trimTrailingWhitespace": true,
-  "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": true,
-  "[typescript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
   "workbench.colorCustomizations": {
     "statusBar.background": "#FF4658",
     "statusBar.debuggingBackground": "#932b35",
@@ -100,61 +28,5 @@
     "titleBar.activeBackground": "#6A9CE6",
     "titleBar.activeForeground": "#FAFBFE"
   },
-  "launches": {
-    "Run": "Run"
-  },
-  "eslint.validate": ["javascript", "typescript"],
-  "eslint.format.enable": true,
-  // "eslint.format.enable": true
-  "gotoNextPreviousMember.symbolKinds": [
-    "constructor",
-    "function",
-    "method",
-    "module",
-    "namespace",
-    "class",
-    "struct",
-    "interface"
-  ],
-  "cSpell.enabledLanguageIds": [
-    "brightscript",
-    "javascript",
-    "markdown",
-    "plaintext",
-    "text",
-    "typescript",
-    "yml",
-    "brighterscript"
-  ],
-  "brightscript.output.clearOnLaunch": true,
-  "brightscript.output.focusOnLaunch": true,
-  "brightscript.format.removeTrailingWhiteSpace": false,
-  "brightscript.output.includeStackTraces": true,
-  "brightscript.debug.enableDebugProtocol": false,
-  "brightscript.outputPanelStartupBehavior": "focus",
-  "brightscript.format.keywordCase": "lower",
-  "brightscript.enableLanguageServer": true,
-  "brightscript.deviceDiscovery.enabled": false,
-  "editor.tokenColorCustomizations": {
-    "textMateRules": [
-      {
-        "scope": "meta.function-call.brs,punctuation.decorator.brs",
-        "settings": {
-          "foreground": "#34BEB0",
-          "fontStyle": ""
-        }
-      }
-    ]
-  },
-  "brightscript.bsdk": "node_modules/brighterscript",
-  "brightscript.output.hyperlinkFormat": "FilenameAndFunction",
-  "cx.server": {
-    "url": "https://checkmarx.nba-hq.com/",
-    "alias": "nba",
-    "username": "",
-    "password": "",
-    "project_id": 0,
-    "team_id": 0,
-    "project_name": ""
-  }
+  "brightscript.bsdk": "node_modules/brighterscript"
 }
