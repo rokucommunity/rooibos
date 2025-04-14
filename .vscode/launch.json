@@ -1,5 +1,67 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug TS Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "sourceMaps": true,
+            "args": [
+                "--timeout",
+                "987654"
+            ],
+            "skipFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
+                "<node_internals>/**/*.js"
+            ],
+            "cwd": "${workspaceRoot}",
+            "internalConsoleOptions": "openOnSessionStart",
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/typescript/**"
+            ]
+        },
+        {
+            "name": "Run Cli",
+            "type": "node",
+            "request": "launch",
+            "smartStep": false,
+            "sourceMaps": true,
+            "runtimeArgs": [
+                "--nolazy",
+                "-r",
+                "ts-node/register"
+            ],
+            "args": [
+                "src/cli.ts",
+                "--project=../tests/bsconfig.json",
+                "--host=${input:roku_host}",
+                "--password=${input:roku_password}"
+            ],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/typescript/**",
+                "!**/node_modules/vscode-languageserver/**"
+            ],
+            "skipFiles": [
+                "<node_internals>/**/*.js"
+            ],
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "roku_host",
+            "type": "promptString",
+            "description": "Enter the IP address of your Roku device",
+            "default": ""
+        },
+        {
+            "id": "roku_password",
+            "type": "promptString",
+            "description": "Enter the password for your Roku device",
+            "default": ""
+        }
+    ]
 }
