@@ -7,7 +7,6 @@ build
 yarn-error.log
 roku_modules/
 .vscode/.env
-tmp
 .tmp
 
 logs

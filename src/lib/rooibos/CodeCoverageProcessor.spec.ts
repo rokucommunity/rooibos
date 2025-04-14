@@ -6,7 +6,7 @@ import * as fsExtra from 'fs-extra';
 import { RooibosPlugin } from '../../plugin';
 import undent from 'undent';
 
-let tmpPath = s`${process.cwd()}/tmp`;
+let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 
@@ -38,7 +38,6 @@ describe('RooibosPlugin', () => {
             };
             fsExtra.ensureDirSync(_stagingFolderPath);
             fsExtra.ensureDirSync(_rootDir);
-            fsExtra.ensureDirSync(tmpPath);
 
             builder = new ProgramBuilder();
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -54,10 +53,9 @@ describe('RooibosPlugin', () => {
         });
         afterEach(() => {
             plugin.afterProgramCreate(program);
-            fsExtra.ensureDirSync(tmpPath);
-            fsExtra.emptyDirSync(tmpPath);
             builder.dispose();
             program.dispose();
+            fsExtra.removeSync(tmpPath);
         });
 
         describe('basic brs tests', () => {

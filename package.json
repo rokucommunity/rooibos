@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "brighterscript": "^0.67.4",
+        "minimatch": "^3.0.4",
         "roku-debug": "^0.21.10",
         "roku-deploy": "^3.12.1",
         "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
@@ -31,6 +32,7 @@
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
+        "@types/minimatch": "^3.0.5",
         "@types/mocha": "^9.1.1",
         "@types/node": "^14.18.41",
         "@types/yargs": "^15.0.5",
@@ -44,7 +46,6 @@
         "eslint-plugin-no-only-tests": "^2.4.0",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
-        "minimatch": "^3.0.4",
         "mocha": "^11.1.0",
         "nyc": "^15.1.0",
         "release-it": "^17.6.0",

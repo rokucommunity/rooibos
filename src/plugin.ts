@@ -213,7 +213,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.includeFilters) {
-                if (!minimatch(file.pathAbsolute, filter)) {
+                if (!minimatch(file.pathAbsolute, filter, { dot: true })) {
                     return false;
                 }
             }
@@ -228,7 +228,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.coverageExcludedFiles) {
-                if (minimatch(file.pkgPath, filter)) {
+                if (minimatch(file.pkgPath, filter, { dot: true })) {
                     return false;
                 }
             }
@@ -243,7 +243,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.globalMethodMockingExcludedFiles) {
-                if (minimatch(file.pkgPath, filter)) {
+                if (minimatch(file.pkgPath, filter, { dot: true })) {
                     // console.log('±±±skipping file', file.pkgPath);
                     return false;
                 }

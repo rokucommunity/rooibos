@@ -6,7 +6,7 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import undent from 'undent';
 import { SourceMapConsumer } from 'source-map';
-let tmpPath = s`${process.cwd()}/tmp`;
+let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
@@ -17,7 +17,6 @@ describe('RooibosPlugin', () => {
     let plugin: RooibosPlugin;
 
     function setupProgram(options) {
-        fsExtra.emptyDirSync(tmpPath);
         fsExtra.ensureDirSync(_stagingFolderPath);
         fsExtra.ensureDirSync(_rootDir);
 
@@ -34,10 +33,9 @@ describe('RooibosPlugin', () => {
     }
 
     function destroyProgram() {
-        fsExtra.ensureDirSync(tmpPath);
-        fsExtra.emptyDirSync(tmpPath);
         builder.dispose();
         program.dispose();
+        fsExtra.removeSync(tmpPath);
     }
 
     beforeEach(() => {
@@ -1536,8 +1534,8 @@ describe('RooibosPlugin', () => {
                 expect(codeText).to.equal(undent`
                     function sayHello(firstName = "", lastName = "")
                         __stubs_globalAa = getGlobalAa()
-                        if RBS_SM_2_getMocksByFunctionName()["sayhello"] <> invalid
-                            __stubOrMockResult = RBS_SM_2_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
+                        if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
                             return __stubOrMockResult
                         else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
                             __stubFunction = __stubs_globalAa.__globalStubs.sayhello
@@ -1550,7 +1548,7 @@ describe('RooibosPlugin', () => {
                         print firstName + " " + lastName
                     end function
 
-                    function RBS_SM_2_getMocksByFunctionName()
+                    function RBS_SM_1_getMocksByFunctionName()
                         if m._rMocksByFunctionName = invalid
                             m._rMocksByFunctionName = {}
                         end if
@@ -1628,8 +1626,8 @@ describe('RooibosPlugin', () => {
                 expect(codeText).to.equal(undent(`
                     function utils_sayHello(firstName = "", lastName = "")
                         __stubs_globalAa = getGlobalAa()
-                        if RBS_SM_2_getMocksByFunctionName()["utils_sayhello"] <> invalid
-                            __stubOrMockResult = RBS_SM_2_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
+                        if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
                             return __stubOrMockResult
                         else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
                             __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
@@ -1642,7 +1640,7 @@ describe('RooibosPlugin', () => {
                         print firstName + " " + lastName
                     end function
 
-                    function RBS_SM_2_getMocksByFunctionName()
+                    function RBS_SM_1_getMocksByFunctionName()
                         if m._rMocksByFunctionName = invalid
                             m._rMocksByFunctionName = {}
                         end if
