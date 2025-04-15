@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: "16.20.2"
           architecture: 'x64' # fix for macos-latest
-      - run: cd npm ci
-      - run: cd npm run preversion
-      - run: cd npm run publish-coverage
-      - run: cd tests && npm install && npm run build
+      - run: npm ci
+      - run: npm run preversion
+      - run: npm run publish-coverage
+      - run: tests && npm install && npm run build
