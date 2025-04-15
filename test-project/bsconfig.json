@@ -1,5 +1,5 @@
 {
-  "rootDir": "src",
+  "rootDir": "./src",
   "files": [
     "manifest",
     "source/**/*.*",
@@ -7,7 +7,9 @@
   ],
   "autoImportComponentScript": true,
   "createPackage": false,
-  "stagingDir": "build",
+  "stagingDir": "dist",
+  "retainStagingDir": true,
+  "sourceMap": true,
   "diagnosticFilters": [
     {
       "src": "**/roku_modules/**/*.*",
@@ -39,7 +41,5 @@
     "reporters": [
       "mocha"
     ]
-  },
-  "sourceMap": true,
-  "retainStagingDir": true
+  }
 }

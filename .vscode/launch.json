@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug TS Tests",
+            "name": "Debug bsc plugin tests",
             "type": "node",
             "request": "launch",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
@@ -23,7 +23,23 @@
             ]
         },
         {
-            "name": "Run Cli",
+            "name": "Debug Roku Tests",
+            "type": "brightscript",
+            "request": "launch",
+            "preLaunchTask": "build-test-project",
+            "stopOnEntry": false,
+            "files": [
+                //all files from the test-project/dist folder
+              "**/*",
+            ],
+            "rootDir": "${workspaceFolder}/test-project/dist",
+            "enableDebuggerAutoRecovery": true,
+            "stopDebuggerOnAppExit": true,
+            "injectRaleTrackerTask": false,
+            "enableDebugProtocol": true
+          },
+        {
+            "name": "Debug Rooibos CLI",
             "type": "node",
             "request": "launch",
             "smartStep": false,
