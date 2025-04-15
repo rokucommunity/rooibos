@@ -36,6 +36,7 @@
     "keepAppOpen": true,
     "isGlobalMethodMockingEnabled": true,
     "isRecordingCodeCoverage": false,
+    "printLcov": false,
     "reporters": [
       "mocha"
     ]
