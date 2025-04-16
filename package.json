@@ -17,7 +17,7 @@
         "cli": "ts-node src/cli.ts"
     },
     "dependencies": {
-        "brighterscript": "^0.68.3",
+        "brighterscript": "^0.67.4",
         "minimatch": "^3.0.4",
         "roku-debug": "^0.21.10",
         "roku-deploy": "^3.12.1",
