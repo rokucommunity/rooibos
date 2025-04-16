@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { BrsFile, ClassStatement, FunctionStatement, NamespaceContainer, NamespaceStatement, Program, ProgramBuilder, Scope } from 'brighterscript';
-import { isBrsFile, isCallExpression, isVariableExpression, ParseMode, Parser, WalkMode } from 'brighterscript';
+import { isBrsFile, isCallExpression, isClassStatement, isVariableExpression, ParseMode, Parser, WalkMode } from 'brighterscript';
 import type { AstEditor } from 'brighterscript/dist/astUtils/AstEditor';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -119,8 +119,10 @@ export class RooibosSession {
 
     addTestRunnerMetadata(editor: AstEditor) {
         let runtimeConfig = this._builder.program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
-        if (runtimeConfig) {
-            let classStatement = (runtimeConfig.ast.statements[0] as NamespaceStatement).body.statements[0] as ClassStatement;
+        const classStatement = runtimeConfig?.ast?.findChild<ClassStatement>((node) => {
+            return isClassStatement(node) && node.name?.text?.toLowerCase() === 'runtimeconfig';
+        });
+        if (classStatement) {
             this.updateRunTimeConfigFunction(classStatement, editor);
             this.updateVersionTextFunction(classStatement, editor);
             this.updateClassMapFunction(classStatement, editor);
