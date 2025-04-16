@@ -1,0 +1,6 @@
+{
+    "insertSpaceAfterFunctionKeywordForAnonymousFunctions": true,
+    "insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": true,
+    "removeTrailingWhiteSpace": false,
+    "keywordCase": "lower",
+}
