@@ -1,4 +1,5 @@
 namespace rooibos
+  ' @ignore
   class Stats
     public time = 0
     public ranCount = 0

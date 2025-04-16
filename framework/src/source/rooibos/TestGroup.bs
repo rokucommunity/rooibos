@@ -1,9 +1,4 @@
 namespace rooibos
-  ' /**
-  '  * @module TestSuite
-  '  * @description All brs files that include `'@TestSuite` annotations automatically extend the TestSuite.
-  '  * The base test suite contains all of the assertions, and utility methods required to write our tests, as well as being responsible for tracking the state of the tests and groups.
-  '  */
   class TestGroup
     'test state
     name = "Unnamed Suite"

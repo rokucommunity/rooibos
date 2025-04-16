@@ -1,4 +1,5 @@
 namespace rooibos
+  ' @ignore
   class MochaTestReporter extends rooibos.BaseTestReporter
 
     sub new(runner)
@@ -542,7 +543,9 @@ namespace rooibos
 
   end class
 
+  ' @ignore
   namespace reporters
+    ' @ignore
     namespace mocha
       enum colors
         pass = "90"

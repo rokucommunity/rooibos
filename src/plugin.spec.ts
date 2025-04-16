@@ -2570,6 +2570,7 @@ describe('RooibosPlugin', () => {
             expect(
                 getContents('rooibos/RuntimeConfig.brs')
             ).to.eql(undent`
+                ' @ignore
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
                     instance.new = function()
@@ -2658,6 +2659,7 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
 
                 let fullExpected = undent`
+                    ' @ignore
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}
                         instance.new = function()
