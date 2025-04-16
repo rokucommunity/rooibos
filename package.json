@@ -56,9 +56,6 @@
         "typescript": "^4.9.5"
     },
     "main": "dist/plugin.js",
-    "files": [
-        "dist/**/!(*.spec.*)*"
-    ],
     "bin": {
         "rooibos": "dist/cli.js"
     },
