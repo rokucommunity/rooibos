@@ -25,4 +25,4 @@ jobs:
       - run: npm ci
       - run: npm run preversion
       - run: npm run publish-coverage
-      - run: tests && npm install && npm run build
+      - run: npm run build-test-project
