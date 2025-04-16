@@ -230,7 +230,7 @@ namespace rooibos.common
       return "Node(" + input.subType() + ")"
     else if type(input) = "roAssociativeArray"
       if input.isEmpty()
-        return "{" + chr(10) + "}"
+        return "{" + chr(10) + string(indention, indentChr) + "}"
       end if
 
       text = "{" + chr(10)
