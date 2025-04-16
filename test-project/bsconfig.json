@@ -1,5 +1,5 @@
 {
-  "rootDir": "src",
+  "rootDir": "./src",
   "files": [
     "manifest",
     "source/**/*.*",
@@ -7,7 +7,13 @@
   ],
   "autoImportComponentScript": true,
   "createPackage": false,
-  "stagingDir": "build",
+  "stagingDir": "dist",
+  "retainStagingDir": true,
+  "sourceMap": true,
+  "plugins": [
+    // "@rokucommunity/bslint",
+    "../src/plugin.ts"
+  ],
   "diagnosticFilters": [
     {
       "src": "**/roku_modules/**/*.*",
@@ -19,9 +25,6 @@
     1128,
     1001,
     1140
-  ],
-  "plugins": [
-    "../bsc-plugin/src/plugin.ts"
   ],
   "require": [
     "ts-node/register"
@@ -39,7 +42,5 @@
     "reporters": [
       "mocha"
     ]
-  },
-  "sourceMap": true,
-  "retainStagingDir": true
+  }
 }

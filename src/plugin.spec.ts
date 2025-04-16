@@ -6,7 +6,7 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import undent from 'undent';
 import { SourceMapConsumer } from 'source-map';
-let tmpPath = s`${process.cwd()}/tmp`;
+let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
@@ -17,7 +17,6 @@ describe('RooibosPlugin', () => {
     let plugin: RooibosPlugin;
 
     function setupProgram(options) {
-        fsExtra.emptyDirSync(tmpPath);
         fsExtra.ensureDirSync(_stagingFolderPath);
         fsExtra.ensureDirSync(_rootDir);
 
@@ -34,10 +33,9 @@ describe('RooibosPlugin', () => {
     }
 
     function destroyProgram() {
-        fsExtra.ensureDirSync(tmpPath);
-        fsExtra.emptyDirSync(tmpPath);
         builder.dispose();
         program.dispose();
+        fsExtra.removeSync(tmpPath);
     }
 
     beforeEach(() => {

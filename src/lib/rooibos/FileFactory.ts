@@ -14,7 +14,7 @@ export class FileFactory {
     constructor() {
         if (__filename.endsWith('.ts')) {
             //load the files directly from their source location. (i.e. the plugin is running as a typescript file from within ts-node)
-            this.frameworkSourcePath = s`${__dirname}/../../../../framework/src`;
+            this.frameworkSourcePath = s`${__dirname}/../../../framework/src`;
         } else {
             //load the framework files from the dist folder (i.e. the plugin is running as a node_module)
             this.frameworkSourcePath = s`${__dirname}/../framework`;
