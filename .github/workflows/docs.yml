@@ -1,9 +1,8 @@
 name: publish-docs
 on:
   push:
-    #temporarly disable the branch restrictions so we can test the action
-    # branches:
-    #   - 'master'
+    branches:
+      - 'master'
 jobs:
   publish-docs:
     runs-on: ubuntu-latest
