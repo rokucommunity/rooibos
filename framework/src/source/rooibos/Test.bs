@@ -1,4 +1,5 @@
 namespace rooibos
+  ' @ignore
   class Test
 
     public name

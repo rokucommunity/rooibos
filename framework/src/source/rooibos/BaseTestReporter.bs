@@ -1,4 +1,6 @@
 namespace rooibos
+
+  ' @ignore
   class BaseTestReporter
 
     public testRunner = invalid
@@ -49,38 +51,48 @@ namespace rooibos
 
   end class
 
+  ' @ignore
   interface TestReporterOnBeginEvent
     runner as rooibos.TestRunner
   end interface
 
+  ' @ignore
   interface TestReporterOnSuiteBeginEvent
     suite as rooibos.BaseTestSuite
   end interface
 
+  ' @ignore
   interface TestReporterOnTestGroupBeginEvent
     group as rooibos.TestGroup
   end interface
 
+  ' @ignore
   interface TestReporterOnTestBeginEvent
     test as rooibos.Test
   end interface
 
+  ' @ignore
   interface TestReporterOnTestCompleteEvent
     test as rooibos.Test
   end interface
 
+  ' @ignore
   interface TestReporterOnTestGroupCompleteEvent
     group as rooibos.TestGroup
   end interface
 
+  ' @ignore
   interface TestReporterOnSuiteCompleteEvent
     suite as rooibos.BaseTestSuite
   end interface
 
-  ' @depreciated use rooibos.TestReporterOnEndEvent
+  ' @ignore
+  ' @deprecated use rooibos.TestReporterOnEndEvent
   interface ITestReporterOnEndEvent
     stats as rooibos.Stats
   end interface
+
+  ' @ignore
   interface TestReporterOnEndEvent
     stats as rooibos.Stats
   end interface

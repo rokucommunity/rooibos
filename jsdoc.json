@@ -1,11 +1,42 @@
 {
-  "plugins": ["brightscriptCommentsOnlyJSDocPlugin.js", "plugins/markdown"],
+  "plugins": [
+    "plugins/markdown",
+    "./node_modules/brighterscript-jsdocs-plugin/convert-brighterscript-docs.js"
+  ],
   "source": {
-    "include": [ "build" ],
-    "includePattern": ".+\\.brs?$"
+    "include": [
+      "framework/src"
+    ],
+    "exclude": [
+      "framework/src/roku_modules"
+    ],
+    "includePattern": ".+\\.br?s$",
+    "excludePattern": "roku_modules"
   },
   "templates": {
-    "systemName": "Rooibos",
-    "search": false
+    "referenceTitle": "Rooibos",
+    "collapse": true
+  },
+  "opts": {
+    "recurse": true,
+    "template": "./node_modules/minami",
+    "brighterscript-jsdocs-plugin": {
+      "addModule": false
+    },
+    "theme_opts": {
+      "homepageTitle": "Rooibos",
+      "menu": [
+        {
+          "title": "HOME",
+          "link": "../index.html",
+          "id": "home"
+        }
+      ],
+      "sections": [
+        "Namespaces",
+        "Classes",
+        "Interfaces"
+      ]
+    }
   }
 }

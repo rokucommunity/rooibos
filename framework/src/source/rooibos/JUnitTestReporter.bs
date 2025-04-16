@@ -1,4 +1,5 @@
 namespace rooibos
+  ' @ignore
   class JUnitTestReporter extends rooibos.BaseTestReporter
 
     override function onEnd(event as rooibos.TestReporterOnEndEvent)

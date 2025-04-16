@@ -11,6 +11,7 @@
         "copy-framework-files": "cp -r ./framework/src ./dist/lib/framework",
         "build": "ropm copy && npm run compile && npm run copy-framework-files",
         "build-test-project": "bsc --cwd test-project --project bsconfig.json",
+        "docs": "jsdoc -c jsdoc.json -d .tmp/docs --verbose",
         "test": "nyc mocha",
         "test:nocover": "mocha",
         "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -18,7 +19,7 @@
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "^0.67.4",
+        "brighterscript": "0.67.4",
         "minimatch": "^3.0.4",
         "roku-debug": "^0.21.10",
         "roku-deploy": "^3.12.1",
@@ -40,6 +41,7 @@
         "@types/yargs": "^15.0.5",
         "@typescript-eslint/eslint-plugin": "^5.27.0",
         "@typescript-eslint/parser": "^5.27.0",
+        "brighterscript-jsdocs-plugin": "^0.7.3",
         "chai": "^4.2.0",
         "chai-subset": "^1.6.0",
         "coveralls": "^3.0.0",
@@ -48,6 +50,8 @@
         "eslint-plugin-no-only-tests": "^2.4.0",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
+        "jsdoc": "^3.5.5",
+        "minami": "^1.2.3",
         "mocha": "^11.1.0",
         "nyc": "^15.1.0",
         "release-it": "^17.6.0",
