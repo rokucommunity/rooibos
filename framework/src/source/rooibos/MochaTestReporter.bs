@@ -245,7 +245,7 @@ namespace rooibos
         '      -0 (Integer)
         '      +true (Boolean)
         function unifiedDiff(actual as string, expected as string) as string
-            cleanUp = function(line as string, m as rooibos.MochaTestReporter) as string
+            cleanUp = function(line as string, m as rooibos.MochaTestReporter) as string or dynamic
                 indent = "      "
                 if line.left(1) = "+" then
                     return indent + m.colorLines(rooibos.reporters.mocha.colors.diffAdded, line)
@@ -338,7 +338,7 @@ namespace rooibos
         end function
 
         ' Generate a structured patch object from two strings
-        function structuredPatch(oldFileName as string, newFileName as string, oldStr as string, newStr as string, oldHeader as string, newHeader as string, options as roAssociativeArray) as roAssociativeArray
+        function structuredPatch(oldFileName as string, newFileName as string, oldStr as string, newStr as string, oldHeader as dynamic, newHeader as dynamic, options as roAssociativeArray) as roAssociativeArray
             if options = invalid then
                 options = {}
             end if
@@ -366,7 +366,7 @@ namespace rooibos
         end function
 
         ' Convert a diff result into a patch
-        function diffLinesResultToPatch(diff as roArray, oldFileName as string, newFileName as string, oldHeader as string, newHeader as string, options as roAssociativeArray) as roAssociativeArray
+        function diffLinesResultToPatch(diff as roArray, oldFileName as string, newFileName as string, oldHeader as dynamic, newHeader as dynamic, options as roAssociativeArray) as roAssociativeArray
             ' STEP 1: Build up the patch with no "\ No newline at end of file" lines and with the arrays
             '         of lines containing trailing newline characters. We'll tidy up later...
 
@@ -492,7 +492,7 @@ namespace rooibos
             return result
         end function
 
-        function contextLines(lines as string) as string[]
+        function contextLines(lines as string[]) as string[]
             return rooibos.reporters.mocha.arrayMap(lines, function(entry as string, _ = invalid as dynamic) as string
                 return " " + entry
             end function)
@@ -571,7 +571,7 @@ namespace rooibos
                 diffRemovedInline = "30;41"
             end enum
 
-            function buildValues(diff as roAssociativeArray, lastComponent as dynamic, newString as string, oldString as string, useLongestToken as boolean) as roArray
+            function buildValues(diff as roAssociativeArray, lastComponent as roAssociativeArray, newString as string[], oldString as string[], useLongestToken as boolean or dynamic) as roArray
                 ' First we convert our linked list of components in reverse order to an
                 ' array in the right order:
                 components = []

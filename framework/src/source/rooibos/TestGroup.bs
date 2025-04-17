@@ -58,7 +58,7 @@ namespace rooibos
 
         private currentTestIndex = 0
         'TODO CONVERT THIS TO ASYNC
-        function run() as boolean
+        function run() as dynamic
             rooibos.common.logTrace(">>>>>>>>>>>>")
             rooibos.common.logTrace("RUNNING TEST GROUP")
             m.testRunner = m.testSuite.testRunner
