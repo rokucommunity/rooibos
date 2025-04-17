@@ -45,21 +45,21 @@ namespace rooibos
         return m._parent
       end function
 
-      function addFields(fields)
-        m.append(fields)
-      end function
-      function setField(field, value)
-        m[field] = value
-      end function
-      function setFields(fields)
-        m.append(fields)
-      end function
-      function observeField(field, callback)
-      end function
-      function getChildren(offset, count)
-        return m.children
-      end function
-      function removeChildren(children)
+    function addFields(fields)
+      (m as roAssociativeArray).append(fields)
+    end function
+    function setField(field, value)
+      m[field] = value
+    end function
+    function setFields(fields)
+      (m as roAssociativeArray).append(fields)
+    end function
+    function observeField(field, callback)
+    end function
+    function getChildren(offset, count)
+      return m.children
+    end function
+    function removeChildren(children)
 
       end function
       function observeFieldScoped(field, callback)

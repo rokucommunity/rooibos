@@ -5,10 +5,10 @@ function hitAllStatements() as dynamic
   end for
 
   tryAgain:
-  if loopCount = 11 then
+  if loopCount = 11 
       loopCount++
       goto tryAgain
-  else if loopCount = 12 then
+  else if loopCount = 12 
       loopCount++
       goto tryAgain
   else
@@ -17,7 +17,7 @@ function hitAllStatements() as dynamic
 
   while loopCount > 0
       loopCount--
-      if loopCount = 1 then
+      if loopCount = 1 
           exit while
       end if
   end while

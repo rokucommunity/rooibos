@@ -28,7 +28,7 @@ namespace tests
     @it("does not affect regular params")
     @params("#someValue", "#someValue")
     @params(22, 22)
-    @params([1,2,3], [1,2,3])
+    @params([1, 2, 3], [1, 2, 3])
     function _(arg1, expectedValue)
       m.assertEqual(arg1, expectedValue)
     end function

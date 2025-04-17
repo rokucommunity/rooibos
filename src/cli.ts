@@ -6,8 +6,6 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
-import * as path from 'path';
-import { create } from 'domain';
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -54,7 +52,7 @@ async function main() {
     builder.logger.logLevel = logLevel;
 
 
-    await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
+    await builder.run(<any>{ ...options, retainStagingDir: true });
 
     const rokuDeploy = new RokuDeploy();
     const deviceInfo = await rokuDeploy.getDeviceInfo({ host: host });
@@ -72,7 +70,7 @@ async function main() {
         if (emitAppExit) {
             (telnet as any).beginAppExit();
         }
-        await rokuDeploy.pressHomeButton(host); // roku-deploy v4: keyPress({ host: options.host, key: 'home' });
+        await rokuDeploy.keyPress({ host: options.host, key: 'home' });
         process.exit(currentErrorCode);
     }
 
@@ -117,8 +115,8 @@ async function main() {
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
         const outFile = bsConfig.outFile;
-        console.log(`Deploying ${outFile} to ${host}`);
-        await rokuDeploy.publish({ // roku-deploy v4: .sideload({...})
+
+        await rokuDeploy.sideload({
             password: password,
             host: host,
             outFile: outFile,

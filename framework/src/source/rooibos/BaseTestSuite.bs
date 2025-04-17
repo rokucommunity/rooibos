@@ -2,32 +2,33 @@ namespace rooibos
   class BaseTestSuite
 
     'test state
-    protected name = "BaseTestSuite" 'set the name to the name of your test
-    protected filePath = invalid
-    protected pkgPath = invalid
-    protected isValid = false
-    protected hasSoloTests = false
-    protected hasIgnoredTests = false
-    protected isSolo = false
-    protected isIgnored = false
-    protected noCatch = false
-    protected isNodeTest = false
+    public name = "BaseTestSuite" 'set the name to the name of your test
+    public filePath = invalid
+    public pkgPath = invalid
+    public destPath = invalid
+    public isValid = false
+    public hasSoloTests = false
+    public hasIgnoredTests = false
+    public isSolo = false
+    public isIgnored = false
+    public noCatch = false
+    public isNodeTest = false
     protected nodeName = invalid
     protected lineNumber = 1
-    protected groups = []
+    protected groups as TestGroup[] = []
     protected groupsData = []
-    protected stats = invalid
+    public stats as Stats = invalid
     protected currentAssertLineNumber = -1
     protected valid = false
-    protected hasFailures = false
+    public hasFailures = false
     protected hasSoloGroups = false
-    protected isFailingFast = false
+    public isFailingFast = false
     protected stubs = invalid
     protected mocks = invalid
     protected __stubId = -1
     protected __mockId = -1
     protected __mockTargetId = -1
-    protected currentExecutionTime = 0
+    public currentExecutionTime = 0
     protected timedOut = false
     public deferred = invalid
 
@@ -36,20 +37,49 @@ namespace rooibos
     protected ignoreValue = "#ROIBOS#IGNORE_VALUE" ' special value used in mock arguments
 
     'built in any matchers
-    protected anyStringMatcher = { "matcher": Rooibos_Matcher_anyString }
-    protected anyBoolMatcher = { "matcher": Rooibos_Matcher_anyBool }
-    protected anyNumberMatcher = { "matcher": Rooibos_Matcher_anyNumber }
-    protected anyAAMatcher = { "matcher": Rooibos_Matcher_anyAA }
-    protected anyArrayMatcher = { "matcher": Rooibos_Matcher_anyArray }
-    protected anyNodeMatcher = { "matcher": Rooibos_Matcher_anyNode }
+    protected anyStringMatcher = {"matcher": Rooibos_Matcher_anyString}
+    protected anyBoolMatcher = {"matcher": Rooibos_Matcher_anyBool}
+    protected anyNumberMatcher = {"matcher": Rooibos_Matcher_anyNumber}
+    protected anyAAMatcher = {"matcher": Rooibos_Matcher_anyAA}
+    protected anyArrayMatcher = {"matcher": Rooibos_Matcher_anyArray}
+    protected anyNodeMatcher = {"matcher": Rooibos_Matcher_anyNode}
     protected allowNonExistingMethodsOnMocks = true
     protected isAutoAssertingMocks = true
 
-    protected currentResult = invalid
+    protected currentResult as TestResult = invalid
 
-    protected global = invalid
-    protected catchCrashes = false
-    protected throwOnFailedAssertion = false
+    public global = invalid
+    public scene as roSGNode = invalid
+    public catchCrashes = false
+    public throwOnFailedAssertion = false
+
+    public isAsync = false
+    protected asyncTimeout = 0
+
+    protected generatedNodeName = ""
+
+    public testRunner as TestRunner = invalid
+
+    protected testTimer as roSGNodeTimer = invalid
+    protected currentTimeout as integer = 0
+
+    protected currentGroup as TestGroup = invalid
+    protected currentGroupIndex = -1
+
+    public isDoneCalled = false
+
+    ' Reference to the tested node in Node tests
+    ' Defined as object so it can be easily typed in tests
+    public top as object = invalid
+    ' Reference to the 'm' of the tested node in node tests
+    ' Defined as object so it can be easily typed in tests
+    public node as object = invalid
+
+    public tests as Test[] = []
+
+    protected isTestFailedDueToEarlyExit = false
+
+    public testReporters as BaseTestReporter[] = []
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ base methods to override
@@ -62,6 +92,7 @@ namespace rooibos
         m.name = data.name
         m.filePath = data.filePath
         m.pkgPath = data.pkgPath
+        m.destPath = data.destPath
         m.valid = data.valid
         m.hasFailures = data.hasFailures
         m.hasSoloTests = data.hasSoloTests
@@ -87,8 +118,8 @@ namespace rooibos
       end if
     end function
 
-    ' @ignore
-    function getTestSuiteData()
+    ' bs:disable-next-line LINT2004
+    function getTestSuiteData() as TestSuiteData
       'this will be injected by the plugin
     end function
 
@@ -129,15 +160,11 @@ namespace rooibos
     ' @ignore
     function runSync()
       for each groupData in m.groupsData
-        'bs:disable-next-line
         group = new TestGroup(m, groupData)
 
-        'bs:disable-next-line
         m.groups.push(group)
-        'bs:disable-next-line
         group.run()
 
-        'bs:disable-next-line
         m.stats.merge(group.stats)
 
         if m.stats.hasFailures and m.isFailingFast = true
@@ -155,7 +182,6 @@ namespace rooibos
 
       m.groups = []
       for each groupData in m.groupsData
-        'bs:disable-next-line
         group = new TestGroup(m, groupData)
         m.groups.push(group)
       end for
@@ -180,7 +206,7 @@ namespace rooibos
         if rooibos.promises.isPromise(group.deferred)
           rooibos.promises.onFinally(group.deferred, sub(context)
             context.self.onAsyncGroupComplete(context.group)
-          end sub, { group: group, self: m })
+          end sub, {group: group, self: m})
         else
           m.onAsyncGroupComplete(group)
         end if
@@ -196,7 +222,6 @@ namespace rooibos
         rooibos.common.logError("Cannot find test group to mark async finished for?!")
         return
       end if
-      'bs:disable-next-line
       m.stats.merge(group.stats)
 
       if m.stats.hasFailures and m.isFailingFast
@@ -244,7 +269,6 @@ namespace rooibos
             m.CleanStubs()
           end if
         catch error
-          'bs:disable-next-line
           m.currentResult.crash("test crashed!", error)
           if rooibos.promises.isPromise(test.deferred)
             rooibos.promises.reject(error, test.deferred)
@@ -1770,7 +1794,7 @@ namespace rooibos
         m.currentResult.failCrash(error, error.message)
         return false
       end try
-      return false
+      return false 'bs:disable-line LINT2001
     end function
 
     ' Fail if the node have the item from subset.
@@ -1846,9 +1870,9 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     ' Asserts the associative array contains the fields contained in subset; while ignoring the fields in the ignoredFields array
-    ' @param {assocarray} array - associative array  to check
-    ' @param {assocarray} subset - associative array of values to check for
-    ' @param {array} ignoredFields - array of fieldnames to ignore while comparing
+    ' @param {roAssociativeArray} array - associative array  to check
+    ' @param {roAssociativeArray} subset - associative array of values to check for
+    ' @param {string[]} ignoredFields - array of fieldnames to ignore while comparing
     ' @param {string} [msg=""] - alternate error message
     ' @returns {boolean} - true if the assert was satisfied, false otherwise
     function assertAAContainsSubset(array, subset, ignoredFields = invalid, msg = "") as dynamic
@@ -1926,7 +1950,7 @@ namespace rooibos
     ' @returns {Object} - stub that was wired into the real method
     function stub(target, methodName, returnValue = invalid, allowNonExistingMethods = false) as object
       if target = invalid and not rooibos.common.isFunction(methodName)
-        m.fail("could not create Stub. Global function", methodName, ", is invalid")
+        m.fail(`could not create Stub. Global function ${methodName} is invalid`)
         return {}
       else if type(target) <> "roAssociativeArray"
         m.fail("could not create Stub provided target was null")
@@ -1975,10 +1999,20 @@ namespace rooibos
         mock = m.mocks[m.__mockId.toStr()]
         mock.toThrow(error)
       catch error
-        m.log.error("could not add throw to last call", error)
+        ? "could not add throw to last call"; error
       end try
     end function
 
+    ' /**
+    '  * @memberof module:BaseTestSuite
+    '  * @name expectCalled
+    '  * @function
+    '  * @instance
+    '  * @description Creates a stub to replace a real method with, which the framework will track. If the method was not invoked in the manner you expected (i.e. with the expected parameters and the expected number of invocations) then a unit test failure will result.
+    '  * @param {Dynamic} invocation - the expected call of the method
+    '  * @param {Dynamic} [returnValue=invalid] - value that the stub method will return when invoked
+    '  * @returns {Object} - mock that was wired into the real method
+    '  */
     function expectCalled(invocation as dynamic, returnValue = invalid as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid
@@ -2028,14 +2062,24 @@ namespace rooibos
         end if
         return m.stub(target, methodName, returnValue, true)
       catch error
-        'bs:disable-next-line
         m.fail("Setting up mock failed: " + error.message, "", "", true)
         return false
       end try
+      'bs:disable-next-line
       return false
     end function
 
-    function expectNotCalled(invocation as dynamic) as object
+    ' /**
+    '  * @memberof module:BaseTestSuite
+    '  * @name expectNotCalled
+    '  * @function
+    '  * @instance
+    '  * @description Creates a stub to replace a real method with, which the framework will track. If the method was called then a unit test failure will result.
+    '  * @param {Dynamic} invocation - the method that should not be called
+    '  * @param {Dynamic} ignored
+    '  * @returns {Object} - mock that was wired into the real method
+    '  */
+    function expectNotCalled(invocation as dynamic, ignored = invalid as dynamic) as object
       'mock function body - the plugin replaces this
       return invalid
     end function
@@ -2048,10 +2092,10 @@ namespace rooibos
         end if
         return m.mock(target, methodName, 0, invalid, invalid, true)
       catch error
-        'bs:disable-next-line
         m.fail("Setting up mock failed: " + error.message, "", "", true)
         return false
       end try
+      'bs:disable-next-line
       return false
     end function
 
@@ -2148,7 +2192,7 @@ namespace rooibos
 
       if target <> invalid and not rooibos.common.isFunction(target) and not rooibos.common.isAssociativeArray(target)
         methodName = ""
-        m.mockFail(lineNumber, "", "mock args: target should be an AA or in-scope Global function", methodName)
+        m.mockFail(lineNumber, "", "mock args: target should be an AA or in-scope Global function")
       else if not rooibos.common.isString(methodName)
         methodName = ""
         m.mockFail(lineNumber, "", "mock args: methodName was not a string")
@@ -2287,16 +2331,11 @@ namespace rooibos
           rooibos.common.logTrace(`FAKE CALLBACK CALLED FOR ${m.methodName}`)
           'bs:disable-next-line
           if m.allInvokedArgs = invalid
-            'bs:disable-next-line
             m.allInvokedArgs = []
           end if
-          'bs:disable-next-line
           m.invokedArgs = [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15]
-          'bs:disable-next-line
           m.allInvokedArgs.push ([arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15])
-          'bs:disable-next-line
           m.isCalled = true
-          'bs:disable-next-line
           m.invocations++
 
           if m.errorToThrow <> invalid
@@ -2306,12 +2345,10 @@ namespace rooibos
           if type(m.returnValue) = "roAssociativeArray" and m.returnValue.ifAssociativeArray.doesExist("multiResult")
             'bs:disable-next-line
             returnValues = m.returnValue["multiResult"]
-            'bs:disable-next-line
             returnIndex = m.invocations - 1
 
             if type(returnValues) = "roArray" and returnValues.count() > 0
 
-              'bs:disable-next-line
               if returnValues.count() <= m.invocations
                 returnIndex = returnValues.count() - 1
                 rooibos.common.logDebug("Multi return values all used up - repeating last value")
@@ -2322,7 +2359,6 @@ namespace rooibos
               return invalid
             end if
           else
-            'bs:disable-next-line
             return m.returnValue
           end if
         end function
@@ -2835,10 +2871,10 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     ' observeField doesn't work in regular unit tests, so we have to wait for the result. We can use this to wait for a network task, foe example, and pass the result directly to a handler. Note - we wait for the value TO CHANGE - so make sure that will be the case, or you'll get stuck forever :)
-    ' @param {any} target to observe
+    ' @param {dynamic} target to observe
     ' @param {string} field to observe
-    ' @param {int} delay for each wait
-    ' @param {int} max attempts
+    ' @param {integer} delay for each wait
+    ' @param {integer} max attempts
     function waitForField(target, fieldName, delay = 500, maxAttempts = 10)
       attempts = 0
       if target = invalid
@@ -2904,7 +2940,6 @@ namespace rooibos
 
         return true
       catch error
-        'bs:disable-next-line
         m.currentResult.fail("Error while waiting: " + error.message, m.currentAssertLineNumber)
       end try
       return false
@@ -2939,7 +2974,7 @@ namespace rooibos
     private sub notifyReportersOnSuiteBegin()
       for each reporter in m.testReporters
         if rooibos.common.isFunction(reporter.onSuiteBegin)
-          reporter.onSuiteBegin({ suite: m })
+          reporter.onSuiteBegin({suite: m})
         end if
       end for
     end sub
@@ -2948,7 +2983,7 @@ namespace rooibos
     private sub notifyReportersOnSuiteComplete()
       for each reporter in m.testReporters
         if rooibos.common.isFunction(reporter.onSuiteComplete)
-          reporter.onSuiteComplete({ suite: m })
+          reporter.onSuiteComplete({suite: m})
         end if
       end for
     end sub

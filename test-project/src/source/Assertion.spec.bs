@@ -1,5 +1,3 @@
-import "pkg:/source/rooibos/BaseTestSuite.bs"
-
 namespace tests
 
   @noEarlyExit
@@ -26,7 +24,9 @@ namespace tests
     function _()
 
       try
+        ' this will cause exception on purpose
         result = 2 / 0
+        print result
       catch e
         m.failCrash(e)
       end try
@@ -100,7 +100,7 @@ namespace tests
 
     @it("passes with equal associative arrays")
     function _()
-      m.assertEqual({ "test": 1 }, { "test": 1 })
+      m.assertEqual({"test": 1}, {"test": 1})
     end function
 
     @it("passes with equal arrays")
@@ -145,7 +145,7 @@ namespace tests
 
     @it("handles AA with keys properties")
     function _()
-      m.assertEqual({ keys: [1, 2, 3] }, { keys: [1, 2, 3] })
+      m.assertEqual({keys: [1, 2, 3]}, {keys: [1, 2, 3]})
     end function
 
     @it("passes with invalid")
@@ -155,7 +155,7 @@ namespace tests
 
     @it("passes with uninitialized")
     function _()
-      m.assertEqual(uninitialized, uninitialized)
+      m.assertEqual(uninitialized, uninitialized) ' bs:disable-line LINT1001
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -185,7 +185,7 @@ namespace tests
 
     @it("passes with equal associative arrays")
     function _()
-      m.assertLike({ "test": 1 }, { "test": 1 })
+      m.assertLike({"test": 1}, {"test": 1})
     end function
 
     @it("passes with equal arrays")
@@ -235,7 +235,7 @@ namespace tests
 
     @it("passes with uninitialized")
     function _()
-      m.assertLike(uninitialized, uninitialized)
+      m.assertLike(uninitialized, uninitialized) ' bs:disable-line LINT1001
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -254,13 +254,13 @@ namespace tests
         }
         array: [1, 2, 3]
       }
-      obj2 = uninitialized
+      obj2 = uninitialized ' bs:disable-line LINT1001
       m.assertNotEqual(obj, obj2)
     end function
 
     @it("passes assertNotEqual on uninitialized vs object")
     function _()
-      obj = uninitialized
+      obj = uninitialized ' bs:disable-line LINT1001
       obj2 = {
         "mockMethod": invalid
         key: "value1"
@@ -463,7 +463,7 @@ namespace tests
 
     @it("passes assertNotEqual on uninitialized vs node")
     function _()
-      obj = uninitialized
+      obj = uninitialized ' bs:disable-line LINT1001
       obj2 = createObject("roSgNode", "Node")
       m.assertNotEqual(obj, obj2)
     end function
@@ -471,7 +471,7 @@ namespace tests
     @it("passes assertNotEqual on node vs uninitialized")
     function _()
       obj = createObject("roSgNode", "Node")
-      obj2 = uninitialized
+      obj2 = uninitialized ' bs:disable-line LINT1001
       m.assertNotEqual(obj, obj2)
     end function
 
@@ -555,13 +555,13 @@ namespace tests
     @it("passes assertNotEqual on node vs AA")
     function _()
       obj = createObject("roSgNode", "Node")
-      obj2 = { "key": "value" }
+      obj2 = {"key": "value"}
       m.assertNotEqual(obj, obj2)
     end function
 
     @it("passes assertNotEqual on AA vs node")
     function _()
-      obj = { "key": "value" }
+      obj = {"key": "value"}
       obj2 = createObject("roSgNode", "Node")
       m.assertNotEqual(obj, obj2)
     end function
@@ -569,13 +569,13 @@ namespace tests
     @it("passes assertNotEqual on boolean vs uninitialized")
     function _()
       obj = true
-      obj2 = uninitialized
+      obj2 = uninitialized ' bs:disable-line LINT1001
       m.assertNotEqual(obj, obj2)
     end function
 
     @it("passes assertNotEqual on uninitialized vs boolean")
     function _()
-      obj = uninitialized
+      obj = uninitialized ' bs:disable-line LINT1001
       obj2 = true
       m.assertNotEqual(obj, obj2)
     end function
@@ -639,13 +639,13 @@ namespace tests
     @it("passes assertNotEqual on integer vs uninitialized")
     function _()
       obj = 1
-      obj2 = uninitialized
+      obj2 = uninitialized ' bs:disable-line LINT1001
       m.assertNotEqual(obj, obj2)
     end function
 
     @it("passes assertNotEqual on uninitialized vs integer")
     function _()
-      obj = uninitialized
+      obj = uninitialized ' bs:disable-line LINT1001
       obj2 = 1
       m.assertNotEqual(obj, obj2)
     end function
@@ -718,7 +718,7 @@ namespace tests
     @it("passes when provided an associative array")
     function _()
       m.assertNotInvalid({})
-      m.assertNotInvalid({ "test": 1 })
+      m.assertNotInvalid({"test": 1})
     end function
 
     @it("passes when provided an array")
@@ -747,13 +747,13 @@ namespace tests
 
     @it("passes when aa has requested key")
     function _()
-      aa = { "test": 1 }
+      aa = {"test": 1}
       m.assertAAHasKey(aa, "test")
     end function
 
     @it("supports aa with DoesExist property")
     function _()
-      aa = { "DoesExist": 1 }
+      aa = {"DoesExist": 1}
       m.assertAAHasKey(aa, "DoesExist")
     end function
 
@@ -763,13 +763,13 @@ namespace tests
 
     @it("passes when aa does not have requested key")
     function _()
-      aa = { "test": 1 }
+      aa = {"test": 1}
       m.assertAANotHasKey(aa, "missing")
     end function
 
     @it("supports aa with DoesExist property")
     function _()
-      aa = { "DoesExist": 1 }
+      aa = {"DoesExist": 1}
       m.assertAANotHasKey(aa, "missing")
     end function
 
@@ -779,13 +779,13 @@ namespace tests
 
     @it("passes when aa has requested keys")
     function _()
-      aa = { "one": 1, "two": 2, "three": 3 }
+      aa = {"one": 1, "two": 2, "three": 3}
       m.assertAAHasKeys(aa, ["one", "two"])
     end function
 
     @it("supports aa with DoesExist property")
     function _()
-      aa = { "one": 1, "two": 2, "three": 3, "DoesExist": true }
+      aa = {"one": 1, "two": 2, "three": 3, "DoesExist": true}
       m.assertAAHasKeys(aa, ["one", "two"])
     end function
 
@@ -795,13 +795,13 @@ namespace tests
 
     @it("passes when aa does not have requested keys")
     function _()
-      aa = { "one": 1, "two": 2, "three": 3 }
+      aa = {"one": 1, "two": 2, "three": 3}
       m.assertAANotHasKeys(aa, ["four", "five"])
     end function
 
     @it("supports aa with DoesExist property")
     function _()
-      aa = { "one": 1, "two": 2, "three": 3, "DoesExist": true }
+      aa = {"one": 1, "two": 2, "three": 3, "DoesExist": true}
       m.assertAANotHasKeys(aa, ["four", "five"])
     end function
 
@@ -821,7 +821,7 @@ namespace tests
 
     @it("passes assertArrayContains when value is in array with AA search")
     function _()
-      m.assertArrayContains([{ one: 1, two: 2, three: 3 }], { one: 1, two: 2, three: 3 })
+      m.assertArrayContains([{one: 1, two: 2, three: 3}], {one: 1, two: 2, three: 3})
     end function
 
     @it("passes assertArrayContains when value is in array with node search")
@@ -832,28 +832,28 @@ namespace tests
 
     @it("passes assertArrayContains when value is in AA")
     function _()
-      m.assertArrayContains({ one: 1, two: 2, three: 3 }, { one: 1, two: 2, three: 3 })
+      m.assertArrayContains({one: 1, two: 2, three: 3}, {one: 1, two: 2, three: 3})
     end function
 
     @it("passes assertArrayContains when value is in AA with boolean search")
     function _()
-      m.assertArrayContains({ one: true }, { one: true })
+      m.assertArrayContains({one: true}, {one: true})
     end function
 
     @it("passes assertArrayContains when value is in AA with integer search")
     function _()
-      m.assertArrayContains({ one: 1 }, { one: 1 })
+      m.assertArrayContains({one: 1}, {one: 1})
     end function
 
     @it("passes assertArrayContains when value is in AA with array search")
     function _()
-      m.assertArrayContains({ one: [1] }, { one: [1] })
+      m.assertArrayContains({one: [1]}, {one: [1]})
     end function
 
     @it("passes assertArrayContains when value is in AA with node search")
     function _()
       node = createObject("roSgNode", "Node")
-      m.assertArrayContains({ one: node }, { one: node })
+      m.assertArrayContains({one: node}, {one: node})
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -861,22 +861,22 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("Fail")
-    @params([{ "one": 1 }], [{ "one": 2 }])
-    @params([{ "one": 1 }], [{ "one": "a" }])
-    @params([{ "one": 1 }], [{}])
-    @params([{ "one": 1 }], [invalid])
-    @params([{ "one": 1 }], [])
-    @params([{ "one": 1 }], invalid)
-    @params([{ "one": 1 }], [[]])
-    @params([{ "one": 1 }], ["wrong"])
-    @params([{ "one": 1 }], [2])
-    @params([{ "one": "a" }], [{ "one": 1 }])
-    @params([{ "two": 1 }], [{ "one": 1 }])
-    @params([invalid], [{ "one": 1 }])
-    @params(invalid, [{ "one": 1 }])
-    @params([{ "one": 1, "two": 2 }], [{ "one": "1" }])
-    @params([{ "one": 1 }, { "two": 2 }], [{ "one": "1" }, { "two": "a" }])
-    @params([{ "one": 1 }, { "two": 2 }], [{ "a": 1 }, { "a": 1 }, { "a": 1 }])
+    @params([{"one": 1}], [{"one": 2}])
+    @params([{"one": 1}], [{"one": "a"}])
+    @params([{"one": 1}], [{}])
+    @params([{"one": 1}], [invalid])
+    @params([{"one": 1}], [])
+    @params([{"one": 1}], invalid)
+    @params([{"one": 1}], [[]])
+    @params([{"one": 1}], ["wrong"])
+    @params([{"one": 1}], [2])
+    @params([{"one": "a"}], [{"one": 1}])
+    @params([{"two": 1}], [{"one": 1}])
+    @params([invalid], [{"one": 1}])
+    @params(invalid, [{"one": 1}])
+    @params([{"one": 1, "two": 2}], [{"one": "1"}])
+    @params([{"one": 1}, {"two": 2}], [{"one": "1"}, {"two": "a"}])
+    @params([{"one": 1}, {"two": 2}], [{"a": 1}, {"a": 1}, {"a": 1}])
     function _(expectedAAs, items)
       m.assertArrayContainsAAs(items, expectedAAs)
       isFail = m.currentResult.isFail
@@ -887,11 +887,11 @@ namespace tests
     @it("pass")
     @params([], [])
     @params([{}], [{}])
-    @params([{ "one": 1 }], [{ "one": 1 }])
-    @params([{ "one": 1, "two": 2 }], [{ "one": 1, "two": 2 }])
-    @params([{ "one": 1, "two": 2 }], [{ "two": 2, "one": 1 }])
-    @params([{ "one": 1, "two": 2 }, { "one": 1 }], [{ "one": 1 }, { "two": 2, "one": 1 }])
-    @params([{ "one": 1, "two": 2 }, { "one": 1 }, { "three": 3 }], [{ "one": 1 }, { "three": 3 }, { "two": 2, "one": 1 }])
+    @params([{"one": 1}], [{"one": 1}])
+    @params([{"one": 1, "two": 2}], [{"one": 1, "two": 2}])
+    @params([{"one": 1, "two": 2}], [{"two": 2, "one": 1}])
+    @params([{"one": 1, "two": 2}, {"one": 1}], [{"one": 1}, {"two": 2, "one": 1}])
+    @params([{"one": 1, "two": 2}, {"one": 1}, {"three": 3}], [{"one": 1}, {"three": 3}, {"two": 2, "one": 1}])
     function _(expectedAAs, items)
       m.assertArrayContainsAAs(items, expectedAAs)
       isFail = m.currentResult.isFail
@@ -910,7 +910,7 @@ namespace tests
 
     @it("passes assertArrayNotContains when value is not in AA")
     function _()
-      m.assertArrayNotContains({ one: 1, two: 2, three: 3 }, invalid)
+      m.assertArrayNotContains({one: 1, two: 2, three: 3}, invalid)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -940,23 +940,23 @@ namespace tests
 
     @it("passes assertArrayContainsSubset with actual as AA and subset found string")
     function _()
-      m.assertArrayContainsSubset({ one: "1", two: "2", three: "3" }, { three: "3" })
+      m.assertArrayContainsSubset({one: "1", two: "2", three: "3"}, {three: "3"})
     end function
 
     @it("passes assertArrayContainsSubset with actual as AA and subset found boolean")
     function _()
-      m.assertArrayContainsSubset({ one: true, two: false }, { two: false })
+      m.assertArrayContainsSubset({one: true, two: false}, {two: false})
     end function
 
     @it("passes assertArrayContainsSubset with actual as AA and subset found integer")
     function _()
-      m.assertArrayContainsSubset({ one: 1, two: 2, three: 3 }, { three: 3 })
+      m.assertArrayContainsSubset({one: 1, two: 2, three: 3}, {three: 3})
     end function
 
     @it("passes assertArrayContainsSubset with actual as AA and subset found node")
     function _()
       node = createObject("roSgNode", "Node")
-      m.assertArrayContainsSubset({ one: node }, { one: node })
+      m.assertArrayContainsSubset({one: node}, {one: node})
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -970,7 +970,7 @@ namespace tests
 
     @it("passes assertArrayNotContainsSubset with actual as AA and subset not found")
     function _()
-      m.assertArrayNotContainsSubset({ one: 1, two: 2, three: 3 }, { four: 3 })
+      m.assertArrayNotContainsSubset({one: 1, two: 2, three: 3}, {four: 3})
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -984,12 +984,12 @@ namespace tests
 
     @it("passes assertArrayCount on matching count on AA")
     function _()
-      m.assertArrayCount({ one: 1, two: 2 }, 2)
+      m.assertArrayCount({one: 1, two: 2}, 2)
     end function
 
     @it("supports aa with count property")
     function _()
-      m.assertArrayCount({ one: 1, count: 2 }, 2)
+      m.assertArrayCount({one: 1, count: 2}, 2)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1003,12 +1003,12 @@ namespace tests
 
     @it("passes AssertArrayNotCount miss match count on AA")
     function _()
-      m.assertArrayNotCount({ one: 1, two: 2 }, 1)
+      m.assertArrayNotCount({one: 1, two: 2}, 1)
     end function
 
     @it("supports aa with count property")
     function _()
-      m.assertArrayNotCount({ one: 1, count: 2 }, 1)
+      m.assertArrayNotCount({one: 1, count: 2}, 1)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1048,7 +1048,7 @@ namespace tests
     @params([1, 2, 3])
     @params([true])
     @params([[true, true], [false, false]])
-    @params([{ "test": 1 }])
+    @params([{"test": 1}])
     @params("not empty")
     @params([invalid])
     function _(values)
@@ -1069,7 +1069,7 @@ namespace tests
 
     @it("passes assertEmpty on non-empty aa")
     function _()
-      m.assertNotEmpty({ one: 1 })
+      m.assertNotEmpty({one: 1})
     end function
 
     @it("passes assertEmpty on non-empty string")
@@ -1082,7 +1082,7 @@ namespace tests
     @params([1, 2, 3])
     @params([true])
     @params([[true, true], [false, false]])
-    @params([{ "test": 1 }])
+    @params([{"test": 1}])
     @params("not empty")
     @params([invalid])
     function _(values)
@@ -1114,7 +1114,7 @@ namespace tests
     @params([1, 2, 3], "Integer")
     @params([true, true, false], "Boolean")
     @params([[true, true], [false, false]], "Array")
-    @params([{ "test": 1 }, { "test": 1 }], "AssociativeArray")
+    @params([{"test": 1}, {"test": 1}], "AssociativeArray")
     function _(values, typeName)
       m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
@@ -1127,13 +1127,13 @@ namespace tests
     @params([1, "two", 3], "Integer")
     @params([true, "true", false], "Boolean")
     @params([[true, true], false, false], "Array")
-    @params([{ "test": 1 }, "notAA"], "AssociativeArray")
+    @params([{"test": 1}, "notAA"], "AssociativeArray")
     @params(["one", "two", "three"], "UnknownType")
     @params(["one", "two", "three"], "Integer")
     @params([1, 2, 3], "String")
     @params([true, true, false], "String")
     @params([[true, true], [false, false]], "AssociativeArray")
-    @params([{ "test": 1 }, { "test": 1 }], "Array")
+    @params([{"test": 1}, {"test": 1}], "Array")
     function _(values, typeName)
       m.assertArrayContainsOnlyValuesOfType(values, typeName)
       isFail = m.currentResult.isFail
@@ -1191,7 +1191,7 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("passes AssertClass on class name match")
-    @params({ __classname: "myClass" })
+    @params({__classname: "myClass"})
     function _(value)
       m.assertClass(value, "myClass")
     end function
@@ -1279,14 +1279,14 @@ namespace tests
     @it("passes assertNodeContainsFields fields are found")
     function _()
       node = createObject("roSGNode", "Node")
-      m.assertNodeContainsFields(node, { "id": "", "focusable": false })
+      m.assertNodeContainsFields(node, {"id": "", "focusable": false})
     end function
 
     @it("supports node with count property")
     function _()
       node = createObject("roSGNode", "Node")
-      node.update({ count: "not a function" }, true)
-      m.assertNodeContainsFields(node, { "id": "", "focusable": false, count: "not a function" })
+      node.update({count: "not a function"}, true) 'bs:disable-line argument-type-mismatch
+      m.assertNodeContainsFields(node, {"id": "", "focusable": false, count: "not a function"})
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1303,14 +1303,14 @@ namespace tests
     @it("passes assertNodeNotContainsFields subset AA of fields does not match on node")
     function _()
       node = createObject("roSGNode", "Node")
-      m.assertNodeNotContainsFields(node, { "focusable": true })
+      m.assertNodeNotContainsFields(node, {"focusable": true})
     end function
 
     @it("supports node with count property")
     function _()
       node = createObject("roSGNode", "Node")
-      node.update({ count: "not a function" }, true)
-      m.assertNodeNotContainsFields(node, { "count": true })
+      node.update({count: "not a function"}, true) 'bs:disable-line argument-type-mismatch
+      m.assertNodeNotContainsFields(node, {"count": true})
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1320,14 +1320,13 @@ namespace tests
 
     @it("passes assertAAContainsSubset with matching subset of values")
     function _()
-      node = createObject("roSGNode", "Node")
-      m.assertAAContainsSubset({ one: 1, two: 2, three: 3 }, { one: 1, two: 2 })
+      m.assertAAContainsSubset({one: 1, two: 2, three: 3}, {one: 1, two: 2})
     end function
 
     @it("supports aa with count property")
     function _()
       node = createObject("roSGNode", "Node")
-      m.assertAAContainsSubset({ one: 1, two: 2, three: 3, count: false }, { one: 1, two: 2, count: false })
+      m.assertAAContainsSubset({one: 1, two: 2, three: 3, count: false}, {one: 1, two: 2, count: false})
     end function
 
 
@@ -1364,7 +1363,7 @@ namespace tests
     @it("multi return values")
     function _()
       obj = {}
-      m.expect(obj, "mockMethod", 5, invalid, { "multiResult": ["one", 2, invalid, "last"], doesExist: "not a function" }, true)
+      m.expect(obj, "mockMethod", 5, invalid, {"multiResult": ["one", 2, invalid, "last"], doesExist: "not a function"}, true)
 
       result = obj.mockMethod()
       m.assertEqual(result, "one")
@@ -1428,7 +1427,7 @@ namespace tests
     function _()
       obj = {}
       arg1 = "arg1"
-      arg2 = "arg2"
+      ' not used arg2 = "arg2"
       arg3 = "arg3"
       result1 = 1
       result2 = 2

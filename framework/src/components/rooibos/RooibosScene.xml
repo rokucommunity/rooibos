@@ -2,6 +2,7 @@
     name='RooibosScene'
     extends='Scene'>
   <interface>
+    <!-- bs:disable-next-line function-not-found -->
     <function name='Rooibos_CreateTestNode' />
   </interface>
 

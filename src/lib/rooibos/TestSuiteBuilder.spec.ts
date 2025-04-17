@@ -1211,7 +1211,7 @@ function assertParamTestCase(testSuite: TestSuite, groupIndex: number, testIndex
 }
 
 function createTestSuite(path: string, text: string): TestSuite {
-    let file = new BrsFile(path, path, program);
+    let file = new BrsFile({ srcPath: path, destPath: path, program: program });
     file.parse(text);
     let testSuites = testSuiteBuilder.processFile(file);
     return testSuites.length > 0 ? testSuites[0] : null;

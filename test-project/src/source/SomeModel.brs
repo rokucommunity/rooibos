@@ -1,5 +1,5 @@
 function SomeModel() as object
-    if (m._someModel = invalid)
+    if m._someModel = invalid
 
         obj = {}
         obj.appTitle = ""
