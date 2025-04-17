@@ -1,3 +1,5 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
 namespace tests
   @async(1000)
   @SGNode("NodeExample")
@@ -16,11 +18,11 @@ namespace tests
     @async
     @it("normal async test")
     function _()
-      callbackFunction = sub()
+      callbackFunction = function()
         m.wasCalled = true
         m.testSuite.assertTrue(true)
         m.testSuite.done()
-      end sub
+      end function
 
       delayCall(0.02, callbackFunction)
     end function

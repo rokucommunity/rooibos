@@ -1,98 +1,101 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/components/NodeExample.bs"
+
 namespace tests
-  @SGNode("NodeExample")
-  @suite
-  class NodeExampleTests extends rooibos.BaseTestSuite
-    protected override function setup()
-      m.setupThing = "something created during setup"
-    end function
+    @SGNode("NodeExample")
+    @suite
+    class NodeExampleTests extends rooibos.BaseTestSuite
+        protected override function setup()
+            m.setupThing = "something created during setup"
+        end function
 
-    protected override function beforeEach()
-      m.beforeEachThing = "something created beforeEach"
-    end function
+        protected override function beforeEach()
+            m.beforeEachThing = "something created beforeEach"
+        end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("group1")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("group1")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @async
-    @it("HelloFromNode")
-    function _()
-      'bs:disable-next-line
-      text = HelloFromNode("rokucommunity", 12)
-      m.AssertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
-      m.done()
-    end function
+        @async
+        @it("HelloFromNode")
+        function _()
+            'bs:disable-next-line
+            text = HelloFromNode("rokucommunity", 12)
+            m.AssertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
+            m.done()
+        end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("group2")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("group2")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @async(1000)
-    @it("HelloFromNode with params")
-    @params("jon", 40)
-    @params("ringo", 23)
-    @params("ringo", 50)
-    @params("ringo", 24)
-    @params("george", 40)
-    @params("paul", 50)
-    function _(name, age)
-      'bs:disable-next-line
-      text = HelloFromNode(name, age)
-      m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
-      m.timer = createObject("roSGNode", "Timer")
-      m.timer.duration = 0.01
-      m.timer.observeFieldScoped("fire", "OnTimer")
-      m.timer.control = "start"
-    end function
+        @async(1000)
+        @it("HelloFromNode with params")
+        @params("jon", 40)
+        @params("ringo", 23)
+        @params("ringo", 50)
+        @params("ringo", 24)
+        @params("george", 40)
+        @params("paul", 50)
+        function _(name, age)
+            'bs:disable-next-line
+            text = HelloFromNode(name, age)
+            m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
+            m.timer = createObject("roSGNode", "Timer")
+            m.timer.duration = 0.01
+            m.timer.observeFieldScoped("fire", "OnTimer")
+            m.timer.control = "start"
+        end function
 
-    @async(1000)
-    @it("asynchronous call to anonymous function")
-    @params("jon", 40)
-    @params("ringo", 23)
-    @params("ringo", 50)
-    @params("ringo", 24)
-    @params("george", 40)
-    @params("paul", 50)
-    function _(name, age)
-      m.age = age
+        @async(1000)
+        @it("asynchronous call to anonymous function")
+        @params("jon", 40)
+        @params("ringo", 23)
+        @params("ringo", 50)
+        @params("ringo", 24)
+        @params("george", 40)
+        @params("paul", 50)
+        function _(name, age)
+            m.age = age
 
-      callback = function()
-        m.testSuite.assertTrue(m.testSuite.age >= 18)
-        m.testSuite.done()
-      end function
-      callback = callback.toStr().tokenize(" ").peek()
+            callback = function()
+                m.testSuite.assertTrue(m.testSuite.age >= 18)
+                m.testSuite.done()
+            end function
+            callback = callback.toStr().tokenize(" ").peek()
 
-      m.timer = createObject("roSGNode", "Timer")
-      m.timer.duration = 0.01
-      m.timer.observeFieldScoped("fire", callback)
-      m.timer.control = "start"
-    end function
+            m.timer = createObject("roSGNode", "Timer")
+            m.timer.duration = 0.01
+            m.timer.observeFieldScoped("fire", callback)
+            m.timer.control = "start"
+        end function
 
-    @it("updates state")
-    @params("start")
-    @params("stop")
-    @params("error")
-    function _(state)
-      m.node.top.state = ""
-      UpdateState(state)
-      m.assertEqual(m.node.top.state, state)
-    end function
+        @it("updates state")
+        @params("start")
+        @params("stop")
+        @params("error")
+        function _(state)
+            m.node.top.state = ""
+            UpdateState(state)
+            m.assertEqual(m.node.top.state, state)
+        end function
 
-    @it("updates name text")
-    @params("jon")
-    @params("ringo")
-    @params("ringo")
-    @params("ringo")
-    @params("george")
-    @params("paul")
-    function _(text)
-      m.node.nameText.text = ""
-      SetLabelText(text)
-      m.assertEqual(m.node.nameText.text, text)
-    end function
-  end class
+        @it("updates name text")
+        @params("jon")
+        @params("ringo")
+        @params("ringo")
+        @params("ringo")
+        @params("george")
+        @params("paul")
+        function _(text)
+            m.node.nameText.text = ""
+            SetLabelText(text)
+            m.assertEqual(m.node.nameText.text, text)
+        end function
+    end class
 end namespace
 
 function OnTimer()
-  m.testSuite.done()
+    m.testSuite.done()
 end function

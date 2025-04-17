@@ -1,111 +1,113 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
 namespace tests
-	@suite
-	@async(1000)
-	class SuiteTimeoutTests extends rooibos.BaseTestSuite
+    @suite
+    @async(1000)
+    class SuiteTimeoutTests extends rooibos.BaseTestSuite
 
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		@describe("100 ms tests")
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("100 ms tests")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		@it("test one")
-    @async(100)
-		function _()
-		end function
+        @it("test one")
+        @async(100)
+        function _()
+        end function
 
-    @it("test two")
-    @async(100)
-    function _()
-    end function
+        @it("test two")
+        @async(100)
+        function _()
+        end function
 
-    @it("test three")
-    @async(100)
-    function _()
-    end function
+        @it("test three")
+        @async(100)
+        function _()
+        end function
 
-    @it("test four")
-    @async(100)
-    function _()
-    end function
+        @it("test four")
+        @async(100)
+        function _()
+        end function
 
-    @it("test five")
-    @async(100)
-    function _()
-    end function
+        @it("test five")
+        @async(100)
+        function _()
+        end function
 
-    @it("test six")
-    @async(100)
-    function _()
-    end function
+        @it("test six")
+        @async(100)
+        function _()
+        end function
 
-    @it("test seven")
-    @async(100)
-    function _()
-    end function
+        @it("test seven")
+        @async(100)
+        function _()
+        end function
 
-    @it("test eight")
-    @async(100)
-    function _()
-    end function
+        @it("test eight")
+        @async(100)
+        function _()
+        end function
 
-    @it("test nine")
-    @async(100)
-    function _()
-    end function
+        @it("test nine")
+        @async(100)
+        function _()
+        end function
 
-    @it("test ten")
-    @async(100)
-    function _()
-    end function
+        @it("test ten")
+        @async(100)
+        function _()
+        end function
 
-    @it("test eleven")
-    @async(100)
-    function _()
-    end function
+        @it("test eleven")
+        @async(100)
+        function _()
+        end function
 
-    @it("test twelve")
-    @async(100)
-    function _()
-    end function
+        @it("test twelve")
+        @async(100)
+        function _()
+        end function
 
-    @it("test thirteen")
-    @async(100)
-    function _()
-    end function
+        @it("test thirteen")
+        @async(100)
+        function _()
+        end function
 
-    @it("test fourteen")
-    @async(100)
-    function _()
-    end function
+        @it("test fourteen")
+        @async(100)
+        function _()
+        end function
 
-    @it("test fifteen")
-    @async(100)
-    function _()
-    end function
+        @it("test fifteen")
+        @async(100)
+        function _()
+        end function
 
-    @it("test sixteen")
-    @async(100)
-    function _()
-    end function
+        @it("test sixteen")
+        @async(100)
+        function _()
+        end function
 
-    @it("test seventeen")
-    @async(100)
-    function _()
-    end function
+        @it("test seventeen")
+        @async(100)
+        function _()
+        end function
 
-    @it("test eighteen")
-    @async(100)
-    function _()
-    end function
+        @it("test eighteen")
+        @async(100)
+        function _()
+        end function
 
-    @it("test nineteen")
-    @async(100)
-    function _()
-    end function
+        @it("test nineteen")
+        @async(100)
+        function _()
+        end function
 
-    @it("test twenty")
-    @async(100)
-    function _()
-    end function
+        @it("test twenty")
+        @async(100)
+        function _()
+        end function
 
-	end class
+    end class
 end namespace

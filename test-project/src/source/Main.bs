@@ -3,21 +3,21 @@ function Main(args)
 end function
 
 function globalFunctionWithReturn() as dynamic
-  m.wasCalled = false
-  return false
-end function
-
-sub globalFunctionWithoutReturn()
-  m.wasCalled = false
-end sub
-
-namespace testNamespace
-  function functionWithReturn() as dynamic
     m.wasCalled = false
     return false
-  end function
+end function
 
-  sub functionWithoutReturn()
+function globalFunctionWithoutReturn()
     m.wasCalled = false
-  end sub
+end function
+
+namespace testNamespace
+    function functionWithReturn() as dynamic
+        m.wasCalled = false
+        return false
+    end function
+
+    function functionWithoutReturn()
+        m.wasCalled = false
+    end function
 end namespace
