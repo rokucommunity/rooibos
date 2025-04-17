@@ -1,0 +1,46 @@
+{
+  "rootDir": "./src",
+  "files": [
+    "manifest",
+    "source/**/*.*",
+    "components/**/*.*"
+  ],
+  "autoImportComponentScript": true,
+  "createPackage": false,
+  "stagingDir": "dist",
+  "retainStagingDir": true,
+  "sourceMap": true,
+  "plugins": [
+    // "@rokucommunity/bslint",
+    "../src/plugin.ts"
+  ],
+  "diagnosticFilters": [
+    {
+      "files": "**/roku_modules/**/*.*",
+      "codes": [
+        1107,
+        1009
+      ]
+    },
+    1128,
+    1001,
+    1140
+  ],
+  "require": [
+    "ts-node/register"
+  ],
+  "rooibos": {
+    "showOnlyFailures": true,
+    "catchCrashes": true,
+    "colorizeOutput": true,
+    "lineWidth": 70,
+    "failFast": false,
+    "sendHomeOnFinish": false,
+    "keepAppOpen": true,
+    "isGlobalMethodMockingEnabled": true,
+    "isRecordingCodeCoverage": false,
+    "reporters": [
+      "mocha"
+    ]
+  }
+}

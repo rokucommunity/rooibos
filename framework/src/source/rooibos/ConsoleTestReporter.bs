@@ -1,4 +1,5 @@
 namespace rooibos
+  ' @ignore
   class ConsoleTestReporter extends rooibos.BaseTestReporter
 
     private lineWidth = 60

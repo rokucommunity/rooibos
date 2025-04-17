@@ -5,47 +5,29 @@
 #const ROOIBOS_TRACE_LOGS = false
 
 namespace rooibos.common
-  ' /**
-  '  * @module CommonUtils
-  '  */
-  ' /******************
+  ' ******************
   ' Common utility functions
-  ' /******************
+  ' ******************
 
-  ' /**
-  '  * @name IsXmlElement
-  '  * @function
-  '  * @description check if value contains XMLElement interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains XMLElement interface, else return false
-  '  */
+  ' check if value contains XMLElement interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains XMLElement interface, else return false
   function isXmlElement(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifXMLElement") <> invalid
   end function
 
-  ' /**
-  '  * @name IsFunction
-  '  * @function
-  '  * @description check if value contains Function interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains Function interface, else return false
-  '  */
+  ' check if value contains Function interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains Function interface, else return false
   function isFunction(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifFunction") <> invalid
   end function
 
 
-  ' /**
-  '  * @name rooibos.common.getFunction
-  '  * @function
-  '  * @description looks up the function by name, for the function map
-  '  * @memberof module:CommonUtils
-  '  * @param {string} filename - name of the file where the function was found
-  '  * @param {String} functionName - name of the function to locate
-  '  * @returns {Function} - function pointer or invalid
-  '  */
+  ' looks up the function by name, for the function map
+  ' @param {filename} string - name of the file where the function was found
+  ' @param {String} functionName - name of the function to locate
+  ' @returns {Function} - function pointer or invalid
   function getFunction(filename, functionName) as object
     if not rooibos.common.isNotEmptyString(functionName)
       return invalid
@@ -73,16 +55,11 @@ namespace rooibos.common
 
   end function
 
-  ' /**
-  '  * @name rooibos.common.getFunctionBruteforce
-  '  * @function
-  '  * @description looks up the function by name, from any function map
-  '  *            in future
-  '  * @memberof module:CommonUtils
-  '  * @param {string} filename - name of the file where the function was found
-  '  * @param {String} functionName - name of the function to locate
-  '  * @returns {Function} - function pointer or invalid
-  '  */
+  ' looks up the function by name, from any function map
+  '            in future
+  ' @param {filename} string - name of the file where the function was found
+  ' @param {String} functionName - name of the function to locate
+  ' @returns {Function} - function pointer or invalid
   function getFunctionBruteForce(functionName) as object
     if not rooibos.common.isNotEmptyString(functionName)
       return invalid
@@ -113,170 +90,100 @@ namespace rooibos.common
 
   end function
 
-  ' /**
-  '  * @name IsBoolean
-  '  * @function
-  '  * @description check if value contains Boolean interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains Boolean interface, else return false
-  '  */
+  ' check if value contains Boolean interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains Boolean interface, else return false
   function isBoolean(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifBoolean") <> invalid
   end function
 
-  ' /**
-  '  * @name IsInteger
-  '  * @function
-  '  * @description check if value type equals Integer
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value type equals Integer, else return false
-  '  */
+  ' check if value type equals Integer
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value type equals Integer, else return false
   function isInteger(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifInt") <> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
   end function
 
-  ' /**
-  '  * @name IsFloat
-  '  * @function
-  '  * @description check if value contains Float interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains Float interface, else return false
-  '  */
+  ' check if value contains Float interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains Float interface, else return false
   function isFloat(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifFloat") <> invalid
   end function
 
-  ' /**
-  '  * @name IsDouble
-  '  * @function
-  '  * @description check if value contains Double interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains Double interface, else return false
-  '  */
+  ' check if value contains Double interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains Double interface, else return false
   function isDouble(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifDouble") <> invalid
   end function
 
-  ' /**
-  '  * @name IsLongInteger
-  '  * @function
-  '  * @description check if value contains LongInteger interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains LongInteger interface, else return false
-  '  */
+  ' check if value contains LongInteger interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains LongInteger interface, else return false
   function isLongInteger(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifLongInt") <> invalid
   end function
 
-  ' /**
-  '  * @name IsNumber
-  '  * @function
-  '  * @description check if value contains LongInteger or Integer or Double or Float interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value is number, else return false
-  '  */
+  ' check if value contains LongInteger or Integer or Double or Float interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value is number, else return false
   function isNumber(value) as boolean
     return rooibos.common.isLongInteger(value) or rooibos.common.isDouble(value) or rooibos.common.isInteger(value) or rooibos.common.isFloat(value)
   end function
 
-  ' /**
-  '  * @name IsList
-  '  * @function
-  '  * @description check if value contains List interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains List interface, else return false
-  '  */
+  ' check if value contains List interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains List interface, else return false
   function isList(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifList") <> invalid
   end function
 
-  ' /**
-  '  * @name IsArray
-  '  * @function
-  '  * @description check if value contains Array interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains Array interface, else return false
-  '  */
+  ' check if value contains Array interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains Array interface, else return false
   function isArray(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifArray") <> invalid
   end function
 
-  ' /**
-  '  * @name IsAssociativeArray
-  '  * @function
-  '  * @description check if value contains AssociativeArray interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains AssociativeArray interface, else return false
-  '  */
+  ' check if value contains AssociativeArray interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains AssociativeArray interface, else return false
   function isAssociativeArray(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifAssociativeArray") <> invalid
   end function
 
-  ' /**
-  '  * @name IsSGNode
-  '  * @function
-  '  * @description check if value contains SGNodeChildren interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains SGNodeChildren interface, else return false
-  '  */
+  ' check if value contains SGNodeChildren interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains SGNodeChildren interface, else return false
   function isSGNode(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifSGNodeChildren") <> invalid
   end function
 
-  ' /**
-  '  * @name IsString
-  '  * @function
-  '  * @description check if value contains String interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains String interface, else return false
-  '  */
+  ' check if value contains String interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains String interface, else return false
   function isString(value) as boolean
     return rooibos.common.isValid(value) and GetInterface(value, "ifString") <> invalid
   end function
 
-  ' /**
-  '  * @name IsNotEmptyString
-  '  * @function
-  '  * @description check if value contains String interface and length more 0
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains String interface and length more 0, else return false
-  '  */
+  ' check if value contains String interface and length more 0
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains String interface and length more 0, else return false
   function isNotEmptyString(value) as boolean
     return rooibos.common.isString(value) and len(value) > 0
   end function
 
-  ' /**
-  '  * @name IsDateTime
-  '  * @function
-  '  * @description check if value contains DateTime interface
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value contains DateTime interface, else return false
-  '  */
+  ' check if value contains DateTime interface
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value contains DateTime interface, else return false
   function isDateTime(value) as boolean
     return rooibos.common.isValid(value) and (GetInterface(value, "ifDateTime") <> invalid or Type(value) = "roDateTime")
   end function
 
-  ' /**
-  '  * @name IsValid
-  '  * @function
-  '  * @description check if value initialized and not equal invalid
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value initialized and not equal invalid, else return false
-  '  */
+  ' check if value initialized and not equal invalid
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value initialized and not equal invalid, else return false
   function isValid(value) as boolean
     return not rooibos.common.isUndefined(value) and value <> invalid
   end function
@@ -285,14 +192,9 @@ namespace rooibos.common
     return type(value) = "" or Type(value) = "<uninitialized>"
   end function
 
-  ' /**
-  '  * @name ValidStr
-  '  * @function
-  '  * @description return value if his contains String interface else return empty string
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {String} - value if his contains String interface else return empty string
-  '  */
+  ' return value if his contains String interface else return empty string
+  ' @param {Dynamic} value - value to check
+  ' @returns {String} - value if his contains String interface else return empty string
   function validStr(obj) as string
     if obj <> invalid and GetInterface(obj, "ifString") <> invalid
       return obj
@@ -302,13 +204,9 @@ namespace rooibos.common
   end function
 
     ' /**
-  '  * @name asMultilineString
-  '  * @function
-  '  * @description convert input to multiline String if this possible, else return empty string
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} input - value to check
-  '  * @returns {String} - converted string
-  '  */
+  ' convert input to multiline String if this possible, else return empty string
+  ' @param {Dynamic} input - value to check
+  ' @returns {String} - converted string
   function asMultilineString(input, includeType = false, indention = 0) as string
     indentChr = "  "
 
@@ -332,7 +230,7 @@ namespace rooibos.common
       return "Node(" + input.subType() + ")"
     else if type(input) = "roAssociativeArray"
       if input.isEmpty()
-        return "{" + chr(10) + "}"
+        return "{" + chr(10) + string(indention, indentChr) + "}"
       end if
 
       text = "{" + chr(10)
@@ -374,14 +272,9 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @name AsString
-  '  * @function
-  '  * @description convert input to String if this possible, else return empty string
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} input - value to check
-  '  * @returns {String} - converted string
-  '  */
+  ' convert input to String if this possible, else return empty string
+  ' @param {Dynamic} input - value to check
+  ' @returns {String} - converted string
   function asString(input, includeType = false) as string
     if rooibos.common.isValid(input) = false
       return "INVALID"
@@ -444,14 +337,9 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @name AsInteger
-  '  * @function
-  '  * @description convert input to Integer if this possible, else return 0
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} input - value to check
-  '  * @returns {Integer} - converted Integer
-  '  */
+  ' convert input to Integer if this possible, else return 0
+  ' @param {Dynamic} input - value to check
+  ' @returns {Integer} - converted Integer
   function asInteger(input) as integer
     if rooibos.common.isValid(input) = false
       return 0
@@ -466,14 +354,9 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @name AsLongInteger
-  '  * @function
-  '  * @description convert input to LongInteger if this possible, else return 0
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} input - value to check
-  '  * @returns {Integer} - converted LongInteger
-  '  */
+  ' convert input to LongInteger if this possible, else return 0
+  ' @param {Dynamic} input - value to check
+  ' @returns {Integer} - converted LongInteger
   function asLongInteger(input) as longinteger
     if rooibos.common.isValid(input) = false
       return 0
@@ -486,14 +369,9 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @name AsFloat
-  '  * @function
-  '  * @description convert input to Float if this possible, else return 0.0
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} input - value to check
-  '  * @returns {Float} - converted Float
-  '  */
+  ' convert input to Float if this possible, else return 0.0
+  ' @param {Dynamic} input - value to check
+  ' @returns {Float} - converted Float
   function asFloat(input) as float
     if rooibos.common.isValid(input) = false
       return 0.0
@@ -508,14 +386,9 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @name AsDouble
-  '  * @function
-  '  * @description convert input to Double if this possible, else return 0.0
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} input - value to check
-  '  * @returns {Float} - converted Double
-  '  */
+  ' convert input to Double if this possible, else return 0.0
+  ' @param {Dynamic} input - value to check
+  ' @returns {Float} - converted Double
   function asDouble(input) as double
     if rooibos.common.isValid(input) = false
       return 0.0
@@ -528,14 +401,9 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @name AsBoolean
-  '  * @function
-  '  * @description convert input to Boolean if this possible, else return False
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} input - value to check
-  '  * @returns {Boolean} - converted boolean
-  '  */
+  ' convert input to Boolean if this possible, else return False
+  ' @param {Dynamic} input - value to check
+  ' @returns {Boolean} - converted boolean
   function asBoolean(input) as boolean
     if rooibos.common.isValid(input) = false
       return false
@@ -550,14 +418,9 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @name AsArray
-  '  * @function
-  '  * @description if type of value equals array return value, else return array with one element [value]
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {roArray} - converted array
-  '  */
+  ' if type of value equals array return value, else return array with one element [value]
+  ' @param {Dynamic} value - value to check
+  ' @returns {Array} - converted array
   function asArray(value) as object
     if rooibos.common.isValid(value)
       if not rooibos.common.isArray(value)
@@ -573,14 +436,9 @@ namespace rooibos.common
   ' Strings
   '=====================
 
-  ' /**
-  '  * @name IsNullOrEmpty
-  '  * @function
-  '  * @description check if value is invalid or empty
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} value - value to check
-  '  * @returns {Boolean} - true if value is null or empty string, else return false
-  '  */
+  ' check if value is invalid or empty
+  ' @param {Dynamic} value - value to check
+  ' @returns {Boolean} - true if value is null or empty string, else return false
   function isNullOrEmpty(value) as boolean
     if rooibos.common.isString(value)
       return Len(value) = 0
@@ -593,17 +451,12 @@ namespace rooibos.common
   ' Arrays
   '=====================
 
-  ' /**
-  '  * @name FindElementIndexInArray
-  '  * @function
-  '  * @description find an element index in array
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} array - array to search
-  '  * @param {Dynamic} value - value to check
-  '  * @param {Dynamic} compareAttribute - attribue to use for comparisons
-  '  * @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
-  '  * @returns {Integer} - element index if array contains a value, else return -1
-  '  */
+  ' find an element index in array
+  ' @param {Dynamic} array - array to search
+  ' @param {Dynamic} value - value to check
+  ' @param {Dynamic} compareAttribute - attribue to use for comparisons
+  ' @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
+  ' @returns {Integer} - element index if array contains a value, else return -1
   function findElementIndexInArray(array, value, compareAttribute = invalid, caseSensitive = false, callCount = 0) as integer
     if callCount = 0 and not rooibos.common.isArray(array)
       array = rooibos.common.asArray(array)
@@ -625,16 +478,11 @@ namespace rooibos.common
     return -1
   end function
 
-  ' /**
-  '  * @name ArrayContains
-  '  * @function
-  '  * @description check if array contains specified value
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} array - array to search in
-  '  * @param {Dynamic} value - value to check
-  '  * @param {Dynamic} compareAttribute - attribute to compare on
-  '  * @returns {Boolean} - true if array contains a value, else return false
-  '  */
+  ' check if array contains specified value
+  ' @param {Dynamic} array - array to search in
+  ' @param {Dynamic} value - value to check
+  ' @param {Dynamic} compareAttribute - attribute to compare on
+  ' @returns {Boolean} - true if array contains a value, else return false
   function arrayContains(array, value, compareAttribute = invalid) as boolean
     return (rooibos.common.findElementIndexInArray(array, value, compareAttribute) > -1)
   end function
@@ -644,15 +492,10 @@ namespace rooibos.common
   ' NODES
   '=====================
 
-  ' /**
-  '  * @name FindElementIndexInNode
-  '  * @function
-  '  * @description find an element index in node
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} node - node to search in
-  '  * @param {Dynamic} value - child to search for
-  '  * @returns {Integer} - element index if node contains a value, else return -1
-  '  */
+  ' find an element index in node
+  ' @param {Dynamic} node - node to search in
+  ' @param {Dynamic} value - child to search for
+  ' @returns {Integer} - element index if node contains a value, else return -1
   function findElementIndexInNode(node, value) as integer
     if type(node) = "roSGNode"
       if node.isSubType("mc_Node")
@@ -674,14 +517,10 @@ namespace rooibos.common
     return -1
   end function
 
-  ' /**
-  '  * @name NodeContains
-  '  * @description check if node contains specified child
-  '  * @memberof module:CommonUtils
-  '  * @param {Dynamic} node - the node to check on
-  '  * @param {Dynamic} value - child to look for
-  '  * @returns {Boolean} - true if node contains a value, else return false
-  '  */
+  ' check if node contains specified child
+  ' @param {Dynamic} node - the node to check on
+  ' @param {Dynamic} value - child to look for
+  ' @returns {Boolean} - true if node contains a value, else return false
   function nodeContains(node, value) as boolean
     return (rooibos.common.findElementIndexInNode(node, value) > -1)
   end function
@@ -716,16 +555,10 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @memberof module:CommonUtils
-  '  * @name getTypeWithComponentWrapper
-  '  * @function
-  '  * @instance
-  '  * @description Takes a value and if the value is not a primitive it will wrap the type in a Component: tag like the debugger does
-  '  * @param {Dynamic} value - value to check the type of
-  '  * @param {Boolean} includeSubtype - If true and the value is a node the result will include the node subtype
-  '  * @returns {string} - Formatted result. Examples: 'String', 'Integer', '<Component: roDateTime>', '<Component: roSGNode:Node>'
-  '  */
+  ' Takes a value and if the value is not a primitive it will wrap the type in a Component: tag like the debugger does
+  ' @param {Dynamic} value - value to check the type of
+  ' @param {Boolean} includeSubtype - If true and the value is a node the result will include the node subtype
+  ' @returns {string} - Formatted result. Examples: 'String', 'Integer', '<Component: roDateTime>', '<Component: roSGNode:Node>'
   function getTypeWithComponentWrapper(value, includeSubtype = false) as string
     if not rooibos.common.isValid(value) or rooibos.common.isNumber(value) or rooibos.common.isString(value) or rooibos.common.isBoolean(value)
       return type(value)
@@ -738,17 +571,11 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @memberof module:CommonUtils
-  '  * @name truncateString
-  '  * @function
-  '  * @instance
-  '  * @description Takes a string and formats and truncates a string for more compact printing.
-  '  * @param {Dynamic} value - string to format
-  '  * @param {Integer} maxLength - the max length of the resulting string
-  '  * @param {Boolean} collapseNewlines - Will convert newlines and spaces into a single space
-  '  * @returns {String} - Formatted result
-  '  */
+  ' Takes a string and formats and truncates a string for more compact printing.
+  ' @param {Dynamic} value - string to format
+  ' @param {Integer} maxLength - the max length of the resulting string
+  ' @param {Boolean} collapseNewlines - Will convert newlines and spaces into a single space
+  ' @returns {String} - Formatted result
   function truncateString(value as string, length = 38 as integer, collapseNewlines = true as boolean) as string
     if collapseNewlines
       value = CreateObject("roRegex", "\n\s*", "g").replaceAll(value, " ")
@@ -761,16 +588,10 @@ namespace rooibos.common
   end function
 
 
-  ' /**
-  '  * @memberof module:CommonUtils
-  '  * @name EqValues
-  '  * @function
-  '  * @instance
-  '  * @description Compare two arbitrary values to each-other.
-  '  * @param {Dynamic} Value1 - first item to compare
-  '  * @param {Dynamic} Value2 - second item to compare
-  '  * @returns {boolean} - True if values are equal or False in other case.
-  '  */
+  ' Compare two arbitrary values to each-other.
+  ' @param {Dynamic} Value1 - first item to compare
+  ' @param {Dynamic} Value2 - second item to compare
+  ' @returns {boolean} - True if values are equal or False in other case.
   function eqValues(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
     if callCount > 10
       rooibos.common.logError("REACHED MAX ITERATIONS DOING COMPARISON")
@@ -848,16 +669,10 @@ namespace rooibos.common
   end function
 
 
-  ' /**
-  '  * @memberof module:CommonUtils
-  '  * @name EqAssocArray
-  '  * @function
-  '  * @instance
-  '  * @description Compare to roAssociativeArray objects for equality.
-  '  * @param {Dynamic} Value1 - first associative array
-  '  * @param {Dynamic} Value2 - second associative array
-  '  * @returns {boolean} - True if arrays are equal or False in other case.
-  '  */
+  ' Compare to roAssociativeArray objects for equality.
+  ' @param {Dynamic} Value1 - first associative array
+  ' @param {Dynamic} Value2 - second associative array
+  ' @returns {boolean} - True if arrays are equal or False in other case.
   function eqAssocArray(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
     if not rooibos.common.isAssociativeArray(Value1) or not rooibos.common.isAssociativeArray(Value2)
       return false
@@ -895,16 +710,10 @@ namespace rooibos.common
     return true
   end function
 
-  ' /**
-  '  * @memberof module:CommonUtils
-  '  * @name EqArray
-  '  * @function
-  '  * @instance
-  '  * @description Compare to roArray objects for equality.
-  '  * @param {Dynamic} Value1 - first array
-  '  * @param {Dynamic} Value2 - second array
-  '  * @returns {boolean} - True if arrays are equal or False in other case.
-  '  */
+  ' Compare to roArray objects for equality.
+  ' @param {Dynamic} Value1 - first array
+  ' @param {Dynamic} Value2 - second array
+  ' @returns {boolean} - True if arrays are equal or False in other case.
   function eqArray(Value1, Value2, fuzzy = false, callCount = 0) as dynamic
     if callCount > 30
       rooibos.common.logError("REACHED MAX ITERATIONS DOING COMPARISON")
@@ -931,16 +740,11 @@ namespace rooibos.common
     end if
   end function
 
-  ' /**
-  '  * @member fillText
-  '  * @memberof module:CommonUtils
-  '  * @instance
-  '  * @description Fills text with count of fillChars
-  '  * @param {string} text - text to fill
-  '  * @param {string} fillChar - char to fill with
-  '  * @param {integer} numChars - target length
-  '  * @returns {string} filled string
-  '  */
+  ' Fills text with count of fillChars
+  ' @param {string} text - text to fill
+  ' @param {string} fillChar - char to fill with
+  ' @param {integer} numChars - target length
+  ' @returns {string} filled string
   function fillText(text as string, fillChar = " ", numChars = 40) as string
     if len(text) >= numChars
       text = left(text, numChars - 5) + "..." + fillChar + fillChar
@@ -1000,30 +804,35 @@ namespace rooibos.common
     return part
   end function
 
+  ' @ignore
   sub logError(value)
     #if ROOIBOS_ERROR_LOGS
-      ? "[Rooibos Error]: " value
+    ? "[Rooibos Error]: " value
     #end if
   end sub
 
+  ' @ignore
   sub logWarning(value)
     #if ROOIBOS_WARNING_LOGS
-      ? "[Rooibos Warning]: " value
+    ? "[Rooibos Warning]: " value
     #end if
   end sub
 
+  ' @ignore
   sub logInfo(value)
     #if ROOIBOS_INFO_LOGS
-      ? "[Rooibos Info]: " value
+    ? "[Rooibos Info]: " value
     #end if
   end sub
 
+  ' @ignore
   sub logDebug(value)
     #if ROOIBOS_DEBUG_LOGS
-      ? "[Rooibos Debug]: " value
+    ? "[Rooibos Debug]: " value
     #end if
   end sub
 
+  ' @ignore
   sub logTrace(value)
     #if ROOIBOS_TRACE_LOGS
       ? "[Rooibos Trace]: " value

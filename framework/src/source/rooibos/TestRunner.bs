@@ -1,14 +1,5 @@
 namespace rooibos
-  ' /**
-  '  * @module TestRunner
-  '  */
-
-  ' /**
-  '  * @memberof module:TestRunner
-  '  * @name Rooibos_TestRunner
-  '  * @function
-  '  * @description Creates an instance of the test runner
-  '  */
+  ' @ignore
   class TestRunner
     public testScene as roSGNodeScene = invalid
     public testReporters as BaseTestReporter[] = []
@@ -39,13 +30,7 @@ namespace rooibos
       m.testReporters = m.getTestReporters()
     end function
 
-    ' /**
-    '  * @memberof module:TestRunner
-    '  * @name Run
-    '  * @function
-    '  * @instance
-    '  * @description Executes all tests for a project, as per the config
-    '  */
+    ' Executes all tests for a project, as per the config
     public function run()
 
       for each reporter in m.testReporters
@@ -253,7 +238,13 @@ namespace rooibos
 
         'wait on the field
         if type(node) = "roSGNode"
-          event = wait(0, port)
+          event = invalid
+          while true
+            event = wait(0, port)
+            if type(event) = "roSGNodeEvent"
+              exit while
+            end if
+          end while
           nodeResults = event.getData()
 
           for each groupData in testSuite.groupsData
@@ -325,6 +316,7 @@ namespace rooibos
   '++ This code is called inside of the node
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  ' @ignore
   function createTestNode(nodeType) as object
     node = createObject("roSGNode", nodeType)
 
@@ -337,11 +329,13 @@ namespace rooibos
     end if
   end function
 
+  ' @ignore
   function runNodeTestSuite(name)
     nodeRunner = new TestRunner(m.top.getScene(), m)
     return nodeRunner.runInNodeMode(name)
   end function
 
+  ' @ignore
   function onTestSuiteComplete()
     m.testRunner.onTestSuiteComplete()
   end function

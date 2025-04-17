@@ -1,3 +1,4 @@
+' @ignore
 function init()
   m.resolvedMap = {}
   m.top.observeField("entry", "onEntryChange")
@@ -5,20 +6,24 @@ function init()
   m.results = []
 end function
 
+' @ignore
 function setExpectedMap()
   m.top.expectedMap = "#EXPECTED_MAP#"
 end function
 
+' @ignore
 function setFilePathMap()
   m.top.filePathMap = "#FILE_PATH_MAP#"
 end function
 
+' @ignore
 function onEntryChange()
   entry = m.top.entry
   ' defer till later
   m.results.push(entry)
 end function
 
+' @ignore
 function onSave()
   ? "saving data"
   for each entry in m.results

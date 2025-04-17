@@ -1,4 +1,5 @@
 namespace rooibos
+  ' @ignore
   class RuntimeConfig
 
     private testSuites as roAssociativeArray = {}

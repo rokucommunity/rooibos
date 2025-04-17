@@ -1,3 +1,4 @@
+' @ignore
 function RBS_ReportCodeCoverage() as void
 
   if m.global._rbs_ccn = invalid

@@ -1,3 +1,36 @@
 {
-  "extends": "./bsc-plugin/tsconfig.json"
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "module": "commonjs",
+    "sourceMap": true,
+    "rootDir": "src",
+    "outDir": "./dist",
+    "strictNullChecks": false,
+    "forceConsistentCasingInFileNames": true,
+    "preserveConstEnums": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "target": "ES2017",
+    "downlevelIteration": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "allowSyntheticDefaultImports": true,
+    "lib": [
+      "es2017",
+      "es2019.array",
+      "esnext",
+      "dom"
+    ]
+  },
+  "outDir": "./dist",
+  "exclude": [
+    "node_modules/**/*"
+  ],
+  "include": [
+    "./src/**/*"
+  ],
+  "ts-node": {
+    "transpileOnly": true
+  }
 }
