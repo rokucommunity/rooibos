@@ -14,10 +14,21 @@
     "**/bower_components": true,
     "**/dist": true
   },
+  "[brightscript]": {
+		"editor.formatOnSave": true
+	},
+	"[brighterscript]": {
+		"editor.formatOnSave": true
+	},
+  "[typescript]": {
+		"editor.formatOnSave": true
+	},
   "editor.tabSize": 4,
   "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
   "typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": true,
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": false,
+  "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
   "workbench.colorCustomizations": {
     "statusBar.background": "#FF4658",
