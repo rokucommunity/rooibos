@@ -8,15 +8,12 @@
   "autoImportComponentScript": true,
   "createPackage": false,
   "stagingDir": "dist",
-  // "diagnosticFilters": [
-  //   {
-  //     "src": "**/roku_modules/**/*.*",
-  //     "codes": [
-  //       1107,
-  //       1009
-  //     ]
-  //   }
-  // ],
+  "diagnosticFilters": [{
+    "files": ["**/roku_modules/**/*.*"]
+  }, {
+    "files": ["**/ConsoleTestReporter.bs"],
+    "codes": ["LINT2004", "LINT3003"]
+  }],
   "plugins": [
     "@rokucommunity/bslint"
   ]

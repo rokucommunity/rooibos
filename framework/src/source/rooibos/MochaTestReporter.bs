@@ -66,8 +66,8 @@ namespace rooibos
         duration = m.colorLines(rooibos.reporters.mocha.colors.slow, ` (${test.result.time}ms)`)
       else if test.result.time > test.slow / 2
         duration = m.colorLines(rooibos.reporters.mocha.colors.medium, ` (${test.result.time}ms)`)
-      ' else if test.result.time > slow / 4
-      '   duration = m.colorLines(rooibos.reporters.mocha.colors.fast, ` (${test.result.time}ms)`)
+        ' else if test.result.time > slow / 4
+        '   duration = m.colorLines(rooibos.reporters.mocha.colors.fast, ` (${test.result.time}ms)`)
       end if
 
       print tab(4) m.colorLines(symbolColor, symbol) + " " + m.colorLines(lineColor, test.name + params) + duration
@@ -446,8 +446,8 @@ namespace rooibos
               hunks.push(hunk)
 
               oldRangeStart = 0
-              newRangeStart = 0
-              curRange = []
+              newRangeStart = 0 'bs:disable-line LINT1005
+              curRange = [] 'bs:disable-line LINT1005
             end if
           end if
           oldLine += lines.count()
@@ -706,8 +706,7 @@ namespace rooibos
 
           ' Main worker method. checks all permutations of a given edit length for acceptance.
           execEditLength: function(execEditParams)
-            startingDiagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
-            diagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
+            startingDiagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength) 'bs:disable-line LINT1005
             ' while diagonalPath <= min(execEditParams.maxDiagonalToConsider, execEditParams.editLength)
             for diagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength) to rooibos.reporters.mocha.min(execEditParams.maxDiagonalToConsider, execEditParams.editLength) step 2
               removePath = execEditParams.bestPath.get(diagonalPath - 1)
@@ -895,7 +894,7 @@ namespace rooibos
             value = CreateObject("roRegex", "\r\n", "g").ReplaceAll(value, chr(10))
           end if
 
-          retLines = []
+          retLines = []  'bs:disable-line LINT1005
           linesAndNewlines = CreateObject("roRegex", "(\n|\r\n)", "g").split(value).toArray()
 
           ' Ignore the final empty token that occurs if the string ends with a new line

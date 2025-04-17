@@ -2961,16 +2961,6 @@ namespace rooibos
     end function
 
     ' @ignore
-    protected function createMockViews(instance as dynamic, bundlePath as string, viewsPath = "views" as string)
-      bundle = m.global.testStyleManager@.loadBundle(bundlePath)
-      'bs:disable-next-line
-      ids = mv_getIdsFromStyleJson(mc_getArray(bundle, viewsPath))
-      for each id in ids
-        instance[id] = { id: id }
-      end for
-    end function
-
-    ' @ignore
     private sub notifyReportersOnSuiteBegin()
       for each reporter in m.testReporters
         if rooibos.common.isFunction(reporter.onSuiteBegin)

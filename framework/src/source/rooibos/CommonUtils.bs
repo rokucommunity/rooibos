@@ -25,7 +25,7 @@ namespace rooibos.common
 
 
   ' looks up the function by name, for the function map
-  ' @param {filename} string - name of the file where the function was found
+  ' @param {string} filename - name of the file where the function was found
   ' @param {String} functionName - name of the function to locate
   ' @returns {Function} - function pointer or invalid
   function getFunction(filename, functionName) as object
@@ -57,7 +57,6 @@ namespace rooibos.common
 
   ' looks up the function by name, from any function map
   '            in future
-  ' @param {filename} string - name of the file where the function was found
   ' @param {String} functionName - name of the function to locate
   ' @returns {Function} - function pointer or invalid
   function getFunctionBruteForce(functionName) as object
@@ -420,7 +419,7 @@ namespace rooibos.common
 
   ' if type of value equals array return value, else return array with one element [value]
   ' @param {Dynamic} value - value to check
-  ' @returns {Array} - converted array
+  ' @returns {roArray} - converted array
   function asArray(value) as object
     if rooibos.common.isValid(value)
       if not rooibos.common.isArray(value)
