@@ -11,7 +11,7 @@
   "retainStagingDir": true,
   "sourceMap": true,
   "plugins": [
-    // "@rokucommunity/bslint",
+    "@rokucommunity/bslint",
     "../src/plugin.ts"
   ],
   "diagnosticFilters": [
