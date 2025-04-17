@@ -5,7 +5,7 @@ function Init() as void
 end function
 
 function HelloFromNode(name, age) as string
-    return "HELLO " + name + " age:" + stri(age)
+    return "HELLO " + name + " age:" + strI(age)
 end function
 
 function UpdateState(newState) as void

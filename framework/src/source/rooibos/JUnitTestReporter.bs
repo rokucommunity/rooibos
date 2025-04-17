@@ -84,7 +84,7 @@ namespace rooibos
             for i = error.backTrace.count() - 1 to 0 step -1
                 e = error.backTrace[i]
                 if e.filename.instr("pkg:/source/rooibos") = -1 then
-                    output = output + e.filename + "(" + stri(e.line_number).trim() + ")"
+                    output = output + e.filename + "(" + strI(e.line_number).trim() + ")"
                 end if
             end for
 

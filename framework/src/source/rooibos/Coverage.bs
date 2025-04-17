@@ -34,7 +34,7 @@ namespace rooibos
                         else
                             resolvedPercent = (resolvedCount / expectedCount) * 100
                         end if
-                        hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
+                        hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + strI(resolvedCount).trim() + "/" + strI(expectedCount).trim() + ")" })
                     else
                         missFiles.push(filename + ": MISS!")
                     end if
@@ -53,7 +53,7 @@ namespace rooibos
             ? "Code Coverage Report"
             ? "+++++++++++++++++++++++++++++++++++++++++++"
             ? ""
-            ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
+            ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; strI(allLinesHit).trim() ; "/" + strI(allLinesCount).trim() ; ")"
             ? "Files: " ; resolvedMap.count(); "/" ; expectedMap.count()
             ? ""
             ? "HIT FILES"

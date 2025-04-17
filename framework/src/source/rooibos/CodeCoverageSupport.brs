@@ -22,7 +22,7 @@ function RBS_ReportCodeCoverage() as void
                 resolvedCount = cc.resolvedMap[key].count()
                 allLinesHit += resolvedCount
                 resolvedPercent = (resolvedCount / expectedCount) * 100
-                hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
+                hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + strI(resolvedCount).trim() + "/" + strI(expectedCount).trim() + ")" })
             else
                 missFiles.push(filename + ": MISS!")
             end if
@@ -35,7 +35,7 @@ function RBS_ReportCodeCoverage() as void
     ? "Code Coverage Report"
     ? "+++++++++++++++++++++++++++++++++++++++++++"
     ? ""
-    ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
+    ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; strI(allLinesHit).trim() ; "/" + strI(allLinesCount).trim() ; ")"
     ? "Files: " ; cc.resolvedMap.count(); "/" ; cc.expectedMap.count()
     ? ""
     ? "HIT FILES"

@@ -48,7 +48,7 @@ namespace rooibos
             end if
 
             if m.isParamTest then
-                m.name = m.name + stri(m.paramTestIndex)
+                m.name = m.name + strI(m.paramTestIndex)
             end if
 
             m.result = new rooibos.TestResult(m)
