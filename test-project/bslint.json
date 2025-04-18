@@ -1,26 +1,26 @@
 {
-  "rules": {
-      "inline-if-style": "then",
-      "block-if-style": "then",
-      "condition-style": "no-group",
-      "named-function-style": "no-sub",
-      "anon-function-style": "no-sub",
-      "aa-comma-style": "never",
-      "no-print": "off",
-      "type-annotations": "off",
-      "eol-last": "always",
-      "no-stop": "on",
-      "assign-all-paths": "error",
-      "unsafe-path-loop": "error",
-      "unsafe-iterators": "error",
-      "unreachable-code": "warn",
-      "case-sensitivity": "warn",
-      "unused-variable": "warn",
-      "consistent-return": "off",
-      "no-regex-duplicates": "error"
-  },
-  "globals": [],
-  "ignores": [
-      "**/roku_modules/**/*"
-  ]
+    "rules": {
+        "inline-if-style": "then",
+        "block-if-style": "then",
+        "condition-style": "no-group",
+        "named-function-style": "no-sub",
+        "anon-function-style": "no-sub",
+        "aa-comma-style": "never",
+        "no-print": "off",
+        "type-annotations": "off",
+        "eol-last": "always",
+        "no-stop": "on",
+        "assign-all-paths": "error",
+        "unsafe-path-loop": "error",
+        "unsafe-iterators": "error",
+        "unreachable-code": "warn",
+        "case-sensitivity": "warn",
+        "unused-variable": "warn",
+        "consistent-return": "off",
+        "no-regex-duplicates": "error"
+    },
+    "globals": [],
+    "ignores": [
+        "**/roku_modules/**/*"
+    ]
 }
