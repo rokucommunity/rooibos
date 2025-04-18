@@ -30,14 +30,14 @@
             "stopOnEntry": false,
             "files": [
                 //all files from the test-project/dist folder
-              "**/*",
+                "**/*",
             ],
             "rootDir": "${workspaceFolder}/test-project/dist",
             "enableDebuggerAutoRecovery": true,
             "stopDebuggerOnAppExit": true,
             "injectRaleTrackerTask": false,
             "enableDebugProtocol": true
-          },
+        },
         {
             "name": "Debug Rooibos CLI",
             "type": "node",

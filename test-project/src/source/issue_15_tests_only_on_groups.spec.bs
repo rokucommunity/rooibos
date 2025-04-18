@@ -1,33 +1,35 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
 namespace tests
-  'ADD '@Only ON NEXT LINE TO TEST
-  @suite()
-  class OnlyOnGroups extends rooibos.BaseTestSuite
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests one")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("it test one")
-    function _()
-      m.assertTrue(true)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests two")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("it test two")
-    function _()
-      m.assertTrue(true)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     'ADD '@Only ON NEXT LINE TO TEST
-    @describe("tests three")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @suite()
+    class OnlyOnGroups extends rooibos.BaseTestSuite
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("tests one")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("it test three")
-    function _()
-      m.assertTrue(true)
-    end function
-  end class
+        @it("it test one")
+        function _()
+            m.assertTrue(true)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("tests two")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("it test two")
+        function _()
+            m.assertTrue(true)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        'ADD '@Only ON NEXT LINE TO TEST
+        @describe("tests three")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("it test three")
+        function _()
+            m.assertTrue(true)
+        end function
+    end class
 end namespace

@@ -1,6 +1,6 @@
 <component name="TaskExample" extends="Task">
-  <interface>
-    <field id="sleepTime" type="integer" />
-    <field id="result" type="string" />
-  </interface>
+    <interface>
+        <field id="sleepTime" type="integer" />
+        <field id="result" type="string" />
+    </interface>
 </component>
