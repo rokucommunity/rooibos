@@ -3,18 +3,8 @@
         <function name='Rooibos_CreateTestNode' />
     </interface>
 
-    <!-- <script type='text/brighterscript' uri='source/rooibos/BaseTestSuite.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/CommonUtils.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/Coverage.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/Matchers.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/rooibos.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/RuntimeConfig.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/Stats.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/Test.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/TestGroup.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/TestLogger.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/TestResult.bs' />
-    <script type='text/brighterscript' uri='source/rooibos/TestRunner.bs' /> -->
+    <script type='text/brighterscript' uri='pkg:/source/rooibos/TestRunner.bs' />
+
 
     <children>
         <LayoutGroup>

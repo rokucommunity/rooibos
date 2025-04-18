@@ -1,3 +1,11 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/source/rooibos/CommonUtils.bs"
+import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+import "pkg:/source/rooibos/Coverage.bs"
+import "pkg:/source/rooibos/RuntimeConfig.bs"
+import "pkg:/source/rooibos/Stats.bs"
+import "pkg:/source/rooibos/Test.bs"
+
 namespace rooibos
     ' @ignore
     class TestRunner

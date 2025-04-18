@@ -1,3 +1,5 @@
+import "pkg:/source/rooibos/BaseTestReporter.bs"
+
 namespace rooibos
     ' @ignore
     class ConsoleTestReporter extends rooibos.BaseTestReporter
