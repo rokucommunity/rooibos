@@ -2605,10 +2605,10 @@ describe('RooibosPlugin', () => {
                             "ATest2": ATest2
                         }
                     end function
-                    instance.getTestSuiteClassWithName = function(name)
+                    instance.getTestSuiteClassWithName = function(name as string) as object
                         return m.testSuites[name]
                     end function
-                    instance.getAllTestSuitesNames = function()
+                    instance.getAllTestSuitesNames = function() as dynamic
                         return m.testSuites.keys()
                     end function
                     instance.getIgnoredTestInfo = function()
@@ -2691,10 +2691,10 @@ describe('RooibosPlugin', () => {
                         instance.getTestSuiteClassMap = function()
                             return {}
                         end function
-                        instance.getTestSuiteClassWithName = function(name)
+                        instance.getTestSuiteClassWithName = function(name as string) as object
                             return m.testSuites[name]
                         end function
-                        instance.getAllTestSuitesNames = function()
+                        instance.getAllTestSuitesNames = function() as dynamic
                             return m.testSuites.keys()
                         end function
                         instance.getIgnoredTestInfo = function()
