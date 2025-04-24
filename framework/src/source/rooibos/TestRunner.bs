@@ -54,7 +54,6 @@ namespace rooibos
             testSuite = invalid
             for each name in suiteNames
                 i++
-                'bs:disable-next-line
                 suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
                 testSuite = invalid
                 if suiteClass <> invalid then
@@ -129,12 +128,11 @@ namespace rooibos
             print "[Rooibos Shutdown]"
 
             if m.config.sendHomeOnFinish <> false then
-                m.sendHomeKeypress()
+                m.sendHomeKeyPress()
             end if
         end function
 
         public function runInNodeMode(nodeTestName as string) as void
-            'bs:disable-next-line
             suiteClass = m.runtimeConfig.getTestSuiteClassWithName(nodeTestName)
             testSuite = invalid
 
@@ -245,7 +243,6 @@ namespace rooibos
 
                     m.groups = []
                     for each groupData in testSuite.groupsData
-                        'bs:disable-next-line
                         group = new TestGroup(testSuite, groupData)
                         testSuite.groups.push(group)
                     end for
@@ -288,7 +285,7 @@ namespace rooibos
             end for
         end function
 
-        private function sendHomeKeypress()
+        private function sendHomeKeyPress()
             ut = createObject("roUrlTransfer")
             ut.SetUrl("http://localhost:8060/keypress/Home")
             ut.PostFromString("")

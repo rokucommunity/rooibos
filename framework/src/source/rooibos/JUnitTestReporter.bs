@@ -24,7 +24,6 @@ namespace rooibos
                 end for
             end for
 
-            'bs:disable-next-line
             ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
             if ignoredInfo.count > 0 then
                 for each ignoredItemName in ignoredInfo.items

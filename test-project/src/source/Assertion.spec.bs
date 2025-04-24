@@ -26,7 +26,7 @@ namespace tests
         function _()
 
             try
-                result = 2 / 0
+                result = 2 / 0 'bs:disable-line LINT1005
             catch e
                 m.failCrash(e)
             end try

@@ -2,7 +2,7 @@ namespace rooibos
     ' @ignore
     function init(testSceneName = invalid as string) as void
         if createObject("roAPPInfo").IsDev() <> true then
-            rooibos.common.logError(" not running in dev mode! - rooibos tests only support sideloaded builds - aborting")
+            rooibos.common.logError(" not running in dev mode! - rooibos tests only support side-loaded builds - aborting")
             return
         end if
 
@@ -21,7 +21,7 @@ namespace rooibos
         m.global = screen.getGlobalNode()
         m.global.addFields({
             "testsScene": scene
-            "_rbs_ccn": createObject("roSGNode", "CodeCoverage")' bs:disable-line
+            "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
         })
 
         if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false then

@@ -65,7 +65,7 @@ namespace tests
         @it("fail the test as the returned to the test promise that will reject with a exception object")
         function _()
             try
-                v = 1 / 0
+                v = 1 / 0 'bs:disable-line LINT1005
             catch error
                 return toPromiseWithDelay(0.001, error, false)
             end try

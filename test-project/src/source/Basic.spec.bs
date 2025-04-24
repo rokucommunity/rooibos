@@ -233,7 +233,7 @@ namespace tests
         function _(value1, value2)
             m.assertLike(value1, value2)
             isFail = m.currentResult.isFail
-            msg = m.currentResult.getMessage()
+            msg = m.currentResult.getMessage() 'bs:disable-line LINT1005
             m.currentResult.Reset()
             m.assertTrue(isFail)
         end function

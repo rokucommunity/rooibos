@@ -25,7 +25,6 @@ namespace rooibos
             if event.group.isIgnored then return
             ? ""
             ? rooibos.common.fillText(">>>> Describe: " + event.group.name, ">", 80)
-            'bs:disable-next-line
             ? `  Location: file://${event.group.testSuite.filePath.trim()}:${event.group.lineNumber}`
             ? ""
         end function
@@ -68,13 +67,11 @@ namespace rooibos
 
             m.printLine()
 
-            'bs:disable-next-line
             ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
             m.printLine(0, "Total: " + rooibos.common.AsString(m.allStats.ranCount))
             m.printLine(0, "  Passed: " + rooibos.common.AsString(m.allStats.passedCount))
             m.printLine(0, "  Crashed: " + rooibos.common.AsString(m.allStats.crashedCount))
             m.printLine(0, "  Failed: " + rooibos.common.AsString(m.allStats.failedCount))
-            'bs:disable-next-line
             m.printLine(0, "  Ignored: " + rooibos.common.AsString(ignoredInfo.count))
             m.printLine(0, "  Time: " + rooibos.common.AsString(m.allStats.time) + "ms")
             m.printLine()

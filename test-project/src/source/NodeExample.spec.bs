@@ -20,7 +20,6 @@ namespace tests
         @async
         @it("HelloFromNode")
         function _()
-            'bs:disable-next-line
             text = HelloFromNode("rokucommunity", 12)
             m.AssertEqual(text, "HELLO rokucommunity" + " age:" + strI(12))
             m.done()
@@ -39,7 +38,6 @@ namespace tests
         @params("george", 40)
         @params("paul", 50)
         function _(name, age)
-            'bs:disable-next-line
             text = HelloFromNode(name, age)
             m.AssertEqual(text, "HELLO " + name + " age:" + strI(age))
             m.timer = createObject("roSGNode", "Timer")

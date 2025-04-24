@@ -45,7 +45,6 @@ namespace rooibos
                 m.deferred = rooibos.promises.create()
             end if
 
-            'bs:disable-next-line
             m.global = testSuite.global
             m.top = testSuite.top
             m.scene = testSuite.scene
@@ -219,7 +218,6 @@ namespace rooibos
                     return true
                 catch error
                     if test <> invalid then
-                        'bs:disable-next-line
                         test.result.crash("function " + methodName + "crashed!", error)
                         m.testSuite.currentExecutionTime += timespan.totalMilliseconds()
                     end if
@@ -231,7 +229,6 @@ namespace rooibos
                 return true
             end if
 
-            'bs:disable-next-line
             return false
         end function
 

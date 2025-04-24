@@ -1,3 +1,7 @@
+import "pkg:/source/rooibos/JUnitTestReporter.bs"
+import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+import "pkg:/source/rooibos/MochaTestReporter.bs"
+
 namespace rooibos
     ' @ignore
     class RuntimeConfig

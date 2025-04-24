@@ -3,7 +3,6 @@ namespace rooibos
     class MochaTestReporter extends rooibos.BaseTestReporter
 
         function new(runner as rooibos.TestRunner)
-            'bs:disable-next-line
             super(runner)
         end function
 
@@ -34,7 +33,7 @@ namespace rooibos
             symbol = "?"
             if status = "PASS" then
                 symbol = "✔"
-                symbolColor = rooibos.reporters.mocha.colors.checkmark
+                symbolColor = rooibos.reporters.mocha.colors.checkMark
             else if status = "FAIL" or status = "CRASH" then
                 symbol = "✖"
                 symbolColor = rooibos.reporters.mocha.colors.brightFail
@@ -139,7 +138,7 @@ namespace rooibos
         '        $anon_1eb() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:121)
         '        $anon_325(testsuite As Dynamic) As Void (pkg:/source/rooibos/TestRunner.brs:191)
         '        $anon_322() As Dynamic (pkg:/source/rooibos/TestRunner.brs:72)
-        '        rooibos_init(testscenename As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
+        '        rooibos_init(testSceneName As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
         '        main(args As Dynamic) As Dynamic (pkg:/source/Main.brs:2)
         '
         '    at (file:///Users/chris/roku/rooibos/tests/src/source/FailedAssertion.spec.bs:15)
@@ -209,7 +208,7 @@ namespace rooibos
         '        $anon_1eb() As Dynamic (pkg:/source/rooibos/BaseTestSuite.brs:121)
         '        $anon_325(testsuite As Dynamic) As Void (pkg:/source/rooibos/TestRunner.brs:191)
         '        $anon_322() As Dynamic (pkg:/source/rooibos/TestRunner.brs:72)
-        '        rooibos_init(testscenename As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
+        '        rooibos_init(testSceneName As Dynamic) As Void (pkg:/source/rooibos/Rooibos.brs:27)
         '        main(args As Dynamic) As Dynamic (pkg:/source/Main.brs:2)
         function getStackTrace(error as roAssociativeArray, fullTrace = true as boolean) as string
             if fullTrace then
@@ -303,7 +302,7 @@ namespace rooibos
             '   "error title": 0,
             '   "error message": 31,
             '   "error stack": 90,
-            '   checkmark: 32,
+            '   checkMark: 32,
             '   fast: 90,
             '   medium: 33,
             '   slow: 31,
@@ -446,8 +445,8 @@ namespace rooibos
                             hunks.push(hunk)
 
                             oldRangeStart = 0
-                            newRangeStart = 0
-                            curRange = []
+                            newRangeStart = 0 'bs:disable-line LINT1005
+                            curRange = [] 'bs:disable-line LINT1005
                         end if
                     end if
                     oldLine += lines.count()
@@ -558,7 +557,7 @@ namespace rooibos
                 errorTitle = "0"
                 errorMessage = "31"
                 errorStack = "90"
-                checkmark = "32"
+                checkMark = "32"
                 fast = "90"
                 medium = "33"
                 slow = "31"
@@ -628,8 +627,7 @@ namespace rooibos
 
             function new_Diff() as roAssociativeArray
                 return {
-                    ' bs:disable-next-line
-                    diff: function(oldString, newString, options = {})
+                    diff: function(oldString as string, newString as string, options = {} as roAssociativeArray) as roAssociativeArray
                         Infinity = 2147483647
 
                         oldString = m.removeEmpty(m.tokenize(oldString, options))
@@ -702,11 +700,13 @@ namespace rooibos
                                 return execEdit.ret
                             end if
                         end while
+
+                        return invalid
                     end function
 
                     ' Main worker method. checks all permutations of a given edit length for acceptance.
                     execEditLength: function(execEditParams as roAssociativeArray) as roAssociativeArray
-                        startingDiagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
+                        startingDiagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength) 'bs:disable-line LINT1005
                         diagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength)
                         ' while diagonalPath <= min(execEditParams.maxDiagonalToConsider, execEditParams.editLength)
                         for diagonalPath = rooibos.reporters.mocha.max(execEditParams.minDiagonalToConsider, -execEditParams.editLength) to rooibos.reporters.mocha.min(execEditParams.maxDiagonalToConsider, execEditParams.editLength) step 2
@@ -895,7 +895,7 @@ namespace rooibos
                         value = CreateObject("roRegex", "\r\n", "g").ReplaceAll(value, chr(10))
                     end if
 
-                    retLines = []
+                    retLines = [] 'bs:disable-line LINT1005
                     linesAndNewlines = CreateObject("roRegex", "(\n|\r\n)", "g").split(value).toArray()
 
                     ' Ignore the final empty token that occurs if the string ends with a new line
@@ -923,7 +923,7 @@ namespace rooibos
                 end function
 
                 lineDiff.equals = function(leftPart as string, rightPart as string, options as roAssociativeArray) as boolean
-                    ' If we're ignoring whitespace, we need to normalise lines by stripping
+                    ' If we're ignoring whitespace, we need to normalize lines by stripping
                     ' whitespace before checking equality. (This has an annoying interaction
                     ' with newlineIsToken that requires special handling: if newlines get their
                     ' own token, then we DON'T want to trim the *newline* tokens down to empty

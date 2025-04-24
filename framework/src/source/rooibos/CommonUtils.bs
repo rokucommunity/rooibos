@@ -286,8 +286,7 @@ namespace rooibos.common
             text = "{"
             if not isFirst then
                 text = text + ","
-                'bs:disable-next-line
-                isFirst = false
+                isFirst = false 'bs:disable-line: LINT1005
             end if
             keys = value.ifAssociativeArray.keys()
             keys.sort()
