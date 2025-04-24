@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.46](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.45...v6.0.0-alpha.46) - 2025-04-24
+### Changed
+ - Upgrade to brighterscript and bslint v1.0.0-alpha.46 ([3b75efa](https://github.com/rokucommunity/rooibos/commit/3b75efa))
+ - Merge branch 'master' of https://github.com/rokucommunity/rooibos into release-6.0.0 ([7177ebb](https://github.com/rokucommunity/rooibos/commit/7177ebb))
+ - Fix package-lock for #330 ([10d445d](https://github.com/rokucommunity/rooibos/commit/10d445d))
+ - Make sure the correct version of roku-debug is included for the CLI ([#330](https://github.com/rokucommunity/rooibos/pull/330))
+
+
+
 ## [5.15.7](https://github.com/rokucommunity/rooibos/compare/v5.15.6...v5.15.7) - 2025-04-16
 ### Changed
  - (chore) adopt keepachangelog format for this changelog fle moving forward
