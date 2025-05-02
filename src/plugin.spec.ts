@@ -2570,6 +2570,9 @@ describe('RooibosPlugin', () => {
             expect(
                 getContents('rooibos/RuntimeConfig.brs')
             ).to.eql(undent`
+                'import "pkg:/source/rooibos/JUnitTestReporter.bs"
+                'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+                'import "pkg:/source/rooibos/MochaTestReporter.bs"
                 ' @ignore
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
@@ -2659,6 +2662,9 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
 
                 let fullExpected = undent`
+                    'import "pkg:/source/rooibos/JUnitTestReporter.bs"
+                    'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+                    'import "pkg:/source/rooibos/MochaTestReporter.bs"
                     ' @ignore
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}

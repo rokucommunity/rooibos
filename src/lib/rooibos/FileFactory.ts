@@ -33,7 +33,7 @@ export class FileFactory {
             '**/*.{bs,brs,xml}',
             '!**/bslib.brs',
             '!**/manifest',
-            '!**/CodeCoverage.{brs,xml}',
+            '**/CodeCoverage.{brs,xml}',
             '!**/RooibosScene.xml'
         ], {
             cwd: this.frameworkSourcePath,
