@@ -2570,6 +2570,9 @@ describe('RooibosPlugin', () => {
             expect(
                 getContents('rooibos/RuntimeConfig.brs')
             ).to.eql(undent`
+                'import "pkg:/source/rooibos/JUnitTestReporter.bs"
+                'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+                'import "pkg:/source/rooibos/MochaTestReporter.bs"
                 ' @ignore
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
@@ -2605,10 +2608,10 @@ describe('RooibosPlugin', () => {
                             "ATest2": ATest2
                         }
                     end function
-                    instance.getTestSuiteClassWithName = function(name)
+                    instance.getTestSuiteClassWithName = function(name as string) as object
                         return m.testSuites[name]
                     end function
-                    instance.getAllTestSuitesNames = function()
+                    instance.getAllTestSuitesNames = function() as dynamic
                         return m.testSuites.keys()
                     end function
                     instance.getIgnoredTestInfo = function()
@@ -2659,6 +2662,9 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
 
                 let fullExpected = undent`
+                    'import "pkg:/source/rooibos/JUnitTestReporter.bs"
+                    'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+                    'import "pkg:/source/rooibos/MochaTestReporter.bs"
                     ' @ignore
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}
@@ -2691,10 +2697,10 @@ describe('RooibosPlugin', () => {
                         instance.getTestSuiteClassMap = function()
                             return {}
                         end function
-                        instance.getTestSuiteClassWithName = function(name)
+                        instance.getTestSuiteClassWithName = function(name as string) as object
                             return m.testSuites[name]
                         end function
-                        instance.getAllTestSuitesNames = function()
+                        instance.getAllTestSuitesNames = function() as dynamic
                             return m.testSuites.keys()
                         end function
                         instance.getIgnoredTestInfo = function()

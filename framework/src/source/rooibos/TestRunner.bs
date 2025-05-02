@@ -1,331 +1,336 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/source/rooibos/CommonUtils.bs"
+import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+import "pkg:/source/rooibos/Coverage.bs"
+import "pkg:/source/rooibos/RuntimeConfig.bs"
+import "pkg:/source/rooibos/Stats.bs"
+import "pkg:/source/rooibos/Test.bs"
+
 namespace rooibos
-  ' @ignore
-  class TestRunner
-    public testScene = invalid
-    public testReporters = []
-    public nodeContext = invalid
-    public config = invalid
-    public testSuites = []
-    private runtimeConfig = invalid
-    private stats = invalid
-    private top = invalid
+    ' @ignore
+    class TestRunner
+        public testScene = invalid
+        public testReporters = []
+        public nodeContext = invalid
+        public config = invalid
+        public testSuites = []
+        private runtimeConfig = invalid
+        private stats = invalid
+        private top = invalid
 
-    public function new(testScene, nodeContext)
-      m.testScene = testScene
-      if nodeContext.top = invalid
-        nodeContext.top = testScene
-      end if
-      nodeContext.scene = testScene
-
-      m.top = nodeContext.top
-      m.nodeContext = nodeContext
-
-      m.stats = new rooibos.Stats()
-      m.runtimeConfig = new rooibos.RuntimeConfig()
-      m.config = m.runtimeConfig.getRuntimeConfig()
-
-      m.testReporters = m.getTestReporters()
-    end function
-
-    ' Executes all tests for a project, as per the config
-    public function run()
-
-      for each reporter in m.testReporters
-        if rooibos.common.isFunction(reporter.onBegin)
-          reporter.onBegin({ runner: m })
-        end if
-      end for
-
-      rooibosTimer = createObject("roTimespan")
-      rooibosTimer.mark()
-      suiteNames = m.runtimeConfig.getAllTestSuitesNames()
-      isFailed = false
-      failedText = ""
-      i = 0
-      numSuites = suiteNames.count()
-      testSuite = invalid
-      for each name in suiteNames
-        i++
-        'bs:disable-next-line
-        suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
-        testSuite = invalid
-        if suiteClass <> invalid
-          testSuite = suiteClass()
-          testSuite.testRunner = m
-          testSuite.testReporters = m.testReporters
-          testSuite.global = m.nodeContext.global
-          testSuite.context = m.nodeContext
-          testSuite.top = m.nodeContext.top
-          testSuite.scene = m.nodeContext.global.testsScene
-          testSuite.catchCrashes = m.config.catchCrashes
-          testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
-          testSuite.scene.testText = `Running Suite ${i} of ${numSuites}: ${name}`
-          m.runTestSuite(testSuite)
-          if m.stats.hasFailures = true
-            if not isFailed
-              isFailed = true
-              testSuite.scene.statusColor = "#DA3633"
+        public function new(testScene as roSGNodeRooibosScene, nodeContext as roAssociativeArray)
+            m.testScene = testScene
+            if nodeContext.top = invalid then
+                nodeContext.top = testScene
             end if
-            if m.config.failFast = true
-              exit for
+            nodeContext.scene = testScene
+
+            m.top = nodeContext.top
+            m.nodeContext = nodeContext
+
+            m.stats = new rooibos.Stats()
+            m.runtimeConfig = new rooibos.RuntimeConfig()
+            m.config = m.runtimeConfig.getRuntimeConfig()
+
+            m.testReporters = m.getTestReporters()
+        end function
+
+        ' Executes all tests for a project, as per the config
+        public function run()
+
+            for each reporter in m.testReporters
+                if rooibos.common.isFunction(reporter.onBegin) then
+                    reporter.onBegin({ runner: m })
+                end if
+            end for
+
+            rooibosTimer = createObject("roTimespan")
+            rooibosTimer.mark()
+            suiteNames = m.runtimeConfig.getAllTestSuitesNames()
+            isFailed = false
+            failedText = ""
+            i = 0
+            numSuites = suiteNames.count()
+            testSuite = invalid
+            for each name in suiteNames
+                i++
+                suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
+                testSuite = invalid
+                if suiteClass <> invalid then
+                    testSuite = suiteClass()
+                    testSuite.testRunner = m
+                    testSuite.testReporters = m.testReporters
+                    testSuite.global = m.nodeContext.global
+                    testSuite.context = m.nodeContext
+                    testSuite.top = m.nodeContext.top
+                    testSuite.scene = m.nodeContext.global.testsScene
+                    testSuite.catchCrashes = m.config.catchCrashes
+                    testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
+                    testSuite.scene.testText = `Running Suite ${i} of ${numSuites}: ${name}`
+                    m.runTestSuite(testSuite)
+                    if m.stats.hasFailures = true then
+                        if not isFailed then
+                            isFailed = true
+                            testSuite.scene.statusColor = "#DA3633"
+                        end if
+                        if m.config.failFast = true then
+                            exit for
+                        end if
+                    end if
+
+                    if testSuite.stats.hasFailures then
+                        failedText = name + chr(10) + failedText
+                        testSuite.scene.failedText = "Failed Suites: " + chr(10) + failedText
+                    end if
+                else
+                    rooibos.common.logError(`Could not create test for suite : ${name}`)
+                    failedText = "COULD NOT CREATE suite " + name + chr(10) + failedText
+                    testSuite.scene.failedText = "Failed Suites: " + chr(10) + failedText
+                end if
+            end for
+
+            if not isFailed and testSuite <> invalid then
+                testSuite.scene.statusColor = "#238636"
             end if
-          end if
 
-          if testSuite.stats.hasFailures
-            failedText = name + chr(10) + failedText
-            testSuite.scene.failedText = "Failed Suites: " + chr(10) + failedText
-          end if
-        else
-          rooibos.common.logError(`Could not create test for suite : ${name}`)
-          failedText = "COULD NOT CREATE suite " + name + chr(10) + failedText
-          testSuite.scene.failedText = "Failed Suites: " + chr(10) + failedText
-        end if
-      end for
-
-      if not isFailed and testSuite <> invalid
-        testSuite.scene.statusColor = "#238636"
-      end if
-
-      if testSuite = invalid
-        m.nodeContext.global.testsScene.failedText = "No tests were found"
-      end if
-
-      m.stats.time = rooibosTimer.totalMilliseconds()
-
-      for each reporter in m.testReporters
-        if rooibos.common.isFunction(reporter.onEnd)
-          reporter.onEnd({ stats: m.stats })
-        end if
-      end for
-
-      rooibosResult = {
-        stats: m.stats
-        testSuites: m.testSuites
-      }
-      m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
-
-      if m.config.isRecordingCodeCoverage
-        rooibos.Coverage.reportCodeCoverage()
-
-        if m.config.printLcov = true
-          rooibos.Coverage.printLCovInfo()
-        end if
-      else
-        rooibos.common.logDebug("rooibos.Coverage.reportCodeCoverage is not a function")
-      end if
-
-      ' Final results to be logged after all test reporters have finished
-      resultStatus = "PASS"
-      if isFailed then resultStatus = "FAIL"
-      print "[Rooibos Result]: " + resultStatus
-      print "[Rooibos Shutdown]"
-
-      if m.config.sendHomeOnFinish <> false
-        m.sendHomeKeypress()
-      end if
-    end function
-
-    public function runInNodeMode(nodeTestName)
-      'bs:disable-next-line
-      suiteClass = m.runtimeConfig.getTestSuiteClassWithName(nodeTestName)
-      testSuite = invalid
-
-      if suiteClass <> invalid
-        testSuite = suiteClass()
-        testSuite.testReporters = m.testReporters
-        testSuite.global = m.nodeContext.global
-        testSuite.node = m.nodeContext
-        testSuite.top = m.nodeContext.top
-        testSuite.scene = m.nodeContext.global.testsScene
-        testSuite.catchCrashes = m.config.catchCrashes
-        testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
-        m.nodeContext.testSuite = testSuite
-        m.nodeTestName = nodeTestName
-        m.nodeContext.testRunner = m
-      end if
-
-      if testSuite <> invalid
-        m.currentTestSuite = testSuite
-        testSuite.testRunner = m
-        rooibos.common.logDebug("Running suite as a Node test!")
-        testSuite.run()
-        return invalid
-      else
-        rooibos.common.logError(`Could not create test suite ${nodeTestName}`)
-      end if
-
-      rooibos.common.logError(`(runInNodeMode) executing node test ${nodeTestName} was unsuccessful.`)
-
-      return invalid
-    end function
-
-    private function onTestSuiteComplete()
-      testSuite = m.currentTestSuite
-      if testSuite <> invalid
-        return {
-          stats: testSuite.stats
-          tests: testSuite.tests
-        }
-
-      else
-        rooibos.common.logError(`could not create test suite ${m.testRunner.nodeTestName}`)
-      end if
-
-      rooibos.common.logError(`(onTestSuiteComplete) executing node test ${m.testRunner.nodeTestName} was unsuccessful.`)
-      return invalid
-    end function
-
-    private function runTestSuite(testSuite) as void
-      if testSuite.groupsData <> invalid and testSuite.groupsData.count() > 0
-        m.testSuites.push(testSuite)
-
-        if testSuite.isNodeTest
-          m.runNodeTest(testSuite)
-        else
-          testSuite.run()
-        end if
-        m.stats.merge(testSuite.stats)
-      end if
-    end function
-
-    private function waitForField(target, fieldName, delay = 500, maxAttempts = 10)
-      attempts = 0
-      if target = invalid
-        return false
-      end if
-
-      initialValue = target[fieldName]
-      while target[fieldName] = initialValue
-        port = CreateObject("roMessagePort")
-        wait(delay, port)
-        attempts++
-        if attempts = maxAttempts
-          return false
-        end if
-        rooibos.common.logTrace(`waiting for signal field '${fieldName}' - ${attempts} VALUE ${target[fieldName]}`)
-      end while
-
-      return true
-    end function
-
-    function wait(delay = 1)
-      port = CreateObject("roMessagePort")
-      wait(delay, port)
-    end function
-
-    private function runNodeTest(testSuite) as void
-      if testSuite.generatedNodeName <> ""
-        rooibos.common.logDebug(`+++++RUNNING NODE TEST${chr(10)}node type is ${testSuite.generatedNodeName}`)
-
-        node = m.testScene.createChild(testSuite.generatedNodeName)
-        port = CreateObject("roMessagePort")
-        node.observeField("rooibosTestResult", port)
-        ' Trigger test via observer so that thread ownership
-        ' can be transferred to the render thread
-        node.rooibosRunSuite = true
-
-        'wait on the field
-        if type(node) = "roSGNode"
-          event = invalid
-          while true
-            event = wait(0, port)
-            if type(event) = "roSGNodeEvent"
-              exit while
+            if testSuite = invalid then
+                m.nodeContext.global.testsScene.failedText = "No tests were found"
             end if
-          end while
-          nodeResults = event.getData()
 
-          m.groups = []
-          for each groupData in testSuite.groupsData
-            'bs:disable-next-line
-            group = new TestGroup(testSuite, groupData)
-            testSuite.groups.push(group)
-          end for
+            m.stats.time = rooibosTimer.totalMilliseconds()
 
-          if nodeResults <> invalid
-            testSuite.stats.merge(nodeResults.stats)
-            m.mergeGroups(testSuite, nodeResults.groups)
-          else
-            rooibos.common.logError(`The node test ${testSuite.name} did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes`)
-          end if
-          m.testScene.removeChild(node)
-          return
+            for each reporter in m.testReporters
+                if rooibos.common.isFunction(reporter.onEnd) then
+                    reporter.onEnd({ stats: m.stats })
+                end if
+            end for
 
+            rooibosResult = {
+                stats: m.stats
+                testSuites: m.testSuites
+            }
+            m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
+
+            if m.config.isRecordingCodeCoverage then
+                rooibos.Coverage.reportCodeCoverage()
+
+                if m.config.printLcov = true then
+                    rooibos.Coverage.printLCovInfo()
+                end if
+            else
+                rooibos.common.logDebug("rooibos.Coverage.reportCodeCoverage is not a function")
+            end if
+
+            ' Final results to be logged after all test reporters have finished
+            resultStatus = "PASS"
+            if isFailed then resultStatus = "FAIL"
+            print "[Rooibos Result]: " + resultStatus
+            print "[Rooibos Shutdown]"
+
+            if m.config.sendHomeOnFinish <> false then
+                m.sendHomeKeyPress()
+            end if
+        end function
+
+        public function runInNodeMode(nodeTestName as string) as void
+            suiteClass = m.runtimeConfig.getTestSuiteClassWithName(nodeTestName)
+            testSuite = invalid
+
+            if suiteClass <> invalid then
+                testSuite = suiteClass()
+                testSuite.testReporters = m.testReporters
+                testSuite.global = m.nodeContext.global
+                testSuite.node = m.nodeContext
+                testSuite.top = m.nodeContext.top
+                testSuite.scene = m.nodeContext.global.testsScene
+                testSuite.catchCrashes = m.config.catchCrashes
+                testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
+                m.nodeContext.testSuite = testSuite
+                m.nodeTestName = nodeTestName
+                m.nodeContext.testRunner = m
+            end if
+
+            if testSuite <> invalid then
+                m.currentTestSuite = testSuite
+                testSuite.testRunner = m
+                rooibos.common.logDebug("Running suite as a Node test!")
+                testSuite.run()
+                return
+            else
+                rooibos.common.logError(`Could not create test suite ${nodeTestName}`)
+            end if
+
+            rooibos.common.logError(`(runInNodeMode) executing node test ${nodeTestName} was unsuccessful.`)
+
+            return
+        end function
+
+        private function onTestSuiteComplete() as roAssociativeArray
+            testSuite = m.currentTestSuite
+            if testSuite <> invalid then
+                return {
+                    stats: testSuite.stats
+                    tests: testSuite.tests
+                }
+
+            else
+                rooibos.common.logError(`could not create test suite ${m.testRunner.nodeTestName}`)
+            end if
+
+            rooibos.common.logError(`(onTestSuiteComplete) executing node test ${m.testRunner.nodeTestName} was unsuccessful.`)
+            return invalid
+        end function
+
+        private function runTestSuite(testSuite as rooibos.BaseTestSuite)
+            if testSuite.groupsData <> invalid and testSuite.groupsData.count() > 0 then
+                m.testSuites.push(testSuite)
+
+                if testSuite.isNodeTest then
+                    m.runNodeTest(testSuite)
+                else
+                    testSuite.run()
+                end if
+                m.stats.merge(testSuite.stats)
+            end if
+        end function
+
+        private function waitForField(target as roSGNode, fieldName as string, delay = 500 as integer, maxAttempts = 10 as integer) as boolean
+            attempts = 0
+            if target = invalid then
+                return false
+            end if
+
+            initialValue = target[fieldName]
+            while target[fieldName] = initialValue
+                port = CreateObject("roMessagePort")
+                wait(delay, port)
+                attempts++
+                if attempts = maxAttempts then
+                    return false
+                end if
+                rooibos.common.logTrace(`waiting for signal field '${fieldName}' - ${attempts} VALUE ${target[fieldName]}`)
+            end while
+
+            return true
+        end function
+
+        function wait(delay = 1 as integer)
+            port = CreateObject("roMessagePort")
+            wait(delay, port)
+        end function
+
+        private function runNodeTest(testSuite as rooibos.BaseTestSuite) as void
+            if testSuite.generatedNodeName <> "" then
+                rooibos.common.logDebug(`+++++RUNNING NODE TEST${chr(10)}node type is ${testSuite.generatedNodeName}`)
+
+                node = m.testScene.createChild(testSuite.generatedNodeName)
+                port = CreateObject("roMessagePort")
+                node.observeField("rooibosTestResult", port)
+                ' Trigger test via observer so that thread ownership
+                ' can be transferred to the render thread
+                node.rooibosRunSuite = true
+
+                'wait on the field
+                if type(node) = "roSGNode" then
+                    event = invalid
+                    while true
+                        event = wait(0, port)
+                        if type(event) = "roSGNodeEvent" then
+                            exit while
+                        end if
+                    end while
+                    nodeResults = event.getData()
+
+                    m.groups = []
+                    for each groupData in testSuite.groupsData
+                        group = new TestGroup(testSuite, groupData)
+                        testSuite.groups.push(group)
+                    end for
+
+                    if nodeResults <> invalid then
+                        testSuite.stats.merge(nodeResults.stats)
+                        m.mergeGroups(testSuite, nodeResults.groups)
+                    else
+                        rooibos.common.logError(`The node test ${testSuite.name} did not indicate test completion. Did you call m.done() in your test? Did you correctly configure your node test? Please refer to : https://github.com/rokucommunity/rooibos/blob/master/docs/index.md#testing-scenegraph-nodes`)
+                    end if
+                    m.testScene.removeChild(node)
+                    return
+
+                else
+                    rooibos.common.logError(`Could not create node required to execute tests for ${testSuite.name}${chr(10)}Node of type ${testSuite.generatedNodeName} was not found/could not be instantiated`)
+                end if
+
+            else
+                rooibos.common.logError(`Could not create node required to execute tests for ${testSuite.name}${chr(10)}No node type was provided`)
+            end if
+
+            testSuite.stats.hasFailures = true
+            testSuite.failedCount += testSuite.testsData.count()
+        end function
+
+        private function mergeGroups(testSuite as rooibos.BaseTestSuite, groups as rooibos.TestGroup[])
+            for i = 0 to testSuite.groups.count() - 1
+                group = groups[i]
+                realGroup = testSuite.groups[i]
+                realGroup.stats.merge(group.stats)
+                realGroup.hasFailures = group.hasFailures
+                realGroup.tests = []
+                for testDataIndex = 0 to group.testsData.count() - 1
+                    testData = group.testsData[testDataIndex]
+                    realTest = new rooibos.Test(m, testData, testSuite)
+                    realGroup.tests.push(realTest)
+                    test = group.tests[testDataIndex]
+                    realTest.result.merge(test.result)
+                end for
+            end for
+        end function
+
+        private function sendHomeKeyPress()
+            ut = createObject("roUrlTransfer")
+            ut.SetUrl("http://localhost:8060/keypress/Home")
+            ut.PostFromString("")
+        end function
+
+        private function getTestReporters() as rooibos.BaseTestReporter[]
+            testReporters = []
+            for each factory in m.config.reporters
+                if rooibos.common.isFunction(factory) then
+                    testReporters.push(factory(m))
+                end if
+            end for
+            if testReporters.isEmpty() then
+                testReporters.push(new rooibos.ConsoleTestReporter(m))
+            end if
+            return testReporters
+        end function
+
+    end class
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ This code is called inside of the node
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    ' @ignore
+    function createTestNode(nodeType as string) as object
+        node = createObject("roSGNode", nodeType)
+
+        if type(node) = "roSGNode" and node.subType() = nodeType then
+            m.top.AppendChild(node)
+            return node
         else
-          rooibos.common.logError(`Could not create node required to execute tests for ${testSuite.name}${chr(10)}Node of type ${testSuite.generatedNodeName} was not found/could not be instantiated`)
+            rooibos.common.logError(`Error creating test node of type ${nodeType}`)
+            return invalid
         end if
-
-      else
-        rooibos.common.logError(`Could not create node required to execute tests for ${testSuite.name}${chr(10)}No node type was provided`)
-      end if
-
-      testSuite.stats.hasFailures = true
-      testSuite.failedCount += testSuite.testsData.count()
     end function
 
-    private function mergeGroups(testSuite, groups)
-      for i = 0 to testSuite.groups.count() - 1
-        group = groups[i]
-        realGroup = testSuite.groups[i]
-        realGroup.stats.merge(group.stats)
-        realGroup.hasFailures = group.hasFailures
-        realGroup.tests = []
-        for testDataIndex = 0 to group.testsData.count() - 1
-          testData = group.testsData[testDataIndex]
-          realTest = new rooibos.Test(m, testData, testSuite)
-          realGroup.tests.push(realTest)
-          test = group.tests[testDataIndex]
-          realTest.result.merge(test.result)
-        end for
-      end for
+    ' @ignore
+    function runNodeTestSuite(name as string)
+        nodeRunner = new TestRunner(m.top.getScene(), m)
+        nodeRunner.runInNodeMode(name)
     end function
 
-    private function sendHomeKeypress()
-      ut = createObject("roUrlTransfer")
-      ut.SetUrl("http://localhost:8060/keypress/Home")
-      ut.PostFromString("")
+    ' @ignore
+    function onTestSuiteComplete()
+        m.testRunner.onTestSuiteComplete()
     end function
-
-    private function getTestReporters()
-      testReporters = []
-      for each factory in m.config.reporters
-        if rooibos.common.isFunction(factory)
-          testReporters.push(factory(m))
-        end if
-      end for
-      if testReporters.isEmpty()
-        testReporters.push(new rooibos.ConsoleTestReporter(m))
-      end if
-      return testReporters
-    end function
-
-  end class
-
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ This code is called inside of the node
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  ' @ignore
-  function createTestNode(nodeType) as object
-    node = createObject("roSGNode", nodeType)
-
-    if type(node) = "roSGNode" and node.subType() = nodeType
-      m.top.AppendChild(node)
-      return node
-    else
-      rooibos.common.logError(`Error creating test node of type ${nodeType}`)
-      return invalid
-    end if
-  end function
-
-  ' @ignore
-  function runNodeTestSuite(name)
-    nodeRunner = new TestRunner(m.top.getScene(), m)
-    return nodeRunner.runInNodeMode(name)
-  end function
-
-  ' @ignore
-  function onTestSuiteComplete()
-    m.testRunner.onTestSuiteComplete()
-  end function
 end namespace

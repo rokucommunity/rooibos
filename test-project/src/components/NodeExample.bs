@@ -5,7 +5,7 @@ function Init() as void
 end function
 
 function HelloFromNode(name, age) as string
-    return "HELLO " + name + " age:" + stri(age)
+    return "HELLO " + name + " age:" + strI(age)
 end function
 
 function UpdateState(newState) as void
@@ -29,12 +29,12 @@ function delayCall(delay, callback) as void
         callback: callback
     }
 
-    onDelayedFired = sub(event)
+    onDelayedFired = function(event)
         id = event.getNode()
-        callback  = m[id].callback
+        callback = m[id].callback
         callback()
         m.delete(id)
-    end sub
+    end function
 
     timer.observeFieldScoped("fire", onDelayedFired.toStr().tokenize(" ").peek())
     timer.control = "start"

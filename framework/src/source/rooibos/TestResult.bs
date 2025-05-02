@@ -1,107 +1,107 @@
 namespace rooibos
-  ' @ignore
-  class TestResult
+    ' @ignore
+    class TestResult
 
-    public isFail = false
-    public isCrash = false
-    public isSkipped = false
-    public actual = invalid
-    public expected = invalid
-    public message = ""
-    public lineNumber = -1
-    public test = invalid
-    public time = -1
-    public error = invalid
-    public throwOnFailedAssertion = false
+        public isFail = false
+        public isCrash = false
+        public isSkipped = false
+        public actual = invalid
+        public expected = invalid
+        public message = ""
+        public lineNumber = -1
+        public test = invalid
+        public time = -1
+        public error = invalid
+        public throwOnFailedAssertion = false
 
-    function new(test)
-      m.test = test
-    end function
+        function new(test as rooibos.Test)
+            m.test = test
+        end function
 
-    function merge(other)
-      m.isFail = other.isFail
-      m.isCrash = other.isCrash
-      m.actual = other.actual
-      m.expected = other.expected
-      m.message = other.message
-      m.lineNumber = other.lineNumber
-      m.time = other.time
-      m.error = other.error
-    end function
+        function merge(other as rooibos.Test)
+            m.isFail = other.isFail
+            m.isCrash = other.isCrash
+            m.actual = other.actual
+            m.expected = other.expected
+            m.message = other.message
+            m.lineNumber = other.lineNumber
+            m.time = other.time
+            m.error = other.error
+        end function
 
-    function reset() as void
-      m.isFail = false
-      m.isCrash = false
-      m.time = -1
-      m.message = ""
-      m.lineNumber = -1
-    end function
+        function reset() as void
+            m.isFail = false
+            m.isCrash = false
+            m.time = -1
+            m.message = ""
+            m.lineNumber = -1
+        end function
 
-    function fail(message as string, lineNumber = -1, actual = "", expected = "", error = invalid)
-      if message <> "" and not m.isFail
-        if not m.isFail
-          m.lineNumber = lineNumber
-          m.isFail = true
-          m.message = message
-          m.actual = actual
-          m.expected = expected
-          m.error = error
-        end if
-      end if
-      if m.throwOnFailedAssertion
-        throw m.getMessage()
-      end if
-    end function
+        function fail(message as string, lineNumber = -1 as integer, actual = "" as string, expected = "" as string, error = invalid as roAssociativeArray)
+            if message <> "" and not m.isFail then
+                if not m.isFail then
+                    m.lineNumber = lineNumber
+                    m.isFail = true
+                    m.message = message
+                    m.actual = actual
+                    m.expected = expected
+                    m.error = error
+                end if
+            end if
+            if m.throwOnFailedAssertion then
+                throw m.getMessage()
+            end if
+        end function
 
-    function skip(message as string)
-      if message <> "" and not m.isFail
-        if not m.isFail
-          m.isSkipped = true
-          m.message = message
-        end if
-      end if
-    end function
+        function skip(message as string)
+            if message <> "" and not m.isFail then
+                if not m.isFail then
+                    m.isSkipped = true
+                    m.message = message
+                end if
+            end if
+        end function
 
-    function crash(message as string, error)
-      if message <> "" and not m.isCrash
-        if not m.isCrash
-          m.error = error
-          m.message = "test crashed!"
-          m.isFail = true
-          m.isCrash = true
-        end if
-      end if
-    end function
+        function crash(message as string, error as roAssociativeArray)
+            if message <> "" and not m.isCrash then
+                if not m.isCrash then
+                    m.error = error
+                    m.message = "test crashed!"
+                    m.isFail = true
+                    m.isCrash = true
+                end if
+            end if
+        end function
 
-    function getMessage() as string
-      if m.isFail
-        if m.message <> invalid
-          return m.message
-        else
-          return "unknown test failure"
-        end if
-      else if m.isCrash
-        if m.message <> invalid
-          return m.message
-        else
-          return "unknown test crash"
-        end if
-      else
-        return ""
-      end if
-    end function
+        function getMessage() as string
+            if m.isFail then
+                if m.message <> invalid then
+                    return m.message
+                else
+                    return "unknown test failure"
+                end if
+            else if m.isCrash then
+                if m.message <> invalid then
+                    return m.message
+                else
+                    return "unknown test crash"
+                end if
+            else
+                return ""
+            end if
+        end function
 
-    function getStatusText()
-      if m.isCrash
-        return "CRASH"
-      else if m.isFail
-        return "FAIL"
-      else if m.isSkipped
-        return "SKIP"
-      else
-        return "PASS"
-      end if
-    end function
+        function getStatusText() as string
+            if m.isCrash then
+                return "CRASH"
+            else if m.isFail then
+                return "FAIL"
+            else if m.isSkipped then
+                return "SKIP"
+            else
+                return "PASS"
+            end if
+        end function
 
-  end class
+    end class
 end namespace

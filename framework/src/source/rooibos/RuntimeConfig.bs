@@ -1,30 +1,34 @@
+import "pkg:/source/rooibos/JUnitTestReporter.bs"
+import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+import "pkg:/source/rooibos/MochaTestReporter.bs"
+
 namespace rooibos
-  ' @ignore
-  class RuntimeConfig
+    ' @ignore
+    class RuntimeConfig
 
-    function new()
-      m.testSuites = m.getTestSuiteClassMap()
-    end function
+        function new()
+            m.testSuites = m.getTestSuiteClassMap()
+        end function
 
-    function getVersionText()
-    end function
+        function getVersionText()
+        end function
 
-    function getRuntimeConfig()
-    end function
+        function getRuntimeConfig()
+        end function
 
-    function getTestSuiteClassMap()
-    end function
+        function getTestSuiteClassMap()
+        end function
 
-    function getTestSuiteClassWithName(name)
-      return m.testSuites[name]
-    end function
+        function getTestSuiteClassWithName(name as string) as rooibos.BaseTestSuite
+            return m.testSuites[name]
+        end function
 
-    function getAllTestSuitesNames()
-      return m.testSuites.keys()
-    end function
+        function getAllTestSuitesNames() as string[]
+            return m.testSuites.keys()
+        end function
 
-    function getIgnoredTestInfo()
-    end function
+        function getIgnoredTestInfo()
+        end function
 
-  end class
+    end class
 end namespace

@@ -1,17 +1,26 @@
 {
   "rules": {
-    "inline-if-style": "no-then",
-    "block-if-style": "no-then",
-    "condition-style": "no-group",
-    "named-function-style": "no-sub",
-    "anon-function-style": "no-sub",
-    "type-annotations": "off",
-    "assign-all-paths": "off",
-    "unsafe-path-loop": "error",
-    "unsafe-iterators": "error",
-    "unreachable-code": "warn",
-    "case-sensitivity": "warn",
-    "unused-variable": "warn",
-    "consistent-return": "error"
-  }
+      "inline-if-style": "then",
+      "block-if-style": "then",
+      "condition-style": "no-group",
+      "named-function-style": "no-sub",
+      "anon-function-style": "no-sub",
+      "aa-comma-style": "never",
+      "no-print": "off",
+      "type-annotations": "all",
+      "eol-last": "always",
+      "no-stop": "on",
+      "assign-all-paths": "error",
+      "unsafe-path-loop": "error",
+      "unsafe-iterators": "error",
+      "unreachable-code": "info",
+      "case-sensitivity": "warn",
+      "unused-variable": "warn",
+      "consistent-return": "error",
+      "no-regex-duplicates": "error"
+  },
+  "globals": [],
+  "ignores": [
+      "**/roku_modules/**/*"
+  ]
 }

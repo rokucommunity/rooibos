@@ -1,8 +1,8 @@
-sub init()
-  m.top.functionName = "runTaskThread"
-end sub
+function init()
+    m.top.functionName = "runTaskThread"
+end function
 
-sub runTaskThread()
-  sleep(m.top.sleepTime)
-  m.top.result = "done"
-end sub
+function runTaskThread()
+    sleep(m.top.sleepTime)
+    m.top.result = "done"
+end function

@@ -1,14 +1,14 @@
 {
-  "rootDir": "src",
-  "files": [
-    "manifest",
-    "source/**/*.*",
-    "components/**/*.*"
-  ],
-  "autoImportComponentScript": true,
-  "createPackage": false,
-  "stagingFolderPath": "dist",
-  "rooibos-settings": {
-    "coverage": true
-  }
+    "rootDir": "src",
+    "files": [
+        "manifest",
+        "source/**/*.*",
+        "components/**/*.*"
+    ],
+    "autoImportComponentScript": true,
+    "createPackage": false,
+    "stagingFolderPath": "dist",
+    "rooibos-settings": {
+        "coverage": true
+    }
 }
