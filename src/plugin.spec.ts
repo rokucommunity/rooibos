@@ -3,7 +3,6 @@ import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Position, 
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
-import * as path from 'path';
 import undent from 'undent';
 import { SourceMapConsumer } from 'source-map';
 let tmpPath = s`${process.cwd()}/.tmp`;
@@ -22,7 +21,6 @@ describe('RooibosPlugin', () => {
 
         plugin = new RooibosPlugin();
         builder = new ProgramBuilder();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         builder.options = util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
         program = builder.program;
@@ -2498,7 +2496,6 @@ describe('RooibosPlugin', () => {
                 end class
             `);
             program.validate();
-            let files = [...Object.values(program.files)].map(x => ({ src: x.srcPath, dest: x.pkgPath }));
             expect(program.getDiagnostics().map(x => x.message)).to.eql([`Cannot find name 'BaseTestClass'`]);
         });
     });
@@ -2730,49 +2727,49 @@ describe('RooibosPlugin', () => {
     describe.skip('run a local project', () => {
         it('sanity checks on parsing - only run this outside of ci', () => {
             let programBuilder = new ProgramBuilder();
-            let swv = {
-                'stagingFolderPath': 'build',
-                'rootDir': '/home/george/hope/open-source/rooibos/tests',
-                'files': ['manifest', 'source/**/*.*', 'components/**/*.*'],
-                'autoImportComponentScript': true,
-                'createPackage': false,
-                'diagnosticFilters': [
-                    {
-                        'src': '**/roku_modules/**/*.*',
-                        'codes': [1107, 1009]
-                    }
-                ],
-                'rooibos': {
-                    'showOnlyFailures': true,
-                    'catchCrashes': true,
-                    'colorizeOutput': false,
-                    'throwOnFailedAssertion': false,
-                    'lineWidth': 70,
-                    'failFast': false,
-                    'sendHomeOnFinish': false,
-                    'keepAppOpen': true
-                },
-                'maestro': {
-                    'nodeFileDelay': 0,
-                    'excludeFilters': [
-                        '**/roku_modules/**/*',
-                        '**/*BaseTestSuite*.bs'
-                    ]
-                },
-                'sourceMap': true,
-                'extends': 'bsconfig.json',
-                'plugins': [
-                    '/home/george/hope/open-source/maestro/maestro-roku-bsc-plugin/dist/plugin.js',
-                    '/home/george/hope/open-source/rooibos/bsc-plugin/dist/plugin.js'
-                ],
-                'exclude': {
-                    'id': '/home/george/hope/open-source/maestro/roku-log-bsc-plugin/dist/plugin.js'
-                },
-                'rokuLog': {
-                    'strip': false,
-                    'insertPkgPath': true
-                }
-            };
+            // let swv = {
+            //     'stagingFolderPath': 'build',
+            //     'rootDir': '/home/george/hope/open-source/rooibos/tests',
+            //     'files': ['manifest', 'source/**/*.*', 'components/**/*.*'],
+            //     'autoImportComponentScript': true,
+            //     'createPackage': false,
+            //     'diagnosticFilters': [
+            //         {
+            //             'src': '**/roku_modules/**/*.*',
+            //             'codes': [1107, 1009]
+            //         }
+            //     ],
+            //     'rooibos': {
+            //         'showOnlyFailures': true,
+            //         'catchCrashes': true,
+            //         'colorizeOutput': false,
+            //         'throwOnFailedAssertion': false,
+            //         'lineWidth': 70,
+            //         'failFast': false,
+            //         'sendHomeOnFinish': false,
+            //         'keepAppOpen': true
+            //     },
+            //     'maestro': {
+            //         'nodeFileDelay': 0,
+            //         'excludeFilters': [
+            //             '**/roku_modules/**/*',
+            //             '**/*BaseTestSuite*.bs'
+            //         ]
+            //     },
+            //     'sourceMap': true,
+            //     'extends': 'bsconfig.json',
+            //     'plugins': [
+            //         '/home/george/hope/open-source/maestro/maestro-roku-bsc-plugin/dist/plugin.js',
+            //         '/home/george/hope/open-source/rooibos/bsc-plugin/dist/plugin.js'
+            //     ],
+            //     'exclude': {
+            //         'id': '/home/george/hope/open-source/maestro/roku-log-bsc-plugin/dist/plugin.js'
+            //     },
+            //     'rokuLog': {
+            //         'strip': false,
+            //         'insertPkgPath': true
+            //     }
+            // };
 
             programBuilder.run(
                 // swv

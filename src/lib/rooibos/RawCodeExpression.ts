@@ -1,8 +1,9 @@
-import type { BscFile,
+import type {
+    BscFile,
     WalkOptions,
-    WalkVisitor } from 'brighterscript';
-import { Expression } from 'brighterscript';
-import * as brighterscript from 'brighterscript';
+    WalkVisitor
+} from 'brighterscript';
+import { Expression, Range } from 'brighterscript';
 import type { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 
 import { SourceNode } from 'source-map';
@@ -11,7 +12,7 @@ export class RawCodeExpression extends Expression {
     constructor(
         public source: string,
         public sourceFile?: BscFile,
-        public range: brighterscript.Range = brighterscript.Range.create(1, 1, 1, 99999)
+        public range: Range = Range.create(1, 1, 1, 99999)
     ) {
         super();
     }

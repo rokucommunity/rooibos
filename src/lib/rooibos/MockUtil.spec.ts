@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 import { Program, ProgramBuilder, util, standardizePath as s } from 'brighterscript';
 import { expect } from 'chai';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
@@ -17,7 +16,6 @@ describe('MockUtil', () => {
     let options;
 
     function getContents(filename: string) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         let contents = fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString();
         return contents;
     }
@@ -41,7 +39,6 @@ describe('MockUtil', () => {
             fsExtra.ensureDirSync(_rootDir);
 
             builder = new ProgramBuilder();
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             builder.options = util.normalizeAndResolveConfig(options);
             builder.program = new Program(builder.options);
             program = builder.program;

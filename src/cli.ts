@@ -6,8 +6,6 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
-import * as path from 'path';
-import { create } from 'domain';
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -27,7 +25,7 @@ let options = yargs
             console.log('No project file specified. Using "./bsconfig.json"');
 
         }
-        let bsconfigPath = argv.project || './bsconfig.json';
+        let bsconfigPath = argv.project ?? './bsconfig.json';
 
         if (!fs.existsSync(bsconfigPath)) {
             return new Error(`Unable to load ${bsconfigPath}`);

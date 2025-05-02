@@ -45,7 +45,6 @@
         "@typescript-eslint/parser": "^5.27.0",
         "brighterscript-jsdocs-plugin": "^0.7.3",
         "chai": "^4.2.0",
-        "chai-subset": "^1.6.0",
         "coveralls": "^3.0.0",
         "cz-conventional-changelog": "^3.3.0",
         "eslint": "^8.16.0",
