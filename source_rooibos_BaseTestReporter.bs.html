@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>ConsoleTestReporter.bs - Documentation</title>
+    <title>source/rooibos/BaseTestReporter.bs - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">ConsoleTestReporter.bs</h1>
+    <h1 class="page-title">source/rooibos/BaseTestReporter.bs</h1>
     
 
     
@@ -40,241 +40,105 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>namespace rooibos
-  ' @ignore
-  class ConsoleTestReporter extends rooibos.BaseTestReporter
 
-    private lineWidth = 60
+    ' @ignore
+    class BaseTestReporter
 
-    function new(runner)
-      'bs:disable-next-line
-      super(runner)
-      if m.config.lineWidth &lt;> invalid
-        m.lineWidth = m.config.lineWidth
-      else
-        m.lineWidth = 60
-      end if
-    end function
+        public testRunner = invalid
+        public config = invalid
+        public allStats = invalid
+        public colorizeOutput = false
 
-    override function onSuiteBegin(event as rooibos.TestReporterOnSuiteBeginEvent)
-      if event.suite.isIgnored then return invalid
-      ? ""
-      ? rooibos.common.fillText("> SUITE: " + event.suite.name, ">", 80)
-    end function
+        function new(runner as dynamic)
+            m.testRunner = runner
+            m.config = runner.config
+            m.allStats = runner.stats
+            m.colorizeOutput = runner.config.colorizeOutput = true
+        end function
 
-    override function onTestGroupBegin(event as rooibos.TestReporterOnTestGroupBeginEvent)
-      if event.group.isIgnored then return invalid
-      ? ""
-      ? rooibos.common.fillText(">>>> Describe: " + event.group.name, ">", 80)
-      'bs:disable-next-line
-      ? `  Location: file://${event.group.testSuite.filePath.trim()}:${event.group.lineNumber}`
-      ? ""
-    end function
+        function onBegin(event as rooibos.TestReporterOnBeginEvent)
+            'override me
+            rooibos.common.logDebug("BaseTestReporter.onBegin")
+        end function
 
-    override function onTestBegin(event as rooibos.TestReporterOnTestBeginEvent)
-    if event.test.isIgnored then return invalid
-      ? ""
-      ? rooibos.common.fillText(">>>>>> It: " + event.test.name, ">", 80)
-      ? `  Location: file://${event.test.testSuite.filePath.trim()}:${event.test.lineNumber}`
-      ? ""
-    end function
+        function onSuiteBegin(event as rooibos.TestReporterOnSuiteBeginEvent)
+            'override me
+        end function
 
-    override function onTestComplete(event as rooibos.TestReporterOnTestCompleteEvent)
-      if event.test.isIgnored then return invalid
-      ? rooibos.common.fillText("&lt;&lt;&lt;&lt; END It: " + event.test.name + " (" + event.test.result.getStatusText() + ") ", "&lt;", 80)
-    end function
+        function onTestGroupBegin(event as rooibos.TestReporterOnTestGroupBeginEvent)
+            'override me
+        end function
 
-    ' override function onTestGroupComplete(event as rooibos.TestReporterOnTestGroupCompleteEvent)
-    '   'override me
-    ' end function
+        function onTestBegin(event as rooibos.TestReporterOnTestBeginEvent)
+            'override me
+        end function
 
-    ' override function onSuiteComplete(event as rooibos.TestReporterOnSuiteCompleteEvent)
-    '   'override me
-    ' end function
+        function onTestComplete(event as rooibos.TestReporterOnTestCompleteEvent)
+            'override me
+        end function
 
-    override function onEnd(event as rooibos.TestReporterOnEndEvent)
-      m.allStats = event.stats
-      m.startReport()
-      for each testSuite in m.testRunner.testSuites
-        if not testSuite.isIgnored
-          if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
-            m.printSuiteStart(testSuite)
+        function onTestGroupComplete(event as rooibos.TestReporterOnTestGroupCompleteEvent)
+            'override me
+        end function
 
-            for each testGroup in testSuite.groups
-              m.printGroup(testGroup)
-            end for
-          end if
-        end if
-      end for
+        function onSuiteComplete(event as rooibos.TestReporterOnSuiteCompleteEvent)
+            'override me
+        end function
 
-      m.printLine()
+        function onEnd(event as rooibos.TestReporterOnEndEvent)
+            'override me
+            rooibos.common.logDebug("BaseTestReporter.onEnd")
+        end function
 
-      'bs:disable-next-line
-      ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
-      m.printLine(0, "Total: " + rooibos.common.AsString(m.allStats.ranCount))
-      m.printLine(0, "  Passed: " + rooibos.common.AsString(m.allStats.passedCount))
-      m.printLine(0, "  Crashed: " + rooibos.common.AsString(m.allStats.crashedCount))
-      m.printLine(0, "  Failed: " + rooibos.common.AsString(m.allStats.failedCount))
-      'bs:disable-next-line
-      m.printLine(0, "  Ignored: " + rooibos.common.AsString(ignoredInfo.count))
-      m.printLine(0, "  Time: " + rooibos.common.AsString(m.allStats.time) + "ms")
-      m.printLine()
-      m.printLine()
+    end class
 
-      if ignoredInfo.count > 0
-        m.printLine(0, "IGNORED TESTS:")
-        for each ignoredItemName in ignoredInfo.items
-          m.printLine(1, ignoredItemName)
-        end for
-        m.printLine()
-        m.printLine()
-      end if
-      overrallResult = ""
-      if m.allStats.hasFailures
-        overrallResult = "Fail"
-      else
-        overrallResult = "Success"
-      end if
-      m.printLine(0, "RESULT: " + overrallResult)
-      m.endReport()
-    end function
+    ' @ignore
+    interface TestReporterOnBeginEvent
+        runner as rooibos.TestRunner
+    end interface
 
-    function printGroup(testGroup)
-      if testGroup.isIgnored then return invalid
-      isGroupPrinted = false
+    ' @ignore
+    interface TestReporterOnSuiteBeginEvent
+        suite as rooibos.BaseTestSuite
+    end interface
 
-      for each test in testGroup.tests
-        if not test.result.isSkipped
-          if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail)
-            if not isGroupPrinted
-              m.printGroupStart(testGroup)
-              isGroupPrinted = true
-            end if
+    ' @ignore
+    interface TestReporterOnTestGroupBeginEvent
+        group as rooibos.TestGroup
+    end interface
 
-            m.printTest(test)
-          end if
-        end if
-      end for
+    ' @ignore
+    interface TestReporterOnTestBeginEvent
+        test as rooibos.Test
+    end interface
 
-      if isGroupPrinted
-        m.printLine(0, " |")
-      end if
-    end function
+    ' @ignore
+    interface TestReporterOnTestCompleteEvent
+        test as rooibos.Test
+    end interface
 
-    function printTest(test)
+    ' @ignore
+    interface TestReporterOnTestGroupCompleteEvent
+        group as rooibos.TestGroup
+    end interface
 
-      testLocationLine = StrI(test.lineNumber).trim()
+    ' @ignore
+    interface TestReporterOnSuiteCompleteEvent
+        suite as rooibos.BaseTestSuite
+    end interface
 
-      locationLine = invalid
-      testChar = ""
-      if test.result.isCrash
-        testChar = "|"
-        locationLine = StrI(test.lineNumber).trim()
-      else if test.result.isFail
-        testChar = "-"
-        locationLine = StrI(test.result.lineNumber).trim()
-      else
-        testChar = "|"
-        locationLine = StrI(test.lineNumber).trim()
-      end if
+    ' @ignore
+    ' @deprecated use rooibos.TestReporterOnEndEvent
+    interface ITestReporterOnEndEvent
+        stats as rooibos.Stats
+    end interface
 
-      testLocationText = "file://" + test.testSuite.filePath.trim() + ":" + testLocationLine
-
-      timeText = ""
-      if m.config.printTestTimes = true
-        timeText = " (" + stri(test.result.time).trim() + "ms)"
-      end if
-
-      insetText = ""
-      if test.isParamTest &lt;> true
-        messageLine = rooibos.common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
-        m.printLine(0, messageLine + test.result.getStatusText() + timeText)
-        m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
-      else if test.paramTestIndex = 0
-        name = test.name
-        if len(name) > 1 and right(name, 1) = "0"
-          name = left(name, len(name) - 1)
-        end if
-        m.printLine(0, " " + testChar + " |--" + name + " : ")
-        m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
-      end if
-
-      locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine
-      if test.isParamTest = true
-        insetText = "  "
-
-        rawParams = invalid
-        if type(test.rawParams) = "roAssociativeArray"
-          rawParams = {}
-          for each key in test.rawParams
-            if type(test.rawParams[key]) &lt;> "Function" and type(test.rawParams[key]) &lt;> "roFunction"
-              rawParams[key] = test.rawParams[key]
-            end if
-          end for
-        else
-          rawParams = test.rawParams
-        end if
-        messageLine = rooibos.common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", m.lineWidth)
-        m.printLine(0, messageLine + test.result.getStatusText() + timeText)
-      end if
-
-      if test.result.isCrash
-        m.printLine(0, " | " + insetText + "  |--Crashed at: " + locationText)
-        m.printStackTrace(insetText, test.result.error)
-        m.printLine(0, " | ")
-      else if test.result.isFail
-        m.printLine(0, " | " + insetText + "  |--Failed at: " + locationText)
-        if test.isParamTest = true
-          m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(test.paramLineNumber).trim())
-        end if
-        m.printLine(0, " | " + insetText + "  |--Error Message: " + test.result.message)
-        m.printLine(0, " | ")
-      end if
-    end function
-
-    function printStackTrace(insetText, error)
-      m.printLine(0, " | " + insetText + "  |")
-      m.printLine(0, " | " + insetText + "  |--Message: " + error.message)
-      m.printLine(0, " | " + insetText + "  |--Stack trace: ")
-
-      for i = error.backTrace.count() - 1 to 0 step -1
-        e = error.backTrace[i]
-        if e.filename.instr("pkg:/source/rooibos") = -1
-          m.printLine(0, " | " + insetText + "    " + e.filename + "(" + stri(e.line_number).trim() + ")")
-        end if
-      end for
-    end function
-
-    function startReport()
-      m.printLine()
-      m.printLine(0, "[START TEST REPORT]")
-      m.printLine()
-    end function
-
-    function endReport()
-      m.printLine()
-      m.printLine(0, "[END TEST REPORT]")
-      m.printLine()
-    end function
-
-    function printSuiteStart(testSuite)
-      m.printLine(0, " " + testSuite.name + " file://" + testSuite.filePath.trim() + ":" + str(testSuite.lineNumber).trim())
-
-    end function
-
-    function printGroupStart(testGroup)
-      m.printLine(0, " |-" + testGroup.name)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ printing
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function printLine(depth = 0, text = "")
-      ? " " ; text
-    end function
-
-  end class
-end namespace</code></pre>
+    ' @ignore
+    interface TestReporterOnEndEvent
+        stats as rooibos.Stats
+    end interface
+end namespace
+</code></pre>
         </article>
     </section>
 
@@ -286,7 +150,7 @@ end namespace</code></pre>
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Thu May 01 2025 22:35:51 GMT+0000 (Coordinated Universal Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri May 02 2025 20:09:41 GMT+0000 (Coordinated Universal Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

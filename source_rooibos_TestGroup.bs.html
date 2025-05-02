@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>JUnitTestReporter.bs - Documentation</title>
+    <title>source/rooibos/TestGroup.bs - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">JUnitTestReporter.bs</h1>
+    <h1 class="page-title">source/rooibos/TestGroup.bs</h1>
     
 
     
@@ -40,100 +40,278 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>namespace rooibos
-  ' @ignore
-  class JUnitTestReporter extends rooibos.BaseTestReporter
+    class TestGroup
+        'test state
+        name = "Unnamed Suite"
 
-    override function onEnd(event as rooibos.TestReporterOnEndEvent)
-      root = createObject("roXMLElement")
-      root.SetName("testsuites")
-      properties = root.addElement("properties")
+        testSuite = invalid
+        setupFunctionName = invalid
+        tearDownFunctionName = invalid
+        beforeEachFunctionName = invalid
+        afterEachFunctionName = invalid
+        isSolo = false
+        isLegacy = false
+        isIgnored = false
+        stats = invalid
+        scene = invalid
+        lineNumber = 00
+        top = invalid
+        valid = false
+        hasFailures = false
+        isNodeTest = false
+        nodeName = invalid
+        testsData = invalid
+        tests = []
+        public deferred = invalid
 
-      versionProperty = properties.AddElement("property")
-      versionProperty.AddAttribute("name", "Rooibos Version")
-      versionProperty.AddAttribute("value", m.testRunner.runtimeConfig.getVersionText())
+        function new(testSuite as rooibos.BaseTestSuite, data as roAssociativeArray)
+            m.testSuite = testSuite
+            m.name = data.name
+            m.valid = data.valid
+            m.hasFailures = testSuite.hasFailures
+            m.isSolo = data.isSolo
+            m.isIgnored = data.isIgnored
+            m.isAsync = data.isAsync
+            m.asyncTimeout = data.asyncTimeout
+            m.testsData = data.testCases
+            m.isNodeTest = testSuite.isNodeTest
+            m.nodeName = invalid
+            m.setupFunctionName = data.setupFunctionName
+            m.tearDownFunctionName = data.tearDownFunctionName
+            m.beforeEachFunctionName = data.beforeEachFunctionName
+            m.afterEachFunctionName = data.afterEachFunctionName
+            m.lineNumber = data.lineNumber
 
-      for each testSuite in m.testRunner.testSuites
-        suite = root.AddElement("testsuite")
-        suite.AddAttribute("name", testSuite.name)
-        suite.AddAttribute("tests", Rooibos.Common.AsString(testSuite.stats.ranCount))
-        suite.AddAttribute("failures", Rooibos.Common.AsString(testSuite.stats.failedCount))
-        suite.AddAttribute("skipped", Rooibos.Common.AsString(testSuite.stats.ignoredCount))
-        suite.AddAttribute("time", Rooibos.Common.AsString(testSuite.stats.time))
-
-        for each testGroup in testSuite.groups
-          m.generateGroupXML(testGroup, suite)
-        end for
-      end for
-
-      'bs:disable-next-line
-      ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
-      if ignoredInfo.count > 0
-        for each ignoredItemName in ignoredInfo.items
-          testCase = root.AddElement("testcase")
-          testCase.AddAttribute("name", ignoredItemName)
-          testCase.addAttribute("classname", "skipped")
-          testCase.AddElement("skipped")
-        end for
-      end if
-
-      ? `&lt;?xml version="1.0" encoding="UTF-8"?>` + root.GenXML(false)
-    end function
-
-    function generateGroupXML(testGroup, suite)
-      for each test in testGroup.tests
-        testCase = suite.AddElement("testcase")
-        testCase.AddAttribute("name", test.name)
-        testCase.AddAttribute("time", Rooibos.Common.AsString(test.result.time))
-        locationText = "file://" + test.testSuite.filePath.trim() + ":" + Rooibos.Common.AsString(test.lineNumber)
-        testCase.addAttribute("file", locationText)
-
-        ' Gitlab displays classname in the suite field for some reason
-        testCase.addAttribute("classname", test.testSuite.name)
-
-        if test.result.isCrash or test.result.isFail
-          testFailure = testCase.AddElement(test.result.isCrash ? "error" : "failure")
-
-          testFailure.addAttribute("message", test.result.getMessage())
-          testFailure.addAttribute("type", Rooibos.Common.AsString(test.result.getStatusText()))
-
-          if test.isParamTest = true
-            if type(test.rawParams) = "roAssociativeArray"
-              rawParams = {}
-              for each key in test.rawParams
-                if type(test.rawParams[key]) &lt;> "Function" and type(test.rawParams[key]) &lt;> "roFunction"
-                  rawParams[key] = test.rawParams[key]
-                end if
-              end for
-            else
-              rawParams = test.rawParams
+            if m.isNodeTest then
+                m.deferred = rooibos.promises.create()
             end if
-            testFailure.addText(chr(10) + "Params: " + formatJson(rawParams) + chr(10))
-          end if
 
-          testFailure.addText("Failure/Error: " + test.result.getMessage() + chr(10))
-          if test.result.isCrash
-            testFailure.addText("Trace: " + m.getStackTrace(test.result.error) + chr(10))
-          end if
-        end if
+            m.global = testSuite.global
+            m.top = testSuite.top
+            m.scene = testSuite.scene
+            m.stats = new rooibos.Stats()
+        end function
 
-      end for
-    end function
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '++ running
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function getStackTrace(error) as string
-      output = ""
+        private currentTestIndex = 0
+        'TODO CONVERT THIS TO ASYNC
+        function run() as dynamic
+            rooibos.common.logTrace(">>>>>>>>>>>>")
+            rooibos.common.logTrace("RUNNING TEST GROUP")
+            m.testRunner = m.testSuite.testRunner
+            m.notifyReportersOnTestGroupBegin()
+            if m.testSuite.isNodeTest = true then
+                rooibos.common.logTrace("THIS GROUP IS ASYNC")
+                m.runAsync()
+                return m.deferred
+            else
+                rooibos.common.logTrace("THIS GROUP IS SYNC")
+                m.runSync()
+                return true
+            end if
+        end function
 
-      for i = error.backTrace.count() - 1 to 0 step -1
-        e = error.backTrace[i]
-        if e.filename.instr("pkg:/source/rooibos") = -1
-          output = output + e.filename + "(" + stri(e.line_number).trim() + ")"
-        end if
-      end for
+        function runSync()
+            isOk = m.runSuiteFunction(m.setupFunctionName, "setup")
 
-      return output
-    end function
+            if isOk then
+                for each testData in m.testsData
+                    test = new rooibos.Test(m, testData)
+                    m.tests.push(test)
 
-  end class
-end namespace</code></pre>
+                    if test.isIgnored then
+                        m.notifyReportersOnTestBegin(test)
+                        m.testSuite.runTest(test)
+                        m.notifyReportersOnTestComplete(test)
+                        m.stats.appendTestResult(test.result)
+                        continue for
+                    end if
+
+                    isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", test)
+
+                    if isOk then
+                        m.notifyReportersOnTestBegin(test)
+                        m.testSuite.runTest(test)
+                        m.notifyReportersOnTestComplete(test)
+                    end if
+
+                    m.runSuiteFunction(m.afterEachFunctionName, "afterEach", test)
+
+                    m.stats.appendTestResult(test.result)
+
+                    if m.stats.hasFailures and m.testSuite.isFailingFast then
+                        rooibos.common.logTrace("Terminating group due to failed test")
+                        exit for
+                    end if
+                end for
+            else
+                rooibos.common.logError("ERROR running test setup function")
+            end if
+            m.notifyReportersOnTestGroupComplete()
+            m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
+        end function
+
+
+        function runAsync()
+            isOk = m.runSuiteFunction(m.setupFunctionName, "setup")
+            m.testTimer = createObject("roTimespan")
+
+            if isOk then
+                m.testRunner.currentGroup = m
+                for each testData in m.testsData
+                    test = new rooibos.Test(m, testData)
+                    m.tests.push(test)
+                end for
+                m.currentTestIndex = -1
+                m.runNextAsync()
+            else
+                rooibos.common.logError("ERROR running test setup function")
+                m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
+            end if
+        end function
+
+        private function runNextAsync() as void
+            rooibos.common.logTrace("Getting next async test")
+            m.currentTestIndex++
+            m.currentTest = m.tests[m.currentTestIndex]
+            m.testSuite.isDoneCalled = false
+            m.testTimer.mark()
+            if m.currentTest = invalid then
+                rooibos.common.logTrace("All tests are finished")
+                m.finishAsyncTests()
+            else
+                test = m.currentTest
+                ' Check to see if the test is ignored or if the suite is timed out
+                ' and skip the before and after hooks
+                if test.isIgnored or m.testSuite.isSuiteTimedOut() then
+                    m.notifyReportersOnTestBegin(test)
+                    m.testSuite.runTest(test)
+                    m.onAsyncTestComplete()
+                    return
+                end if
+
+                isOk = m.runSuiteFunction(m.beforeEachFunctionName, "beforeEach", m.currentTest)
+                if isOk then
+                    m.notifyReportersOnTestBegin(test)
+
+                    m.testSuite.runTest(test)
+                    rooibos.common.logDebug("Waiting on deferred test results")
+
+                    rooibos.promises.chain(test.deferred, { self: m, test: test }).then(function(_ as dynamic, context as roAssociativeArray)
+                        rooibos.common.logDebug("Promise resolved")
+                        context.self.testSuite.done()
+                    end function).catch(function(error as dynamic, context as roAssociativeArray)
+                        rooibos.common.logDebug("Promise rejected")
+                        if rooibos.common.isAssociativeArray(error) and not error.isEmpty() and rooibos.common.isArray(error.backtrace) and not error.backtrace.isEmpty() and rooibos.common.isBoolean(error.rethrown) then
+                            context.self.testSuite.failCrash(error)
+                        else
+                            context.self.testSuite.fail("Test failed due to promise rejection")
+                        end if
+                        context.self.testSuite.done()
+                    end function).finally(function(context as roAssociativeArray)
+                        context.self.onAsyncTestComplete()
+                    end function)
+                else
+                    rooibos.common.logTrace("Error running test before each function")
+                    m.isTestFailedDueToEarlyExit = true
+                    m.finishAsyncTests()
+                end if
+            end if
+        end function
+
+        private function onAsyncTestComplete()
+            rooibos.common.logTrace("++ CURRENT TEST COMPLETED")
+            m.notifyReportersOnTestComplete(m.currentTest)
+            m.runSuiteFunction(m.afterEachFunctionName, "afterEach", m.currentTest)
+            m.stats.appendTestResult(m.currentTest.result)
+
+            if m.stats.hasFailures and m.testSuite.isFailingFast then
+                rooibos.common.logTrace("Terminating group due to failed test")
+                m.isTestFailedDueToEarlyExit = true
+                m.finishAsyncTests()
+            else
+                m.runNextAsync()
+            end if
+
+        end function
+
+        private function finishAsyncTests()
+            m.runSuiteFunction(m.tearDownFunctionName, "tearDown")
+            rooibos.common.logTrace("Indicating test suite is done")
+            m.notifyReportersOnTestGroupComplete()
+            rooibos.promises.resolve(true, m.deferred)
+        end function
+
+        private function runSuiteFunction(methodName as string, defaultMethodName as string, test = invalid as rooibos.Test) as boolean
+
+            if methodName = invalid or methodName = "" then
+                methodName = defaultMethodName
+            end if
+            if m.testSuite.catchCrashes and not m.testSuite.noCatch and not (test &lt;> invalid and test.noCatch) then
+                ' Add the users suite functions execution time to the suites current execution time
+                timespan = createObject("roTimespan")
+                try
+                    m.testSuite[methodName]()
+                    m.testSuite.currentExecutionTime += timespan.totalMilliseconds()
+                    return true
+                catch error
+                    if test &lt;> invalid then
+                        test.result.crash("function " + methodName + "crashed!", error)
+                        m.testSuite.currentExecutionTime += timespan.totalMilliseconds()
+                    end if
+                end try
+            else
+                timespan = createObject("roTimespan")
+                m.testSuite[methodName]()
+                m.testSuite.currentExecutionTime += timespan.totalMilliseconds()
+                return true
+            end if
+
+            return false
+        end function
+
+        private function notifyReportersOnTestGroupBegin()
+            for each reporter in m.testSuite.testReporters
+                if rooibos.common.isFunction(reporter.onTestGroupBegin) then
+                    reporter.onTestGroupBegin({ group: m })
+                end if
+            end for
+        end function
+
+        private function notifyReportersOnTestBegin(test as rooibos.Test)
+            for each reporter in m.testSuite.testReporters
+                if rooibos.common.isFunction(reporter.onTestBegin) then
+                    reporter.onTestBegin({ test: test })
+                end if
+            end for
+        end function
+
+        private function notifyReportersOnTestComplete(test as rooibos.Test)
+            if test.result.time > 0 then
+                ' Add the test execution time to the suites current execution time
+                m.testSuite.currentExecutionTime += test.result.time
+            end if
+
+            for each reporter in m.testSuite.testReporters
+                if rooibos.common.isFunction(reporter.onTestComplete) then
+                    reporter.onTestComplete({ test: test })
+                end if
+            end for
+        end function
+
+        private function notifyReportersOnTestGroupComplete()
+            for each reporter in m.testSuite.testReporters
+                if rooibos.common.isFunction(reporter.onTestGroupComplete) then
+                    reporter.onTestGroupComplete({ group: m })
+                end if
+            end for
+        end function
+    end class
+end namespace
+</code></pre>
         </article>
     </section>
 
@@ -145,7 +323,7 @@ end namespace</code></pre>
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Thu May 01 2025 22:35:51 GMT+0000 (Coordinated Universal Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri May 02 2025 20:09:41 GMT+0000 (Coordinated Universal Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Test.bs - Documentation</title>
+    <title>source/rooibos/ConsoleTestReporter.bs - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Test.bs</h1>
+    <h1 class="page-title">source/rooibos/ConsoleTestReporter.bs</h1>
     
 
     
@@ -39,199 +39,237 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>namespace rooibos
-  ' @ignore
-  class Test
+            <pre class="prettyprint source linenums"><code>import "pkg:/source/rooibos/BaseTestReporter.bs"
 
-    public name
-    public isSolo
-    public noCatch = false
-    public funcName
-    public isIgnored
-    public lineNumber
-    public paramLineNumber
-    public testSuite = invalid
-    public testGroup = invalid
-    public deferred = invalid
+namespace rooibos
+    ' @ignore
+    class ConsoleTestReporter extends rooibos.BaseTestReporter
 
-    public rawParams
-    public paramTestIndex
-    public isParamTest = false
-    public isParamsValid = false
-    public expectedNumberOfParams = 0
+        private lineWidth = 60
 
-    public result = invalid
+        function new(runner as rooibos.TestRunner)
+            super(runner)
+            if m.config.lineWidth &lt;> invalid then
+                m.lineWidth = m.config.lineWidth
+            else
+                m.lineWidth = 60
+            end if
+        end function
 
-    function new(testGroup, data, testSuite = invalid)
-      m.testGroup = testGroup
-      if testSuite &lt;> invalid
-        m.testSuite = testSuite
-      else
-        m.testSuite = testGroup.testSuite
-      end if
-      m.isSolo = data.isSolo
-      m.noCatch = data.noCatch
-      m.funcName = data.funcName
-      m.isIgnored = data.isIgnored
-      m.isAsync = data.isAsync
-      m.asyncTimeout = data.asyncTimeout
-      m.slow = data.slow
-      m.name = data.name
-      m.lineNumber = data.lineNumber
-      m.paramLineNumber = data.paramLineNumber
-      m.rawParams = data.rawParams
-      m.paramTestIndex = data.paramTestIndex
-      m.isParamTest = data.isParamTest
-      m.expectedNumberOfParams = data.expectedNumberOfParams
+        override function onSuiteBegin(event as rooibos.TestReporterOnSuiteBeginEvent) as void
+            if event.suite.isIgnored then return
+            ? ""
+            ? rooibos.common.fillText("> SUITE: " + event.suite.name, ">", 80)
+        end function
 
-      if m.testSuite.isNodeTest
-        m.deferred = rooibos.promises.create()
-      end if
+        override function onTestGroupBegin(event as rooibos.TestReporterOnTestGroupBeginEvent) as void
+            if event.group.isIgnored then return
+            ? ""
+            ? rooibos.common.fillText(">>>> Describe: " + event.group.name, ">", 80)
+            ? `  Location: file://${event.group.testSuite.filePath.trim()}:${event.group.lineNumber}`
+            ? ""
+        end function
 
-      if m.isParamTest
-        m.name = m.name + stri(m.paramTestIndex)
-      end if
+        override function onTestBegin(event as rooibos.TestReporterOnTestBeginEvent) as void
+            if event.test.isIgnored then return
+            ? ""
+            ? rooibos.common.fillText(">>>>>> It: " + event.test.name, ">", 80)
+            ? `  Location: file://${event.test.testSuite.filePath.trim()}:${event.test.lineNumber}`
+            ? ""
+        end function
 
-      m.result = new rooibos.TestResult(m)
-    end function
+        override function onTestComplete(event as rooibos.TestReporterOnTestCompleteEvent) as void
+            if event.test.isIgnored then return
+            ? rooibos.common.fillText("&lt;&lt;&lt;&lt; END It: " + event.test.name + " (" + event.test.result.getStatusText() + ") ", "&lt;", 80)
+        end function
 
-    function run()
-      m.rooibosTimer = createObject("roTimespan")
+        ' override function onTestGroupComplete(event as rooibos.TestReporterOnTestGroupCompleteEvent)
+        '   'override me
+        ' end function
 
-      if m.isParamTest
-        m.rooibosTimer.mark()
-        promise = m.runParamsTest()
-      else
-        promise = m.testSuite[m.funcName]()
-      end if
+        ' override function onSuiteComplete(event as rooibos.TestReporterOnSuiteCompleteEvent)
+        '   'override me
+        ' end function
 
-      if rooibos.promises.isPromise(promise)
-        if m.testSuite.isNodeTest
-          m.markDoneWhenTestCompletes(promise)
-        else
-          throw "Can not return a promise from a non-node test"
-        end if
-      else if m.testSuite.isNodeTest and not m.isAsync
-        ' The test is a node test and not async so we need to resolve the deferred
-        ' immediately
-        m.recordExecutionTime()
-        rooibos.promises.resolve(invalid, m.deferred)
-      end if
+        override function onEnd(event as rooibos.TestReporterOnEndEvent)
+            m.allStats = event.stats
+            m.startReport()
+            for each testSuite in m.testRunner.testSuites
+                if not testSuite.isIgnored then
+                    if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0) then
+                        m.printSuiteStart(testSuite)
 
-      if m.deferred &lt;> invalid
-        m.recordExecutionTimeWhenDone()
-        m.registerTimeout()
-      else
-        m.recordExecutionTime()
-      end if
+                        for each testGroup in testSuite.groups
+                            m.printGroup(testGroup)
+                        end for
+                    end if
+                end if
+            end for
 
-      return m.deferred
-    end function
+            m.printLine()
 
-    ' Sets up a promise chain to link the deferred to the test promise results
-    ' and resolves or rejects the deferred based on the result of the test promise.
-    ' Also records the execution time of the test if not already recorded.
-    function markDoneWhenTestCompletes(testPromise)
-      rooibos.promises.chain(testPromise, m).then(sub(result, m)
-        m.recordExecutionTime()
-        rooibos.common.logDebug("Test promise resolved")
-        rooibos.promises.resolve(result, m.deferred)
-      end sub).catch(sub(error, m)
-        m.recordExecutionTime()
-        rooibos.common.logDebug("Test promise rejected")
-        rooibos.promises.reject(error, m.deferred)
-      end sub)
-    end function
+            ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
+            m.printLine(0, "Total: " + rooibos.common.AsString(m.allStats.ranCount))
+            m.printLine(0, "  Passed: " + rooibos.common.AsString(m.allStats.passedCount))
+            m.printLine(0, "  Crashed: " + rooibos.common.AsString(m.allStats.crashedCount))
+            m.printLine(0, "  Failed: " + rooibos.common.AsString(m.allStats.failedCount))
+            m.printLine(0, "  Ignored: " + rooibos.common.AsString(ignoredInfo.count))
+            m.printLine(0, "  Time: " + rooibos.common.AsString(m.allStats.time) + "ms")
+            m.printLine()
+            m.printLine()
 
-    function registerTimeout()
-      rooibos.promises.internal.delay(sub(m)
-        if not rooibos.promises.isComplete(m.deferred)
-          m.recordExecutionTime(m.asyncTimeout)
-          m.testSuite.fail(`Test execution exceeded ${m.asyncTimeout}ms`)
-          rooibos.promises.resolve(invalid, m.deferred)
-        end if
-      end sub, m, m.asyncTimeout / 1000)
-    end function
+            if ignoredInfo.count > 0 then
+                m.printLine(0, "IGNORED TESTS:")
+                for each ignoredItemName in ignoredInfo.items
+                    m.printLine(1, ignoredItemName)
+                end for
+                m.printLine()
+                m.printLine()
+            end if
+            overallResult = ""
+            if m.allStats.hasFailures then
+                overallResult = "Fail"
+            else
+                overallResult = "Success"
+            end if
+            m.printLine(0, "RESULT: " + overallResult)
+            m.endReport()
+        end function
 
-    function recordExecutionTimeWhenDone()
-      rooibos.promises.chain(m.deferred, m).then(sub(result, m)
-        m.recordExecutionTime()
-        rooibos.promises.resolve(result, m.deferred)
-      end sub).catch(sub(error, m)
-        m.recordExecutionTime()
-        rooibos.promises.reject(error, m.deferred)
-      end sub)
-    end function
+        function printGroup(testGroup as rooibos.TestGroup) as void
+            if testGroup.isIgnored then return
+            isGroupPrinted = false
 
-    function recordExecutionTime(time = m.rooibosTimer.totalMilliseconds())
-      if m.result.time = -1
-        m.result.time = time
-      end if
-    end function
+            for each test in testGroup.tests
+                if not test.result.isSkipped then
+                    if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail) then
+                        if not isGroupPrinted then
+                            m.printGroupStart(testGroup)
+                            isGroupPrinted = true
+                        end if
 
-    function runParamsTest()
-      testParams = m.getTestParams()
+                        m.printTest(test)
+                    end if
+                end if
+            end for
 
-      if m.expectedNumberOfParams = 1
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0])
-      else if m.expectedNumberOfParams = 2
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1])
-      else if m.expectedNumberOfParams = 3
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2])
-      else if m.expectedNumberOfParams = 4
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3])
-      else if m.expectedNumberOfParams = 5
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4])
-      else if m.expectedNumberOfParams = 6
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5])
-      else if m.expectedNumberOfParams = 7
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6])
-      else if m.expectedNumberOfParams = 8
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7])
-      else if m.expectedNumberOfParams = 9
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8])
-      else if m.expectedNumberOfParams = 10
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9])
-      else if m.expectedNumberOfParams = 11
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10])
-      else if m.expectedNumberOfParams = 12
-        m.rooibosTimer.mark()
-        return m.testSuite[m.funcName](testParams[0], testParams[1], testParams[2], testParams[3], testParams[4], testParams[5], testParams[6], testParams[7], testParams[8], testParams[9], testParams[10], testParams[11])
-      else if m.expectedNumberOfParams > 12
-        m.rooibosTimer.mark()
-        m.testSuite.fail("Test case had more than 12 params. Max of 12 params is supported")
-      end if
-    end function
+            if isGroupPrinted then
+                m.printLine(0, " |")
+            end if
+        end function
 
-    function getTestParams()
-      params = []
-      for paramIndex = 0 to m.rawParams.count()
-        paramValue = m.rawParams[paramIndex]
-        if type(paramValue) = "roString" and len(paramValue) >= 8 and left(paramValue, 8) = "#RBSNode"
-          nodeType = "ContentNode"
-          paramDirectiveArgs = paramValue.split("|")
-          if paramDirectiveArgs.count() > 1
-            nodeType = paramDirectiveArgs[1]
-          end if
-          paramValue = createObject("roSGNode", nodeType)
-        end if
-        params.push(paramValue)
-      end for
-      return params
-    end function
+        function printTest(test as rooibos.Test)
+            testLocationLine = StrI(test.lineNumber).trim()
 
-  end class
+            locationLine = invalid
+            testChar = ""
+            if test.result.isCrash then
+                testChar = "|"
+                locationLine = StrI(test.lineNumber).trim()
+            else if test.result.isFail then
+                testChar = "-"
+                locationLine = StrI(test.result.lineNumber).trim()
+            else
+                testChar = "|"
+                locationLine = StrI(test.lineNumber).trim()
+            end if
+
+            testLocationText = "file://" + test.testSuite.filePath.trim() + ":" + testLocationLine
+
+            timeText = ""
+            if m.config.printTestTimes = true then
+                timeText = " (" + strI(test.result.time).trim() + "ms)"
+            end if
+
+            insetText = ""
+            if test.isParamTest &lt;> true then
+                messageLine = rooibos.common.fillText(" " + testChar + " |--" + test.name + " : ", ".", m.lineWidth)
+                m.printLine(0, messageLine + test.result.getStatusText() + timeText)
+                m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
+            else if test.paramTestIndex = 0 then
+                name = test.name
+                if len(name) > 1 and right(name, 1) = "0" then
+                    name = left(name, len(name) - 1)
+                end if
+                m.printLine(0, " " + testChar + " |--" + name + " : ")
+                m.printLine(0, " | " + insetText + "  |--Test : " + testLocationText)
+            end if
+
+            locationText = "file://" + test.testSuite.filePath.trim() + ":" + locationLine
+            if test.isParamTest = true then
+                insetText = "  "
+
+                rawParams = invalid
+                if type(test.rawParams) = "roAssociativeArray" then
+                    rawParams = {}
+                    for each key in test.rawParams
+                        if type(test.rawParams[key]) &lt;> "Function" and type(test.rawParams[key]) &lt;> "roFunction" then
+                            rawParams[key] = test.rawParams[key]
+                        end if
+                    end for
+                else
+                    rawParams = test.rawParams
+                end if
+                messageLine = rooibos.common.fillText(" " + testChar + insetText + " |--" + formatJson(rawParams) + " : ", ".", m.lineWidth)
+                m.printLine(0, messageLine + test.result.getStatusText() + timeText)
+            end if
+
+            if test.result.isCrash then
+                m.printLine(0, " | " + insetText + "  |--Crashed at: " + locationText)
+                m.printStackTrace(insetText, test.result.error)
+                m.printLine(0, " | ")
+            else if test.result.isFail then
+                m.printLine(0, " | " + insetText + "  |--Failed at: " + locationText)
+                if test.isParamTest = true then
+                    m.printLine(0, " | " + insetText + "  |--Param Line: " + StrI(test.paramLineNumber).trim())
+                end if
+                m.printLine(0, " | " + insetText + "  |--Error Message: " + test.result.message)
+                m.printLine(0, " | ")
+            end if
+        end function
+
+        function printStackTrace(insetText as string, error as roAssociativeArray)
+            m.printLine(0, " | " + insetText + "  |")
+            m.printLine(0, " | " + insetText + "  |--Message: " + error.message)
+            m.printLine(0, " | " + insetText + "  |--Stack trace: ")
+
+            for i = error.backTrace.count() - 1 to 0 step -1
+                e = error.backTrace[i]
+                if e.filename.instr("pkg:/source/rooibos") = -1 then
+                    m.printLine(0, " | " + insetText + "    " + e.filename + "(" + strI(e.line_number).trim() + ")")
+                end if
+            end for
+        end function
+
+        function startReport()
+            m.printLine()
+            m.printLine(0, "[START TEST REPORT]")
+            m.printLine()
+        end function
+
+        function endReport()
+            m.printLine()
+            m.printLine(0, "[END TEST REPORT]")
+            m.printLine()
+        end function
+
+        function printSuiteStart(testSuite as rooibos.BaseTestSuite)
+            m.printLine(0, " " + testSuite.name + " file://" + testSuite.filePath.trim() + ":" + str(testSuite.lineNumber).trim())
+        end function
+
+        function printGroupStart(testGroup as rooibos.TestGroup)
+            m.printLine(0, " |-" + testGroup.name)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '++ printing
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        function printLine(depth = 0 as integer, text = "" as string)
+            ? " " ; text
+        end function
+
+    end class
 end namespace
 </code></pre>
         </article>
@@ -245,7 +283,7 @@ end namespace
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Thu May 01 2025 22:35:51 GMT+0000 (Coordinated Universal Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri May 02 2025 20:09:41 GMT+0000 (Coordinated Universal Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

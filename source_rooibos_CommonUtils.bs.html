@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>source/rooibos/CommonUtils.bs - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html">BaseTestSuite</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#afterEach">afterEach</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertAAContainsSubset">assertAAContainsSubset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertAAHasKey">assertAAHasKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertAAHasKeys">assertAAHasKeys</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertAANotHasKey">assertAANotHasKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertAANotHasKeys">assertAANotHasKeys</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertArrayContains">assertArrayContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertArrayContainsAAs">assertArrayContainsAAs</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertArrayContainsOnlyValuesOfType">assertArrayContainsOnlyValuesOfType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertArrayContainsSubset">assertArrayContainsSubset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertArrayCount">assertArrayCount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertArrayNotContains">assertArrayNotContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertArrayNotContainsSubset">assertArrayNotContainsSubset</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertArrayNotCount">assertArrayNotCount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertAsyncField">assertAsyncField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertClass">assertClass</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertEmpty">assertEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertEqual">assertEqual</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertFalse">assertFalse</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertInvalid">assertInvalid</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertLike">assertLike</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertMocks">assertMocks</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeContains">assertNodeContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeContainsFields">assertNodeContainsFields</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeContainsOnly">assertNodeContainsOnly</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeCount">assertNodeCount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeEmpty">assertNodeEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeNotContains">assertNodeNotContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeNotContainsFields">assertNodeNotContainsFields</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeNotCount">assertNodeNotCount</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNodeNotEmpty">assertNodeNotEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNotEmpty">assertNotEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNotEqual">assertNotEqual</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertNotInvalid">assertNotInvalid</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertSubType">assertSubType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertTrue">assertTrue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#assertType">assertType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#beforeEach">beforeEach</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#cleanMocks">cleanMocks</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#cleanStubs">cleanStubs</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#combineFakes">combineFakes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#createFake">createFake</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#done">done</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#expect">expect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#expectCalled">expectCalled</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#expectLastCallToThrowError">expectLastCallToThrowError</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#expectNone">expectNone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#expectNotCalled">expectNotCalled</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#expectOnce">expectOnce</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#expectOnceOrNone">expectOnceOrNone</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#fail">fail</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#failBecauseOfTimeOut">failBecauseOfTimeOut</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#failCrash">failCrash</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#mock">mock</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#mockFail">mockFail</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#setup">setup</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#stub">stub</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#stubCall">stubCall</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#tearDown">tearDown</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#wait">wait</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.BaseTestSuite.html#waitForField">waitForField</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="rooibos.TestGroup.html">TestGroup</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.TestGroup.html#run">run</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.TestGroup.html#runAsync">runAsync</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos.TestGroup.html#runSync">runSync</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html">MockNode</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#addFields">addFields</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#appendChild">appendChild</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#createChild">createChild</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#createObject">createObject</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#getChildren">getChildren</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#getParent">getParent</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#isSubType">isSubType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#observeField">observeField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#observeFieldScoped">observeFieldScoped</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#removeChildren">removeChildren</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#setField">setField</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#setFields">setFields</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.MockNode.html#subType">subType</a></span></li><li class="nav-heading">Namespaces</li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="rooibos.html">rooibos</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="rooibos_common.html">rooibos/common</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.arrayContains">arrayContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.asArray">asArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.asBoolean">asBoolean</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.asDouble">asDouble</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.asFloat">asFloat</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.asInteger">asInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.asLongInteger">asLongInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.asMultilineString">asMultilineString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.asString">asString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.canSafelyIterateAAKey">canSafelyIterateAAKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.eqArray">eqArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.eqAssocArray">eqAssocArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.eqTypes">eqTypes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.eqValues">eqValues</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.fillText">fillText</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.findElementIndexInArray">findElementIndexInArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.findElementIndexInNode">findElementIndexInNode</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.getFunction">getFunction</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.getFunctionBruteForce">getFunctionBruteForce</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.getSafeType">getSafeType</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.getTypeWithComponentWrapper">getTypeWithComponentWrapper</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isArray">isArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isAssociativeArray">isAssociativeArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isBoolean">isBoolean</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isDateTime">isDateTime</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isDouble">isDouble</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isFloat">isFloat</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isFunction">isFunction</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isInteger">isInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isList">isList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isLongInteger">isLongInteger</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isNotEmptyString">isNotEmptyString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isNullOrEmpty">isNullOrEmpty</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isNumber">isNumber</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isSGNode">isSGNode</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isString">isString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isUndefined">isUndefined</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isValid">isValid</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.isXmlElement">isXmlElement</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.makePathStubbable">makePathStubbable</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.nodeContains">nodeContains</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.truncateString">truncateString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_common.html#.validStr">validStr</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="rooibos_Matcher.html">rooibos/Matcher</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_Matcher.html#.anyAA">anyAA</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_Matcher.html#.anyArray">anyArray</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_Matcher.html#.anyBool">anyBool</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_Matcher.html#.anyNode">anyNode</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_Matcher.html#.anyNumber">anyNumber</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="rooibos_Matcher.html#.anyString">anyString</a></span></li><li class="nav-heading"><span class="nav-item-type type-namespace">N</span><span class="nav-item-name"><a href="rooibos_rooibos_utils.html">rooibos/rooibos/utils</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#init">init</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#RBS_ReportCodeCoverage">RBS_ReportCodeCoverage</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">source/rooibos/CommonUtils.bs</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>#const ROOIBOS_ERROR_LOGS = true
+#const ROOIBOS_WARNING_LOGS = false
+#const ROOIBOS_INFO_LOGS = true
+#const ROOIBOS_DEBUG_LOGS = false
+#const ROOIBOS_TRACE_LOGS = false
+
+namespace rooibos.common
+    ' ******************
+    ' Common utility functions
+    ' ******************
+
+    ' check if value contains XMLElement interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains XMLElement interface, else return false
+    function isXmlElement(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifXMLElement") &lt;> invalid
+    end function
+
+    ' check if value contains Function interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains Function interface, else return false
+    function isFunction(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifFunction") &lt;> invalid
+    end function
+
+
+    ' looks up the function by name, for the function map
+    ' @param {String} filename - name of the file where the function was found
+    ' @param {String} functionName - name of the function to locate
+    ' @returns {Function} function pointer or invalid
+    function getFunction(filename as dynamic, functionName as dynamic) as object
+        if not rooibos.common.isNotEmptyString(functionName) or not rooibos.common.isNotEmptyString(filename) then
+            return invalid
+        end if
+        mapFunction = RBSFM_getFunctionsForFile(filename) 'bs:disable-line 1140 LINT1001
+        if mapFunction &lt;> invalid then
+            map = mapFunction()
+            if type(map) = "roAssociativeArray" then
+                functionPointer = map[functionName]
+                return functionPointer
+            else
+                return invalid
+            end if
+        end if
+        return invalid
+    end function
+
+    ' looks up the function by name, from any function map in future
+    ' @param {String} functionName - name of the function to locate
+    ' @returns {Function} function pointer or invalid
+    function getFunctionBruteForce(functionName as dynamic) as object
+        if not rooibos.common.isNotEmptyString(functionName) then
+            return invalid
+        end if
+
+        filenames = RBSFM_getFilenames() 'bs:disable-line 1140 LINT1001
+        for i = 0 to filenames.count() - 1
+            filename = filenames[i]
+            mapFunction = RBSFM_getFunctionsForFile(filename) 'bs:disable-line 1140 LINT1001
+            if mapFunction &lt;> invalid then
+                map = mapFunction()
+                if type(map) = "roAssociativeArray" then
+                    functionPointer = map[functionName]
+                    if functionPointer &lt;> invalid then
+                        return functionPointer
+                    end if
+                end if
+            end if
+        end for
+        return invalid
+    end function
+
+    ' check if value contains Boolean interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains Boolean interface, else return false
+    function isBoolean(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifBoolean") &lt;> invalid
+    end function
+
+    ' check if value type equals Integer
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value type equals Integer, else return false
+    function isInteger(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifInt") &lt;> invalid and (Type(value) = "roInt" or Type(value) = "roInteger" or Type(value) = "Integer")
+    end function
+
+    ' check if value contains Float interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains Float interface, else return false
+    function isFloat(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifFloat") &lt;> invalid
+    end function
+
+    ' check if value contains Double interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains Double interface, else return false
+    function isDouble(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifDouble") &lt;> invalid
+    end function
+
+    ' check if value contains LongInteger interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains LongInteger interface, else return false
+    function isLongInteger(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifLongInt") &lt;> invalid
+    end function
+
+    ' check if value contains LongInteger or Integer or Double or Float interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value is number, else return false
+    function isNumber(value as dynamic) as boolean
+        return rooibos.common.isLongInteger(value) or rooibos.common.isDouble(value) or rooibos.common.isInteger(value) or rooibos.common.isFloat(value)
+    end function
+
+    ' check if value contains List interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains List interface, else return false
+    function isList(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifList") &lt;> invalid
+    end function
+
+    ' check if value contains Array interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains Array interface, else return false
+    function isArray(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifArray") &lt;> invalid
+    end function
+
+    ' check if value contains AssociativeArray interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains AssociativeArray interface, else return false
+    function isAssociativeArray(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifAssociativeArray") &lt;> invalid
+    end function
+
+    ' check if value contains SGNodeChildren interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains SGNodeChildren interface, else return false
+    function isSGNode(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifSGNodeChildren") &lt;> invalid
+    end function
+
+    ' check if value contains String interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains String interface, else return false
+    function isString(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and GetInterface(value, "ifString") &lt;> invalid
+    end function
+
+    ' check if value contains String interface and length more 0
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains String interface and length more 0, else return false
+    function isNotEmptyString(value as dynamic) as boolean
+        return rooibos.common.isString(value) and len(value) > 0
+    end function
+
+    ' check if value contains DateTime interface
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value contains DateTime interface, else return false
+    function isDateTime(value as dynamic) as boolean
+        return rooibos.common.isValid(value) and (GetInterface(value, "ifDateTime") &lt;> invalid or Type(value) = "roDateTime")
+    end function
+
+    ' check if value initialized and not equal invalid
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value initialized and not equal invalid, else return false
+    function isValid(value as dynamic) as boolean
+        return not rooibos.common.isUndefined(value) and value &lt;> invalid
+    end function
+
+    ' check if value uninitialized or empty string
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value is uninitialized or "", else return false
+    function isUndefined(value as dynamic) as boolean
+        return type(value) = "" or Type(value) = "&lt;uninitialized>"
+    end function
+
+    ' return value if his contains String interface else return empty string
+    ' @param {Dynamic} value - value to check
+    ' @returns {String} value if his contains String interface else return empty string
+    function validStr(value as dynamic) as string
+        if value &lt;> invalid and GetInterface(value, "ifString") &lt;> invalid then
+            return value
+        else
+            return ""
+        end if
+    end function
+
+    ' /**
+    ' convert value to multiline String if this possible, else return empty string
+    ' @param {Dynamic} value - value to check
+    ' @returns {String} converted string
+    function asMultilineString(value as dynamic, includeType = false as boolean, indention = 0 as integer) as string
+        indentChr = "  "
+
+        if rooibos.common.isValid(value) = false then
+            return type(value)
+        else if rooibos.common.isString(value) then
+            return formatJson(value)
+        else if rooibos.common.isInteger(value) or rooibos.common.isLongInteger(value) or rooibos.common.isBoolean(value) then
+            if includeType then
+                return value.ToStr() + " (" + rooibos.common.getSafeType(value) + ")"
+            else
+                return value.ToStr()
+            end if
+        else if rooibos.common.isFloat(value) or rooibos.common.isDouble(value) then
+            if includeType then
+                return Str(value).Trim() + " (" + rooibos.common.getSafeType(value) + ")"
+            else
+                return Str(value).Trim()
+            end if
+        else if type(value) = "roSGNode" then
+            return "Node(" + value.subType() + ")"
+        else if type(value) = "roAssociativeArray" then
+            if value.isEmpty() then
+                return "{" + chr(10) + string(indention, indentChr) + "}"
+            end if
+
+            text = "{" + chr(10)
+            keys = value.ifAssociativeArray.keys()
+            keys.sort()
+            for each key in keys
+                if rooibos.common.canSafelyIterateAAKey(value, key) then
+                    text = text + string(indention + 1, indentChr) + formatJson(key) + ": " + rooibos.common.asMultilineString(value[key], includeType, indention + 1) + "," + chr(10)
+                end if
+            end for
+
+            ' remove last comma
+            if len(text) > 2 then
+                text = left(text, len(text) - 2)
+            end if
+
+            text = text + chr(10) + string(indention, indentChr) + "}"
+            return text
+        else if rooibos.common.isArray(value) then
+            if value.isEmpty() then
+                return "[" + chr(10) + "]"
+            end if
+            text = "[" + chr(10)
+            for i = 0 to value.count() - 1
+                v = value[i]
+                text += string(indention + 1, indentChr) + rooibos.common.asMultilineString(v, includeType, indention + 1)
+
+                if i &lt; value.count() - 1 then
+                    text += ","
+                end if
+                text += chr(10)
+            end for
+            text = text + string(indention, indentChr) + "]"
+            return text
+        else if rooibos.common.isFunction(value) then
+            return value.toStr().mid(10) + " (function)"
+        else
+            return ""
+        end if
+    end function
+
+    ' convert value to String if this possible, else return empty string
+    ' @param {Dynamic} value - value to check
+    ' @returns {String} converted string
+    function asString(value as dynamic, includeType = false as boolean) as string
+        if rooibos.common.isValid(value) = false then
+            return "INVALID"
+        else if rooibos.common.isString(value) then
+            if includeType then
+                return """" + value + """"
+            else
+                return value
+            end if
+        else if rooibos.common.isInteger(value) or rooibos.common.isLongInteger(value) or rooibos.common.isBoolean(value) then
+            if includeType then
+                return value.ToStr() + " (" + rooibos.common.getSafeType(value) + ")"
+            else
+                return value.ToStr()
+            end if
+        else if rooibos.common.isFloat(value) or rooibos.common.isDouble(value) then
+            if includeType then
+                return Str(value).Trim() + " (" + rooibos.common.getSafeType(value) + ")"
+            else
+                return Str(value).Trim()
+            end if
+        else if type(value) = "roSGNode" then
+            return "Node(" + value.subType() + ")"
+        else if type(value) = "roAssociativeArray" then
+            isFirst = true
+            text = "{"
+            if not isFirst then
+                text = text + ","
+                isFirst = false 'bs:disable-line: LINT1005
+            end if
+            keys = value.ifAssociativeArray.keys()
+            keys.sort()
+            for each key in keys
+                if rooibos.common.canSafelyIterateAAKey(value, key) then
+                    text = text + key + ":" + rooibos.common.asString(value[key], includeType)
+                end if
+            end for
+            text = text + "}"
+            return text
+        else if rooibos.common.isArray(value) then
+            text = "["
+            join = ""
+            maxLen = 500
+            for each v in value
+                if len(text) &lt; maxLen then
+                    text += join + rooibos.common.asString(v, includeType)
+                    join = ", "
+                end if
+            end for
+            if len(text) > maxLen then
+                text = left(text, maxLen - 3) + "..."
+            end if
+            text = text + "]"
+            return text
+        else if rooibos.common.isFunction(value) then
+            return value.toStr() + "(function)"
+        else
+            return ""
+        end if
+    end function
+
+    ' convert value to Integer if this possible, else return 0
+    ' @param {Dynamic} value - value to check
+    ' @returns {Integer} converted Integer
+    function asInteger(value as dynamic) as integer
+        if rooibos.common.isValid(value) = false then
+            return 0
+        else if rooibos.common.isString(value) then
+            return value.ToInt()
+        else if rooibos.common.isInteger(value) then
+            return value
+        else if rooibos.common.isFloat(value) or rooibos.common.isDouble(value) or rooibos.common.isLongInteger(value) then
+            return Int(value)
+        else
+            return 0
+        end if
+    end function
+
+    ' convert value to LongInteger if this possible, else return 0
+    ' @param {Dynamic} value - value to check
+    ' @returns {Integer} converted LongInteger
+    function asLongInteger(value as dynamic) as longinteger
+        if rooibos.common.isValid(value) = false then
+            return 0
+        else if rooibos.common.isString(value) then
+            return rooibos.common.asInteger(value)
+        else if rooibos.common.isLongInteger(value) or rooibos.common.isFloat(value) or rooibos.common.isDouble(value) or rooibos.common.isInteger(value) then
+            return value
+        else
+            return 0
+        end if
+    end function
+
+    ' convert value to Float if this possible, else return 0.0
+    ' @param {Dynamic} value - value to check
+    ' @returns {Float} converted Float
+    function asFloat(value as dynamic) as float
+        if rooibos.common.isValid(value) = false then
+            return 0.0
+        else if rooibos.common.isString(value) then
+            return value.ToFloat()
+        else if rooibos.common.isInteger(value) then
+            return (value / 1)
+        else if rooibos.common.isFloat(value) or rooibos.common.isDouble(value) or rooibos.common.isLongInteger(value) then
+            return value
+        else
+            return 0.0
+        end if
+    end function
+
+    ' convert value to Double if this possible, else return 0.0
+    ' @param {Dynamic} value - value to check
+    ' @returns {Float} converted Double
+    function asDouble(value as dynamic) as double
+        if rooibos.common.isValid(value) = false then
+            return 0.0
+        else if rooibos.common.isString(value) then
+            return rooibos.common.asFloat(value)
+        else if rooibos.common.isInteger(value) or rooibos.common.isLongInteger(value) or rooibos.common.isFloat(value) or rooibos.common.isDouble(value) then
+            return value
+        else
+            return 0.0
+        end if
+    end function
+
+    ' convert value to Boolean if this possible, else return False
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} converted boolean
+    function asBoolean(value as dynamic) as boolean
+        if rooibos.common.isValid(value) = false then
+            return false
+        else if rooibos.common.isString(value) then
+            return lCase(value) = "true"
+        else if rooibos.common.isInteger(value) or rooibos.common.isFloat(value) then
+            return value &lt;> 0
+        else if rooibos.common.isBoolean(value) then
+            return value
+        else
+            return false
+        end if
+    end function
+
+    ' if type of value equals array return value, else return array with one element [value]
+    ' @param {Dynamic} value - value to check
+    ' @returns {roArray} converted array
+    function asArray(value as dynamic) as object
+        if rooibos.common.isValid(value) then
+            if not rooibos.common.isArray(value) then
+                return [value]
+            else
+                return value
+            end if
+        end if
+        return []
+    end function
+
+    '=====================
+    ' Strings
+    '=====================
+
+    ' check if value is invalid or empty
+    ' @param {Dynamic} value - value to check
+    ' @returns {Boolean} true if value is null or empty string, else return false
+    function isNullOrEmpty(value as dynamic) as boolean
+        if rooibos.common.isString(value) then
+            return Len(value) = 0
+        else
+            return not rooibos.common.isValid(value)
+        end if
+    end function
+
+    '=====================
+    ' Arrays
+    '=====================
+
+    ' find an element index in array
+    ' @param {Dynamic} array - array to search
+    ' @param {Dynamic} value - value to check
+    ' @param {Dynamic} compareAttribute - attribute to use for comparisons
+    ' @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
+    ' @returns {Integer} element index if array contains a value, else return -1
+    function findElementIndexInArray(array as dynamic, value as dynamic, compareAttribute = invalid as dynamic, caseSensitive = false as boolean, callCount = 0 as integer) as integer
+        if callCount = 0 and not rooibos.common.isArray(array) then
+            array = rooibos.common.asArray(array)
+        end if
+
+        if rooibos.common.isArray(array) then
+            for i = 0 to rooibos.common.asArray(array).Count() - 1
+                compareValue = array[i]
+
+                if compareAttribute &lt;> invalid and rooibos.common.isAssociativeArray(compareValue) then
+                    compareValue = compareValue.ifAssociativeArray.lookupCI(compareAttribute)
+                end if
+
+                if rooibos.common.eqValues(compareValue, value, callCount + 1) then
+                    return i
+                end if
+            next
+        end if
+        return -1
+    end function
+
+    ' check if array contains specified value
+    ' @param {Dynamic} array - array to search in
+    ' @param {Dynamic} value - value to check
+    ' @param {Dynamic} compareAttribute - attribute to compare on
+    ' @returns {Boolean} true if array contains a value, else return false
+    function arrayContains(array as dynamic, value as dynamic, compareAttribute = invalid as dynamic) as boolean
+        return rooibos.common.findElementIndexInArray(array, value, compareAttribute) > -1
+    end function
+
+
+    '=====================
+    ' NODES
+    '=====================
+
+    ' find an element index in node
+    ' @param {Dynamic} node - node to search in
+    ' @param {Dynamic} value - child to search for
+    ' @returns {Integer} element index if node contains a value, else return -1
+    function findElementIndexInNode(node as dynamic, value as dynamic) as integer
+        if type(node) = "roSGNode" then
+            if node.isSubType("mc_Node") then
+                for i = 0 to node.length - 1
+                    compareValue = node@.getChild(i)
+                    if type(compareValue) = "roSGNode" and compareValue.isSameNode(value) then
+                        return i
+                    end if
+                end for
+            else
+                for i = 0 to node.getChildCount() - 1
+                    compareValue = node.getChild(i)
+                    if type(compareValue) = "roSGNode" and compareValue.isSameNode(value) then
+                        return i
+                    end if
+                end for
+            end if
+        end if
+        return -1
+    end function
+
+    ' check if node contains specified child
+    ' @param {Dynamic} node - the node to check on
+    ' @param {Dynamic} value - child to look for
+    ' @returns {Boolean} true if node contains a value, else return false
+    function nodeContains(node as dynamic, value as dynamic) as boolean
+        return rooibos.common.findElementIndexInNode(node, value) > -1
+    end function
+
+
+    function getSafeType(v as dynamic) as string or dynamic
+        t = type(v)
+        if t = "" then
+            return invalid
+        else if t = "&lt;uninitialized>" then
+            return "&lt;uninitialized>"
+        else if t = "roString" then
+            return "String"
+        else if t = "roInteger" then
+            return "Integer"
+        else if t = "roBoolean" then
+            return "Boolean"
+        else if t = "roBool" then
+            return "Boolean"
+        else if t = "roInt" then
+            return "Integer"
+        else if t = "roList" then
+            return "List"
+        else if t = "roFloat" then
+            return "Float"
+        else if t = "roDouble" then
+            return "Double"
+        else if t = "roInvalid" then
+            return "Invalid"
+        else
+            return t
+        end if
+    end function
+
+    ' Takes a value and if the value is not a primitive it will wrap the type in a Component: tag like the debugger does
+    ' @param {Dynamic} value - value to check the type of
+    ' @param {Boolean} includeSubtype - If true and the value is a node the result will include the node subtype
+    ' @returns {String} Formatted result. Examples: 'String', 'Integer', '&lt;Component: roDateTime>', '&lt;Component: roSGNode:Node>'
+    function getTypeWithComponentWrapper(value as dynamic, includeSubtype = false as boolean) as string
+        if not rooibos.common.isValid(value) or rooibos.common.isNumber(value) or rooibos.common.isString(value) or rooibos.common.isBoolean(value) then
+            return type(value)
+        else
+            if includeSubtype and rooibos.common.isSGNode(value) then
+                return `&lt;Component: ${type(value)}:${value.subType()}>`
+            else
+                return `&lt;Component: ${type(value)}>`
+            end if
+        end if
+    end function
+
+    ' Takes a string and formats and truncates a string for more compact printing.
+    ' @param {Dynamic} value - string to format
+    ' @param {Integer} maxLength - the max length of the resulting string
+    ' @param {Boolean} collapseNewlines - Will convert newlines and spaces into a single space
+    ' @returns {String} Formatted result
+    function truncateString(value as string, length = 38 as integer, collapseNewlines = true as boolean) as string
+        if collapseNewlines then
+            value = CreateObject("roRegex", "\n\s*", "g").replaceAll(value, " ")
+        end if
+
+        if len(value) > length then
+            value = value.mid(0, length - 1) + "…"
+        end if
+        return value
+    end function
+
+
+    ' Compare two arbitrary values to each-other.
+    ' @param {Dynamic} Value1 - first item to compare
+    ' @param {Dynamic} Value2 - second item to compare
+    ' @returns {Boolean} True if values are equal or False in other case.
+    function eqValues(Value1 as dynamic, Value2 as dynamic, fuzzy = false as boolean, callCount = 0 as integer) as dynamic
+        if callCount > 10 then
+            rooibos.common.logError("REACHED MAX ITERATIONS DOING COMPARISON")
+            return true
+        end if
+
+        ' Workaround for bug with string boxing, and box everything else
+        val1Type = rooibos.common.getSafeType(Value1)
+        val2Type = rooibos.common.getSafeType(Value2)
+        if val1Type = invalid or val2Type = invalid then
+            rooibos.common.logError("undefined value passed")
+            return false
+        end if
+
+        'Upcast int to float, if other is float
+        if val1Type = "Float" and val2Type = "Integer" then
+            Value2 = cDbl(Value2)
+        else if val2Type = "Float" and val1Type = "Integer" then
+            Value1 = cDbl(Value1)
+        end if
+
+        if val1Type &lt;> val2Type and (fuzzy &lt;> true or val1Type = "String" or val2Type = "String") then
+            return false
+        else
+            valType = val1Type
+
+            if val1Type = "List" then
+                return rooibos.common.eqArray(Value1, Value2, fuzzy, callCount + 1)
+            else if valType = "roAssociativeArray" then
+                return rooibos.common.eqAssocArray(Value1, Value2, fuzzy, callCount + 1)
+            else if valType = "roArray" then
+                return rooibos.common.eqArray(Value1, Value2, fuzzy, callCount + 1)
+            else if valType = "roSGNode" then
+                if val2Type &lt;> "roSGNode" then
+                    return false
+                else
+                    return Value1.isSameNode(Value2)
+                end if
+            else if valType = "&lt;uninitialized>" and val2Type = "&lt;uninitialized>" then
+                ' Both values are uninitialized, so they are equal
+                return true
+            else if valType = "&lt;uninitialized>" or val2Type = "&lt;uninitialized>" then
+                ' One value is uninitialized, so they are not equal due to passing previous check
+                return false
+            else
+                if fuzzy = true then
+                    return rooibos.common.asString(Value1) = rooibos.common.asString(Value2)
+                else
+                    'If you crashed on this line, then you're trying to compare
+                    '2 things which can't be compared - check what value1 and value2
+                    'are in your debug log
+                    return Value1 = Value2
+                end if
+            end if
+        end if
+    end function
+
+    function eqTypes(Value1 as dynamic, Value2 as dynamic) as dynamic
+        val1Type = rooibos.common.getSafeType(Value1)
+        val2Type = rooibos.common.getSafeType(Value2)
+        if val1Type = invalid or val2Type = invalid then
+            ' TODO: this doesn't actually feel like an error, Need to talk about this.
+            rooibos.common.logError("undefined value passed")
+            return false
+        end if
+
+        'Upcast int to float, if other is float
+        if val1Type = "Float" and val2Type = "Integer" then
+            Value2 = cDbl(Value2)
+        else if val2Type = "Float" and val1Type = "Integer" then
+            Value1 = cDbl(Value1)
+        end if
+
+        return val1Type &lt;> val2Type
+    end function
+
+
+    ' Compare to roAssociativeArray objects for equality.
+    ' @param {Dynamic} Value1 - first associative array
+    ' @param {Dynamic} Value2 - second associative array
+    ' @returns {Boolean} True if arrays are equal or False in other case.
+    function eqAssocArray(Value1 as dynamic, Value2 as dynamic, fuzzy = false as boolean, callCount = 0 as integer) as dynamic
+        if not rooibos.common.isAssociativeArray(Value1) or not rooibos.common.isAssociativeArray(Value2) then
+            return false
+        end if
+        l1 = Value1.ifAssociativeArray.Count()
+        l2 = Value2.ifAssociativeArray.Count()
+
+        if not l1 = l2 then
+            return false
+        else
+            for each k in Value1
+                if not Value2.ifAssociativeArray.DoesExist(k) then
+                    return false
+                else
+                    if rooibos.common.canSafelyIterateAAKey(Value1, k) and rooibos.common.canSafelyIterateAAKey(Value2, k) then
+                        v1 = Value1[k]
+                        v2 = Value2[k]
+                        if not rooibos.common.eqValues(v1, v2, fuzzy, callCount + 1) then
+                            return false
+                        end if
+                    end if
+                end if
+            end for
+            return true
+        end if
+    end function
+
+    function canSafelyIterateAAKey(aa as roAssociativeArray, key as string) as boolean
+        if lCase(key) = "__rooibosskipfields" or key = "__mocks" or key = "__stubs" or key = "log" or key = "top" or key = "m" then 'fix infinite loop/box crash when doing equals on an aa with a mock
+            return false
+        else if aa.__rooibosSkipFields &lt;> invalid and aa.__rooibosSkipFields.doesExist(key) then
+            return false
+        end if
+
+        return true
+    end function
+
+    ' Compare to roArray objects for equality.
+    ' @param {Dynamic} Value1 - first array
+    ' @param {Dynamic} Value2 - second array
+    ' @returns {Boolean} True if arrays are equal or False in other case.
+    function eqArray(Value1 as dynamic, Value2 as dynamic, fuzzy = false as boolean, callCount = 0 as integer) as dynamic
+        if callCount > 30 then
+            rooibos.common.logError("REACHED MAX ITERATIONS DOING COMPARISON")
+            return true
+        end if
+        if not (rooibos.common.isArray(Value1)) or not rooibos.common.isArray(Value2) then
+            return false
+        end if
+
+        l1 = Value1.Count()
+        l2 = Value2.Count()
+
+        if not l1 = l2 then
+            return false
+        else
+            for i = 0 to l1 - 1
+                v1 = Value1[i]
+                v2 = Value2[i]
+                if not rooibos.common.eqValues(v1, v2, fuzzy, callCount + 1) then
+                    return false
+                end if
+            end for
+            return true
+        end if
+    end function
+
+    ' Fills text with count of fillChars
+    ' @param {String} text - text to fill
+    ' @param {String} fillChar - char to fill with
+    ' @param {Integer} numChars - target length
+    ' @returns {String} filled string
+    function fillText(text as string, fillChar = " " as string, numChars = 40 as integer) as string
+        if len(text) >= numChars then
+            text = left(text, numChars - 5) + "..." + fillChar + fillChar
+        else
+            numToFill = numChars - len(text) - 1
+            for i = 0 to numToFill
+                text = text + fillChar
+            end for
+        end if
+        return text
+    end function
+
+    function makePathStubbable(content as dynamic, path as string) as dynamic
+        part = invalid
+
+        if path &lt;> invalid then
+            parts = path.split(".")
+            numParts = parts.count()
+            i = 0
+
+            contentName = parts[i]
+            i++
+            if type(content) &lt;> "roAssociativeArray" then
+                content = { id: contentName }
+            end if
+            part = content
+            while i &lt; numParts and part &lt;> invalid
+                isIndexNumber = parts[i] = "0" or (parts[i].toInt() &lt;> 0 and parts[i].toInt().toStr() = parts[i])
+                index = invalid
+                if isIndexNumber then
+                    index = parts[i].toInt()
+                else
+                    index = parts[i]
+                end if
+
+                nextPart = invalid
+                if rooibos.common.isArray(part) and isIndexNumber then
+                    nextPart = part[index]
+                else if type(part) = "roAssociativeArray" and not isIndexNumber then
+                    nextPart = part[index]
+                end if
+
+                if nextPart = invalid or type(nextPart) &lt;> "roAssociativeArray" then
+                    if (not isIndexNumber and type(part) = "roAssociativeArray") or (isIndexNumber and (rooibos.common.isArray(part))) then
+                        nextPart = { id: index }
+                        part[index] = nextPart
+                    else
+                        'index type mismatch, gonna have to bail
+                        return content
+                    end if
+                end if
+                part = nextPart
+                i++
+            end while
+
+        end if
+        return part
+    end function
+
+    ' @ignore
+    function logError(value as dynamic)
+        #if ROOIBOS_ERROR_LOGS
+            ? "[Rooibos Error]: " value
+        #end if
+    end function
+
+    ' @ignore
+    function logWarning(value as dynamic)
+        #if ROOIBOS_WARNING_LOGS
+            ? "[Rooibos Warning]: " value
+        #end if
+    end function
+
+    ' @ignore
+    function logInfo(value as dynamic)
+        #if ROOIBOS_INFO_LOGS
+            ? "[Rooibos Info]: " value
+        #end if
+    end function
+
+    ' @ignore
+    function logDebug(value as dynamic)
+        #if ROOIBOS_DEBUG_LOGS
+            ? "[Rooibos Debug]: " value
+        #end if
+    end function
+
+    ' @ignore
+    function logTrace(value as dynamic)
+        #if ROOIBOS_TRACE_LOGS
+            ? "[Rooibos Trace]: " value
+        #end if
+    end function
+end namespace
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri May 02 2025 20:09:41 GMT+0000 (Coordinated Universal Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

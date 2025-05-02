@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Coverage.bs - Documentation</title>
+    <title>source/rooibos/Coverage.bs - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Coverage.bs</h1>
+    <h1 class="page-title">source/rooibos/Coverage.bs</h1>
     
 
     
@@ -40,150 +40,151 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>namespace rooibos
-  ' @ignore
-  namespace Coverage
-    function reportCodeCoverage() as void
+    ' @ignore
+    namespace Coverage
+        function reportCodeCoverage() as void
 
-      if m.global._rbs_ccn = invalid
-        ? "There was no rooibos code coverage component - not generating coverage report"
-        return
-      end if
-      t = createObject("roTimespan")
-      ? ""
-      ? "...Generating code coverage report"
-      ? ""
-      m.global._rbs_ccn.save = true
-      cc = m.global._rbs_ccn
-      expectedMap = cc.expectedMap
-      filePathMap = cc.filePathMap
-      resolvedMap = cc.resolvedMap
-
-      hitFiles = []
-      missFiles = []
-      allLinesCount = 0
-      allLinesHit = 0
-      for each key in expectedMap
-        filename = filePathMap[key]
-        expectedCount = expectedMap[key].count()
-        allLinesCount += expectedCount
-        if expectedCount > 0
-          if resolvedMap[key] &lt;> invalid
-            resolvedCount = resolvedMap[key].count()
-            allLinesHit += resolvedCount
-            if resolvedCount = 0
-              resolvedPercent = 0
-            else
-              resolvedPercent = (resolvedCount / expectedCount) * 100
+            if m.global._rbs_ccn = invalid then
+                ? "There was no rooibos code coverage component - not generating coverage report"
+                return
             end if
-            hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
-          else
-            missFiles.push(filename + ": MISS!")
-          end if
-        else
-          missFiles.push(filename + ": MISS!")
-        end if
-      end for
-      if allLinesHit = 0
-        allLinesPercent = 0
-      else
-        allLinesPercent = (allLinesHit / allLinesCount) * 100
-      end if
-      ? ""
-      ? ""
-      ? "+++++++++++++++++++++++++++++++++++++++++++"
-      ? "Code Coverage Report"
-      ? "+++++++++++++++++++++++++++++++++++++++++++"
-      ? ""
-      ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
-      ? "Files: " ; resolvedMap.count(); "/" ; expectedMap.count()
-      ? ""
-      ? "HIT FILES"
-      ? "---------"
-      hitFiles.SortBy("percent")
-      for i = 0 to hitFiles.count() - 1
-        ? hitFiles[i].text
-      end for
-      ? ""
-      ? "MISSED FILES"
-      ? "------------"
-      for i = 0 to missFiles.count() - 1
-        ? missFiles[i]
-      end for
-      ? ""
-      ? "+++++++++++++++++++++++++++++++++++++++++++"
-      ? "Code Coverage Report Complete"; t.totalMilliseconds(); "ms"
-      ? "+++++++++++++++++++++++++++++++++++++++++++"
-    end function
+            t = createObject("roTimespan")
+            ? ""
+            ? "...Generating code coverage report"
+            ? ""
+            m.global._rbs_ccn.save = true
+            cc = m.global._rbs_ccn
+            expectedMap = cc.expectedMap
+            filePathMap = cc.filePathMap
+            resolvedMap = cc.resolvedMap
 
-    function createLCovOutput(logToConsole = true as boolean)
-      ? "Generating lcov.info file..."
+            hitFiles = []
+            missFiles = []
+            allLinesCount = 0
+            allLinesHit = 0
+            for each key in expectedMap
+                filename = filePathMap[key]
+                expectedCount = expectedMap[key].count()
+                allLinesCount += expectedCount
+                if expectedCount > 0 then
+                    if resolvedMap[key] &lt;> invalid then
+                        resolvedCount = resolvedMap[key].count()
+                        allLinesHit += resolvedCount
+                        if resolvedCount = 0 then
+                            resolvedPercent = 0
+                        else
+                            resolvedPercent = (resolvedCount / expectedCount) * 100
+                        end if
+                        hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + strI(resolvedCount).trim() + "/" + strI(expectedCount).trim() + ")" })
+                    else
+                        missFiles.push(filename + ": MISS!")
+                    end if
+                else
+                    missFiles.push(filename + ": MISS!")
+                end if
+            end for
+            if allLinesHit = 0 then
+                allLinesPercent = 0
+            else
+                allLinesPercent = (allLinesHit / allLinesCount) * 100
+            end if
+            ? ""
+            ? ""
+            ? "+++++++++++++++++++++++++++++++++++++++++++"
+            ? "Code Coverage Report"
+            ? "+++++++++++++++++++++++++++++++++++++++++++"
+            ? ""
+            ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; strI(allLinesHit).trim() ; "/" + strI(allLinesCount).trim() ; ")"
+            ? "Files: " ; resolvedMap.count(); "/" ; expectedMap.count()
+            ? ""
+            ? "HIT FILES"
+            ? "---------"
+            hitFiles.SortBy("percent")
+            for i = 0 to hitFiles.count() - 1
+                ? hitFiles[i].text
+            end for
+            ? ""
+            ? "MISSED FILES"
+            ? "------------"
+            for i = 0 to missFiles.count() - 1
+                ? missFiles[i]
+            end for
+            ? ""
+            ? "+++++++++++++++++++++++++++++++++++++++++++"
+            ? "Code Coverage Report Complete"; t.totalMilliseconds(); "ms"
+            ? "+++++++++++++++++++++++++++++++++++++++++++"
+        end function
 
-      cc = m.global._rbs_ccn
-      expectedMap = cc.expectedMap
-      filePathMap = cc.filePathMap
-      resolvedMap = cc.resolvedMap
+        function createLCovOutput(logToConsole = true as boolean) as string
+            ? "Generating lcov.info file..."
 
-      results = []
+            cc = m.global._rbs_ccn
+            expectedMap = cc.expectedMap
+            filePathMap = cc.filePathMap
+            resolvedMap = cc.resolvedMap
 
-      for each module in filePathMap.items()
-        buffer = ""
-        moduleNumber = module.key
-        filePath = module.value
-        packageName = "."
+            results = []
 
-        relativePath = filePath.replace("pkg:", packageName)
-        sanitizedPath = relativePath.replace("\\", "/")
+            for each module in filePathMap.items()
+                buffer = ""
+                moduleNumber = module.key
+                filePath = module.value
+                packageName = "."
 
-        buffer += "TN:" + chr(10)
-        buffer += "SF:" + sanitizedPath + chr(10)
+                relativePath = filePath.replace("pkg:", packageName)
+                sanitizedPath = relativePath.replace("\\", "/")
 
-        for each expected in expectedMap[moduleNumber]
-          lineNumber = val(expected)
-          SHIFT = 1
+                buffer += "TN:" + chr(10)
+                buffer += "SF:" + sanitizedPath + chr(10)
 
-          if resolvedMap[moduleNumber] &lt;> invalid and resolvedMap[moduleNumber].doesExist(expected)
-            buffer += "DA:" + str(lineNumber + SHIFT).trim() + "," + str(resolvedMap[moduleNumber][expected]).trim() + chr(10)
-          else
-            buffer += "DA:" + str(lineNumber + SHIFT).trim() + ",0" + chr(10)
-          end if
-        end for
+                for each expected in expectedMap[moduleNumber]
+                    lineNumber = val(expected)
+                    SHIFT = 1
 
-        buffer += "LF:" + str(expectedMap[moduleNumber].count()).trim() + chr(10)
+                    if resolvedMap[moduleNumber] &lt;> invalid and resolvedMap[moduleNumber].doesExist(expected) then
+                        buffer += "DA:" + str(lineNumber + SHIFT).trim() + "," + str(resolvedMap[moduleNumber][expected]).trim() + chr(10)
+                    else
+                        buffer += "DA:" + str(lineNumber + SHIFT).trim() + ",0" + chr(10)
+                    end if
+                end for
 
-        if resolvedMap[moduleNumber] &lt;> invalid
-          buffer += "LH:" + str(resolvedMap[moduleNumber].count()).trim() + chr(10)
-        else
-          buffer += "LH:0" + chr(10)
-        end if
+                buffer += "LF:" + str(expectedMap[moduleNumber].count()).trim() + chr(10)
 
-        buffer += "end_of_record"
-        if logToConsole
-          ? buffer
-          ' When logging to the console it is very possible to flood the buffer and cause the application to exit.
-          ' Sleep for a short amount of time so as to give console scrapers time to empty the buffer
-          sleep(30)
-        else
-          results.push(buffer)
-        end if
-      end for
+                if resolvedMap[moduleNumber] &lt;> invalid then
+                    buffer += "LH:" + str(resolvedMap[moduleNumber].count()).trim() + chr(10)
+                else
+                    buffer += "LH:0" + chr(10)
+                end if
 
-      return results.join(chr(10))
-    end function
+                buffer += "end_of_record"
+                if logToConsole then
+                    ? buffer
+                    ' When logging to the console it is very possible to flood the buffer and cause the application to exit.
+                    ' Sleep for a short amount of time so as to give console scrapers time to empty the buffer
+                    sleep(30)
+                else
+                    results.push(buffer)
+                end if
+            end for
 
-    function printLCovInfo()
+            return results.join(chr(10))
+        end function
 
-      ?
-      ? "+++++++++++++++++++++++++++++++++++++++++++"
-      ? "LCOV.INFO FILE"
-      ? "+++++++++++++++++++++++++++++++++++++++++++"
-      ?
-      ? "+-=-coverage:start"
-      rooibos.coverage.createLCovOutput()
-      ? "+-=-coverage:end"
-    end function
+        function printLCovInfo()
 
-  end namespace
-end namespace</code></pre>
+            ?
+            ? "+++++++++++++++++++++++++++++++++++++++++++"
+            ? "LCOV.INFO FILE"
+            ? "+++++++++++++++++++++++++++++++++++++++++++"
+            ?
+            ? "+-=-coverage:start"
+            rooibos.coverage.createLCovOutput()
+            ? "+-=-coverage:end"
+        end function
+
+    end namespace
+end namespace
+</code></pre>
         </article>
     </section>
 
@@ -195,7 +196,7 @@ end namespace</code></pre>
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Thu May 01 2025 22:35:51 GMT+0000 (Coordinated Universal Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri May 02 2025 20:09:41 GMT+0000 (Coordinated Universal Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>CodeCoverageSupport.brs - Documentation</title>
+    <title>source/rooibos/TestResult.bs - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">CodeCoverageSupport.brs</h1>
+    <h1 class="page-title">source/rooibos/TestResult.bs</h1>
     
 
     
@@ -39,61 +39,114 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>' @ignore
-function RBS_ReportCodeCoverage() as void
+            <pre class="prettyprint source linenums"><code>namespace rooibos
+    ' @ignore
+    class TestResult
 
-  if m.global._rbs_ccn = invalid
-    ? "There was no rooibos code coverage component - not generating coverage report"
-    return
-  end if
-  ? ""
-  ? "...Generating code coverage report"
-  ? ""
-  m.global._rbs_ccn.save = true
-  cc = m.global._rbs_ccn
-  hitFiles = []
-  missFiles = []
-  allLinesCount = 0
-  allLinesHit = 0
-  for each key in cc.expectedMap
-    filename = cc.filePathMap[key]
-    expectedCount = cc.expectedMap[key].count()
-    allLinesCount += expectedCount
-    if expectedCount > 0
-      if cc.resolvedMap[key] &lt;> invalid
-        resolvedCount = cc.resolvedMap[key].count()
-        allLinesHit += resolvedCount
-        resolvedPercent = (resolvedCount / expectedCount) * 100
-        hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
-      else
-        missFiles.push(filename + ": MISS!")
-      end if
-    end if
-  end for
-  allLinesPercent = (allLinesHit / allLinesCount) * 100
-  ? ""
-  ? ""
-  ? "+++++++++++++++++++++++++++++++++++++++++++"
-  ? "Code Coverage Report"
-  ? "+++++++++++++++++++++++++++++++++++++++++++"
-  ? ""
-  ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
-  ? "Files: " ; cc.resolvedMap.count(); "/" ; cc.expectedMap.count()
-  ? ""
-  ? "HIT FILES"
-  ? "---------"
-  hitFiles.SortBy("percent")
-  for i = 0 to hitFiles.count() - 1
-    ? hitFiles[i].text
-  end for
-  ? ""
-  ? "MISSED FILES"
-  ? "------------"
-  for i = 0 to missFiles.count() - 1
-    ? missFiles[i]
-  end for
+        public isFail = false
+        public isCrash = false
+        public isSkipped = false
+        public actual = invalid
+        public expected = invalid
+        public message = ""
+        public lineNumber = -1
+        public test = invalid
+        public time = -1
+        public error = invalid
+        public throwOnFailedAssertion = false
 
-end function</code></pre>
+        function new(test as rooibos.Test)
+            m.test = test
+        end function
+
+        function merge(other as rooibos.Test)
+            m.isFail = other.isFail
+            m.isCrash = other.isCrash
+            m.actual = other.actual
+            m.expected = other.expected
+            m.message = other.message
+            m.lineNumber = other.lineNumber
+            m.time = other.time
+            m.error = other.error
+        end function
+
+        function reset() as void
+            m.isFail = false
+            m.isCrash = false
+            m.time = -1
+            m.message = ""
+            m.lineNumber = -1
+        end function
+
+        function fail(message as string, lineNumber = -1 as integer, actual = "" as string, expected = "" as string, error = invalid as roAssociativeArray)
+            if message &lt;> "" and not m.isFail then
+                if not m.isFail then
+                    m.lineNumber = lineNumber
+                    m.isFail = true
+                    m.message = message
+                    m.actual = actual
+                    m.expected = expected
+                    m.error = error
+                end if
+            end if
+            if m.throwOnFailedAssertion then
+                throw m.getMessage()
+            end if
+        end function
+
+        function skip(message as string)
+            if message &lt;> "" and not m.isFail then
+                if not m.isFail then
+                    m.isSkipped = true
+                    m.message = message
+                end if
+            end if
+        end function
+
+        function crash(message as string, error as roAssociativeArray)
+            if message &lt;> "" and not m.isCrash then
+                if not m.isCrash then
+                    m.error = error
+                    m.message = "test crashed!"
+                    m.isFail = true
+                    m.isCrash = true
+                end if
+            end if
+        end function
+
+        function getMessage() as string
+            if m.isFail then
+                if m.message &lt;> invalid then
+                    return m.message
+                else
+                    return "unknown test failure"
+                end if
+            else if m.isCrash then
+                if m.message &lt;> invalid then
+                    return m.message
+                else
+                    return "unknown test crash"
+                end if
+            else
+                return ""
+            end if
+        end function
+
+        function getStatusText() as string
+            if m.isCrash then
+                return "CRASH"
+            else if m.isFail then
+                return "FAIL"
+            else if m.isSkipped then
+                return "SKIP"
+            else
+                return "PASS"
+            end if
+        end function
+
+    end class
+end namespace
+</code></pre>
         </article>
     </section>
 
@@ -105,7 +158,7 @@ end function</code></pre>
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Thu May 01 2025 22:35:51 GMT+0000 (Coordinated Universal Time) using the Minami theme.
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.11</a> on Fri May 02 2025 20:09:41 GMT+0000 (Coordinated Universal Time) using the Minami theme.
 </footer>
 
 <script>prettyPrint();</script>
