@@ -20,6 +20,8 @@
     },
     "dependencies": {
         "brighterscript": "0.67.4",
+        "fast-glob": "^3.2.12",
+        "fs-extra": "^10.1.0",
         "minimatch": "^3.0.4",
         "roku-debug": "^0.21.10",
         "roku-deploy": "^3.12.1",
@@ -47,9 +49,10 @@
         "coveralls": "^3.0.0",
         "cz-conventional-changelog": "^3.3.0",
         "eslint": "^8.16.0",
-        "eslint-plugin-no-only-tests": "^2.4.0",
-        "fast-glob": "^3.2.12",
-        "fs-extra": "^10.1.0",
+        "eslint-import-resolver-typescript": "^3.6.1",
+        "eslint-plugin-import": "^2.31.0",
+        "eslint-plugin-jsdoc": "^39.3.6",
+        "eslint-plugin-no-only-tests": "2.6.0",
         "jsdoc": "^3.5.5",
         "minami": "^1.2.3",
         "mocha": "^11.1.0",
@@ -58,7 +61,7 @@
         "ropm": "^0.10.30",
         "source-map-support": "^0.5.13",
         "ts-node": "^10.7.0",
-        "typescript": "^4.9.5"
+        "typescript": "^4.7.2"
     },
     "main": "dist/plugin.js",
     "bin": {

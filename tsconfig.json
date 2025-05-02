@@ -12,6 +12,7 @@
     "allowJs": true,
     "target": "ES2017",
     "downlevelIteration": true,
+    "noUnusedLocals": true,
     "typeRoots": [
       "./node_modules/@types"
     ]
