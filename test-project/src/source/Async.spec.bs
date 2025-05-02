@@ -1,67 +1,67 @@
 import "pkg:/source/rooibos/BaseTestSuite.bs"
 
 namespace tests
-  @async(1000)
-  @SGNode("NodeExample")
-  @suite
-  class AsyncNodeTests extends rooibos.BaseTestSuite
+    @async(1000)
+    @SGNode("NodeExample")
+    @suite
+    class AsyncNodeTests extends rooibos.BaseTestSuite
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("NodeExample tests")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("NodeExample tests")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @beforeEach
-    function beforeEachGroup()
-      m.cleanStubs()
-    end function
+        @beforeEach
+        function beforeEachGroup()
+            m.cleanStubs()
+        end function
 
-    @async
-    @it("normal async test")
-    function _()
-      callbackFunction = function()
-        m.wasCalled = true
-        m.testSuite.assertTrue(true)
-        m.testSuite.done()
-      end function
+        @async
+        @it("normal async test")
+        function _()
+            callbackFunction = function()
+                m.wasCalled = true
+                m.testSuite.assertTrue(true)
+                m.testSuite.done()
+            end function
 
-      delayCall(0.02, callbackFunction)
-    end function
+            delayCall(0.02, callbackFunction)
+        end function
 
-    @async
-    @it("async with stub call for source function")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(globalFunctionWithoutReturn, function()
-        m.wasCalled = true
-        m.testSuite.assertTrue(true)
-        m.testSuite.done()
-      end function)
+        @async
+        @it("async with stub call for source function")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(globalFunctionWithoutReturn, function()
+                m.wasCalled = true
+                m.testSuite.assertTrue(true)
+                m.testSuite.done()
+            end function)
 
-      delayCall(0.02, globalFunctionWithoutReturn)
-    end function
+            delayCall(0.02, globalFunctionWithoutReturn)
+        end function
 
-    @async
-    @it("async with stub call for node function")
-    function _()
-      m.stubCall(SetLabelText, function(text)
-        m.wasCalled = true
-        m.testSuite.assertEqual(text, "")
-        m.testSuite.assertTrue(true)
-        m.testSuite.done()
-      end function)
+        @async
+        @it("async with stub call for node function")
+        function _()
+            m.stubCall(SetLabelText, function(text)
+                m.wasCalled = true
+                m.testSuite.assertEqual(text, "")
+                m.testSuite.assertTrue(true)
+                m.testSuite.done()
+            end function)
 
-      delayCall(0.02, SetLabelText)
-    end function
+            delayCall(0.02, SetLabelText)
+        end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("Crashes in Node tests")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("Crashes in Node tests")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @async
-    @it("should capture the crash and fail")
-    function _()
-      throw "some error in node tests"
-    end function
+        @async
+        @it("should capture the crash and fail")
+        function _()
+            throw "some error in node tests"
+        end function
 
-  end class
+    end class
 end namespace
