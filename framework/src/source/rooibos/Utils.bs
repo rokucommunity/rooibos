@@ -47,7 +47,7 @@ namespace rooibos
             end function
 
             function addFields(fields as object)
-                m.append(fields)
+                (m as roAssociativeArray).append(fields)
             end function
 
             function setField(field as string, value as dynamic)
@@ -55,7 +55,7 @@ namespace rooibos
             end function
 
             function setFields(fields as object)
-                m.append(fields)
+                (m as roAssociativeArray).append(fields)
             end function
 
             function observeField(field as string, callback as string)

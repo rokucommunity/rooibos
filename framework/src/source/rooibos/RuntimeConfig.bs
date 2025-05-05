@@ -6,17 +6,22 @@ namespace rooibos
     ' @ignore
     class RuntimeConfig
 
+        private testSuites as roAssociativeArray = {}
+
         function new()
             m.testSuites = m.getTestSuiteClassMap()
         end function
 
         function getVersionText()
+            ' filled in by plugin
         end function
 
-        function getRuntimeConfig()
+        function getRuntimeConfig() as RuntimeConfigData ' bs:disable-line LINT2004
+            ' filled in by plugin
         end function
 
         function getTestSuiteClassMap()
+            ' filled in by plugin
         end function
 
         function getTestSuiteClassWithName(name as string) as rooibos.BaseTestSuite
@@ -28,6 +33,7 @@ namespace rooibos
         end function
 
         function getIgnoredTestInfo()
+            ' filled in by plugin
         end function
 
     end class

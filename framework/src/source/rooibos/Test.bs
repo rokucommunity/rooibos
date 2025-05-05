@@ -1,30 +1,36 @@
 import "pkg:/source/rooibos/TestResult.bs"
 import "pkg:/source/rooibos/TestGroup.bs"
+import "pkg:/source/rooibos/TestConstructorData.bs"
 
 namespace rooibos
     ' @ignore
     class Test
 
-        public name
-        public isSolo
+        public name as string
+        public isSolo as boolean
+        public isAsync as boolean
+        public asyncTimeout as integer
+        public slow as integer
         public noCatch = false
-        public funcName
-        public isIgnored
-        public lineNumber
-        public paramLineNumber
-        public testSuite = invalid
-        public testGroup = invalid
-        public deferred = invalid
+        public funcName as string
+        public isIgnored as boolean
+        public lineNumber as integer
+        public paramLineNumber as integer
+        public testSuite as BaseTestSuite = invalid
+        public testGroup as TestGroup = invalid
+        public deferred as roSGNode = invalid
 
-        public rawParams
-        public paramTestIndex
+        public rawParams as roAssociativeArray
+        public paramTestIndex as integer = 0
         public isParamTest = false
         public isParamsValid = false
         public expectedNumberOfParams = 0
 
-        public result = invalid
+        public result as TestResult = invalid
 
-        function new(testGroup as rooibos.TestGroup, data as roAssociativeArray, testSuite = invalid as rooibos.BaseTestSuite)
+        protected rooibosTimer as roTimespan = invalid
+
+        function new(testGroup as rooibos.TestGroup, data as rooibos.TestCaseData, testSuite = invalid as rooibos.BaseTestSuite)
             m.testGroup = testGroup
             if testSuite <> invalid then
                 m.testSuite = testSuite

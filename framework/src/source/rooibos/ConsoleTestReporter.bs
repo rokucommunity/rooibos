@@ -99,6 +99,7 @@ namespace rooibos
             if testGroup.isIgnored then return
             isGroupPrinted = false
 
+            test as rooibos.Test = invalid
             for each test in testGroup.tests
                 if not test.result.isSkipped then
                     if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or test.result.isFail) then

@@ -9,14 +9,18 @@ import "pkg:/source/rooibos/Test.bs"
 namespace rooibos
     ' @ignore
     class TestRunner
-        public testScene = invalid
-        public testReporters = []
-        public nodeContext = invalid
-        public config = invalid
-        public testSuites = []
-        private runtimeConfig = invalid
-        private stats = invalid
-        private top = invalid
+        public testScene as roSGNodeScene = invalid
+        public testReporters as rooibos.BaseTestReporter[] = []
+        public nodeContext as roAssociativeArray = invalid
+        public config as rooibos.RuntimeConfigData = invalid
+        public testSuites as rooibos.BaseTestSuite[] = []
+        private runtimeConfig as rooibos.RuntimeConfig = invalid
+        private stats as rooibos.Stats = invalid
+        public top as NodeWithRooibosFields = invalid
+        private nodeTestName = ""
+        private testRunner = rooibos.TestRunner
+        private currentTestSuite as rooibos.BaseTestSuite = invalid
+        public currentGroup as rooibos.TestGroup = invalid
 
         public function new(testScene as roSGNodeRooibosScene, nodeContext as roAssociativeArray)
             m.testScene = testScene
@@ -241,7 +245,7 @@ namespace rooibos
                     end while
                     nodeResults = event.getData()
 
-                    m.groups = []
+                    groupData as rooibos.TestGroupData = invalid
                     for each groupData in testSuite.groupsData
                         group = new TestGroup(testSuite, groupData)
                         testSuite.groups.push(group)
@@ -277,7 +281,7 @@ namespace rooibos
                 realGroup.tests = []
                 for testDataIndex = 0 to group.testsData.count() - 1
                     testData = group.testsData[testDataIndex]
-                    realTest = new rooibos.Test(m, testData, testSuite)
+                    realTest = new rooibos.Test(m as rooibos.TestGroup, testData, testSuite)
                     realGroup.tests.push(realTest)
                     test = group.tests[testDataIndex]
                     realTest.result.merge(test.result)
@@ -333,4 +337,19 @@ namespace rooibos
     function onTestSuiteComplete()
         m.testRunner.onTestSuiteComplete()
     end function
+
+    interface NodeWithRooibosFields extends roSGNode
+        rooibosSuiteFinished as boolean
+        rooibosTestFinished as boolean
+        rooibosTestIsAsync as boolean
+        rooibosGroupFinished as boolean
+        rooibosTestResult as RooibosTestResultData
+        rooibosRunSuite as boolean
+    end interface
+
+    interface RooibosTestResultData
+        stats as rooibos.Stats
+        tests as rooibos.Test[]
+        groups as rooibos.TestGroup[]
+    end interface
 end namespace
