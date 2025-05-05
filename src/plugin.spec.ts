@@ -2637,6 +2637,10 @@ describe('RooibosPlugin', () => {
             expect(
                 getContents('rooibos/RuntimeConfig.brs')
             ).to.eql(undent`
+                'import "pkg:/source/rooibos/JUnitTestReporter.bs"
+                'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+                'import "pkg:/source/rooibos/MochaTestReporter.bs"
+                ' @ignore
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
                     instance.new = function()
@@ -2678,10 +2682,10 @@ describe('RooibosPlugin', () => {
                         }
                         ' filled in by plugin
                     end function
-                    instance.getTestSuiteClassWithName = function(name as string) as function
+                    instance.getTestSuiteClassWithName = function(name as string) as object
                         return m.testSuites[name]
                     end function
-                    instance.getAllTestSuitesNames = function() as object
+                    instance.getAllTestSuitesNames = function() as dynamic
                         return m.testSuites.keys()
                     end function
                     ' bs:disable-next-line LINT2004
@@ -2741,6 +2745,10 @@ describe('RooibosPlugin', () => {
                 const expectedReporters = expected.join(`\n${' '.repeat(36)}`); // each is its own line, indented
 
                 let fullExpected = undent`
+                    'import "pkg:/source/rooibos/JUnitTestReporter.bs"
+                    'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+                    'import "pkg:/source/rooibos/MochaTestReporter.bs"
+                    ' @ignore
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}
                         instance.new = function()
@@ -2779,10 +2787,10 @@ describe('RooibosPlugin', () => {
                             return {}
                             ' filled in by plugin
                         end function
-                        instance.getTestSuiteClassWithName = function(name as string) as function
+                        instance.getTestSuiteClassWithName = function(name as string) as object
                             return m.testSuites[name]
                         end function
-                        instance.getAllTestSuitesNames = function() as object
+                        instance.getAllTestSuitesNames = function() as dynamic
                             return m.testSuites.keys()
                         end function
                         ' bs:disable-next-line LINT2004

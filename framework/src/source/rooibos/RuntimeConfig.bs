@@ -1,46 +1,34 @@
+import "pkg:/source/rooibos/JUnitTestReporter.bs"
+import "pkg:/source/rooibos/ConsoleTestReporter.bs"
+import "pkg:/source/rooibos/MochaTestReporter.bs"
+
 namespace rooibos
-  ' @ignore
-  class RuntimeConfig
+    ' @ignore
+    class RuntimeConfig
 
-    private testSuites as roAssociativeArray = {}
+        function new()
+            m.testSuites = m.getTestSuiteClassMap()
+        end function
 
-    function new()
-      m.testSuites = m.getTestSuiteClassMap()
-    end function
+        function getVersionText()
+        end function
 
-    ' bs:disable-next-line LINT2004 return-type-coercion-mismatch
-    function getVersionText() as string
-      ' filled in by plugin
-    end function
+        function getRuntimeConfig()
+        end function
 
-    ' bs:disable-next-line LINT2004
-    function getRuntimeConfig() as RuntimeConfigData
-      ' filled in by plugin
-    end function
+        function getTestSuiteClassMap()
+        end function
 
-    ' bs:disable-next-line LINT2004
-    function getTestSuiteClassMap() as roAssociativeArray
-      ' filled in by plugin
-    end function
+        function getTestSuiteClassWithName(name as string) as rooibos.BaseTestSuite
+            return m.testSuites[name]
+        end function
 
-    function getTestSuiteClassWithName(name as string) as function
-      return m.testSuites[name]
-    end function
+        function getAllTestSuitesNames() as string[]
+            return m.testSuites.keys()
+        end function
 
-    function getAllTestSuitesNames() as string[]
-      return m.testSuites.keys()
-    end function
+        function getIgnoredTestInfo()
+        end function
 
-    ' bs:disable-next-line LINT2004
-    function getIgnoredTestInfo() as IgnoredTestInfo
-      ' filled in by plugin
-    end function
-
-  end class
-
-  interface IgnoredTestInfo
-    count as integer
-    items as roArray
-  end interface
-
+    end class
 end namespace

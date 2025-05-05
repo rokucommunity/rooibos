@@ -5,7 +5,7 @@
     "source/**/*.*",
     "components/**/*.*"
   ],
-  "autoImportComponentScript": true,
+  "autoImportComponentScript": false,
   "createPackage": false,
   "stagingDir": "dist",
   // "diagnosticFilters": [

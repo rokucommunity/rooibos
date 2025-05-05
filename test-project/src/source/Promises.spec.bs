@@ -1,84 +1,86 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
 namespace tests
-	@suite
-	@async
-	class PromisesTests extends rooibos.BaseTestSuite
+    @suite
+    @async
+    class PromisesTests extends rooibos.BaseTestSuite
 
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		@describe("tests that should fail")
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("tests that should fail")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		@it("fail the test as the returned to the test promise that will reject")
-		function _()
-			return toPromiseWithDelay(0.001, false, false)
-		end function
+        @it("fail the test as the returned to the test promise that will reject")
+        function _()
+            return toPromiseWithDelay(0.001, false, false)
+        end function
 
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		@describe("tests that should pass)")
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("tests that should pass)")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		@it("pass the test as the returned to the test promise that will resolve")
-		function _()
-			return toPromiseWithDelay(0.001, true, true)
-		end function
+        @it("pass the test as the returned to the test promise that will resolve")
+        function _()
+            return toPromiseWithDelay(0.001, true, true)
+        end function
 
-		@it("example using rooibos.promise.chain")
-		function _()
-			context = {
-				thenCount: 0
-				catchCount: 0
-				finallyCount: 0
-			}
+        @it("example using rooibos.promise.chain")
+        function _()
+            context = {
+                thenCount: 0
+                catchCount: 0
+                finallyCount: 0
+            }
 
-			return rooibos.promises.chain(rooibos.promises.resolve(1), context).then(sub(result, context)
-				context.thenCount++
-				m.testSuite.assertEqual(result, 1)
-			end sub).catch(sub(error, context)
-				context.catchCount++
-				m.testSuite.fail("should not get here")
-			end sub).finally(sub(context)
-				context.finallyCount++
-				m.testSuite.assertEqual(context, {
-					thenCount: 1
-					catchCount: 0
-					finallyCount: 1
-				})
-			end sub).toPromise()
-		end function
+            return rooibos.promises.chain(rooibos.promises.resolve(1), context).then(function(result, context)
+                context.thenCount++
+                m.testSuite.assertEqual(result, 1)
+            end function).catch(function(error, context)
+                context.catchCount++
+                m.testSuite.fail("should not get here")
+            end function).finally(function(context)
+                context.finallyCount++
+                m.testSuite.assertEqual(context, {
+                    thenCount: 1
+                    catchCount: 0
+                    finallyCount: 1
+                })
+            end function).toPromise()
+        end function
 
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		@describe("tests that should fail as crashes")
-		'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("tests that should fail as crashes")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		@async(100)
-		@it("async test that times out")
-		sub _()
-		end sub
+        @async(100)
+        @it("async test that times out")
+        function _()
+        end function
 
-		@async(100)
-		@it("async test that times out due to promise not resolving")
-		function _()
-			return rooibos.promises.create()
-		end function
+        @async(100)
+        @it("async test that times out due to promise not resolving")
+        function _()
+            return rooibos.promises.create()
+        end function
 
-		@it("fail the test as the returned to the test promise that will reject with a exception object")
-		function _() ' bs:disable-line LINT2004
-			try
-				v = 1 / 0 ' bs:disable-line LINT1005
-			catch error
-				return toPromiseWithDelay(0.001, error, false)
-			end try
-		end function
-	end class
+        @it("fail the test as the returned to the test promise that will reject with a exception object")
+        function _()
+            try
+                v = 1 / 0 'bs:disable-line LINT1005
+            catch error
+                return toPromiseWithDelay(0.001, error, false)
+            end try
+        end function
+    end class
 end namespace
 
 function toPromiseWithDelay(duration = 0.0001 as float, value = true as dynamic, resolve = true as boolean) as dynamic
-	deferred = rooibos.promises.create()
-	rooibos.promises.internal.delay(sub(context as dynamic)
-		if context.resolve
-			rooibos.promises.resolve(context.value, context.deferred)
-		else
-			rooibos.promises.reject(context.value, context.deferred)
-		end if
-	end sub, {deferred: deferred, value: value, resolve: resolve}, duration)
-	return deferred
+    deferred = rooibos.promises.create()
+    rooibos.promises.internal.delay(function(context as dynamic)
+        if context.resolve then
+            rooibos.promises.resolve(context.value, context.deferred)
+        else
+            rooibos.promises.reject(context.value, context.deferred)
+        end if
+    end function, { deferred: deferred, value: value, resolve: resolve }, duration)
+    return deferred
 end function

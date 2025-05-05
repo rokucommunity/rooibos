@@ -1,612 +1,610 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
 import "pkg:/source/Globals.bs"
 
 namespace tests
-  @suite
-  class NewExpectSyntaxTests extends rooibos.BaseTestSuite
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '+  Helper
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private function assertRunningTestIsFailed()
-      m.isAutoAssertingMocks = false
-      m.assertMocks()
-
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
-      m.cleanMocks()
-      m.cleanStubs()
-      m.assertTrue(isFail)
-    end function
-
-    private function assertRunningTestIsPassed()
-      m.isAutoAssertingMocks = false
-      m.assertMocks()
-
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
-      m.cleanMocks()
-      m.cleanStubs()
-      m.assertFalse(isFail)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectCalled regular functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("simple")
-    function _()
-      item = {"id": "node"}
-      m.expectCalled(item.getText(), "test")
-      m.assertEqual(item.getText(), "test")
-    end function
-
-    @it("expected param")
-    function _()
-      item = {"id": "node"}
-      m.expectCalled(item.getText("expected"), "test")
-      m.assertEqual(item.getText("expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("not matching on param")
-    function _()
-      item = {"id": "node"}
-      m.expectCalled(item.getText("expected"), "test")
-
-      m.assertEqual(item.getText("not expected"), "test")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectCalled function pointers")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("supports function pointer - therefore ignoring the params")
-    function _()
-      item = {"id": "node"} as roSGNode
-
-      'don't care about the args
-      m.expectCalled(item.getText, "some return value I want")
-
-      'I expect this arg only
-      m.expectCalled(item.getText("expected"), "some return value I want")
-
-      'callfunc with no args
-      m.expectCalled(item@.getText())
-      m.expectCalled(item@.getText("expected"))
-      m.expectCalled(item@.getText("expected"), "some return value I want")
-
-
-      'don't expect this to be called
-      m.expectNotCalled(item.getText())
-
-      item@.getText()
-
-      m.assertEqual(item.getText("any text"), "some return value I want")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectCalled callFunc functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("simple")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.expectCalled(item@.getText(), "test")
-      m.assertEqual(item@.getText(), "test")
-    end function
-
-    @it("expected param")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.expectCalled(item@.getText("expected"), "test")
-      m.assertEqual(item@.getText("expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("not matching on param")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.expectCalled(item@.getText("expected"), "test")
-
-      m.assertEqual(item@.getText("not expected"), "test")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall regular functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("simple")
-    function _()
-      item = {"id": "node"}
-      m.stubCall(item.getText(), "test")
-      m.assertEqual(item.getText(), "test")
-    end function
-
-    @it("expected param")
-    function _()
-      item = {"id": "node"}
-      m.stubCall(item.getText("expected"), "test")
-      m.assertEqual(item.getText("expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("not matching on param")
-    function _()
-      item = {"id": "node"}
-      m.stubCall(item.getText("expected"), "test")
-
-      m.assertEqual(item.getText("not expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall function pointers")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("supports function pointer - therefore ignoring the params")
-    function _()
-      item = {"id": "node"}
-      m.stubCall(item.getText, "test")
-
-      m.assertEqual(item.getText("any text"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall global functions with new runtime functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("stubs global with inline anon with return value")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(globalFunctionWithReturn, function()
-        m.wasCalled = true
-        return true
-      end function)
-
-      m.assertTrue(globalFunctionWithReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("stubs global with anon from variable with return value")
-    function _()
-      getGlobalAA().wasCalled = false
-      stub = function()
-        m.wasCalled = true
-        return true
-      end function
-      m.stubCall(globalFunctionWithReturn, stub)
-
-      m.assertTrue(globalFunctionWithReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("stubs global with inline anon without return value")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(globalFunctionWithoutReturn, sub()
-        m.wasCalled = true
-      end sub)
-
-      m.assertInvalid(globalFunctionWithoutReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("stubs global with anon from variable without return value")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(globalFunctionWithoutReturn, sub()
-        m.wasCalled = true
-      end sub)
-
-      m.assertInvalid(globalFunctionWithoutReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-      m.assertRunningTestIsPassed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall namespace functions with new runtime functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("stubs namespace with inline anon with return value")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(testNamespace.functionWithReturn, function()
-        m.wasCalled = true
-        return true
-      end function)
-      m.assertTrue(testNamespace.functionWithReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("stubs namespace with anon from variable with return value")
-    function _()
-      getGlobalAA().wasCalled = false
-      stub = function()
-        m.wasCalled = true
-        return true
-      end function
-      m.stubCall(testNamespace.functionWithReturn, stub)
-
-      m.assertTrue(testNamespace.functionWithReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("stubs namespace with inline anon without return value")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(testNamespace.functionWithoutReturn, sub()
-        m.wasCalled = true
-      end sub)
-      m.assertInvalid(testNamespace.functionWithoutReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("stubs namespace with anon from variable without return value")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(testNamespace.functionWithoutReturn, sub()
-        m.wasCalled = true
-      end sub)
-      m.assertInvalid(testNamespace.functionWithoutReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-      m.assertRunningTestIsPassed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall global or namespace functions multiple times in a test")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("stubs namespace multiple times in one test")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(testNamespace.functionWithoutReturn, sub()
-        m.wasCalled = true
-      end sub)
-
-      m.assertInvalid(testNamespace.functionWithoutReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-
-      m.stubCall(testNamespace.functionWithoutReturn, sub()
-        m.wasCalled = 1
-      end sub)
-      m.assertInvalid(testNamespace.functionWithoutReturn())
-      m.assertEqual(getGlobalAA().wasCalled, 1)
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("stubs global multiple times in one test")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(testNamespace.functionWithoutReturn, sub()
-        m.wasCalled = true
-      end sub)
-
-
-
-
-      m.assertInvalid(testNamespace.functionWithoutReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-
-      m.stubCall(testNamespace.functionWithoutReturn, sub()
-        m.wasCalled = 1
-      end sub)
-      m.assertInvalid(testNamespace.functionWithoutReturn())
-      m.assertEqual(getGlobalAA().wasCalled, 1)
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall global can be cleaned")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("stubs namespace and then cleans it")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(testNamespace.functionWithReturn, function()
-        m.wasCalled = true
-        return true
-      end function)
-
-      m.assertTrue(testNamespace.functionWithReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-
-      getGlobalAA().wasCalled = false
-      m.stubCall(testNamespace.functionWithoutReturn, sub()
-        m.wasCalled = true
-      end sub)
-
-      m.assertInvalid(testNamespace.functionWithoutReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-
-      m.cleanStubs()
-
-      m.assertFalse(testNamespace.functionWithReturn())
-      m.assertFalse(getGlobalAA().wasCalled)
-
-      getGlobalAA().wasCalled = true
-      m.assertInvalid(testNamespace.functionWithoutReturn())
-      m.assertFalse(getGlobalAA().wasCalled)
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("stubs global and then cleans it")
-    function _()
-      getGlobalAA().wasCalled = false
-      m.stubCall(globalFunctionWithReturn, function()
-        m.wasCalled = true
-        return true
-      end function)
-
-      m.assertTrue(globalFunctionWithReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-
-      getGlobalAA().wasCalled = false
-      m.stubCall(globalFunctionWithoutReturn, sub()
-        m.wasCalled = true
-      end sub)
-
-      m.assertInvalid(globalFunctionWithoutReturn())
-      m.assertTrue(getGlobalAA().wasCalled)
-
-      m.cleanStubs()
-
-      m.assertFalse(globalFunctionWithReturn())
-      m.assertFalse(getGlobalAA().wasCalled)
-
-      getGlobalAA().wasCalled = true
-      m.assertInvalid(globalFunctionWithoutReturn())
-      m.assertFalse(getGlobalAA().wasCalled)
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall callFunc functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("not matching on param")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.stubCall(item@.getText("expected"), "test")
-
-      m.assertEqual(item@.getText("not expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("simple")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.stubCall(item@.getText(), "test")
-      m.assertEqual(item@.getText(), "test")
-    end function
-
-    @it("expected param")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.stubCall(item@.getText("expected"), "test")
-      m.assertEqual(item@.getText("expected"), "test")
-
-      m.assertRunningTestIsPassed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectNotCalled")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("passes when not called")
-    function _()
-      item = {"id": "node"}
-      m.expectNotCalled(item.getText())
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("fails when called")
-    function _()
-      item = {"id": "node"}
-      m.expectNotCalled(item.getText())
-      item.getText()
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    @it("fails when called, with params")
-    function _()
-      item = {"id": "node"}
-      m.expectNotCalled(item.getText())
-      item.getText("expected")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    @it("fails when called, with params on expect too")
-    function _()
-      item = {"id": "node"}
-      m.expectNotCalled(item.getText("expected"))
-      item.getText("not expected")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectNotCalled - with callfunc")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("passes when not called")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.expectNotCalled(item@.getText())
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("fails when called")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.expectNotCalled(item@.getText())
-      item@.getText()
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    @it("fails when called, with params")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.expectNotCalled(item@.getText())
-      item@.getText("expected")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    @it("fails when called, with params on expect too")
-    function _()
-      item = {"id": "node"} as roSGNode
-      m.expectNotCalled(item@.getText("expected"))
-      item@.getText("not expected")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectNotCalled - function pointers")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("passes when not called")
-    function _()
-      item = {"id": "node"}
-      m.expectNotCalled(item.getText)
-      m.assertRunningTestIsPassed()
-    end function
-
-    @it("fails when called")
-    function _()
-      item = {"id": "node"}
-      m.expectNotCalled(item.getText)
-      item.getText()
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    @it("fails when called, with params")
-    function _()
-      item = {"id": "node"}
-      m.expectNotCalled(item.getText)
-      item.getText("expected")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("mocks with exceptions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("throws exceptions")
-    function _()
-      thing = {"id": "thing"}
-
-      error = {message: "error"}
-      m.expectCalled(thing.thrownAnError())
-      m.expectLastCallToThrowError(error)
-
-      try
-        thing.thrownAnError()
-      catch error
-        m.assertEqual(error.message, "error")
-      end try
-
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("global functions")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("uses default implementation on global functions")
-    function _()
-      m.assertEqual(utils.sayHello("John", "Lennon"), "John, Lennon")
-    end function
-
-    @it("uses default implementation on namespaced functions")
-    function _()
-      m.assertEqual(globalSayHello("John", "Lennon"), "John, Lennon")
-    end function
-
-    @it("supports mocks on global functions")
-    function _()
-      m.expectCalled(globalSayHello("John", "Lennon"), "john")
-
-      m.assertEqual(globalSayHello("John", "Lennon"), "john")
-    end function
-
-    @it("supports mocks on namespaced functions")
-    function _()
-      m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul")
-
-      m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul")
-    end function
-
-    @it("reports uncalled mocks on global functions")
-    function _()
-      m.expectCalled(globalSayHello("John", "Lennon"), "john")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    @it("reports uncalled mocks on namespaced functions")
-    function _()
-      m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul")
-
-      m.assertRunningTestIsFailed()
-    end function
-
-    @it("resets to default implementation on global functions")
-    function _()
-      m.assertEqual(utils.sayHello("John", "Lennon"), "John, Lennon")
-    end function
-
-    @it("resets to default implementation on namespaced functions")
-    function _()
-      m.assertEqual(globalSayHello("John", "Lennon"), "John, Lennon")
-    end function
-
-    @it("supports overloaded mocks on global functions")
-    function _()
-      m.expectCalled(globalSayHello("John", "Lennon"), "john")
-      m.expectCalled(globalSayHello("John", "Lennon"), "john2")
-
-      m.assertEqual(globalSayHello("John", "Lennon"), "john")
-      m.assertEqual(globalSayHello("John", "Lennon"), "john2")
-    end function
-
-    @it("supports overloaded mocks on namespaced functions")
-    function _()
-      m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul1")
-      m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul2")
-
-      m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul1")
-      m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul2")
-    end function
-
-  end class
+    @suite
+    class NewExpectSyntaxTests extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+  Helper
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        private function assertRunningTestIsFailed()
+            m.isAutoAssertingMocks = false
+            m.assertMocks()
+
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
+            m.cleanMocks()
+            m.cleanStubs()
+            m.assertTrue(isFail)
+        end function
+
+        private function assertRunningTestIsPassed()
+            m.isAutoAssertingMocks = false
+            m.assertMocks()
+
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
+            m.cleanMocks()
+            m.cleanStubs()
+            m.assertFalse(isFail)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectCalled regular functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("simple")
+        function _()
+            item = { "id": "node" }
+            m.expectCalled(item.getText(), "test")
+            m.assertEqual(item.getText(), "test")
+        end function
+
+        @it("expected param")
+        function _()
+            item = { "id": "node" }
+            m.expectCalled(item.getText("expected"), "test")
+            m.assertEqual(item.getText("expected"), "test")
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("not matching on param")
+        function _()
+            item = { "id": "node" }
+            m.expectCalled(item.getText("expected"), "test")
+
+            m.assertEqual(item.getText("not expected"), "test")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectCalled function pointers")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("supports function pointer - therefore ignoring the params")
+        function _()
+            item = { "id": "node" }
+
+            'don't care about the args
+            m.expectCalled(item.getText, "some return value I want")
+
+            'I expect this arg only
+            m.expectCalled(item.getText("expected"), "some return value I want")
+
+            'callfunc with no args
+            m.expectCalled(item@.getText())
+            m.expectCalled(item@.getText("expected"))
+            m.expectCalled(item@.getText("expected"), "some return value I want")
+
+
+            'don't expect this to be called
+            m.expectNotCalled(item.getText())
+
+            item@.getText()
+
+            m.assertEqual(item.getText("any text"), "some return value I want")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectCalled callFunc functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("simple")
+        function _()
+            item = { "id": "node" }
+            m.expectCalled(item@.getText(), "test")
+            m.assertEqual(item@.getText(), "test")
+        end function
+
+        @it("expected param")
+        function _()
+            item = { "id": "node" }
+            m.expectCalled(item@.getText("expected"), "test")
+            m.assertEqual(item@.getText("expected"), "test")
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("not matching on param")
+        function _()
+            item = { "id": "node" }
+            m.expectCalled(item@.getText("expected"), "test")
+
+            m.assertEqual(item@.getText("not expected"), "test")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall regular functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("simple")
+        function _()
+            item = { "id": "node" }
+            m.stubCall(item.getText(), "test")
+            m.assertEqual(item.getText(), "test")
+        end function
+
+        @it("expected param")
+        function _()
+            item = { "id": "node" }
+            m.stubCall(item.getText("expected"), "test")
+            m.assertEqual(item.getText("expected"), "test")
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("not matching on param")
+        function _()
+            item = { "id": "node" }
+            m.stubCall(item.getText("expected"), "test")
+
+            m.assertEqual(item.getText("not expected"), "test")
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall function pointers")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("supports function pointer - therefore ignoring the params")
+        function _()
+            item = { "id": "node" }
+            m.stubCall(item.getText, "test")
+
+            m.assertEqual(item.getText("any text"), "test")
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall global functions with new runtime functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("stubs global with inline anon with return value")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(globalFunctionWithReturn, function()
+                m.wasCalled = true
+                return true
+            end function)
+
+            m.assertTrue(globalFunctionWithReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("stubs global with anon from variable with return value")
+        function _()
+            getGlobalAA().wasCalled = false
+            stub = function()
+                m.wasCalled = true
+                return true
+            end function
+            m.stubCall(globalFunctionWithReturn, stub)
+
+            m.assertTrue(globalFunctionWithReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("stubs global with inline anon without return value")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(globalFunctionWithoutReturn, function()
+                m.wasCalled = true
+            end function)
+
+            m.assertInvalid(globalFunctionWithoutReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("stubs global with anon from variable without return value")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(globalFunctionWithoutReturn, function()
+                m.wasCalled = true
+            end function)
+
+            m.assertInvalid(globalFunctionWithoutReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+            m.assertRunningTestIsPassed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall namespace functions with new runtime functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("stubs namespace with inline anon with return value")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(testNamespace.functionWithReturn, function()
+                m.wasCalled = true
+                return true
+            end function)
+            m.assertTrue(testNamespace.functionWithReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("stubs namespace with anon from variable with return value")
+        function _()
+            getGlobalAA().wasCalled = false
+            stub = function()
+                m.wasCalled = true
+                return true
+            end function
+            m.stubCall(testNamespace.functionWithReturn, stub)
+
+            m.assertTrue(testNamespace.functionWithReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("stubs namespace with inline anon without return value")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(testNamespace.functionWithoutReturn, function()
+                m.wasCalled = true
+            end function)
+            m.assertInvalid(testNamespace.functionWithoutReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("stubs namespace with anon from variable without return value")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(testNamespace.functionWithoutReturn, function()
+                m.wasCalled = true
+            end function)
+            m.assertInvalid(testNamespace.functionWithoutReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+            m.assertRunningTestIsPassed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall global or namespace functions multiple times in a test")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("stubs namespace multiple times in one test")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(testNamespace.functionWithoutReturn, function()
+                m.wasCalled = true
+            end function)
+
+            m.assertInvalid(testNamespace.functionWithoutReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+
+            m.stubCall(testNamespace.functionWithoutReturn, function()
+                m.wasCalled = 1
+            end function)
+            m.assertInvalid(testNamespace.functionWithoutReturn())
+            m.assertEqual(getGlobalAA().wasCalled, 1)
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("stubs global multiple times in one test")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(testNamespace.functionWithoutReturn, function()
+                m.wasCalled = true
+            end function)
+
+            m.assertInvalid(testNamespace.functionWithoutReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+
+            m.stubCall(testNamespace.functionWithoutReturn, function()
+                m.wasCalled = 1
+            end function)
+            m.assertInvalid(testNamespace.functionWithoutReturn())
+            m.assertEqual(getGlobalAA().wasCalled, 1)
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall global can be cleaned")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("stubs namespace and then cleans it")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(testNamespace.functionWithReturn, function()
+                m.wasCalled = true
+                return true
+            end function)
+
+            m.assertTrue(testNamespace.functionWithReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+
+            getGlobalAA().wasCalled = false
+            m.stubCall(testNamespace.functionWithoutReturn, function()
+                m.wasCalled = true
+            end function)
+
+            m.assertInvalid(testNamespace.functionWithoutReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+
+            m.cleanStubs()
+
+            m.assertFalse(testNamespace.functionWithReturn())
+            m.assertFalse(getGlobalAA().wasCalled)
+
+            getGlobalAA().wasCalled = true
+            m.assertInvalid(testNamespace.functionWithoutReturn())
+            m.assertFalse(getGlobalAA().wasCalled)
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("stubs global and then cleans it")
+        function _()
+            getGlobalAA().wasCalled = false
+            m.stubCall(globalFunctionWithReturn, function()
+                m.wasCalled = true
+                return true
+            end function)
+
+            m.assertTrue(globalFunctionWithReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+
+            getGlobalAA().wasCalled = false
+            m.stubCall(globalFunctionWithoutReturn, function()
+                m.wasCalled = true
+            end function)
+
+            m.assertInvalid(globalFunctionWithoutReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+
+            m.cleanStubs()
+
+            m.assertFalse(globalFunctionWithReturn())
+            m.assertFalse(getGlobalAA().wasCalled)
+
+            getGlobalAA().wasCalled = true
+            m.assertInvalid(globalFunctionWithoutReturn())
+            m.assertFalse(getGlobalAA().wasCalled)
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall callFunc functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("not matching on param")
+        function _()
+            item = { "id": "node" }
+            m.stubCall(item@.getText("expected"), "test")
+
+            m.assertEqual(item@.getText("not expected"), "test")
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("simple")
+        function _()
+            item = { "id": "node" }
+            m.stubCall(item@.getText(), "test")
+            m.assertEqual(item@.getText(), "test")
+        end function
+
+        @it("expected param")
+        function _()
+            item = { "id": "node" }
+            m.stubCall(item@.getText("expected"), "test")
+            m.assertEqual(item@.getText("expected"), "test")
+
+            m.assertRunningTestIsPassed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectNotCalled")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("passes when not called")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item.getText())
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("fails when called")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item.getText())
+            item.getText()
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        @it("fails when called, with params")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item.getText())
+            item.getText("expected")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        @it("fails when called, with params on expect too")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item.getText("expected"))
+            item.getText("not expected")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectNotCalled - with callfunc")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("passes when not called")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item@.getText())
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("fails when called")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item@.getText())
+            item@.getText()
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        @it("fails when called, with params")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item@.getText())
+            item@.getText("expected")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        @it("fails when called, with params on expect too")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item@.getText("expected"))
+            item@.getText("not expected")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectNotCalled - function pointers")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("passes when not called")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item.getText)
+            m.assertRunningTestIsPassed()
+        end function
+
+        @it("fails when called")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item.getText)
+            item.getText()
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        @it("fails when called, with params")
+        function _()
+            item = { "id": "node" }
+            m.expectNotCalled(item.getText)
+            item.getText("expected")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("mocks with exceptions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("throws exceptions")
+        function _()
+            thing = { "id": "thing" }
+
+            error = { message: "error" }
+            m.expectCalled(thing.thrownAnError())
+            m.expectLastCallToThrowError(error)
+
+            try
+                thing.thrownAnError()
+            catch error
+                m.assertEqual(error.message, "error")
+            end try
+
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("global functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("uses default implementation on global functions")
+        function _()
+            m.assertEqual(utils.sayHello("John", "Lennon"), "John, Lennon")
+        end function
+
+        @it("uses default implementation on namespaced functions")
+        function _()
+            m.assertEqual(globalSayHello("John", "Lennon"), "John, Lennon")
+        end function
+
+        @it("supports mocks on global functions")
+        function _()
+            m.expectCalled(globalSayHello("John", "Lennon"), "john")
+
+            m.assertEqual(globalSayHello("John", "Lennon"), "john")
+        end function
+
+        @it("supports mocks on namespaced functions")
+        function _()
+            m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul")
+
+            m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul")
+        end function
+
+        @it("reports uncalled mocks on global functions")
+        function _()
+            m.expectCalled(globalSayHello("John", "Lennon"), "john")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        @it("reports uncalled mocks on namespaced functions")
+        function _()
+            m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul")
+
+            m.assertRunningTestIsFailed()
+        end function
+
+        @it("resets to default implementation on global functions")
+        function _()
+            m.assertEqual(utils.sayHello("John", "Lennon"), "John, Lennon")
+        end function
+
+        @it("resets to default implementation on namespaced functions")
+        function _()
+            m.assertEqual(globalSayHello("John", "Lennon"), "John, Lennon")
+        end function
+
+        @it("supports overloaded mocks on global functions")
+        function _()
+            m.expectCalled(globalSayHello("John", "Lennon"), "john")
+            m.expectCalled(globalSayHello("John", "Lennon"), "john2")
+
+            m.assertEqual(globalSayHello("John", "Lennon"), "john")
+            m.assertEqual(globalSayHello("John", "Lennon"), "john2")
+        end function
+
+        @it("supports overloaded mocks on namespaced functions")
+        function _()
+            m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul1")
+            m.expectCalled(utils.sayHello("Paul", "McCartney"), "paul2")
+
+            m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul1")
+            m.assertEqual(utils.sayHello("Paul", "McCartney"), "paul2")
+        end function
+
+    end class
 
 end namespace

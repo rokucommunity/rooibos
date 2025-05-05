@@ -22,7 +22,7 @@ export class FileFactory {
         }
 
         this.coverageComponentXmlTemplate = fs.readFileSync(path.join(this.frameworkSourcePath, '/components/rooibos/CodeCoverage.xml'), 'utf8');
-        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.frameworkSourcePath, '/source/rooibos/CodeCoverage.brs'), 'utf8');
+        this.coverageComponentBrsTemplate = fs.readFileSync(path.join(this.frameworkSourcePath, '/components/rooibos/CodeCoverage.brs'), 'utf8');
     }
 
     public sourceFilesToAutoImport: string[] = [];
@@ -34,7 +34,7 @@ export class FileFactory {
             '**/*.{bs,brs,xml}',
             '!**/bslib.brs',
             '!**/manifest',
-            '!**/CodeCoverage.{brs,xml}',
+            '**/CodeCoverage.{brs,xml}',
             '!**/RooibosScene.xml'
         ], {
             cwd: this.frameworkSourcePath,
