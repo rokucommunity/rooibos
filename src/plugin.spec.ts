@@ -2727,49 +2727,49 @@ describe('RooibosPlugin', () => {
     describe.skip('run a local project', () => {
         it('sanity checks on parsing - only run this outside of ci', () => {
             let programBuilder = new ProgramBuilder();
-            // let swv = {
-            //     'stagingFolderPath': 'build',
-            //     'rootDir': '/home/george/hope/open-source/rooibos/tests',
-            //     'files': ['manifest', 'source/**/*.*', 'components/**/*.*'],
-            //     'autoImportComponentScript': true,
-            //     'createPackage': false,
-            //     'diagnosticFilters': [
-            //         {
-            //             'src': '**/roku_modules/**/*.*',
-            //             'codes': [1107, 1009]
-            //         }
-            //     ],
-            //     'rooibos': {
-            //         'showOnlyFailures': true,
-            //         'catchCrashes': true,
-            //         'colorizeOutput': false,
-            //         'throwOnFailedAssertion': false,
-            //         'lineWidth': 70,
-            //         'failFast': false,
-            //         'sendHomeOnFinish': false,
-            //         'keepAppOpen': true
-            //     },
-            //     'maestro': {
-            //         'nodeFileDelay': 0,
-            //         'excludeFilters': [
-            //             '**/roku_modules/**/*',
-            //             '**/*BaseTestSuite*.bs'
-            //         ]
-            //     },
-            //     'sourceMap': true,
-            //     'extends': 'bsconfig.json',
-            //     'plugins': [
-            //         '/home/george/hope/open-source/maestro/maestro-roku-bsc-plugin/dist/plugin.js',
-            //         '/home/george/hope/open-source/rooibos/bsc-plugin/dist/plugin.js'
-            //     ],
-            //     'exclude': {
-            //         'id': '/home/george/hope/open-source/maestro/roku-log-bsc-plugin/dist/plugin.js'
-            //     },
-            //     'rokuLog': {
-            //         'strip': false,
-            //         'insertPkgPath': true
-            //     }
-            // };
+            let swv = {
+                'stagingFolderPath': 'build',
+                'rootDir': '/home/george/hope/open-source/rooibos/tests',
+                'files': ['manifest', 'source/**/*.*', 'components/**/*.*'],
+                'autoImportComponentScript': true,
+                'createPackage': false,
+                'diagnosticFilters': [
+                    {
+                        'src': '**/roku_modules/**/*.*',
+                        'codes': [1107, 1009]
+                    }
+                ],
+                'rooibos': {
+                    'showOnlyFailures': true,
+                    'catchCrashes': true,
+                    'colorizeOutput': false,
+                    'throwOnFailedAssertion': false,
+                    'lineWidth': 70,
+                    'failFast': false,
+                    'sendHomeOnFinish': false,
+                    'keepAppOpen': true
+                },
+                'maestro': {
+                    'nodeFileDelay': 0,
+                    'excludeFilters': [
+                        '**/roku_modules/**/*',
+                        '**/*BaseTestSuite*.bs'
+                    ]
+                },
+                'sourceMap': true,
+                'extends': 'bsconfig.json',
+                'plugins': [
+                    '/home/george/hope/open-source/maestro/maestro-roku-bsc-plugin/dist/plugin.js',
+                    '/home/george/hope/open-source/rooibos/bsc-plugin/dist/plugin.js'
+                ],
+                'exclude': {
+                    'id': '/home/george/hope/open-source/maestro/roku-log-bsc-plugin/dist/plugin.js'
+                },
+                'rokuLog': {
+                    'strip': false,
+                    'insertPkgPath': true
+                }
+            };
 
             programBuilder.run(
                 // swv
@@ -2778,7 +2778,7 @@ describe('RooibosPlugin', () => {
                     // project: '/home/george/hope/open-source/maestro/swerve-app/bsconfig-test.json'
                 }
             ).catch(e => {
-                console.error(e);
+                console.error(e, !swv);
             });
             console.log('done');
         });

@@ -12,10 +12,10 @@ export class TestGroup extends TestBlock {
     constructor(testSuite: TestSuite, annotation: RooibosAnnotation) {
         super(annotation);
         this.testSuite = testSuite;
-        this.setupFunctionName ||= this.testSuite.setupFunctionName;
-        this.tearDownFunctionName ||= this.testSuite.tearDownFunctionName;
-        this.beforeEachFunctionName ||= this.testSuite.beforeEachFunctionName;
-        this.afterEachFunctionName ||= this.testSuite.afterEachFunctionName;
+        this.setupFunctionName ??= this.testSuite.setupFunctionName;
+        this.tearDownFunctionName ??= this.testSuite.tearDownFunctionName;
+        this.beforeEachFunctionName ??= this.testSuite.beforeEachFunctionName;
+        this.afterEachFunctionName ??= this.testSuite.afterEachFunctionName;
     }
 
     public testSuite: TestSuite;
