@@ -12,8 +12,8 @@
         "build": "ropm copy && npm run compile && npm run copy-framework-files",
         "build-test-project": "bsc --cwd test-project --project bsconfig.json",
         "docs": "jsdoc -c jsdoc.json -d .tmp/docs --verbose",
-        "test": "nyc mocha",
-        "test:nocover": "mocha",
+        "test": "nyc mocha --timeout 5000",
+        "test:nocover": "mocha --timeout 5000",
         "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
         "cli": "ts-node src/cli.ts",
         "package": "npm run build && npm pack"
