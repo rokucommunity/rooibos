@@ -172,17 +172,17 @@ namespace rooibos
 
                     rooibos.promises.chain(test.deferred, { self: m, test: test }).then(function(_ as dynamic, context as roAssociativeArray)
                         rooibos.common.logDebug("Promise resolved")
-                        context.self.testSuite.done()
+                        (context.self as rooibos.TestGroup).testSuite.done()
                     end function).catch(function(error as dynamic, context as roAssociativeArray)
                         rooibos.common.logDebug("Promise rejected")
                         if rooibos.common.isAssociativeArray(error) and not error.isEmpty() and rooibos.common.isArray(error.backtrace) and not error.backtrace.isEmpty() and rooibos.common.isBoolean(error.rethrown) then
-                            context.self.testSuite.failCrash(error)
+                            (context.self as rooibos.TestGroup).testSuite.failCrash(error)
                         else
-                            context.self.testSuite.fail("Test failed due to promise rejection")
+                            (context.self as rooibos.TestGroup).testSuite.fail("Test failed due to promise rejection")
                         end if
-                        context.self.testSuite.done()
+                        (context.self as rooibos.TestGroup).testSuite.done()
                     end function).finally(function(context as roAssociativeArray)
-                        context.self.onAsyncTestComplete()
+                        (context.self as rooibos.TestGroup).onAsyncTestComplete()
                     end function)
                 else
                     rooibos.common.logTrace("Error running test before each function")

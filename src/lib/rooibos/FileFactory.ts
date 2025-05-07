@@ -35,7 +35,7 @@ export class FileFactory {
             '!**/bslib.brs',
             '!**/manifest',
             '**/CodeCoverage.{brs,xml}',
-            '!**/RooibosScene.xml'
+            '**/RooibosScene.xml'
         ], {
             cwd: this.frameworkSourcePath,
             absolute: false,
@@ -57,13 +57,6 @@ export class FileFactory {
             );
         }
 
-        let entry = {
-            src: s`${this.frameworkSourcePath}/components/RooibosScene.xml`,
-            dest: s`components/rooibos/RooibosScene.xml`
-        };
-        this.addedFrameworkFiles.push(
-            program.setFile(entry, this.createTestXML('RooibosScene', 'Scene'))
-        );
         return this.addedFrameworkFiles;
     }
 

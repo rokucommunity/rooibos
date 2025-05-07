@@ -100,11 +100,11 @@ namespace rooibos
         ' and resolves or rejects the deferred based on the result of the test promise.
         ' Also records the execution time of the test if not already recorded.
         function markDoneWhenTestCompletes(testPromise as roSGNoderooibos_promises_Promise)
-            rooibos.promises.chain(testPromise, m).then(function(result as dynamic, m as roAssociativeArray)
+            rooibos.promises.chain(testPromise, m).then(function(result as dynamic, m as rooibos.Test)
                 m.recordExecutionTime()
                 rooibos.common.logDebug("Test promise resolved")
                 rooibos.promises.resolve(result, m.deferred)
-            end function).catch(function(error as dynamic, m as roAssociativeArray)
+            end function).catch(function(error as dynamic, m as rooibos.Test)
                 m.recordExecutionTime()
                 rooibos.common.logDebug("Test promise rejected")
                 rooibos.promises.reject(error, m.deferred)
@@ -112,7 +112,7 @@ namespace rooibos
         end function
 
         function registerTimeout()
-            rooibos.promises.internal.delay(function(m as roAssociativeArray)
+            rooibos.promises.internal.delay(function(m as rooibos.Test)
                 if not rooibos.promises.isComplete(m.deferred) then
                     m.recordExecutionTime(m.asyncTimeout)
                     m.testSuite.fail(`Test execution exceeded ${m.asyncTimeout}ms`)
@@ -122,10 +122,10 @@ namespace rooibos
         end function
 
         function recordExecutionTimeWhenDone()
-            rooibos.promises.chain(m.deferred, m).then(function(result as dynamic, m as roAssociativeArray)
+            rooibos.promises.chain(m.deferred, m).then(function(result as dynamic, m as rooibos.Test)
                 m.recordExecutionTime()
                 rooibos.promises.resolve(result, m.deferred)
-            end function).catch(function(error as dynamic, m as roAssociativeArray)
+            end function).catch(function(error as dynamic, m as rooibos.Test)
                 m.recordExecutionTime()
                 rooibos.promises.reject(error, m.deferred)
             end function)

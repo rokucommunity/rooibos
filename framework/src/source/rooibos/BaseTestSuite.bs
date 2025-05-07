@@ -14,6 +14,7 @@ namespace rooibos
         protected hasSoloTests = false
         protected hasIgnoredTests = false
         protected isSolo = false
+        public context as rooibos.NodeContext = invalid
         public isIgnored = false
         public noCatch = false
         public isNodeTest = false
@@ -55,7 +56,7 @@ namespace rooibos
         protected currentResult as rooibos.TestResult = invalid
 
         public global = invalid
-        public scene as roSGNode = invalid
+        public scene as rooibos.RooibosScene = invalid
         public catchCrashes = false
         public throwOnFailedAssertion = false
 
@@ -208,7 +209,7 @@ namespace rooibos
                 group.run()
                 if rooibos.promises.isPromise(group.deferred) then
                     rooibos.promises.onFinally(group.deferred, function(context as roAssociativeArray)
-                        context.self.onAsyncGroupComplete(context.group)
+                        (context.self as rooibos.BaseTestSuite).onAsyncGroupComplete((context.group as rooibos.TestGroup))
                     end function, { group: group, self: m })
                 else
                     m.onAsyncGroupComplete(group)
@@ -2885,4 +2886,17 @@ namespace rooibos
     function isFunctionMocked(functionName as string) as boolean
         return rooibos.getMockForFunction(functionName) <> invalid
     end function
+
+    interface NodeContext
+        global as rooibos.GlobalNode
+        top as rooibos.NodeWithRooibosFields
+        scene as rooibos.RooibosScene
+        testRunner as rooibos.TestRunner
+        testSuite as rooibos.BaseTestSuite
+    end interface
+
+    interface GlobalNode
+        testsScene as rooibos.RooibosScene
+        _rbs_ccn as roSGNodeCodeCoverage
+    end interface
 end namespace

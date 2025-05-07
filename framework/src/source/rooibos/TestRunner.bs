@@ -7,11 +7,12 @@ import "pkg:/source/rooibos/Stats.bs"
 import "pkg:/source/rooibos/Test.bs"
 
 namespace rooibos
+
     ' @ignore
     class TestRunner
-        public testScene as roSGNodeScene = invalid
+        public testScene as rooibos.RooibosScene = invalid
         public testReporters as rooibos.BaseTestReporter[] = []
-        public nodeContext as roAssociativeArray = invalid
+        public nodeContext as rooibos.NodeContext = invalid
         public config as rooibos.RuntimeConfigData = invalid
         public testSuites as rooibos.BaseTestSuite[] = []
         private runtimeConfig as rooibos.RuntimeConfig = invalid
@@ -22,7 +23,7 @@ namespace rooibos
         private currentTestSuite as rooibos.BaseTestSuite = invalid
         public currentGroup as rooibos.TestGroup = invalid
 
-        public function new(testScene as roSGNodeRooibosScene, nodeContext as roAssociativeArray)
+        public function new(testScene as rooibos.RooibosScene, nodeContext as rooibos.NodeContext)
             m.testScene = testScene
             if nodeContext.top = invalid then
                 nodeContext.top = testScene
@@ -55,13 +56,13 @@ namespace rooibos
             failedText = ""
             i = 0
             numSuites = suiteNames.count()
-            testSuite = invalid
+            testSuite as rooibos.BaseTestSuite = invalid
             for each name in suiteNames
                 i++
                 suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
-                testSuite = invalid
+                testSuite as rooibos.BaseTestSuite = invalid
                 if suiteClass <> invalid then
-                    testSuite = suiteClass()
+                    testSuite = suiteClass() as rooibos.BaseTestSuite
                     testSuite.testRunner = m
                     testSuite.testReporters = m.testReporters
                     testSuite.global = m.nodeContext.global
@@ -109,7 +110,7 @@ namespace rooibos
                 end if
             end for
 
-            rooibosResult = {
+            rooibosResult as rooibos.RooibosTestResultData = {
                 stats: m.stats
                 testSuites: m.testSuites
             }
@@ -329,7 +330,7 @@ namespace rooibos
 
     ' @ignore
     function runNodeTestSuite(name as string)
-        nodeRunner = new TestRunner(m.top.getScene(), m)
+        nodeRunner = new TestRunner(m.top.getScene(), m as rooibos.NodeContext)
         nodeRunner.runInNodeMode(name)
     end function
 
@@ -338,18 +339,18 @@ namespace rooibos
         m.testRunner.onTestSuiteComplete()
     end function
 
-    interface NodeWithRooibosFields extends roSGNode
-        rooibosSuiteFinished as boolean
-        rooibosTestFinished as boolean
-        rooibosTestIsAsync as boolean
-        rooibosGroupFinished as boolean
+    interface RooibosScene extends roSGNodeRooibosScene
         rooibosTestResult as RooibosTestResultData
-        rooibosRunSuite as boolean
+    end interface
+
+    interface NodeWithRooibosFields extends RooibosScene
+        rooibosTestResult as RooibosTestResultData
     end interface
 
     interface RooibosTestResultData
         stats as rooibos.Stats
-        tests as rooibos.Test[]
-        groups as rooibos.TestGroup[]
+        optional testSuites as BaseTestSuite[]
+        optional tests as rooibos.Test[]
+        optional groups as rooibos.TestGroup[]
     end interface
 end namespace
