@@ -630,10 +630,10 @@ namespace rooibos
                     diff: function(oldString as string, newString as string, options = {} as roAssociativeArray) as roAssociativeArray
                         Infinity = 2147483647
 
-                        oldString = m.removeEmpty(m.tokenize(oldString, options))
-                        newString = m.removeEmpty(m.tokenize(newString, options))
-                        newLen = newString.count()
-                        oldLen = oldString.count()
+                        tokenizedOldString = m.removeEmpty(m.tokenize(oldString, options))
+                        tokenizedNewString = m.removeEmpty(m.tokenize(newString, options))
+                        newLen = tokenizedNewString.count()
+                        oldLen = tokenizedOldString.count()
 
                         editLength = 1
                         maxEditLength = newLen + oldLen
@@ -650,12 +650,12 @@ namespace rooibos
                         bestPath.set(0, { oldPos: -1, lastComponent: invalid })
 
                         ' Seed editLength = 0, i.e. the content starts with the same values
-                        ' newPos = m.extractCommon(bestPath[0], newString, oldString, 0, options)
-                        newPos = m.extractCommon(bestPath.get(0), newString, oldString, 0, options)
+                        ' newPos = m.extractCommon(bestPath[0], tokenizedNewString, tokenizedOldString, 0, options)
+                        newPos = m.extractCommon(bestPath.get(0), tokenizedNewString, tokenizedOldString, 0, options)
                         if bestPath.get(0).oldPos + 1 >= oldLen and newPos + 1 >= newLen then
                             ' Identity per the equality and tokenizer
-                            ' return m.done(buildValues(m, bestPath[0].lastComponent, newString, oldString, m.useLongestToken))
-                            return m.done(rooibos.reporters.mocha.buildValues(m, bestPath.get(0).lastComponent, newString, oldString, m.useLongestToken), options)
+                            ' return m.done(buildValues(m, bestPath[0].lastComponent, tokenizedNewString, tokenizedOldString, m.useLongestToken))
+                            return m.done(rooibos.reporters.mocha.buildValues(m, bestPath.get(0).lastComponent, tokenizedNewString, tokenizedOldString, m.useLongestToken), options)
                         end if
 
                         ' Once we hit the right edge of the edit graph on some diagonal k, we can
@@ -685,8 +685,8 @@ namespace rooibos
                         execEditParams = {
                             bestPath: bestPath
                             editLength: editLength
-                            newString: newString
-                            oldString: oldString
+                            newString: tokenizedNewString
+                            oldString: tokenizedOldString
                             minDiagonalToConsider: minDiagonalToConsider
                             maxDiagonalToConsider: maxDiagonalToConsider
                             options: options
