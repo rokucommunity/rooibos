@@ -1588,8 +1588,8 @@ describe('RooibosPlugin', () => {
                 expect(codeText).to.equal(undent`
                     function sayHello(firstName = "" as string, lastName = "" as string)
                         __stubs_globalAa = getGlobalAa()
-                        if RBS_SM_1_getMocksByFunctionName()["sayhello"] <> invalid
-                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
+                        if RBS_SM_2_getMocksByFunctionName()["sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_2_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
                             return __stubOrMockResult
                         else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
                             __stubFunction = __stubs_globalAa.__globalStubs.sayhello
@@ -1602,7 +1602,7 @@ describe('RooibosPlugin', () => {
                         print firstName + " " + lastName
                     end function
 
-                    function RBS_SM_1_getMocksByFunctionName()
+                    function RBS_SM_2_getMocksByFunctionName()
                         if m._rMocksByFunctionName = invalid
                             m._rMocksByFunctionName = {}
                         end if
@@ -1680,8 +1680,8 @@ describe('RooibosPlugin', () => {
                 expect(codeText).to.equal(undent(`
                     function utils_sayHello(firstName = "" as string, lastName = "" as string)
                         __stubs_globalAa = getGlobalAa()
-                        if RBS_SM_1_getMocksByFunctionName()["utils_sayhello"] <> invalid
-                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
+                        if RBS_SM_2_getMocksByFunctionName()["utils_sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_2_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
                             return __stubOrMockResult
                         else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
                             __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
@@ -1694,7 +1694,7 @@ describe('RooibosPlugin', () => {
                         print firstName + " " + lastName
                     end function
 
-                    function RBS_SM_1_getMocksByFunctionName()
+                    function RBS_SM_2_getMocksByFunctionName()
                         if m._rMocksByFunctionName = invalid
                             m._rMocksByFunctionName = {}
                         end if
@@ -2227,9 +2227,7 @@ describe('RooibosPlugin', () => {
                         @it("test1")
                         function _()
                             m.expectNotCalled(m.thing@.getFunction())
-                            m.expectNotCalled(m.thing@.getFunction(), "return")
                             m.expectNotCalled(m.thing@.getFunction())
-                            m.expectNotCalled(m.thing@.getFunction(), "return")
                         end function
                         thing as roSgNode
                     end class
@@ -2249,19 +2247,7 @@ describe('RooibosPlugin', () => {
                         return invalid
                     end if
                     m.currentAssertLineNumber = 8
-                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then
-                        m.done()
-                        return invalid
-                    end if
-                    m.currentAssertLineNumber = 9
                     m._expectNotCalled(m.thing, "callFunc", m, "m.thing")
-                    if m.currentResult?.isFail = true then
-                        m.done()
-                        return invalid
-                    end if
-                    m.currentAssertLineNumber = 10
-                    m._expectNotCalled(m.thing, "callFunc", m, "m.thing", "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
@@ -2361,9 +2347,7 @@ describe('RooibosPlugin', () => {
                         @it("test1")
                         function _()
                             m.expectNotCalled(m.thing.getFunction())
-                            m.expectNotCalled(m.thing.getFunction(), "return")
                             m.expectNotCalled(m.thing.getFunction())
-                            m.expectNotCalled(m.thing.getFunction(), "return")
                         end function
                         thing = {}
                     end class
@@ -2383,19 +2367,7 @@ describe('RooibosPlugin', () => {
                         return invalid
                     end if
                     m.currentAssertLineNumber = 8
-                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
-                    if m.currentResult?.isFail = true then
-                        m.done()
-                        return invalid
-                    end if
-                    m.currentAssertLineNumber = 9
                     m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
-                    if m.currentResult?.isFail = true then
-                        m.done()
-                        return invalid
-                    end if
-                    m.currentAssertLineNumber = 10
-                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing", "return")
                     if m.currentResult?.isFail = true then
                         m.done()
                         return invalid
@@ -2607,10 +2579,10 @@ describe('RooibosPlugin', () => {
             }
 
             //the methods should be empty by default
-            expect(findMethod('getVersionText').func.body.statements).to.be.empty;
-            expect(findMethod('getRuntimeConfig').func.body.statements).to.be.empty;
-            expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.empty;
-            expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
+            expect(findMethod('getVersionText').func.body.statements).to.be.lengthOf(1);
+            expect(findMethod('getRuntimeConfig').func.body.statements).to.be.lengthOf(1);
+            expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.lengthOf(1);
+            expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.lengthOf(1);
 
             await builder.build();
 
@@ -2640,19 +2612,15 @@ describe('RooibosPlugin', () => {
                 'import "pkg:/source/rooibos/JUnitTestReporter.bs"
                 'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
                 'import "pkg:/source/rooibos/MochaTestReporter.bs"
-                ' @ignore
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
                     instance.new = function()
                         m.testSuites = {}
                         m.testSuites = m.getTestSuiteClassMap()
                     end function
-                    ' bs:disable-next-line LINT2004 return-type-coercion-mismatch
                     instance.getVersionText = function() as string
                         return "${version}"
-                        ' filled in by plugin
                     end function
-                    ' bs:disable-next-line LINT2004
                     instance.getRuntimeConfig = function() as dynamic
                         return {
                             "reporters": [
@@ -2672,29 +2640,24 @@ describe('RooibosPlugin', () => {
                             "keepAppOpen": true
                             "isRecordingCodeCoverage": false
                         }
-                        ' filled in by plugin
                     end function
-                    ' bs:disable-next-line LINT2004
                     instance.getTestSuiteClassMap = function() as dynamic
                         return {
                             "ATest1": ATest1
                             "ATest2": ATest2
                         }
-                        ' filled in by plugin
                     end function
-                    instance.getTestSuiteClassWithName = function(name as string) as object
+                    instance.getTestSuiteClassWithName = function(name as string) as dynamic
                         return m.testSuites[name]
                     end function
-                    instance.getAllTestSuitesNames = function() as dynamic
+                    instance.getAllTestSuitesNames = function() as object
                         return m.testSuites.keys()
                     end function
-                    ' bs:disable-next-line LINT2004
                     instance.getIgnoredTestInfo = function() as dynamic
                         return {
                             "count": 0
                             "items": []
                         }
-                        ' filled in by plugin
                     end function
                     return instance
                 end function
@@ -2707,10 +2670,10 @@ describe('RooibosPlugin', () => {
             `);
 
             //the methods should be empty again after transpile has finished
-            expect(findMethod('getVersionText').func.body.statements).to.be.empty;
-            expect(findMethod('getRuntimeConfig').func.body.statements).to.be.empty;
-            expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.empty;
-            expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
+            expect(findMethod('getVersionText').func.body.statements).to.be.lengthOf(1);
+            expect(findMethod('getRuntimeConfig').func.body.statements).to.be.lengthOf(1);
+            expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.lengthOf(1);
+            expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.lengthOf(1);
         });
 
 
@@ -2748,19 +2711,15 @@ describe('RooibosPlugin', () => {
                     'import "pkg:/source/rooibos/JUnitTestReporter.bs"
                     'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
                     'import "pkg:/source/rooibos/MochaTestReporter.bs"
-                    ' @ignore
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}
                         instance.new = function()
                             m.testSuites = {}
                             m.testSuites = m.getTestSuiteClassMap()
                         end function
-                        ' bs:disable-next-line LINT2004 return-type-coercion-mismatch
                         instance.getVersionText = function() as string
                             return "${version}"
-                            ' filled in by plugin
                         end function
-                        ' bs:disable-next-line LINT2004
                         instance.getRuntimeConfig = function() as dynamic
                             return {
                                 "reporters": [
@@ -2780,26 +2739,21 @@ describe('RooibosPlugin', () => {
                                 "keepAppOpen": true
                                 "isRecordingCodeCoverage": false
                             }
-                            ' filled in by plugin
                         end function
-                        ' bs:disable-next-line LINT2004
                         instance.getTestSuiteClassMap = function() as dynamic
                             return {}
-                            ' filled in by plugin
                         end function
-                        instance.getTestSuiteClassWithName = function(name as string) as object
+                        instance.getTestSuiteClassWithName = function(name as string) as dynamic
                             return m.testSuites[name]
                         end function
-                        instance.getAllTestSuitesNames = function() as dynamic
+                        instance.getAllTestSuitesNames = function() as object
                             return m.testSuites.keys()
                         end function
-                        ' bs:disable-next-line LINT2004
                         instance.getIgnoredTestInfo = function() as dynamic
                             return {
                                 "count": 0
                                 "items": []
                             }
-                            ' filled in by plugin
                         end function
                         return instance
                     end function
