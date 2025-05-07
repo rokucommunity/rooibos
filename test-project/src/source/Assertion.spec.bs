@@ -1283,7 +1283,7 @@ namespace tests
         @it("supports node with count property")
         function _()
             node = createObject("roSGNode", "Node")
-            node.update({ count: "not a function" }, true)
+            node.update({ count: "not a function" } as dynamic, true)
             m.assertNodeContainsFields(node, { "id": "", "focusable": false, count: "not a function" })
         end function
 
@@ -1307,8 +1307,8 @@ namespace tests
         @it("supports node with count property")
         function _()
             node = createObject("roSGNode", "Node")
-            node.update({ count: "not a function" }, true)
-            m.assertNodeNotContainsFields(node, { "count": true })
+            node.update({ count: "not a function" } as dynamic, true)
+            m.assertNodeNotContainsFields(node, { "count": true } as dynamic)
         end function
 
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1323,7 +1323,7 @@ namespace tests
 
         @it("supports aa with count property")
         function _()
-            m.assertAAContainsSubset({ one: 1, two: 2, three: 3, count: false }, { one: 1, two: 2, count: false })
+            m.assertAAContainsSubset({ one: 1, two: 2, three: 3, count: false }, { one: 1, two: 2, count: false } as dynamic)
         end function
 
 
