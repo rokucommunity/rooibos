@@ -50,27 +50,29 @@ export class TestGroup extends TestBlock {
                             // `m`.assert*(...)
                             // `m.testSuite`.assert*(...)
                             // `someMagicVar`.assert*(...)
-                            const callPath = util.getAllDottedGetParts(callExpression.callee.obj).map((part) => part.text).join('.');
+                            const callPath = util.getAllDottedGetParts(callExpression.callee.obj)?.map((part) => part.text).join('.');
 
-                            if (dge.name.text === 'stubCall') {
-                                this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
-                                return expressionStatement;
-
-                            } else {
-
-                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                            if (callPath) {
+                                if (dge.name.text === 'stubCall') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
-                                }
-                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
-                                    this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
-                                }
+                                    return expressionStatement;
 
-                                if (!noEarlyExit) {
-                                    const trailingLine = Parser.parse(`if ${callPath}.currentResult?.isFail = true then ${callPath}.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
-                                    editor.arraySplice(owner, key + 1, 0, trailingLine);
+                                } else {
+
+                                    if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                        this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
+                                    }
+                                    if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                        this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
+                                    }
+
+                                    if (!noEarlyExit) {
+                                        const trailingLine = Parser.parse(`if ${callPath}.currentResult?.isFail = true then ${callPath}.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
+                                        editor.arraySplice(owner, key + 1, 0, trailingLine);
+                                    }
+                                    const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${callExpression.range.start.line + 1}`).ast.statements[0];
+                                    editor.arraySplice(owner, key, 0, leadingLine);
                                 }
-                                const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${callExpression.range.start.line + 1}`).ast.statements[0];
-                                editor.arraySplice(owner, key, 0, leadingLine);
                             }
                         }
                     }
