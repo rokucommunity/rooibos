@@ -2142,6 +2142,29 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
             });
+
+            it('does not crash on false assertion match ', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        @describe("tests")
+                        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                        @it("pass")
+                        function _()
+                            m.test.SUT[getChannelMethod]("expectedStringValue").onFail(m.test, "handler")
+                        end function
+                    end class
+                `);
+                program.validate();
+                await builder.transpile();
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m.test.SUT[getChannelMethod]("expectedStringValue").onFail(m.test, "handler")
+                `);
+            });
         });
 
         describe('expectNotCalled transpilation', () => {
