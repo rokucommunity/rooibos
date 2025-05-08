@@ -5,10 +5,11 @@ import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import * as fastGlob from 'fast-glob';
 import type { TestSuite } from './TestSuite';
+import { RooibosLogPrefix } from '../utils/Diagnostics';
 
 export class FileFactory {
-    private coverageComponentXmlTemplate;
-    private coverageComponentBrsTemplate;
+    private coverageComponentXmlTemplate: string;
+    private coverageComponentBrsTemplate: string;
     private frameworkSourcePath: string;
 
     constructor() {
@@ -34,7 +35,7 @@ export class FileFactory {
             '!**/bslib.brs',
             '!**/manifest',
             '**/CodeCoverage.{brs,xml}',
-            '!**/RooibosScene.xml'
+            '**/RooibosScene.xml'
         ], {
             cwd: this.frameworkSourcePath,
             absolute: false,
@@ -56,13 +57,7 @@ export class FileFactory {
             );
         }
 
-        let entry = {
-            src: s`${this.frameworkSourcePath}/components/RooibosScene.xml`,
-            dest: s`components/rooibos/RooibosScene.xml`
-        };
-        this.addedFrameworkFiles.push(
-            program.setFile(entry, this.createTestXML('RooibosScene', 'Scene'))
-        );
+        return this.addedFrameworkFiles;
     }
 
     public createTestXML(name: string, baseName: string, suite?: TestSuite): string {
@@ -73,7 +68,7 @@ export class FileFactory {
 
         // Add the test spec file rather then relying on auto imports
         if (suite) {
-            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.pkgPath.replace(/\\/g, '/')}" />`);
+            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.destPath.replace(/\\/g, '/')}" />`);
         }
 
         let contents = `<?xml version="1.0" encoding="UTF-8" ?>
@@ -127,27 +122,33 @@ export class FileFactory {
         return false;
     }
 
-    public addFile(program, projectPath: string, contents: string) {
+    public addFile(program: Program, projectPathOrEntry: string | { src: string; dest: string }, contents: string) {
+        let entry: { src: string; dest: string };
+        if (typeof projectPathOrEntry === 'string') {
+            entry = {
+                src: path.resolve(projectPathOrEntry),
+                dest: projectPathOrEntry
+            };
+        } else {
+            entry = projectPathOrEntry;
+        }
         try {
-            const file = program.setFile({
-                src: path.resolve(projectPath),
-                dest: projectPath
-            }, contents);
+            const file = program.setFile(entry, contents);
             this.addedFrameworkFiles.push(file);
             return file;
         } catch (error) {
-            console.error(`Error adding framework file: ${projectPath} : ${error.message}`);
+            program.logger.error(RooibosLogPrefix, `Error adding framework file: ${entry.dest} : ${error.message}`);
         }
     }
 
     public addFileToRootDir(program: Program, filePath: string, contents: string) {
         try {
             fse.outputFileSync(
-                path.join(program.options.stagingFolderPath ?? program.options.stagingDir ?? program.options.sourceRoot, filePath),
+                path.join(program.options.stagingDir ?? program.options.sourceRoot, filePath),
                 contents
             );
         } catch (error) {
-            console.error(`Error adding framework file: ${path} : ${error.message}`);
+            program.logger.error(RooibosLogPrefix, `Error adding framework file: ${path} : ${error.message}`);
         }
     }
 }

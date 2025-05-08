@@ -14,15 +14,15 @@
     "downlevelIteration": true,
     "typeRoots": [
       "./node_modules/@types"
+    ],
+    "allowSyntheticDefaultImports": true,
+    "lib": [
+      "es2017",
+      "es2019.array",
+      "esnext",
+      "dom"
     ]
   },
-  "allowSyntheticDefaultImports": true,
-  "lib": [
-    "es2017",
-    "es2019.array",
-    "esnext",
-    "dom"
-  ],
   "outDir": "./dist",
   "exclude": [
     "node_modules/**/*"

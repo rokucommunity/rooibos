@@ -7,32 +7,35 @@ namespace rooibos
     class BaseTestSuite
 
         'test state
-        protected name = "BaseTestSuite" 'set the name to the name of your test
-        protected filePath = invalid
+        public name = "BaseTestSuite" 'set the name to the name of your test
+        public filePath = invalid
         protected pkgPath = invalid
         protected isValid = false
         protected hasSoloTests = false
         protected hasIgnoredTests = false
         protected isSolo = false
-        protected isIgnored = false
-        protected noCatch = false
-        protected isNodeTest = false
+        public context as rooibos.NodeContext = invalid
+        public isIgnored = false
+        public noCatch = false
+        public isNodeTest = false
         protected nodeName = invalid
-        protected lineNumber = 1
-        protected groups = []
-        protected groupsData = []
-        protected stats = invalid
+        public lineNumber = 1
+        public groups as rooibos.TestGroup[] = []
+        public groupsData as rooibos.TestGroupData[] = []
+        public testsData as rooibos.TestCaseData[] = []
+        public stats as rooibos.Stats = invalid
         protected currentAssertLineNumber = -1
+        public failedCount = 0
         protected valid = false
-        protected hasFailures = false
+        public hasFailures = false
         protected hasSoloGroups = false
-        protected isFailingFast = false
+        public isFailingFast = false
         protected stubs = invalid
         protected mocks = invalid
         protected __stubId = -1
         protected __mockId = -1
         protected __mockTargetId = -1
-        protected currentExecutionTime = 0
+        public currentExecutionTime = 0
         protected timedOut = false
         public deferred = invalid
 
@@ -50,11 +53,40 @@ namespace rooibos
         protected allowNonExistingMethodsOnMocks = true
         protected isAutoAssertingMocks = true
 
-        protected currentResult = invalid
+        protected currentResult as rooibos.TestResult = invalid
 
-        protected global = invalid
-        protected catchCrashes = false
-        protected throwOnFailedAssertion = false
+        public global = invalid
+        public scene as rooibos.RooibosScene = invalid
+        public catchCrashes = false
+        public throwOnFailedAssertion = false
+
+        public isAsync = false
+        protected asyncTimeout = 0
+
+        public generatedNodeName = ""
+
+        public testRunner as rooibos.TestRunner = invalid
+
+        protected testTimer as roSGNodeTimer = invalid
+        protected currentTimeout as integer = 0
+
+        protected currentGroup as rooibos.TestGroup = invalid
+        protected currentGroupIndex = -1
+
+        public isDoneCalled = false
+
+        ' Reference to the tested node in Node tests
+        ' Defined as object so it can be easily typed in tests
+        public top as object = invalid
+        ' Reference to the 'm' of the tested node in node tests
+        ' Defined as object so it can be easily typed in tests
+        public node as object = invalid
+
+        public tests as Test[] = []
+
+        protected isTestFailedDueToEarlyExit = false
+
+        public testReporters as BaseTestReporter[] = []
 
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         '++ base methods to override
@@ -177,7 +209,7 @@ namespace rooibos
                 group.run()
                 if rooibos.promises.isPromise(group.deferred) then
                     rooibos.promises.onFinally(group.deferred, function(context as roAssociativeArray)
-                        context.self.onAsyncGroupComplete(context.group)
+                        (context.self as rooibos.BaseTestSuite).onAsyncGroupComplete((context.group as rooibos.TestGroup))
                     end function, { group: group, self: m })
                 else
                     m.onAsyncGroupComplete(group)
@@ -347,7 +379,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -372,7 +404,7 @@ namespace rooibos
 
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -400,7 +432,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -428,7 +460,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -456,7 +488,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -481,7 +513,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -505,7 +537,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -538,7 +570,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -572,7 +604,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -625,7 +657,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -674,7 +706,7 @@ namespace rooibos
 
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -708,7 +740,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -778,7 +810,7 @@ namespace rooibos
                 end for 'values to match
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -814,7 +846,7 @@ namespace rooibos
 
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -884,7 +916,7 @@ namespace rooibos
                 end for
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -954,7 +986,7 @@ namespace rooibos
                 end for
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1001,7 +1033,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1049,7 +1081,7 @@ namespace rooibos
 
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1100,7 +1132,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1151,7 +1183,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1212,7 +1244,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1276,7 +1308,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1312,7 +1344,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1361,7 +1393,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1408,7 +1440,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1450,7 +1482,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1489,7 +1521,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1529,7 +1561,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1564,7 +1596,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1613,7 +1645,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1648,7 +1680,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1718,7 +1750,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, error.message)
+                m.failCrash(error, error.message)
             end try
             return false
         end function
@@ -1785,7 +1817,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1856,7 +1888,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1923,7 +1955,7 @@ namespace rooibos
                 mock = m.mocks[m.__mockId.toStr()]
                 mock.toThrow(error)
             catch error
-                m.log.error("could not add throw to last call", error)
+                (m as roAssociativeArray).log.error("could not add throw to last call", error)
             end try
         end function
 
@@ -2087,7 +2119,7 @@ namespace rooibos
 
             if target <> invalid and not rooibos.common.isFunction(target) and not rooibos.common.isAssociativeArray(target) then
                 methodName = ""
-                m.mockFail(lineNumber, "", "mock args: target should be an AA or in-scope Global function", methodName)
+                m.mockFail(lineNumber, "", "mock args: target should be an AA or in-scope Global function")
             else if not rooibos.common.isString(methodName) then
                 methodName = ""
                 m.mockFail(lineNumber, "", "mock args: methodName was not a string")
@@ -2397,6 +2429,9 @@ namespace rooibos
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         ' @ignore
+        private __Stubs as dynamic
+
+        ' @ignore
         private function stubCallback0(arg1 = invalid as dynamic, arg2 = invalid as dynamic, arg3 = invalid as dynamic, arg4 = invalid as dynamic, arg5 = invalid as dynamic, arg6 = invalid as dynamic, arg7 = invalid as dynamic, arg8 = invalid as dynamic, arg9 = invalid as dynamic, arg10 = invalid as dynamic, arg11 = invalid as dynamic, arg12 = invalid as dynamic, arg13 = invalid as dynamic, arg14 = invalid as dynamic, arg15 = invalid as dynamic) as dynamic
             fake = m.__Stubs["0"]
             return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
@@ -2558,6 +2593,9 @@ namespace rooibos
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         ' @ignore
+        private __mocks as dynamic
+
+        ' @ignore
         private function mockCallback0(arg1 = invalid as dynamic, arg2 = invalid as dynamic, arg3 = invalid as dynamic, arg4 = invalid as dynamic, arg5 = invalid as dynamic, arg6 = invalid as dynamic, arg7 = invalid as dynamic, arg8 = invalid as dynamic, arg9 = invalid as dynamic, arg10 = invalid as dynamic, arg11 = invalid as dynamic, arg12 = invalid as dynamic, arg13 = invalid as dynamic, arg14 = invalid as dynamic, arg15 = invalid as dynamic) as dynamic
             fake = m.__mocks["0"]
             return fake.callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15)
@@ -2711,10 +2749,10 @@ namespace rooibos
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         ' observeField doesn't work in regular unit tests, so we have to wait for the result. We can use this to wait for a network task, foe example, and pass the result directly to a handler. Note - we wait for the value TO CHANGE - so make sure that will be the case, or you'll get stuck forever :)
-        ' @param {any} target to observe
+        ' @param {dynamic} target to observe
         ' @param {String} field to observe
-        ' @param {int} delay for each wait
-        ' @param {int} max attempts
+        ' @param {integer} delay for each wait
+        ' @param {integer} max attempts
         function waitForField(target as dynamic, fieldName as string, delay = 500 as integer, maxAttempts = 10 as integer) as boolean
             attempts = 0
             if target = invalid then
@@ -2801,7 +2839,7 @@ namespace rooibos
         ' @ignore
         protected function createMockViews(instance as dynamic, bundlePath as string, viewsPath = "views" as string)
             bundle = m.global.testStyleManager@.loadBundle(bundlePath)
-            ids = mv_getIdsFromStyleJson(mc_getArray(bundle, viewsPath)) 'bs:disable-line 1140 LINT1001
+            ids = mv_getIdsFromStyleJson(mc_getArray(bundle, viewsPath)) as string[] 'bs:disable-line 1140 LINT1001
             for each id in ids
                 instance[id] = { id: id }
             end for
@@ -2848,4 +2886,17 @@ namespace rooibos
     function isFunctionMocked(functionName as string) as boolean
         return rooibos.getMockForFunction(functionName) <> invalid
     end function
+
+    interface NodeContext
+        global as rooibos.GlobalNode
+        top as rooibos.NodeWithRooibosFields
+        scene as rooibos.RooibosScene
+        testRunner as rooibos.TestRunner
+        testSuite as rooibos.BaseTestSuite
+    end interface
+
+    interface GlobalNode
+        testsScene as rooibos.RooibosScene
+        _rbs_ccn as roSGNodeCodeCoverage
+    end interface
 end namespace

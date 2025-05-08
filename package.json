@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "5.15.7",
+    "version": "6.0.0-alpha.46",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "scripts": {
         "preversion": "npm run build && npm run lint && npm run test",
@@ -12,17 +12,17 @@
         "build": "ropm copy && npm run compile && npm run copy-framework-files",
         "build-test-project": "bsc --cwd test-project --project bsconfig.json",
         "docs": "jsdoc -c jsdoc.json -d .tmp/docs --verbose",
-        "test": "nyc mocha",
-        "test:nocover": "mocha",
+        "test": "nyc mocha --timeout 5000",
+        "test:nocover": "mocha --timeout 5000",
         "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
         "cli": "ts-node src/cli.ts",
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "0.67.4",
+        "brighterscript": "^1.0.0-alpha.46",
         "minimatch": "^3.0.4",
         "roku-debug": "^0.21.10",
-        "roku-deploy": "^3.12.1",
+        "roku-deploy": "^4.0.0-alpha.1",
         "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
         "source-map": "^0.7.3",
         "undent": "^0.1.0",
@@ -31,7 +31,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^0.8.28",
+        "@rokucommunity/bslint": "^1.0.0-alpha.46",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",

@@ -325,7 +325,7 @@ namespace rooibos
         end function
 
         ' Creates a patch file string based on the the differences of the two supplied strings
-        function createPatch(fileName as string, oldStr as string, newStr as string) as string
+        function createPatch(fileName as string, oldStr as string, newStr as string) as string or dynamic
             result = m.structuredPatch(fileName, fileName, oldStr, newStr, invalid, invalid, {
                 context: 4
                 newlineIsToken: false
@@ -352,7 +352,7 @@ namespace rooibos
         end function
 
         ' Diff two sets of strings, comparing them line by line
-        function diffLines(oldStr as string, newStr as string, callback as dynamic) as roAssociativeArray
+        function diffLines(oldStr as string, newStr as string, callback as dynamic) as roArray
             lineDiff = rooibos.reporters.mocha.new_lineDiff()
 
             return lineDiff.diff(oldStr, newStr, {
@@ -808,7 +808,7 @@ namespace rooibos
                         end if
                     end function
 
-                    removeEmpty: function(array as string[]) as roArray
+                    removeEmpty: function(array as string[]) as string[]
                         ret = []
                         for i = 0 to array.count() - 1
                             if array[i] <> "" then

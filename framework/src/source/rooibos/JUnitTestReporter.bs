@@ -37,7 +37,8 @@ namespace rooibos
             ? `<?xml version="1.0" encoding="UTF-8"?>` + root.GenXML(false)
         end function
 
-        function generateGroupXML(testGroup as rooibos.testGroup, suite as rooibos.BaseTestSuite)
+        function generateGroupXML(testGroup as rooibos.testGroup, suite as roXMLElement)
+            test as rooibos.Test = invalid
             for each test in testGroup.tests
                 testCase = suite.AddElement("testcase")
                 testCase.AddAttribute("name", test.name)

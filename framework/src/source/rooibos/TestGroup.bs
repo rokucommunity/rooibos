@@ -3,7 +3,7 @@ namespace rooibos
         'test state
         name = "Unnamed Suite"
 
-        testSuite = invalid
+        testSuite as BaseTestSuite = invalid
         setupFunctionName = invalid
         tearDownFunctionName = invalid
         beforeEachFunctionName = invalid
@@ -11,19 +11,30 @@ namespace rooibos
         isSolo = false
         isLegacy = false
         isIgnored = false
+        isAsync = false
+        asyncTimeout = 0
         stats = invalid
         scene = invalid
         lineNumber = 00
-        top = invalid
+        top as NodeWithRooibosFields = invalid
+        global as NodeWithRooibosFields = invalid
         valid = false
         hasFailures = false
         isNodeTest = false
         nodeName = invalid
-        testsData = invalid
-        tests = []
-        public deferred = invalid
+        testsData as TestCaseData[] = invalid
+        tests as Test[] = []
+        public deferred as roSGNode = invalid
 
-        function new(testSuite as rooibos.BaseTestSuite, data as roAssociativeArray)
+        private isTestFailedDueToEarlyExit = false
+
+        currentTest as Test = invalid
+        protected testTimer as roTimespan = invalid
+
+
+        testRunner as TestRunner
+
+        function new(testSuite as rooibos.BaseTestSuite, data as rooibos.TestGroupData)
             m.testSuite = testSuite
             m.name = data.name
             m.valid = data.valid
@@ -161,17 +172,17 @@ namespace rooibos
 
                     rooibos.promises.chain(test.deferred, { self: m, test: test }).then(function(_ as dynamic, context as roAssociativeArray)
                         rooibos.common.logDebug("Promise resolved")
-                        context.self.testSuite.done()
+                        (context.self as rooibos.TestGroup).testSuite.done()
                     end function).catch(function(error as dynamic, context as roAssociativeArray)
                         rooibos.common.logDebug("Promise rejected")
                         if rooibos.common.isAssociativeArray(error) and not error.isEmpty() and rooibos.common.isArray(error.backtrace) and not error.backtrace.isEmpty() and rooibos.common.isBoolean(error.rethrown) then
-                            context.self.testSuite.failCrash(error)
+                            (context.self as rooibos.TestGroup).testSuite.failCrash(error)
                         else
-                            context.self.testSuite.fail("Test failed due to promise rejection")
+                            (context.self as rooibos.TestGroup).testSuite.fail("Test failed due to promise rejection")
                         end if
-                        context.self.testSuite.done()
+                        (context.self as rooibos.TestGroup).testSuite.done()
                     end function).finally(function(context as roAssociativeArray)
-                        context.self.onAsyncTestComplete()
+                        (context.self as rooibos.TestGroup).onAsyncTestComplete()
                     end function)
                 else
                     rooibos.common.logTrace("Error running test before each function")
@@ -254,6 +265,7 @@ namespace rooibos
                 m.testSuite.currentExecutionTime += test.result.time
             end if
 
+            reporter as rooibos.BaseTestReporter = invalid
             for each reporter in m.testSuite.testReporters
                 if rooibos.common.isFunction(reporter.onTestComplete) then
                     reporter.onTestComplete({ test: test })
@@ -262,6 +274,7 @@ namespace rooibos
         end function
 
         private function notifyReportersOnTestGroupComplete()
+            reporter as rooibos.BaseTestReporter = invalid
             for each reporter in m.testSuite.testReporters
                 if rooibos.common.isFunction(reporter.onTestGroupComplete) then
                     reporter.onTestGroupComplete({ group: m })
