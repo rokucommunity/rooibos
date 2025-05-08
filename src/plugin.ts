@@ -39,7 +39,7 @@ export class RooibosPlugin implements CompilerPlugin {
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
-            this.mockUtil = new MockUtil(builder, this.fileFactory, this.session);
+            this.mockUtil = new MockUtil(builder, this.session);
         }
     }
     private getConfig(options: any) {

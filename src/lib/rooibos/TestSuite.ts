@@ -98,10 +98,10 @@ export class TestSuite extends TestBlock {
 
     public addGroup(group: TestGroup) {
         this.testGroups.set(group.name, group);
-        this.hasIgnoredTests = this.hasIgnoredTests || group.hasIgnoredTests;
-        this.hasSoloTests = this.hasSoloTests || group.hasSoloTests;
-        this.hasSoloGroups = this.hasSoloGroups || group.isSolo;
-        this.annotation.isAsync = this.annotation.isAsync || group.hasAsyncTests;
+        this.hasIgnoredTests ||= group.hasIgnoredTests;
+        this.hasSoloTests ||= group.hasSoloTests;
+        this.hasSoloGroups ||= group.isSolo;
+        this.annotation.isAsync ||= group.hasAsyncTests;
         this.isValid = true;
     }
 
