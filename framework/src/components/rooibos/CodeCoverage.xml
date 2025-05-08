@@ -1,9 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<component name="CodeCoverage"
-    extends="ContentNode"
->
-    <!-- bs:disable-next-line file-not-found-->
+<component name="CodeCoverage" extends="ContentNode">
     <script type="text/brightscript" uri="CodeCoverage.brs" />
+
     <interface>
         <field id="entry" type="assocarray" />
         <field id="save" type="boolean" />

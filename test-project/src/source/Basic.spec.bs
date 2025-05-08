@@ -1,240 +1,242 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
 namespace tests
 
-  @noEarlyExit
-  @suite
-  class BasicTests extends rooibos.BaseTestSuite
+    @noEarlyExit
+    @suite
+    class BasicTests extends rooibos.BaseTestSuite
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("equals fix for stubbed aas")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("equals fix for stubbed aas")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("tests aa's with a mock will not crash the box!")
-    function _()
-      aa = {"test": "value"}
-      m.expectOnce(aa, "getStubbedObject", [aa])
-      aa.getStubbedObject(aa)
-    end function
+        @it("tests aa's with a mock will not crash the box!")
+        function _()
+            aa = { "test": "value" }
+            m.expectOnce(aa, "getStubbedObject", [aa])
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("print results fix for stubbed aas")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            aa.getStubbedObject(aa)
+        end function
 
-    @it("tests aa's that get printed as failures don't crash box")
-    function _()
-      aa = {"test": "value"}
-      bb = {"other": "value"}
-      m.expectOnce(bb, "getStubbedObject", [aa])
-      m.assertEqual(aa, bb)
-      'not crashing on printing the wrong output is a pass
-      m.assertMocks()
-      m.currentResult.Reset()
-    end function
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("print results fix for stubbed aas")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("url in params")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @it("tests aa's that get printed as failures don't crash box")
+        function _()
+            aa = { "test": "value" }
+            bb = { "other": "value" }
+            m.expectOnce(bb, "getStubbedObject", [aa])
+            m.assertEqual(aa, bb)
+            'not crashing on printing the wrong output is a pass
+            m.assertMocks()
+            m.currentResult.Reset()
+        end function
 
-    @it("works for simple case")
-    @params("http://101.rooibos.com")
-    function _(url)
-      m.assertEqual(url, "http://101.rooibos.com")
-    end function
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("url in params")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("on objects")
-    @params({"url": "http://101.rooibos.com", "othervalue": 2})
-    @params({url: "http://101.rooibos.com", "othervalue": 2})
-    @params({url: "http://101.rooibos.com", othervalue: 2})
-    function urlParams_objects(aa)
-      m.assertEqual(aa.url, "http://101.rooibos.com")
-      m.assertEqual(aa.othervalue, 2)
-    end function
+        @it("works for simple case")
+        @params("http://101.rooibos.com")
+        function _(url)
+            m.assertEqual(url, "http://101.rooibos.com")
+        end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("assertAsyncField")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @it("on objects")
+        @params({ "url": "http://101.rooibos.com", "othervalue": 2 })
+        @params({ url: "http://101.rooibos.com", "othervalue": 2 })
+        @params({ url: "http://101.rooibos.com", othervalue: 2 })
+        function urlParams_objects(aa)
+            m.assertEqual(aa.url, "http://101.rooibos.com")
+            m.assertEqual(aa.othervalue, 2)
+        end function
 
-    @it("times out")
-    @slow(150)
-    function _()
-      task = createObject("roSgNode", "TaskExample")
-      task.sleepTime = 2000
-      task.control = "run"
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("assertAsyncField")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-      m.assertAsyncField(task, "result", 10)
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
-      m.assertTrue(isFail)
+        @it("times out")
+        @slow(150)
+        function _()
+            task = createObject("roSgNode", "TaskExample")
+            task.sleepTime = 2000
+            task.control = "run"
 
-    end function
+            m.assertAsyncField(task, "result", 10)
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
+            m.assertTrue(isFail)
 
-    @it("does not timeout")
-    @slow(150)
-    function _()
-      task = createObject("roSgNode", "TaskExample")
-      task.sleepTime = 50
-      task.control = "run"
+        end function
 
-      m.assertAsyncField(task, "result", 10)
-      isFail = m.currentResult.isFail
-      m.assertFalse(isFail)
-    end function
+        @it("does not timeout")
+        @slow(150)
+        function _()
+            task = createObject("roSgNode", "TaskExample")
+            task.sleepTime = 50
+            task.control = "run"
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("assertClass")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @it("fails if not passed a class")
-    @params(invalid)
-    @params([])
-    @params("wrong")
-    function _(value)
-      m.assertClass(value, "myClass")
-      isFail = m.currentResult.isFail
+            m.assertAsyncField(task, "result", 10)
+            isFail = m.currentResult.isFail
+            m.assertFalse(isFail)
+        end function
 
-      m.currentResult.Reset()
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("assertClass")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @it("fails if not passed a class")
+        @params(invalid)
+        @params([])
+        @params("wrong")
+        function _(value)
+            m.assertClass(value, "myClass")
+            isFail = m.currentResult.isFail
 
-      m.assertTrue(isFail)
-    end function
+            m.currentResult.Reset()
 
-    @it("fails if wrong class name")
-    @params({})
-    @params({__classname: invalid})
-    @params({__classname: "other"})
-    function _(value)
-      m.assertClass(value, "myClass")
-      isFail = m.currentResult.isFail
+            m.assertTrue(isFail)
+        end function
 
-      m.currentResult.Reset()
+        @it("fails if wrong class name")
+        @params({})
+        @params({ __classname: invalid })
+        @params({ __classname: "other" })
+        function _(value)
+            m.assertClass(value, "myClass")
+            isFail = m.currentResult.isFail
 
-      m.assertTrue(isFail)
-    end function
+            m.currentResult.Reset()
 
-    @it("passes If Is correct Class")
-    function _()
-      m.assertClass({
-        __classname: "myClass"
-      }, "myClass")
-      isFail = m.currentResult.isFail
+            m.assertTrue(isFail)
+        end function
 
-      m.currentResult.Reset()
+        @it("passes If Is correct Class")
+        function _()
+            m.assertClass({
+                __classname: "myClass"
+            }, "myClass")
+            isFail = m.currentResult.isFail
 
-      m.assertFalse(isFail)
-    end function
+            m.currentResult.Reset()
 
-    @it("passes If Is correct Class - with namespace")
-    function _()
-      m.assertClass({
-        __classname: "namespace.myClass"
-      }, "namespace.myClass")
-      isFail = m.currentResult.isFail
+            m.assertFalse(isFail)
+        end function
 
-      m.currentResult.Reset()
+        @it("passes If Is correct Class - with namespace")
+        function _()
+            m.assertClass({
+                __classname: "namespace.myClass"
+            }, "namespace.myClass")
+            isFail = m.currentResult.isFail
 
-      m.assertFalse(isFail)
-    end function
+            m.currentResult.Reset()
 
-    @it("passes If Is correct Class as reference")
-    function _()
-      m.assertClass({
-        __classname: "rooibos.BaseTestSuite"
-      }, rooibos.BaseTestSuite)
-      isFail = m.currentResult.isFail
+            m.assertFalse(isFail)
+        end function
 
-      m.currentResult.Reset()
+        @it("passes If Is correct Class as reference")
+        function _()
+            m.assertClass({
+                __classname: "rooibos.BaseTestSuite"
+            }, rooibos.BaseTestSuite)
+            isFail = m.currentResult.isFail
 
-      m.assertFalse(isFail)
-    end function
+            m.currentResult.Reset()
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("assertAAContainsSubset")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @it("fails if not passed an aa")
-    @params(invalid)
-    @params([])
-    @params("wrong")
-    function _(value)
-      m.assertAAContainsSubset(value, {a: 1})
-      isFail = m.currentResult.isFail
+            m.assertFalse(isFail)
+        end function
 
-      m.currentResult.Reset()
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("assertAAContainsSubset")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @it("fails if not passed an aa")
+        @params(invalid)
+        @params([])
+        @params("wrong")
+        function _(value)
+            m.assertAAContainsSubset(value, { a: 1 })
+            isFail = m.currentResult.isFail
 
-      m.assertTrue(isFail)
-    end function
+            m.currentResult.Reset()
 
-    @it("fails if subset is not an aa")
-    @params(invalid)
-    @params([])
-    @params("wrong")
-    function _(value)
-      m.assertAAContainsSubset({a: 1}, value)
-      isFail = m.currentResult.isFail
+            m.assertTrue(isFail)
+        end function
 
-      m.currentResult.Reset()
+        @it("fails if subset is not an aa")
+        @params(invalid)
+        @params([])
+        @params("wrong")
+        function _(value)
+            m.assertAAContainsSubset({ a: 1 }, value)
+            isFail = m.currentResult.isFail
 
-      m.assertTrue(isFail)
-    end function
+            m.currentResult.Reset()
 
-    @it("passes if subset is present")
-    function _()
-      m.assertAAContainsSubset({
-        a: 1
-      }, {a: 1})
-      isFail = m.currentResult.isFail
+            m.assertTrue(isFail)
+        end function
 
-      m.currentResult.Reset()
+        @it("passes if subset is present")
+        function _()
+            m.assertAAContainsSubset({
+                a: 1
+            }, { a: 1 })
+            isFail = m.currentResult.isFail
 
-      m.assertFalse(isFail)
-    end function
+            m.currentResult.Reset()
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("test array string printing")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            m.assertFalse(isFail)
+        end function
 
-    @it("prints strings for failed array tests - simple")
-    function _()
-      arr1 = [
-        "one", "two", "three"
-      ]
-      arr2 = [
-        "2one", "2two", "2three"
-      ]
-      m.assertEqual(arr1, arr2)
-      isFail = m.currentResult.isFail
-      msg = m.currentResult.getMessage()
-      m.currentResult.Reset()
-      m.assertTrue(isFail)
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("test array string printing")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-      m.assertEqual(msg, `expected "[ "one", "two", "three" ]" to equal "[ "2one", "2two", "2three" ]"`)
-    end function
+        @it("prints strings for failed array tests - simple")
+        function _()
+            arr1 = [
+                "one", "two", "three"
+            ]
+            arr2 = [
+                "2one", "2two", "2three"
+            ]
+            m.assertEqual(arr1, arr2)
+            isFail = m.currentResult.isFail
+            msg = m.currentResult.getMessage()
+            m.currentResult.Reset()
+            m.assertTrue(isFail)
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("assertLike")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            m.assertEqual(msg, `expected "[ "one", "two", "three" ]" to equal "[ "2one", "2two", "2three" ]"`)
+        end function
 
-    @it("does not fail on like values")
-    @params({id: 10}, {id: 10.0})
-    @params([10], [10.0])
-    @params(10, 10.0)
-    function _(value1, value2)
-      m.assertLike(value1, value2)
-    end function
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("assertLike")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("does fail on really unalike values")
-    @params(10, invalid)
-    @params(invalid, 10)
-    @params(invalid, "invalid")
-    @params(false, "false")
-    @params(true, "true")
-    @params(10, "10.0")
-    @params({id: "10"}, {id: 10})
-    @params({id: "10"}, {id: 10.0})
-    function _(value1, value2)
-      m.assertLike(value1, value2)
-      isFail = m.currentResult.isFail
-      msg = m.currentResult.getMessage()
-      m.assertNotInvalid(msg)
-      m.currentResult.Reset()
-      m.assertTrue(isFail)
-    end function
+        @it("does not fail on like values")
+        @params({ id: 10 }, { id: 10.0 })
+        @params([10], [10.0])
+        @params(10, 10.0)
+        function _(value1, value2)
+            m.assertLike(value1, value2)
+        end function
 
-  end class
+        @it("does fail on really unalike values")
+        @params(10, invalid)
+        @params(invalid, 10)
+        @params(invalid, "invalid")
+        @params(false, "false")
+        @params(true, "true")
+        @params(10, "10.0")
+        @params({ id: "10" }, { id: 10 })
+        @params({ id: "10" }, { id: 10.0 })
+        function _(value1, value2)
+            m.assertLike(value1, value2)
+            isFail = m.currentResult.isFail
+            msg = m.currentResult.getMessage() 'bs:disable-line LINT1005
+            m.currentResult.Reset()
+            m.assertTrue(isFail)
+        end function
+
+    end class
 end namespace

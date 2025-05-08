@@ -1,142 +1,144 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
 namespace tests
 
-  @suite
-  class InfiniteLoopingFixes extends rooibos.BaseTestSuite
+    @suite
+    class InfiniteLoopingFixes extends rooibos.BaseTestSuite
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("AssertEquals")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("AssertEquals")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("should ignore __mocks on both sides")
-    function _()
+        @it("should ignore __mocks on both sides")
+        function _()
 
-      a = {
-        __mocks: {
-          "id": "not"
-        }
-        id: "equal"
-      }
+            a = {
+                __mocks: {
+                    "id": "not"
+                }
+                id: "equal"
+            }
 
-      b = {
-        __mocks: {
-          "id": "equal"
-        }
-        id: "equal"
-      }
-      m.assertEqual(a, b)
+            b = {
+                __mocks: {
+                    "id": "equal"
+                }
+                id: "equal"
+            }
+            m.assertEqual(a, b)
 
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
 
-      m.assertFalse(isFail)
-    end function
+            m.assertFalse(isFail)
+        end function
 
-    @it("should ignore __stubs on both sides")
-    function _()
+        @it("should ignore __stubs on both sides")
+        function _()
 
-      a = {
-        __stubs: {
-          "id": "not"
-        }
-        id: "equal"
-      }
+            a = {
+                __stubs: {
+                    "id": "not"
+                }
+                id: "equal"
+            }
 
-      b = {
-        __stubs: {
-          "id": "equal"
-        }
-        id: "equal"
-      }
-      m.assertEqual(a, b)
+            b = {
+                __stubs: {
+                    "id": "equal"
+                }
+                id: "equal"
+            }
+            m.assertEqual(a, b)
 
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
 
-      m.assertFalse(isFail)
-    end function
+            m.assertFalse(isFail)
+        end function
 
-    @it("should account for __rooibosSkipFields on both sides - one field")
-    function _()
+        @it("should account for __rooibosSkipFields on both sides - one field")
+        function _()
 
-      a = {
-        top: {
-          "id": "not"
-        }
-        __rooibosSkipFields: {top: true}
-        id: "equal"
-      }
+            a = {
+                top: {
+                    "id": "not"
+                }
+                __rooibosSkipFields: { top: true }
+                id: "equal"
+            }
 
-      b = {
-        top: {
-          "id": "equal"
-        }
-        __rooibosSkipFields: {top: true}
-        id: "equal"
-      }
-      m.assertEqual(a, b)
+            b = {
+                top: {
+                    "id": "equal"
+                }
+                __rooibosSkipFields: { top: true }
+                id: "equal"
+            }
+            m.assertEqual(a, b)
 
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
 
-      m.assertFalse(isFail)
-    end function
+            m.assertFalse(isFail)
+        end function
 
-    @it("should account for __rooibosSkipFields on both sides - two fields")
-    function _()
+        @it("should account for __rooibosSkipFields on both sides - two fields")
+        function _()
 
-      a = {
-        top: {
-          "id": "not"
-        }
-        top2: {
-          "id": "not2"
-        }
-        __rooibosSkipFields: {top: true, top2: true}
-        id: "equal"
-      }
+            a = {
+                top: {
+                    "id": "not"
+                }
+                top2: {
+                    "id": "not2"
+                }
+                __rooibosSkipFields: { top: true, top2: true }
+                id: "equal"
+            }
 
-      b = {
-        top: {
-          "id": "equal"
-        }
-        top2: {
-          "id": "equal2"
-        }
-        __rooibosSkipFields: {top: true, top2: true}
-        id: "equal"
-      }
-      m.assertEqual(a, b)
+            b = {
+                top: {
+                    "id": "equal"
+                }
+                top2: {
+                    "id": "equal2"
+                }
+                __rooibosSkipFields: { top: true, top2: true }
+                id: "equal"
+            }
+            m.assertEqual(a, b)
 
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
 
-      m.assertFalse(isFail)
-    end function
+            m.assertFalse(isFail)
+        end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("asString")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("asString")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("ignores special fields in output, and skipped fields")
-    function _()
+        @it("ignores special fields in output, and skipped fields")
+        function _()
 
-      a = {
-        top: {
-          "id": "not"
-        }
-        __mocks: {
-          "id": "not"
-        }
-        __stubs: {
-          "id": "not"
-        }
-        __rooibosSkipFields: {top: true}
-        id: "equal"
-      }
+            a = {
+                top: {
+                    "id": "not"
+                }
+                __mocks: {
+                    "id": "not"
+                }
+                __stubs: {
+                    "id": "not"
+                }
+                __rooibosSkipFields: { top: true }
+                id: "equal"
+            }
 
-      m.assertEqual(rooibos.common.asString(a), "{id:equal}")
+            m.assertEqual(rooibos.common.asString(a), "{id:equal}")
 
-    end function
+        end function
 
-  end class
+    end class
 end namespace

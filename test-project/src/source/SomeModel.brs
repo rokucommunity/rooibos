@@ -1,23 +1,23 @@
 function SomeModel() as object
-    if m._someModel = invalid
+    if m._someModel = invalid then
 
         obj = {}
         obj.appTitle = ""
         obj._config = invalid
         obj.updatedConfig = invalid
 
-        obj.globalMockExample = sub()
+        obj.globalMockExample = function()
             appTitle = getManifestValue("title")
             m.appTitle = appTitle
-        end sub
+        end function
 
-        obj.setUpdatedConfig1 = sub()
+        obj.setUpdatedConfig1 = function()
             m.updatedConfig = m._getConfig()
-        end sub
+        end function
 
-        obj.setUpdatedConfig2 = sub()
+        obj.setUpdatedConfig2 = function()
             m.updatedConfig = m._getConfig()
-        end sub
+        end function
 
         obj._getConfig = function() as object
             return m._config

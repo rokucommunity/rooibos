@@ -1,187 +1,188 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
 
 namespace tests
-  @noEarlyExit
-  @suite
-  class ExpectTests extends rooibos.BaseTestSuite
+    @noEarlyExit
+    @suite
+    class ExpectTests extends rooibos.BaseTestSuite
 
-    protected override function beforeEach()
-      super.beforeEach()
-      m.isAutoAssertingMocks = true
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '+  Helper
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public function assertRunningTestIsFailed()
-      m.isAutoAssertingMocks = false
-      m.assertMocks()
-
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
-      m.cleanMocks()
-      m.assertTrue(isFail)
-    end function
-
-    public function assertRunningTestIsPassed()
-      m.isAutoAssertingMocks = false
-      m.assertMocks()
-
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
-      m.cleanMocks()
-      m.assertFalse(isFail)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectonce bug")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("tests bug with expectOnce not matching values")
-    @params([52], true)
-    @params(invalid, false)
-    @params([invalid], true)
-    @params(["42"], true)
-    @params([42], false)
-    function _(expectedValue, expectMockFail)
-      obj = {
-        foo: function(arg0) : return arg0 : end function
-      }
-
-      m.ExpectOnce(obj, "foo", expectedValue)
-      obj.foo(42)
-      m.isAutoAssertingMocks = false
-      m.assertMocks()
-
-      isFail = m.currentResult.isFail
-      m.currentResult.Reset()
-      m.CleanMocks()
-      m.assertEqual(isFail, expectMockFail)
-    end function
-
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests mock count limit")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("mock count limit at least 25")
-    function _()
-
-      instance = {}
-
-      mockCountLimit = 25
-      for i = 1 to mockCountLimit
-        keyName = StrI(i).trim()
-        instance[keyName] = function(arg0)
-          return arg0
+        protected override function beforeEach()
+            super.beforeEach()
+            m.isAutoAssertingMocks = true
         end function
 
-        expectedArg = "a"
-        expectedReturnValue = "b"
-        m.expectOnce(instance, keyName, [expectedArg], [expectedReturnValue])
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+  Helper
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        instance[keyName](expectedArg)
-      end for
+        private function assertRunningTestIsFailed()
+            m.isAutoAssertingMocks = false
+            m.assertMocks()
 
-    end function
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
+            m.cleanMocks()
+            m.assertTrue(isFail)
+        end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("expectCalled: auto-converts non-mockobjects into mocks")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        private function assertRunningTestIsPassed()
+            m.isAutoAssertingMocks = false
+            m.assertMocks()
 
-    @it("converts invalids")
-    function _()
-      item = {
-        service: invalid
-      }
-      m.expectCalled(item.service.say("hello"), "hi")
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
+            m.cleanMocks()
+            m.assertFalse(isFail)
+        end function
 
-      m.assertEqual(item.service.say("hello"), "hi")
-    end function
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectonce bug")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("works for nested invalids")
-    function _()
-      item = {
-        service: {
-          caller: invalid
-        }
-      }
-      m.expectCalled(item.service.caller.say("hello"), "hi")
+        @it("tests bug with expectOnce not matching values")
+        @params([52], true)
+        @params(invalid, false)
+        @params([invalid], true)
+        @params(["42"], true)
+        @params([42], false)
+        function _(expectedValue, expectMockFail)
+            obj = {
+                foo: function(arg0) : return arg0 : end function
+            }
 
-      m.assertEqual(item.service.caller.say("hello"), "hi")
-    end function
+            m.ExpectOnce(obj, "foo", expectedValue)
+            obj.foo(42)
+            m.isAutoAssertingMocks = false
+            m.assertMocks()
 
-    @it("supports callfunc invalid")
-    function _()
-      item = {
-        service: invalid as roSGNode
-      }
-      m.expectCalled(item.service@.say("hello"), "hi")
-
-      m.assertEqual(item.service@.say("hello"), "hi")
-    end function
-
-    @it("works for nested callfunc")
-    function _()
-      item = {
-        service: {
-          caller: invalid as roSGNode
-        }
-      }
-      m.expectCalled(item.service.caller@.say("hello"), "hi")
-
-      m.assertEqual(item.service.caller@.say("hello"), "hi")
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("stubCall: auto-converts non-mockobjects into mocks")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("converts invalids")
-    function _()
-      item = {
-        service: invalid
-      }
-      m.stubCall(item.service.say, "hi")
-
-      m.assertEqual(item.service.say("hello"), "hi")
-    end function
-
-    @it("works for nested invalids")
-    function _()
-      item = {
-        service: {
-          caller: invalid
-        }
-      }
-      m.stubCall(item.service.caller.say, "hi")
-
-      m.assertEqual(item.service.caller.say("hello"), "hi")
-    end function
-
-    @it("supports callfunc invalid")
-    function _()
-      item = {
-        service: invalid as roSGNode
-      }
-      m.stubCall(item.service@.say(), "hi")
-
-      m.assertEqual(item.service@.say("hello"), "hi")
-    end function
-
-    @it("works for nested callfunc")
-    function _()
-      item = {
-        service: {
-          caller: invalid as roSGNode
-        }
-      }
-      m.stubCall(item.service.caller@.say(), "hi")
-
-      m.assertEqual(item.service.caller@.say("hello"), "hi")
-    end function
+            isFail = m.currentResult.isFail
+            m.currentResult.Reset()
+            m.CleanMocks()
+            m.assertEqual(isFail, expectMockFail)
+        end function
 
 
-  end class
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("tests mock count limit")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("mock count limit at least 25")
+        function _()
+
+            instance = {}
+
+            mockCountLimit = 25
+            for i = 1 to mockCountLimit
+                keyName = StrI(i).trim()
+                instance[keyName] = function(arg0)
+                    return arg0
+                end function
+
+                expectedArg = "a"
+                expectedReturnValue = "b"
+                m.expectOnce(instance, keyName, [expectedArg], [expectedReturnValue])
+
+                instance[keyName](expectedArg)
+            end for
+
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectCalled: auto-converts non-mockobjects into mocks")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("converts invalids")
+        function _()
+            item = {
+                service: invalid
+            }
+            m.expectCalled(item.service.say("hello"), "hi")
+
+            m.assertEqual(item.service.say("hello"), "hi")
+        end function
+
+        @it("works for nested invalids")
+        function _()
+            item = {
+                service: {
+                    caller: invalid
+                }
+            }
+            m.expectCalled(item.service.caller.say("hello"), "hi")
+
+            m.assertEqual(item.service.caller.say("hello"), "hi")
+        end function
+
+        @it("supports callfunc invalid")
+        function _()
+            item = {
+                service: invalid
+            } as roSGNode
+            m.expectCalled(item.service@.say("hello"), "hi")
+
+            m.assertEqual(item.service@.say("hello"), "hi")
+        end function
+
+        @it("works for nested callfunc")
+        function _()
+            item = {
+                service: {
+                    caller: invalid
+                }
+            } as roSGNode
+            m.expectCalled(item.service.caller@.say("hello"), "hi")
+
+            m.assertEqual(item.service.caller@.say("hello"), "hi")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall: auto-converts non-mockobjects into mocks")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("converts invalids")
+        function _()
+            item = {
+                service: invalid
+            }
+            m.stubCall(item.service.say, "hi")
+
+            m.assertEqual(item.service.say("hello"), "hi")
+        end function
+
+        @it("works for nested invalids")
+        function _()
+            item = {
+                service: {
+                    caller: invalid
+                }
+            }
+            m.stubCall(item.service.caller.say, "hi")
+
+            m.assertEqual(item.service.caller.say("hello"), "hi")
+        end function
+
+        @it("supports callfunc invalid")
+        function _()
+            item = {
+                service: invalid
+            } as roSGNode
+            m.stubCall(item.service@.say(), "hi")
+
+            m.assertEqual(item.service@.say("hello"), "hi")
+        end function
+
+        @it("works for nested callfunc")
+        function _()
+            item = {
+                service: {
+                    caller: invalid
+                }
+            } as roSGNode
+            m.stubCall(item.service.caller@.say(), "hi")
+
+            m.assertEqual(item.service.caller@.say("hello"), "hi")
+        end function
+
+
+    end class
 
 end namespace

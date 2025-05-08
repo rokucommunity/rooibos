@@ -1,92 +1,94 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
 namespace tests
 
-  @suite
-  class Common extends rooibos.BaseTestSuite
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("eqArray")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @suite
+    class Common extends rooibos.BaseTestSuite
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("eqArray")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("compares arrays")
-    @params(invalid, [], false)
-    @params([], invalid, false)
-    @params(invalid, invalid, false)
-    @params(["one", "three"], [], false)
-    @params([], ["one", "three"], false)
-    @params([], [], true)
-    @params(["one", "two", "three"], ["one", "three"], false)
-    @params(["one", "two", "three"], ["one", "two", "three"], true)
-    @params([1, 2, 3], ["one", "two", "three"], false)
-    @params([1, 2, 3], [1, 2, 3], true)
-    @params([1, invalid, "3"], [1, invalid, "3"], true)
-    @params([3, 2, 1], [1, 2, 3], false)
-    function _(values, values2, expected)
+        @it("compares arrays")
+        @params(invalid, [], false)
+        @params([], invalid, false)
+        @params(invalid, invalid, false)
+        @params(["one", "three"], [], false)
+        @params([], ["one", "three"], false)
+        @params([], [], true)
+        @params(["one", "two", "three"], ["one", "three"], false)
+        @params(["one", "two", "three"], ["one", "two", "three"], true)
+        @params([1, 2, 3], ["one", "two", "three"], false)
+        @params([1, 2, 3], [1, 2, 3], true)
+        @params([1, invalid, "3"], [1, invalid, "3"], true)
+        @params([3, 2, 1], [1, 2, 3], false)
+        function _(values, values2, expected)
 
-      result = rooibos.common.eqArray(values, values2)
-      m.assertEqual(result, expected)
-    end function
+            result = rooibos.common.eqArray(values, values2)
+            m.assertEqual(result, expected)
+        end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("makePathStubbable")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("makePathStubbable")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("makes a simple path stubbable")
-    function _()
-      manager = invalid
+        @it("makes a simple path stubbable")
+        function _()
+            manager = invalid
 
-      newManager = rooibos.common.makePathStubbable(manager, "manager")
+            newManager = rooibos.common.makePathStubbable(manager, "manager")
 
-      m.assertEqual(newManager, {id: "manager"})
-    end function
+            m.assertEqual(newManager, { id: "manager" })
+        end function
 
-    @it("makes a simple node stubbable")
-    function _()
-      manager = createObject("roSGnode", "ContentNode")
+        @it("makes a simple node stubbable")
+        function _()
+            manager = createObject("roSGnode", "ContentNode")
 
-      newManager = rooibos.common.makePathStubbable(manager, "manager")
+            newManager = rooibos.common.makePathStubbable(manager, "manager")
 
-      m.assertEqual(newManager, {id: "manager"})
-    end function
+            m.assertEqual(newManager, { id: "manager" })
+        end function
 
-    @it("makes a path on an existing object stubbable")
-    function _()
-      manager = {id: "man"}
+        @it("makes a path on an existing object stubbable")
+        function _()
+            manager = { id: "man" }
 
-      newManager = rooibos.common.makePathStubbable(manager, "manager.item.data")
+            newManager = rooibos.common.makePathStubbable(manager, "manager.item.data")
 
-      m.assertEqual(newManager, {id: "data"})
+            m.assertEqual(newManager, { id: "data" })
 
-      m.assertEqual(manager, {
-        id: "man"
-        item: {
-          id: "item"
-          data: {
-            id: "data"
-          }
-        }
-      })
-    end function
+            m.assertEqual(manager, {
+                id: "man"
+                item: {
+                    id: "item"
+                    data: {
+                        id: "data"
+                    }
+                }
+            })
+        end function
 
-    @it("makes a path including an aa on an existing object stubbable")
-    function _()
-      manager = {
-        id: "man"
-        item: {
-          data: createObject("roSGnode", "ContentNode")
-        }
-      }
+        @it("makes a path including an aa on an existing object stubbable")
+        function _()
+            manager = {
+                id: "man"
+                item: {
+                    data: createObject("roSGnode", "ContentNode")
+                }
+            }
 
-      newManager = rooibos.common.makePathStubbable(manager, "manager.item.data")
-      m.assertEqual(newManager, {id: "data"})
+            newManager = rooibos.common.makePathStubbable(manager, "manager.item.data")
+            m.assertEqual(newManager, { id: "data" })
 
-      m.assertEqual(manager, {
-        id: "man"
-        item: {
-          data: {
-            id: "data"
-          }
-        }
-      })
-    end function
+            m.assertEqual(manager, {
+                id: "man"
+                item: {
+                    data: {
+                        id: "data"
+                    }
+                }
+            })
+        end function
 
-  end class
+    end class
 end namespace

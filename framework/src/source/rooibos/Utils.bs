@@ -1,69 +1,75 @@
 namespace rooibos
-  namespace utils
-    class MockNode
-      public id
-      public name
+    namespace utils
+        class MockNode
+            public id
+            public name
 
-      public createdNodes = []
-      public createdChildren = []
-      public children = []
-      public _subType = "Node"
-      public _parent
+            public createdNodes = []
+            public createdChildren = []
+            public children = []
+            public _subType = "Node"
+            public _parent
 
-      function new(id = "", subType = "Node")
-        m.id = id
-        m._subType = subType
-      end function
+            function new(id = "" as string, subType = "Node" as string)
+                m.id = id
+                m._subType = subType
+            end function
 
-      function subType()
-        return m._subType
-      end function
+            function subType() as string
+                return m._subType
+            end function
 
-      function isSubType(name)
-        return false
-      end function
+            function isSubType(name as string) as boolean
+                return false
+            end function
 
-      function createObject(nodeType)
-        node = new rooibos.utils.MockNode("", nodeType)
-        m.createdNodes.push(node)
-        return node
-      end function
+            function createObject(nodeType as string) as dynamic
+                node = new rooibos.utils.MockNode("", nodeType)
+                m.createdNodes.push(node)
+                return node
+            end function
 
-      function createChild(nodeType)
-        node = new rooibos.utils.MockNode("", nodeType)
-        m.createdChildren.push(node)
-        return node
-      end function
+            function createChild(nodeType as string) as dynamic
+                node = new rooibos.utils.MockNode("", nodeType)
+                m.createdChildren.push(node)
+                return node
+            end function
 
-      function appendChild(child)
-        m.children.push(child)
-      end function
-      function getParent()
-        if m._parent = invalid
-          m._parent = new rooibos.utils.MockNode("_generated_parent")
-        end if
-        return m._parent
-      end function
+            function appendChild(child as dynamic)
+                m.children.push(child)
+            end function
 
-    function addFields(fields)
-      (m as roAssociativeArray).append(fields)
-    end function
-    function setField(field, value)
-      m[field] = value
-    end function
-    function setFields(fields)
-      (m as roAssociativeArray).append(fields)
-    end function
-    function observeField(field, callback)
-    end function
-    function getChildren(offset, count)
-      return m.children
-    end function
-    function removeChildren(children)
+            function getParent() as dynamic
+                if m._parent = invalid then
+                    m._parent = new rooibos.utils.MockNode("_generated_parent")
+                end if
+                return m._parent
+            end function
 
-      end function
-      function observeFieldScoped(field, callback)
-      end function
-    end class
-  end namespace
+            function addFields(fields as object)
+                (m as roAssociativeArray).append(fields)
+            end function
+
+            function setField(field as string, value as dynamic)
+                m[field] = value
+            end function
+
+            function setFields(fields as object)
+                (m as roAssociativeArray).append(fields)
+            end function
+
+            function observeField(field as string, callback as string)
+            end function
+
+            function getChildren(offset as integer, count as integer) as roArray
+                return m.children
+            end function
+
+            function removeChildren(children as roArray) as void
+            end function
+
+            function observeFieldScoped(field as string, callback as string)
+            end function
+        end class
+    end namespace
 end namespace
