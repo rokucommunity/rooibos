@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.48](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.47...v6.0.0-alpha.48) - 2025-07-17
+### Changed
+ - upgrade to [brighterscript@1.0.0-alpha.48](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha48---2025-07-16). Notable changes since 1.0.0-alpha.47:
+     - Union Return type consistency ([#1508](https://github.com/rokucommunity/rooibos/pull/1508))
+     - Fix issues with undefined/null trivia items ([#1531](https://github.com/rokucommunity/rooibos/pull/1531))
+     - Fix ForEach variable typing issues ([#1498](https://github.com/rokucommunity/rooibos/pull/1498))
+     - `Dynamic` and `Function` do not need semantic tokens in Type expressions ([#1500](https://github.com/rokucommunity/rooibos/pull/1500))
+ - upgrade to [roku-debug@0.21.37](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#02137---2025-07-03). Notable changes since 0.21.36:
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.48](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha48---2025-07-16). Notable changes since 1.0.0-alpha.47:
+ - upgrade to [ropm@0.10.35](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#01035---2025-07-03). Notable changes since 0.10.34:
+
+
+
 ## [6.0.0-alpha.47](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.46...v6.0.0-alpha.47) - 2025-06-04
 ### Added
  - added [@rokucommunity/bslint@1.0.0-alpha.46](https://github.com/rokucommunity/bslint)
