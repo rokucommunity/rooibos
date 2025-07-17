@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - upgrade to [brighterscript@1.0.0-alpha.48](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha48---2025-07-16). Notable changes since 1.0.0-alpha.47:
      - Union Return type consistency ([#1508](https://github.com/rokucommunity/rooibos/pull/1508))
      - Fix issues with undefined/null trivia items ([#1531](https://github.com/rokucommunity/rooibos/pull/1531))
-     - Merge branch 'master' of https://github.com/rokucommunity/brighterscript into v1 ([12770eac](https://github.com/rokucommunity/rooibos/commit/12770eac))
      - Fix ForEach variable typing issues ([#1498](https://github.com/rokucommunity/rooibos/pull/1498))
      - `Dynamic` and `Function` do not need semantic tokens in Type expressions ([#1500](https://github.com/rokucommunity/rooibos/pull/1500))
  - upgrade to [roku-debug@0.21.37](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#02137---2025-07-03). Notable changes since 0.21.36:
