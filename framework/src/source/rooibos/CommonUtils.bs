@@ -693,16 +693,6 @@ namespace rooibos.common
         if not l1 = l2 then
             return false
         else
-            customFieldKey = "__rooibos_Custom_Eq_Field_" + createObject("roDeviceInfo").getRandomUUID()
-            Value1[customFieldKey] = createObject("roDeviceInfo").getRandomUUID()
-            if Value2.ifAssociativeArray.doesExist(customFieldKey) then
-                if rooibos.common.isString(Value2[customFieldKey]) and Value1[customFieldKey] = Value2[customFieldKey] then
-                    ' If the custom field is present and equal, we can skip it in the comparison
-                    Value1.ifAssociativeArray.delete(customFieldKey)
-                    return true
-                end if
-            end if
-
             for each k in Value1
                 if not Value2.ifAssociativeArray.DoesExist(k) then
                     return false
