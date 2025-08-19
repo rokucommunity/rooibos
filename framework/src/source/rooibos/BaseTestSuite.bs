@@ -347,7 +347,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -372,7 +372,7 @@ namespace rooibos
 
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -400,7 +400,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -428,7 +428,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -456,7 +456,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -481,7 +481,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -505,7 +505,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -538,7 +538,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -572,7 +572,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -625,7 +625,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -674,7 +674,7 @@ namespace rooibos
 
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -708,7 +708,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -778,7 +778,7 @@ namespace rooibos
                 end for 'values to match
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -814,7 +814,7 @@ namespace rooibos
 
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -884,7 +884,7 @@ namespace rooibos
                 end for
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -954,7 +954,7 @@ namespace rooibos
                 end for
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1001,7 +1001,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1049,7 +1049,7 @@ namespace rooibos
 
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1100,7 +1100,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1151,7 +1151,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1212,7 +1212,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1276,7 +1276,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1312,7 +1312,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1361,7 +1361,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1408,7 +1408,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1450,7 +1450,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1489,7 +1489,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1529,7 +1529,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1564,7 +1564,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1613,7 +1613,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1648,7 +1648,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1718,7 +1718,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, error.message)
+                m.failCrash(error, error.message)
             end try
             return false
         end function
@@ -1785,7 +1785,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
@@ -1856,7 +1856,7 @@ namespace rooibos
                 end if
                 return true
             catch error
-                m.currentResult.failCrash(error, msg)
+                m.failCrash(error, msg)
             end try
             return false
         end function
