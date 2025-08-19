@@ -291,7 +291,7 @@ namespace rooibos.common
             valueAsStr = value.toStr("%.40f")
 
             if valueAsStr.inStr(".") > -1 then
-                ' remove trailing zeros for integers
+                ' remove trailing zeros resulting from the high precision string formatting
                 while valueAsStr.endsWith("0")
                     valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
                 end while
