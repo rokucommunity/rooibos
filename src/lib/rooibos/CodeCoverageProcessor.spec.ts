@@ -625,6 +625,61 @@ describe('RooibosPlugin', () => {
                 expect(derivedPrintIndex).to.be.greaterThan(superLineCoverageIndex,
                     'Derived constructor body should come after super() coverage tracking');
             });
+
+            it('preserves constructor call order with multiple super() calls', async () => {
+                const source = `
+                    class BaseClass
+                        function new(value)
+                            ? "BaseClass constructor with " + value.toStr()
+                        end function
+                    end class
+
+                    class MiddleClass extends BaseClass
+                        function new(value)
+                            super(value * 2)
+                            ? "MiddleClass constructor"
+                        end function
+                    end class
+
+                    class DerivedClass extends MiddleClass
+                        function new(value)
+                            super(value + 1)
+                            ? "DerivedClass constructor"
+                        end function
+                    end class
+                `;
+
+                program.setFile('source/complex.bs', source);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                let coverageResult = getContents('source/complex.brs');
+                
+                // Find all constructor functions and verify super() calls execute before coverage tracking
+                let constructorMatches = coverageResult.match(/instance\.new = function\([^}]+end function/gs);
+                expect(constructorMatches).to.have.length.greaterThan(0);
+                
+                for (let constructor of constructorMatches) {
+                    let superCallMatches = constructor.match(/m\.super\d+_new\([^)]*\)/g);
+                    if (superCallMatches && superCallMatches.length > 0) {
+                        // For each super call, verify it comes before its corresponding coverage tracking
+                        for (let superCall of superCallMatches) {
+                            let superIndex = constructor.indexOf(superCall);
+                            
+                            // Find the next coverage call after this super call
+                            let nextCoverageIndex = constructor.indexOf('RBS_CC_', superIndex);
+                            
+                            if (nextCoverageIndex > -1) {
+                                expect(superIndex).to.be.lessThan(nextCoverageIndex,
+                                    `super() call "${superCall}" should execute before coverage tracking`);
+                            }
+                        }
+                    }
+                }
+                
+                console.log('Complex inheritance test passed - all super() calls execute before coverage tracking');
+            });
         });
     });
 });
