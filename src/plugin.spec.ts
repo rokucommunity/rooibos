@@ -2868,9 +2868,22 @@ function getContents(filename: string) {
 function getTestFunctionContents() {
     const contents = getContents('test.spec.brs');
 
-    let [, result] = /instance.[\w_]+\s?\= function\((?:[\w,\s]*)\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents);
+    //try to find inline function
+    let [, result] = /instance.rooiboos_test_case_[\w_]+\s?\= function\((?:[\w,\s]*)\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents) ?? [];
+    if (result) {
+        return undent(result);
+    }
 
-    return undent(result);
+    //try to find a hoisted version of the function
+    let [, testName] = /instance.rooiboos_test_case_[\w_]+\s?\=\s?([\w_]+)/img.exec(contents) ?? [];
+    if (testName) {
+        //find the function contents by this name
+        let [, result] = new RegExp(`(?:function|sub)\\s+${testName}\\((?:[\\w,\\s]*)\\)\\s?([\\S\\s]*|.*)(?=^\\s*end function)`, 'img').exec(contents) ?? [];
+        if (result) {
+            return undent(result);
+        }
+    }
+    return undefined;
 }
 
 function getTestSubContents() {
