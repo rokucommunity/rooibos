@@ -3,6 +3,21 @@ import { ParseMode, Parser, TokenKind, createStringLiteral, isCallExpression, is
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
 
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
+    let { method, diagnostics, text } = createMethod(file, name, source);
+
+    if (method.func.body.statements.length > 0) {
+        //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
+        //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
+        (target as any).ensureConstructorFunctionExists?.();
+        editor.addToArray(target.body, target.body.length, method);
+        return true;
+    }
+    const error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
+    diagnosticCorruptTestProduced(file, annotation, error, text);
+    return false;
+}
+
 /**
  * Create a new MethodStatement instance with the given name and body.
  *
@@ -41,22 +56,6 @@ function createMethod(file: BrsFile, name: string, body: string) {
             diagnostics: diagnostics
         };
     }
-}
-
-export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
-    let { method, diagnostics, text } = createMethod(file, name, source);
-
-    let error = '';
-    if (method.func.body.statements.length > 0) {
-        //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
-        //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
-        (target as any).ensureConstructorFunctionExists?.();
-        editor.addToArray(target.body, target.body.length, method);
-        return true;
-    }
-    error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
-    diagnosticCorruptTestProduced(file, annotation, error, text);
-    return false;
 }
 
 export function sanitizeBsJsonString(text: string) {
