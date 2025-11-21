@@ -1,35 +1,61 @@
-import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement } from 'brighterscript';
-import { ClassMethodStatement, ParseMode, Parser, TokenKind, createIdentifier, createStringLiteral, createToken, isCallExpression, isCallfuncExpression, isDottedGetExpression, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isXmlScope } from 'brighterscript';
+import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement, MethodStatement } from 'brighterscript';
+import { ParseMode, Parser, TokenKind, createStringLiteral, isCallExpression, isCallfuncExpression, isDottedGetExpression, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isXmlScope } from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
 
-export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
-    let functionSource = `
-        function ${name}()
-            ${source}
-        end function
+/**
+ * Create a new MethodStatement instance with the given name and body.
+ *
+ * This is a HACK to be able to build the same MethodStatement instance as the version of brighterscript we're running against. (because otherwise, some older versions
+ * of bsc (like the one rooibos depends on) have a bug that doesn't transpile the method name correctly in some instances)
+ * @param file any file from the host program's version of BrighterScript. (we're going to utilize its `constructor` and `parse` functions to create a new MethodStatement instance)
+ * @param name name of the method to create
+ * @param body string text containing the body of the method
+ */
+function createMethod(file: BrsFile, name: string, body: string) {
+    const text = `
+        class RooibosTemplateClass
+            public override function ${name}()
+                ${body}
+            end function
+        end class
     `;
+    try {
+        //parse a new instance of a file, so we can abuse its `parse` function, which will use the _current_ version of the MethodStatement class
+        const f: BrsFile = new (file.constructor as any)(file.srcPath, file.pkgPath, file.program);
+        f.parse(text);
+        return {
+            method: (f.ast.statements[0] as ClassStatement).body[0] as MethodStatement,
+            text: text,
+            diagnostics: f.diagnostics
+        };
+    } catch (e) {
+        console.error(`Error generating method '${name}' while using the host bsc version. Falling back to embedded Parser.parse`, {
+            cause: e
+        });
 
-    let { statements, diagnostics } = Parser.parse(functionSource, { mode: ParseMode.BrighterScript });
+        const { statements, diagnostics } = Parser.parse(text, { mode: ParseMode.BrighterScript });
+        return {
+            method: (statements[0] as ClassStatement).body[0] as MethodStatement,
+            text: text,
+            diagnostics: diagnostics
+        };
+    }
+}
+
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
+    let { method, diagnostics, text } = createMethod(file, name, source);
+
     let error = '';
-    if (statements && statements.length > 0) {
-        let statement = statements[0] as FunctionStatement;
-        if (statement.func.body.statements.length > 0) {
-            let p = createToken(TokenKind.Public, 'public', target.range);
-            let o = createToken(TokenKind.Override, 'override', target.range);
-            let n = createIdentifier(name, target.range);
-            let method = new ClassMethodStatement(p, n, statement.func, o);
-            //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
-            //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
-            // eslint-disable-next-line @typescript-eslint/dot-notation
-            target['ensureConstructorFunctionExists']?.();
-            editor.addToArray(target.body, target.body.length, method);
-            return true;
-        }
-
+    if (method.func.body.statements.length > 0) {
+        //bsc has a quirk where it auto-adds a `new` method if missing. That messes with our AST editing, so
+        //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
+        (target as any).ensureConstructorFunctionExists?.();
+        editor.addToArray(target.body, target.body.length, method);
+        return true;
     }
     error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
-    diagnosticCorruptTestProduced(file, annotation, error, functionSource);
+    diagnosticCorruptTestProduced(file, annotation, error, text);
     return false;
 }
 
