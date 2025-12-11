@@ -6,6 +6,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.49](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.48...v6.0.0-alpha.49) - 2025-12-11
+### Changed
+ - upgrade to [brighterscript@1.0.0-alpha.49](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha49---2025-12-10). Notable changes since 1.0.0-alpha.48:
+     - Adds TypeStatement for declaring new types ([#1597](https://github.com/rokucommunity/brighterscript/pull/1597))
+     - Adds Inline interfaces ([#1591](https://github.com/rokucommunity/brighterscript/pull/1591))
+     - Make Invalid compatible with typed arrays ([#1596](https://github.com/rokucommunity/brighterscript/pull/1596))
+     - Merge branch 'master' into 'v1' ([#1590](https://github.com/rokucommunity/brighterscript/pull/1590))
+     - Limit scope Validation ([#1586](https://github.com/rokucommunity/brighterscript/pull/1586))
+     - Interface extending node includes callfuncs ([#1585](https://github.com/rokucommunity/brighterscript/pull/1585))
+     - Fix validation exception when calling roFunction ([#1588](https://github.com/rokucommunity/brighterscript/pull/1588))
+     - Remove unused util functions ([#1565](https://github.com/rokucommunity/brighterscript/pull/1565))
+     - #1555 Remove zip and sideload ([#1562](https://github.com/rokucommunity/brighterscript/pull/1562))
+     - Fix `MaskGroup.maskUri` type ([#1559](https://github.com/rokucommunity/brighterscript/pull/1559))
+ - upgrade to [roku-debug@0.22.5](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0225---2025-12-01). Notable changes since 0.21.37:
+     - Support packageTask, packagePath, packageUploadOverrides for complibs ([#282](https://github.com/rokucommunity/roku-debug/pull/282))
+     - Add ability to install component libraries on device ([#279](https://github.com/rokucommunity/roku-debug/pull/279))
+     - chore: suppport OIDC for publishing ([#277](https://github.com/rokucommunity/roku-debug/pull/277))
+     - Change ecp logging to `trace` to make lower level logs more useful ([#276](https://github.com/rokucommunity/roku-debug/pull/276))
+     - Bump brace-expansion from 1.1.11 to 1.1.12 ([#272](https://github.com/rokucommunity/roku-debug/pull/272))
+     - Better handling when the telnet debugger freezes ([#268](https://github.com/rokucommunity/roku-debug/pull/268))
+     - Add more logs to track how long each step takes while sideloading ([#270](https://github.com/rokucommunity/roku-debug/pull/270))
+     - chore: Support dispatch workflows ([#266](https://github.com/rokucommunity/roku-debug/pull/266))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.49](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha49---2025-12-11). Notable changes since 1.0.0-alpha.48:
+     - Update for v49 ([#169](https://github.com/rokucommunity/bslint/pull/169))
+ - upgrade to [ropm@0.11.2](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0112---2025-10-31). Notable changes since 0.10.35:
+     - chore: use OIDC for publishing ([#123](https://github.com/rokucommunity/ropm/pull/123))
+     - Bump brace-expansion from 1.1.11 to 1.1.12 ([#120](https://github.com/rokucommunity/ropm/pull/120))
+     - Fix Issues with npm-ls ([#118](https://github.com/rokucommunity/ropm/pull/118))
+     - Fix packageRootDir crash when directory doesn't exist ([#110](https://github.com/rokucommunity/ropm/pull/110))
+     - Add support for the `create-package` label ([#111](https://github.com/rokucommunity/ropm/pull/111))
+     - chore: Support dispatch workflows ([#107](https://github.com/rokucommunity/ropm/pull/107))
+
+
+
 ## [6.0.0-alpha.48](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.47...v6.0.0-alpha.48) - 2025-07-17
 ### Changed
  - upgrade to [brighterscript@1.0.0-alpha.48](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha48---2025-07-16). Notable changes since 1.0.0-alpha.47:
