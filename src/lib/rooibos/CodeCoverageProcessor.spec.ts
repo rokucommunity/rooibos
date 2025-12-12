@@ -9,7 +9,7 @@ import * as path from 'path';
 
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let outDir = s`${tmpPath}/staging`;
 
 describe('RooibosPlugin', () => {
     let program: Program;
@@ -19,7 +19,7 @@ describe('RooibosPlugin', () => {
 
     function getContents(filename: string) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        let contents = fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString();
+        let contents = fsExtra.readFileSync(s`${outDir}/${filename}`).toString();
         return undent(contents);
     }
 
@@ -28,7 +28,7 @@ describe('RooibosPlugin', () => {
             plugin = new RooibosPlugin();
             options = {
                 rootDir: _rootDir,
-                stagingDir: _stagingFolderPath,
+                outDir: outDir,
                 rooibos: {
                     isRecordingCodeCoverage: true,
                     coverageExcludedFiles: [
@@ -37,7 +37,7 @@ describe('RooibosPlugin', () => {
                 },
                 allowBrighterScriptInBrightScript: true
             };
-            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(outDir);
             fsExtra.ensureDirSync(_rootDir);
 
             builder = new ProgramBuilder();

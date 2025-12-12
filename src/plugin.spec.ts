@@ -9,7 +9,7 @@ import { SourceMapConsumer } from 'source-map';
 import { getFileLookups } from './lib/rooibos/Utils';
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let outDir = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
 
 describe('RooibosPlugin', () => {
@@ -18,7 +18,7 @@ describe('RooibosPlugin', () => {
     let plugin: RooibosPlugin;
 
     function setupProgram(options) {
-        fsExtra.ensureDirSync(_stagingFolderPath);
+        fsExtra.ensureDirSync(outDir);
         fsExtra.ensureDirSync(_rootDir);
 
         plugin = new RooibosPlugin();
@@ -42,7 +42,7 @@ describe('RooibosPlugin', () => {
     beforeEach(() => {
         setupProgram({
             rootDir: _rootDir,
-            stagingDir: _stagingFolderPath,
+            outDir: outDir,
             rooibos: {
                 isGlobalMethodMockingEnabled: true
             }
@@ -1067,7 +1067,7 @@ describe('RooibosPlugin', () => {
         it('adds launch hook with custom scene', async () => {
             setupProgram({
                 rootDir: _rootDir,
-                stagingDir: _stagingFolderPath,
+                outDir: outDir,
                 rooibos: {
                     testSceneName: 'CustomRooibosScene'
                 }
@@ -2438,7 +2438,7 @@ describe('RooibosPlugin', () => {
             beforeEach(() => {
                 setupProgram({
                     rootDir: _rootDir,
-                    stagingDir: _stagingFolderPath
+                    outDir: outDir
                 });
             });
 
@@ -2691,7 +2691,7 @@ describe('RooibosPlugin', () => {
             async function runReporterTest(reporters: string[], expected: string[]) {
                 setupProgram({
                     rootDir: _rootDir,
-                    stagingDir: _stagingFolderPath,
+                    outDir: outDir,
                     rooibos: {
                         reporters: reporters
                     }
@@ -2923,7 +2923,7 @@ describe('RooibosPlugin', () => {
         const actualContents = getContents('test.spec.brs');
         expect(actualContents).to.eql(undent`${expectedText}`);
 
-        const map = fsExtra.readFileSync(s`${_stagingFolderPath}/source/test.spec.brs.map`).toString();
+        const map = fsExtra.readFileSync(s`${outDir}/source/test.spec.brs.map`).toString();
 
         //load the source map
         await SourceMapConsumer.with(map, null, (consumer) => {
@@ -2952,13 +2952,13 @@ describe('RooibosPlugin', () => {
 
 function getContents(filename: string) {
     return undent(
-        fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString()
+        fsExtra.readFileSync(s`${outDir}/source/${filename}`).toString()
     );
 }
 
 function getComponentContents(filename: string) {
     return undent(
-        fsExtra.readFileSync(s`${_stagingFolderPath}/components/${filename}`).toString()
+        fsExtra.readFileSync(s`${outDir}/components/${filename}`).toString()
     );
 }
 

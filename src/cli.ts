@@ -43,8 +43,8 @@ async function main() {
     const rawConfig: BsConfig = util.loadConfigFile(bsconfigPath);
     const bsConfig = util.normalizeConfig(rawConfig);
 
-    const host = options.host ?? bsConfig.host;
-    const password = options.password ?? bsConfig.password;
+    const host = options.host ?? (bsConfig as any).host;
+    const password = options.password ?? (bsConfig as any).password;
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
     const builder = new ProgramBuilder();
@@ -114,7 +114,7 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        const outFile = bsConfig.outFile;
+        const outFile = (bsConfig as any).outFile;
 
         await rokuDeploy.sideload({
             password: password,
