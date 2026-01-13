@@ -43,6 +43,8 @@ describe('RooibosPlugin', () => {
         setupProgram({
             rootDir: _rootDir,
             stagingDir: _stagingFolderPath,
+            //workaround for bsc bug where outDir does not fall back to stagingDir
+            outDir: _stagingFolderPath,
             rooibos: {
                 isGlobalMethodMockingEnabled: true
             }
@@ -1068,6 +1070,8 @@ describe('RooibosPlugin', () => {
             setupProgram({
                 rootDir: _rootDir,
                 stagingDir: _stagingFolderPath,
+                //workaround for bsc bug where outDir does not fall back to stagingDir
+                outDir: _stagingFolderPath,
                 rooibos: {
                     testSceneName: 'CustomRooibosScene'
                 }
@@ -2438,7 +2442,9 @@ describe('RooibosPlugin', () => {
             beforeEach(() => {
                 setupProgram({
                     rootDir: _rootDir,
-                    stagingDir: _stagingFolderPath
+                    stagingDir: _stagingFolderPath,
+                    //workaround for bsc bug where outDir does not fall back to stagingDir
+                    outDir: _stagingFolderPath
                 });
             });
 
@@ -2692,6 +2698,8 @@ describe('RooibosPlugin', () => {
                 setupProgram({
                     rootDir: _rootDir,
                     stagingDir: _stagingFolderPath,
+                    //workaround for bsc bug where outDir does not fall back to stagingDir
+                    outDir: _stagingFolderPath,
                     rooibos: {
                         reporters: reporters
                     }
@@ -2705,56 +2713,63 @@ describe('RooibosPlugin', () => {
                 const actualLines = noLeadingWhitespace.split(sep);
                 const start = actualLines.slice(actualLines.indexOf('"reporters": [') + 1);
                 const actualReporters = start.slice(0, start.indexOf(']'));
-                const expectedReporters = expected.join(`\n${' '.repeat(36)}`); // each is its own line, indented
+                const expectedReporters = expected.join(`\n${' '.repeat(32)}`); // each is its own line, indented
 
                 let fullExpected = undent`
                     'import "pkg:/source/rooibos/JUnitTestReporter.bs"
                     'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
                     'import "pkg:/source/rooibos/MochaTestReporter.bs"
+                    function __rooibos_RuntimeConfig_method_new()
+                        m.testSuites = {}
+                        m.testSuites = m.getTestSuiteClassMap()
+                    end function
+                    function __rooibos_RuntimeConfig_method_getVersionText() as string
+                        return "${version}"
+                    end function
+                    function __rooibos_RuntimeConfig_method_getRuntimeConfig() as dynamic
+                        return {
+                            "reporters": [
+                                ${expectedReporters}
+                            ]
+                            "failFast": true
+                            "sendHomeOnFinish": true
+                            "logLevel": 0
+                            "showOnlyFailures": true
+                            "printTestTimes": true
+                            "lineWidth": 60
+                            "printLcov": false
+                            "port": "invalid"
+                            "catchCrashes": true
+                            "colorizeOutput": false
+                            "throwOnFailedAssertion": false
+                            "keepAppOpen": true
+                            "isRecordingCodeCoverage": false
+                        }
+                    end function
+                    function __rooibos_RuntimeConfig_method_getTestSuiteClassMap() as dynamic
+                        return {}
+                    end function
+                    function __rooibos_RuntimeConfig_method_getTestSuiteClassWithName(name as string) as function
+                        return m.testSuites[name]
+                    end function
+                    function __rooibos_RuntimeConfig_method_getAllTestSuitesNames() as object
+                        return m.testSuites.keys()
+                    end function
+                    function __rooibos_RuntimeConfig_method_getIgnoredTestInfo() as dynamic
+                        return {
+                            "count": 0
+                            "items": []
+                        }
+                    end function
                     function __rooibos_RuntimeConfig_builder()
                         instance = {}
-                        instance.new = function()
-                            m.testSuites = {}
-                            m.testSuites = m.getTestSuiteClassMap()
-                        end function
-                        instance.getVersionText = function() as string
-                            return "${version}"
-                        end function
-                        instance.getRuntimeConfig = function() as dynamic
-                            return {
-                                "reporters": [
-                                    ${expectedReporters}
-                                ]
-                                "failFast": true
-                                "sendHomeOnFinish": true
-                                "logLevel": 0
-                                "showOnlyFailures": true
-                                "printTestTimes": true
-                                "lineWidth": 60
-                                "printLcov": false
-                                "port": "invalid"
-                                "catchCrashes": true
-                                "colorizeOutput": false
-                                "throwOnFailedAssertion": false
-                                "keepAppOpen": true
-                                "isRecordingCodeCoverage": false
-                            }
-                        end function
-                        instance.getTestSuiteClassMap = function() as dynamic
-                            return {}
-                        end function
-                        instance.getTestSuiteClassWithName = function(name as string) as function
-                            return m.testSuites[name]
-                        end function
-                        instance.getAllTestSuitesNames = function() as object
-                            return m.testSuites.keys()
-                        end function
-                        instance.getIgnoredTestInfo = function() as dynamic
-                            return {
-                                "count": 0
-                                "items": []
-                            }
-                        end function
+                        instance.new = __rooibos_RuntimeConfig_method_new
+                        instance.getVersionText = __rooibos_RuntimeConfig_method_getVersionText
+                        instance.getRuntimeConfig = __rooibos_RuntimeConfig_method_getRuntimeConfig
+                        instance.getTestSuiteClassMap = __rooibos_RuntimeConfig_method_getTestSuiteClassMap
+                        instance.getTestSuiteClassWithName = __rooibos_RuntimeConfig_method_getTestSuiteClassWithName
+                        instance.getAllTestSuitesNames = __rooibos_RuntimeConfig_method_getAllTestSuitesNames
+                        instance.getIgnoredTestInfo = __rooibos_RuntimeConfig_method_getIgnoredTestInfo
                         return instance
                     end function
                     ' @ignore

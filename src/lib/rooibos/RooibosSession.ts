@@ -120,11 +120,12 @@ export class RooibosSession {
         }
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files[0] as BrsFile);
-            if (!this._builder.options.stagingDir) {
-                this._builder.program.logger.error(RooibosLogPrefix, 'Rooibos requires that stagingDir bsconfig option is set');
+            const outDir = this._builder.options.outDir ?? (this._builder.options as any).stagingDir;
+            if (!outDir) {
+                this._builder.program.logger.error(RooibosLogPrefix, 'Rooibos requires that the `outDir` bsconfig option is set');
                 diagnosticNoStagingDir(files[0] as BrsFile);
             } else {
-                const filePath = path.join(this._builder.options.stagingDir, 'source/rooibosMain.brs');
+                const filePath = path.join(outDir, 'source/rooibosMain.brs');
                 fsExtra.ensureDirSync(path.dirname(filePath));
                 fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
             }

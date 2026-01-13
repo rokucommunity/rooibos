@@ -29,6 +29,8 @@ describe('RooibosPlugin', () => {
             options = {
                 rootDir: _rootDir,
                 stagingDir: _stagingFolderPath,
+                //workaround for bsc bug where outDir does not fall back to stagingDir
+                outDir: _stagingFolderPath,
                 rooibos: {
                     isRecordingCodeCoverage: true,
                     coverageExcludedFiles: [
