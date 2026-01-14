@@ -50,13 +50,13 @@ describe('MockUtil', () => {
             program.logger = builder.logger;
             program.plugins.add(plugin);
             program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProgramCreate({ builder: builder });
-            plugin.afterProgramCreate({ program: program, builder: builder });
+            plugin.beforeProvideProgram({ builder: builder });
+            plugin.afterProvideProgram({ program: program, builder: builder });
 
         });
 
         afterEach(() => {
-            plugin.afterProgramCreate({ program: program, builder: builder });
+            plugin.afterProvideProgram({ program: program, builder: builder });
             builder.dispose();
             program.dispose();
             fsExtra.removeSync(tmpPath);
@@ -382,13 +382,15 @@ describe('MockUtil', () => {
                 await builder.build();
                 let a = getContents('source/code.brs');
                 let b = undent(`
+                    sub __beings_Person_method_new()
+                    end sub
+                    sub __beings_Person_method_sayHello(a1, a2)
+                        print "hello"
+                    end sub
                     function __beings_Person_builder()
                         instance = {}
-                        instance.new = sub()
-                        end sub
-                        instance.sayHello = sub(a1, a2)
-                            print "hello"
-                        end sub
+                        instance.new = __beings_Person_method_new
+                        instance.sayHello = __beings_Person_method_sayHello
                         return instance
                     end function
                     function beings_Person()

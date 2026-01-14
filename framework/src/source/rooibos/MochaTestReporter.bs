@@ -378,7 +378,7 @@ namespace rooibos
             hunks = []
             oldRangeStart = 0
             newRangeStart = 0
-            curRange = []
+            curRange as string[] = []
             oldLine = 1
             newLine = 1
             for i = 0 to diff.count() - 1
@@ -389,20 +389,20 @@ namespace rooibos
                     lines = m.splitLines(current.value)
                 end if
                 current.lines = lines
-
+                print curRange
                 if current.added = true or current.removed = true then
                     ' If we have previous context, start with that
                     if not (oldRangeStart) = true then
                         prev = diff[i - 1]
                         oldRangeStart = oldLine
                         newRangeStart = newLine
-
                         if prev <> invalid then
                             if options.context > 0 then
                                 curRange = m.contextLines(prev.lines.slice(-options.context))
                             else
-                                curRange = []
+                                curRange as string[] = []
                             end if
+                            print curRange
                             oldRangeStart -= curRange.count()
                             newRangeStart -= curRange.count()
                         end if
@@ -411,9 +411,9 @@ namespace rooibos
                     ' Output our changes
                     for each entry in lines
                         if current.added then
-                            curRange.push("+" + entry)
+                            (curRange as string[]).push("+" + entry)
                         else
-                            curRange.push("-" + entry)
+                            (curRange as string[]).push("-" + entry)
                         end if
                     end for
 

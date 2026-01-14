@@ -19,7 +19,7 @@
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "^1.0.0-alpha.49",
+        "brighterscript": "../brighterscript",
         "minimatch": "^3.0.4",
         "roku-debug": "^0.22.5",
         "roku-deploy": "^4.0.0-alpha.2",

@@ -300,7 +300,7 @@ namespace rooibos
             testReporters = []
             for each factory in m.config.reporters
                 if rooibos.common.isFunction(factory) then
-                    testReporters.push(factory(m))
+                    testReporters.push(factory(m)) 'bs:disable-line not-callable
                 end if
             end for
             if testReporters.isEmpty() then
