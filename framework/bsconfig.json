@@ -8,6 +8,7 @@
   "autoImportComponentScript": false,
   "createPackage": false,
   "stagingDir": "dist",
+  "outDir": "dist",
   // "diagnosticFilters": [
   //   {
   //     "src": "**/roku_modules/**/*.*",

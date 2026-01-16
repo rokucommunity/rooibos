@@ -6,7 +6,7 @@ import { SessionInfo } from './RooibosSessionInfo';
 import { TestSuiteBuilder } from './TestSuiteBuilder';
 import type { FileFactory } from './FileFactory';
 import type { TestSuite } from './TestSuite';
-import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoStagingDir, RooibosLogPrefix } from '../utils/Diagnostics';
+import { diagnosticErrorNoMainFound as diagnosticWarnNoMainFound, diagnosticNoOutDir, RooibosLogPrefix } from '../utils/Diagnostics';
 import undent from 'undent';
 import * as fsExtra from 'fs-extra';
 import type { MockUtil } from './MockUtil';
@@ -120,12 +120,11 @@ export class RooibosSession {
         }
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files[0] as BrsFile);
-            const outDir = this._builder.options.outDir ?? (this._builder.options as any).stagingDir;
-            if (!outDir) {
-                this._builder.program.logger.error(RooibosLogPrefix, 'Rooibos requires that the `outDir` bsconfig option is set');
-                diagnosticNoStagingDir(files[0] as BrsFile);
+            if (!this._builder.options.outDir) {
+                this._builder.program.logger.error(RooibosLogPrefix, 'Rooibos requires that outDir bsconfig option is set');
+                diagnosticNoOutDir(files[0] as BrsFile);
             } else {
-                const filePath = path.join(outDir, 'source/rooibosMain.brs');
+                const filePath = path.join(this._builder.options.outDir, 'source/rooibosMain.brs');
                 fsExtra.ensureDirSync(path.dirname(filePath));
                 fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
             }

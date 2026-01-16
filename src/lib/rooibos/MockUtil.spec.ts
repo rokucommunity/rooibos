@@ -8,7 +8,7 @@ import undent from 'undent';
 
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let outDir = s`${tmpPath}/staging`;
 
 describe('MockUtil', () => {
     let program: Program;
@@ -18,7 +18,7 @@ describe('MockUtil', () => {
 
     function getContents(filename: string) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        let contents = fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString();
+        let contents = fsExtra.readFileSync(s`${outDir}/${filename}`).toString();
         return contents;
     }
 
@@ -27,9 +27,9 @@ describe('MockUtil', () => {
             plugin = new RooibosPlugin();
             options = {
                 rootDir: _rootDir,
-                stagingDir: _stagingFolderPath,
+                stagingDir: outDir,
                 //workaround for bsc bug where outDir does not fall back to stagingDir
-                outDir: _stagingFolderPath,
+                outDir: outDir,
                 rooibos: {
                     isGlobalMethodMockingEnabled: true,
                     globalMethodMockingExcludedFiles: [
@@ -39,7 +39,7 @@ describe('MockUtil', () => {
                 },
                 allowBrighterScriptInBrightScript: true
             };
-            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(outDir);
             fsExtra.ensureDirSync(_rootDir);
 
             builder = new ProgramBuilder();
