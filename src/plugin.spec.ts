@@ -1,5 +1,5 @@
-import type { BrsFile, CallExpression, MethodStatement, ClassStatement, ExpressionStatement, FunctionStatement } from 'brighterscript';
-import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
+import type { BrsFile, CallExpression, MethodStatement, ClassStatement, ExpressionStatement } from 'brighterscript';
+import { CallfuncExpression, FunctionStatement, DottedGetExpression, Parser, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
@@ -55,7 +55,7 @@ describe('RooibosPlugin', () => {
         destroyProgram();
     });
 
-    describe.only('basic tests', () => {
+    describe('basic tests', () => {
         it('does not find tests with no annotations', () => {
             program.setFile('source/test.spec.bs', `
                 class notATest
@@ -1122,6 +1122,12 @@ describe('RooibosPlugin', () => {
                             m.expectCalled(m.thing@.getFunction("a", "b"), "return")
                         end function
 
+                        ' commented code
+                        @it("test2")
+                        function _()
+                            m.expectCalled(m.thing@.getFunction())
+                        end function
+
                         thing as roSGNode
                     end class
                 `);
@@ -1300,7 +1306,7 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(
-                    getTestSubContents()
+                    getTestFunctionContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
@@ -2602,7 +2608,7 @@ describe('RooibosPlugin', () => {
             await builder.build();
 
             expect(
-                getTestFunctionContents()
+                getTestFunctionContents('ATest1')
             ).to.eql(undent`
                 item = {
                     id: "item"
@@ -2627,53 +2633,60 @@ describe('RooibosPlugin', () => {
                 'import "pkg:/source/rooibos/JUnitTestReporter.bs"
                 'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
                 'import "pkg:/source/rooibos/MochaTestReporter.bs"
+                function __rooibos_RuntimeConfig_method_new()
+                    m.testSuites = {}
+                    m.testSuites = m.getTestSuiteClassMap()
+                end function
+                function __rooibos_RuntimeConfig_method_getVersionText() as string
+                    return "6.0.0-alpha.49"
+                end function
+                function __rooibos_RuntimeConfig_method_getRuntimeConfig() as dynamic
+                    return {
+                        "reporters": [
+                            rooibos_ConsoleTestReporter
+                        ]
+                        "failFast": true
+                        "sendHomeOnFinish": true
+                        "logLevel": 0
+                        "showOnlyFailures": true
+                        "printTestTimes": true
+                        "lineWidth": 60
+                        "printLcov": false
+                        "port": "invalid"
+                        "catchCrashes": true
+                        "colorizeOutput": false
+                        "throwOnFailedAssertion": false
+                        "keepAppOpen": true
+                        "isRecordingCodeCoverage": false
+                    }
+                end function
+                function __rooibos_RuntimeConfig_method_getTestSuiteClassMap() as dynamic
+                    return {
+                        "ATest1": ATest1
+                        "ATest2": ATest2
+                    }
+                end function
+                function __rooibos_RuntimeConfig_method_getTestSuiteClassWithName(name as string) as function
+                    return m.testSuites[name]
+                end function
+                function __rooibos_RuntimeConfig_method_getAllTestSuitesNames() as object
+                    return m.testSuites.keys()
+                end function
+                function __rooibos_RuntimeConfig_method_getIgnoredTestInfo() as dynamic
+                    return {
+                        "count": 0
+                        "items": []
+                    }
+                end function
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
-                    instance.new = function()
-                        m.testSuites = {}
-                        m.testSuites = m.getTestSuiteClassMap()
-                    end function
-                    instance.getVersionText = function() as string
-                        return "${version}"
-                    end function
-                    instance.getRuntimeConfig = function() as dynamic
-                        return {
-                            "reporters": [
-                                rooibos_ConsoleTestReporter
-                            ]
-                            "failFast": true
-                            "sendHomeOnFinish": true
-                            "logLevel": 0
-                            "showOnlyFailures": true
-                            "printTestTimes": true
-                            "lineWidth": 60
-                            "printLcov": false
-                            "port": "invalid"
-                            "catchCrashes": true
-                            "colorizeOutput": false
-                            "throwOnFailedAssertion": false
-                            "keepAppOpen": true
-                            "isRecordingCodeCoverage": false
-                        }
-                    end function
-                    instance.getTestSuiteClassMap = function() as dynamic
-                        return {
-                            "ATest1": ATest1
-                            "ATest2": ATest2
-                        }
-                    end function
-                    instance.getTestSuiteClassWithName = function(name as string) as function
-                        return m.testSuites[name]
-                    end function
-                    instance.getAllTestSuitesNames = function() as object
-                        return m.testSuites.keys()
-                    end function
-                    instance.getIgnoredTestInfo = function() as dynamic
-                        return {
-                            "count": 0
-                            "items": []
-                        }
-                    end function
+                    instance.new = __rooibos_RuntimeConfig_method_new
+                    instance.getVersionText = __rooibos_RuntimeConfig_method_getVersionText
+                    instance.getRuntimeConfig = __rooibos_RuntimeConfig_method_getRuntimeConfig
+                    instance.getTestSuiteClassMap = __rooibos_RuntimeConfig_method_getTestSuiteClassMap
+                    instance.getTestSuiteClassWithName = __rooibos_RuntimeConfig_method_getTestSuiteClassWithName
+                    instance.getAllTestSuitesNames = __rooibos_RuntimeConfig_method_getAllTestSuitesNames
+                    instance.getIgnoredTestInfo = __rooibos_RuntimeConfig_method_getIgnoredTestInfo
                     return instance
                 end function
                 ' @ignore
@@ -2717,76 +2730,31 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
 
                 await builder.build();
-                const content = getContents('rooibos/RuntimeConfig.brs');
-                const noLeadingWhitespace = content.replace(/^\s+/gm, '');
-                const actualLines = noLeadingWhitespace.split(sep);
-                const start = actualLines.slice(actualLines.indexOf('"reporters": [') + 1);
-                const actualReporters = start.slice(0, start.indexOf(']'));
-                const expectedReporters = expected.join(`\n${' '.repeat(32)}`); // each is its own line, indented
+                const content = getFunctionContents(getContents('rooibos/RuntimeConfig.brs'), /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/);
+                const reportersKey = '"reporters": [';
+                const start = content.slice(content.indexOf(reportersKey) + reportersKey.length);
+                const actualReporters = start.slice(1, start.indexOf(']')).split('\n').map(x => x.trim()).filter(x => x.length > 0);
+                const expectedReporters = expected.join(`\n${' '.repeat(28)}`); // each is its own line, indented
 
                 let fullExpected = undent`
-                    'import "pkg:/source/rooibos/JUnitTestReporter.bs"
-                    'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
-                    'import "pkg:/source/rooibos/MochaTestReporter.bs"
-                    function __rooibos_RuntimeConfig_method_new()
-                        m.testSuites = {}
-                        m.testSuites = m.getTestSuiteClassMap()
-                    end function
-                    function __rooibos_RuntimeConfig_method_getVersionText() as string
-                        return "${version}"
-                    end function
-                    function __rooibos_RuntimeConfig_method_getRuntimeConfig() as dynamic
-                        return {
-                            "reporters": [
-                                ${expectedReporters}
-                            ]
-                            "failFast": true
-                            "sendHomeOnFinish": true
-                            "logLevel": 0
-                            "showOnlyFailures": true
-                            "printTestTimes": true
-                            "lineWidth": 60
-                            "printLcov": false
-                            "port": "invalid"
-                            "catchCrashes": true
-                            "colorizeOutput": false
-                            "throwOnFailedAssertion": false
-                            "keepAppOpen": true
-                            "isRecordingCodeCoverage": false
-                        }
-                    end function
-                    function __rooibos_RuntimeConfig_method_getTestSuiteClassMap() as dynamic
-                        return {}
-                    end function
-                    function __rooibos_RuntimeConfig_method_getTestSuiteClassWithName(name as string) as function
-                        return m.testSuites[name]
-                    end function
-                    function __rooibos_RuntimeConfig_method_getAllTestSuitesNames() as object
-                        return m.testSuites.keys()
-                    end function
-                    function __rooibos_RuntimeConfig_method_getIgnoredTestInfo() as dynamic
-                        return {
-                            "count": 0
-                            "items": []
-                        }
-                    end function
-                    function __rooibos_RuntimeConfig_builder()
-                        instance = {}
-                        instance.new = __rooibos_RuntimeConfig_method_new
-                        instance.getVersionText = __rooibos_RuntimeConfig_method_getVersionText
-                        instance.getRuntimeConfig = __rooibos_RuntimeConfig_method_getRuntimeConfig
-                        instance.getTestSuiteClassMap = __rooibos_RuntimeConfig_method_getTestSuiteClassMap
-                        instance.getTestSuiteClassWithName = __rooibos_RuntimeConfig_method_getTestSuiteClassWithName
-                        instance.getAllTestSuitesNames = __rooibos_RuntimeConfig_method_getAllTestSuitesNames
-                        instance.getIgnoredTestInfo = __rooibos_RuntimeConfig_method_getIgnoredTestInfo
-                        return instance
-                    end function
-                    ' @ignore
-                    function rooibos_RuntimeConfig()
-                        instance = __rooibos_RuntimeConfig_builder()
-                        instance.new()
-                        return instance
-                    end function
+                    return {
+                        "reporters": [
+                            ${expectedReporters}
+                        ]
+                        "failFast": true
+                        "sendHomeOnFinish": true
+                        "logLevel": 0
+                        "showOnlyFailures": true
+                        "printTestTimes": true
+                        "lineWidth": 60
+                        "printLcov": false
+                        "port": "invalid"
+                        "catchCrashes": true
+                        "colorizeOutput": false
+                        "throwOnFailedAssertion": false
+                        "keepAppOpen": true
+                        "isRecordingCodeCoverage": false
+                    }
                 `;
 
                 expect(content).to.eql(fullExpected);
@@ -2986,32 +2954,29 @@ function getComponentContents(filename: string) {
     );
 }
 
-function getTestFunctionContents() {
+function getTestFunctionContents(className = 'ATest', index = 0) {
     const contents = getContents('test.spec.brs');
+    const funcNameRegex = new RegExp(`__${className}_method_rooiboos_test_case_.*_${index}`);
 
-    //try to find inline function
-    let [, result] = /instance.rooiboos_test_case_[\w_]+\s?\= function\((?:[\w,\s]*)\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents) ?? [];
-    if (result) {
-        return undent(result);
-    }
-
-    //try to find a hoisted version of the function
-    let [, testName] = /instance.rooiboos_test_case_[\w_]+\s?\=\s?([\w_]+)/img.exec(contents) ?? [];
-    if (testName) {
-        //find the function contents by this name
-        let [, result] = new RegExp(`(?:function|sub)\\s+${testName}\\((?:[\\w,\\s]*)\\)\\s?([\\S\\s]*|.*)(?=^\\s*end function)`, 'img').exec(contents) ?? [];
-        if (result) {
-            return undent(result);
-        }
-    }
-    return undefined;
+    return getFunctionContents(contents, funcNameRegex);
 }
 
-function getTestSubContents() {
-    const contents = getContents('test.spec.brs');
-    const [, body] = /rooiboos_test_case_[a-z0-9]+_\d+ \= sub\(\)([\S\s]*|.*)(?=end sub)/gim.exec(contents);
-    let result = undent(
-        body.split('end sub')[0]
-    );
-    return result;
+function getFunctionContents(rawCode: string, functionNameRegex: RegExp) {
+    const { ast } = Parser.parse(rawCode);
+    const funcStmt = ast.statements.find(stmt => {
+        if (stmt instanceof FunctionStatement) {
+            const funcName = stmt.tokens.name.text;
+            return functionNameRegex.test(funcName);
+        }
+        return false;
+    }) as FunctionStatement;
+
+    if (funcStmt) {
+        const start = funcStmt.func.body.location.range.start;
+        const end = funcStmt.func.body.location.range.end;
+        const lines = rawCode.split(/\r?\n/);
+        const extractedLines = lines.slice(start.line, end.line + 1);
+        return undent(extractedLines.join('\n'));
+    }
+    return '';
 }
