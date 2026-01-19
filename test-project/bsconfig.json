@@ -7,7 +7,6 @@
     ],
     "autoImportComponentScript": true,
     "createPackage": false,
-    "stagingDir": "dist",
     "outDir": "dist",
     "retainStagingDir": true,
     "sourceMap": true,

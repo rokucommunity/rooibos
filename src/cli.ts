@@ -114,13 +114,17 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        const outFile = (bsConfig as any).outFile;
+        const outDir = bsConfig.outDir;
+
+        await rokuDeploy.zip({
+            outDir: outDir,
+            stagingDir: bsConfig.stagingDir
+        });
 
         await rokuDeploy.sideload({
             password: password,
             host: host,
-            outFile: outFile,
-            outDir: process.cwd()
+            outDir: outDir
         });
     }
 
