@@ -42,6 +42,7 @@ async function main() {
 
     const rawConfig: BsConfig = util.loadConfigFile(bsconfigPath);
     const bsConfig = util.normalizeConfig(rawConfig);
+    bsConfig.outDir ??= (bsConfig as any).stagingDir ?? (bsConfig as any).stagingFolderPath;
 
     const host = options.host ?? (bsConfig as any).host;
     const password = options.password ?? (bsConfig as any).password;
@@ -118,7 +119,7 @@ async function main() {
 
         await rokuDeploy.zip({
             outDir: outDir,
-            stagingDir: bsConfig.stagingDir
+            stagingDir: bsConfig.outDir
         });
 
         await rokuDeploy.sideload({

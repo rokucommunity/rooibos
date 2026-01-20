@@ -29,8 +29,8 @@ describe('RooibosPlugin', () => {
         program = builder.program;
         program.plugins.add(plugin);
         program.createSourceScope(); //ensure source scope is created
-        plugin.beforeProvideProgram({ builder: builder });
-        plugin.afterProvideProgram({ program: program, builder: builder });
+        plugin.beforeProgramCreate({ builder: builder });
+        plugin.afterProgramCreate({ program: program, builder: builder });
     }
 
     function destroyProgram() {
@@ -672,7 +672,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('test full transpile', async () => {
-            plugin.afterProvideProgram({ program: program, builder: builder });
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/test.spec.bs', `
                 @suite
@@ -874,7 +874,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('handles groups that start with numbers', async () => {
-            plugin.afterProvideProgram({ program: program, builder: builder });
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/test.spec.bs', `
                 @suite
@@ -995,7 +995,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('test full transpile with complex params', async () => {
-            plugin.afterProvideProgram({ program: program, builder: builder });
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -1025,7 +1025,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('adds launch hook to existing main function', async () => {
-            plugin.afterProvideProgram({ program: program, builder: builder });
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/main.bs', `
                 sub main()
@@ -1050,7 +1050,7 @@ describe('RooibosPlugin', () => {
         });
 
         it('adds launch hook to existing main function with different case', async () => {
-            plugin.afterProvideProgram({ program: program, builder: builder });
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
             const file = program.setFile<BrsFile>('source/main.bs', `
                 sub Main()

@@ -50,12 +50,11 @@ describe('RooibosPlugin', () => {
             program.logger = builder.logger;
             program.plugins.add(plugin);
             program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProvideProgram({ builder: builder });
-            plugin.afterProvideProgram({ program: program, builder: builder });
-
+            plugin.beforeProgramCreate({ builder: builder });
+            plugin.afterProgramCreate({ program: program, builder: builder });
         });
         afterEach(() => {
-            plugin.afterProvideProgram({ builder: builder, program: program });
+            plugin.afterProgramCreate({ builder: builder, program: program });
             builder.dispose();
             program.dispose();
             fsExtra.removeSync(tmpPath);
