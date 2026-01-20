@@ -740,6 +740,9 @@ In addition to the `isGlobalMethodMockingEnabled`, you use the following config 
 
 ### Known limitations:
 
+> [!WARNING]
+> The current mocking and stubbing implementation only works within the current node context. Overrides are registered and stored inside the local `m`. Since a SceneGraph node's isolated `m` is distinct from the test suite's `m`, there is no way to mock its internal methods from the test suite.
+
 #### You must include default values in your expect calls, even if your invoking code does not use them
  - if you mock or stub a global or namespaced method, you will have to expect default parameters in your expectCalled invocation, as rooibos will receive the default values.
 
