@@ -8,7 +8,7 @@ import undent from 'undent';
 
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let outDir = s`${tmpPath}/staging`;
 
 describe('MockUtil', () => {
     let program: Program;
@@ -18,7 +18,7 @@ describe('MockUtil', () => {
 
     function getContents(filename: string) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        let contents = fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString();
+        let contents = fsExtra.readFileSync(s`${outDir}/${filename}`).toString();
         return contents;
     }
 
@@ -27,7 +27,9 @@ describe('MockUtil', () => {
             plugin = new RooibosPlugin();
             options = {
                 rootDir: _rootDir,
-                stagingDir: _stagingFolderPath,
+                stagingDir: outDir,
+                //workaround for bsc bug where outDir does not fall back to stagingDir
+                outDir: outDir,
                 rooibos: {
                     isGlobalMethodMockingEnabled: true,
                     globalMethodMockingExcludedFiles: [
@@ -37,7 +39,7 @@ describe('MockUtil', () => {
                 },
                 allowBrighterScriptInBrightScript: true
             };
-            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(outDir);
             fsExtra.ensureDirSync(_rootDir);
 
             builder = new ProgramBuilder();
@@ -328,24 +330,26 @@ describe('MockUtil', () => {
 
             it('does not affect class methods', async () => {
                 program.setFile('source/code.bs', `
-                class Person
-                    sub sayHello(a1, a2)
-                        print "hello"
-                    end sub
-                end class
-            `);
+                    class Person
+                        sub sayHello(a1, a2)
+                            print "hello"
+                        end sub
+                    end class
+                `);
                 program.validate();
                 expect(program.getDiagnostics()).to.be.empty;
                 await builder.build();
                 let a = getContents('source/code.brs');
                 let b = undent(`
+                    sub __Person_method_new()
+                    end sub
+                    sub __Person_method_sayHello(a1, a2)
+                        print "hello"
+                    end sub
                     function __Person_builder()
                         instance = {}
-                        instance.new = sub()
-                        end sub
-                        instance.sayHello = sub(a1, a2)
-                            print "hello"
-                        end sub
+                        instance.new = __Person_method_new
+                        instance.sayHello = __Person_method_sayHello
                         return instance
                     end function
                     function Person()
@@ -378,13 +382,15 @@ describe('MockUtil', () => {
                 await builder.build();
                 let a = getContents('source/code.brs');
                 let b = undent(`
+                    sub __beings_Person_method_new()
+                    end sub
+                    sub __beings_Person_method_sayHello(a1, a2)
+                        print "hello"
+                    end sub
                     function __beings_Person_builder()
                         instance = {}
-                        instance.new = sub()
-                        end sub
-                        instance.sayHello = sub(a1, a2)
-                            print "hello"
-                        end sub
+                        instance.new = __beings_Person_method_new
+                        instance.sayHello = __beings_Person_method_sayHello
                         return instance
                     end function
                     function beings_Person()

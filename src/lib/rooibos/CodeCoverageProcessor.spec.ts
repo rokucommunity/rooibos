@@ -9,7 +9,7 @@ import * as path from 'path';
 
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let outDir = s`${tmpPath}/staging`;
 
 describe('RooibosPlugin', () => {
     let program: Program;
@@ -19,7 +19,7 @@ describe('RooibosPlugin', () => {
 
     function getContents(filename: string) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        let contents = fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString();
+        let contents = fsExtra.readFileSync(s`${outDir}/${filename}`).toString();
         return undent(contents);
     }
 
@@ -28,7 +28,9 @@ describe('RooibosPlugin', () => {
             plugin = new RooibosPlugin();
             options = {
                 rootDir: _rootDir,
-                stagingDir: _stagingFolderPath,
+                stagingDir: outDir,
+                //workaround for bsc bug where outDir does not fall back to stagingDir
+                outDir: outDir,
                 rooibos: {
                     isRecordingCodeCoverage: true,
                     coverageExcludedFiles: [
@@ -37,7 +39,7 @@ describe('RooibosPlugin', () => {
                 },
                 allowBrighterScriptInBrightScript: true
             };
-            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(outDir);
             fsExtra.ensureDirSync(_rootDir);
 
             builder = new ProgramBuilder();
@@ -50,7 +52,6 @@ describe('RooibosPlugin', () => {
             program.createSourceScope(); //ensure source scope is created
             plugin.beforeProgramCreate({ builder: builder });
             plugin.afterProgramCreate({ program: program, builder: builder });
-
         });
         afterEach(() => {
             plugin.afterProgramCreate({ builder: builder, program: program });
@@ -266,38 +267,39 @@ describe('RooibosPlugin', () => {
                 await builder.build();
                 let a = getContents('source/code.brs');
                 let b = undent(`
+                function __BasicClass_method_new(a1, a2)
+                    m.field1 = invalid
+                    m.field2 = invalid
+                    RBS_CC_2_reportLine("6", 1)
+                    c = 0
+                    RBS_CC_2_reportLine("7", 1)
+                    text = ""
+                    RBS_CC_2_reportLine("8", 1): for i = 0 to 10
+                        RBS_CC_2_reportLine("9", 1)
+                        text = text + "hello"
+                        RBS_CC_2_reportLine("10", 1)
+                        c++
+                        RBS_CC_2_reportLine("11", 1)
+                        c += 1
+                        if RBS_CC_2_reportLine("12", 2) and (c = 2)
+                            RBS_CC_2_reportLine("12", 3)
+                            RBS_CC_2_reportLine("13", 1)
+                            ? "is true"
+                        end if
+                        if RBS_CC_2_reportLine("16", 2) and (c = 3)
+                            RBS_CC_2_reportLine("16", 3)
+                            RBS_CC_2_reportLine("17", 1)
+                            ? "free"
+                        else
+                            RBS_CC_2_reportLine("18", 3)
+                            RBS_CC_2_reportLine("19", 1)
+                            ? "not free"
+                        end if
+                    end for
+                end function
                 function __BasicClass_builder()
                     instance = {}
-                    instance.new = function(a1, a2)
-                        m.field1 = invalid
-                        m.field2 = invalid
-                        RBS_CC_2_reportLine("6", 1)
-                        c = 0
-                        RBS_CC_2_reportLine("7", 1)
-                        text = ""
-                        RBS_CC_2_reportLine("8", 1): for i = 0 to 10
-                            RBS_CC_2_reportLine("9", 1)
-                            text = text + "hello"
-                            RBS_CC_2_reportLine("10", 1)
-                            c++
-                            RBS_CC_2_reportLine("11", 1)
-                            c += 1
-                            if RBS_CC_2_reportLine("12", 2) and (c = 2)
-                                RBS_CC_2_reportLine("12", 3)
-                                RBS_CC_2_reportLine("13", 1)
-                                ? "is true"
-                            end if
-                            if RBS_CC_2_reportLine("16", 2) and (c = 3)
-                                RBS_CC_2_reportLine("16", 3)
-                                RBS_CC_2_reportLine("17", 1)
-                                ? "free"
-                            else
-                                RBS_CC_2_reportLine("18", 3)
-                                RBS_CC_2_reportLine("19", 1)
-                                ? "not free"
-                            end if
-                        end for
-                    end function
+                    instance.new = __BasicClass_method_new
                     return instance
                 end function
                 function BasicClass(a1, a2)

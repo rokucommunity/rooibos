@@ -2900,3 +2900,48 @@ namespace rooibos
         _rbs_ccn as roSGNodeCodeCoverage
     end interface
 end namespace
+
+
+
+function testPocket1(msg as string)
+    try
+        '  if msg = "" then
+        msg = "hello!"
+        ' end if
+        print msg
+
+
+        print msg
+
+    catch e
+    end try
+
+    print msg
+end function
+
+
+function testPocket2(msg as string)
+
+
+
+    print msg
+    try
+
+
+        if msg = "" then
+            msg = "hello!"
+
+            print msg
+        end if
+
+        msg = 123
+
+        print msg
+    catch e
+    end try
+
+
+
+    print msg.toStr()
+end function
+

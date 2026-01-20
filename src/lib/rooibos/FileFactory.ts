@@ -142,9 +142,10 @@ export class FileFactory {
     }
 
     public addFileToRootDir(program: Program, filePath: string, contents: string) {
+        const outDir = program.options.outDir ?? (program.options as any).stagingDir ?? (program.options as any).stagingFolderPath;
         try {
             fse.outputFileSync(
-                path.join(program.options.stagingDir ?? program.options.sourceRoot, filePath),
+                path.join(outDir ?? program.options.sourceRoot, filePath),
                 contents
             );
         } catch (error) {

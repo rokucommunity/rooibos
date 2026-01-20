@@ -1,5 +1,5 @@
-import type { BrsFile, CallExpression, MethodStatement, ClassStatement, ExpressionStatement, FunctionStatement } from 'brighterscript';
-import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
+import type { BrsFile, CallExpression, MethodStatement, ClassStatement, ExpressionStatement } from 'brighterscript';
+import { CallfuncExpression, FunctionStatement, DottedGetExpression, Parser, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
@@ -9,7 +9,7 @@ import { SourceMapConsumer } from 'source-map';
 import { getFileLookups } from './lib/rooibos/Utils';
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let outDir = s`${tmpPath}/staging`;
 const version = fsExtra.readJsonSync(__dirname + '/../package.json').version;
 
 describe('RooibosPlugin', () => {
@@ -18,7 +18,7 @@ describe('RooibosPlugin', () => {
     let plugin: RooibosPlugin;
 
     function setupProgram(options) {
-        fsExtra.ensureDirSync(_stagingFolderPath);
+        fsExtra.ensureDirSync(outDir);
         fsExtra.ensureDirSync(_rootDir);
 
         plugin = new RooibosPlugin();
@@ -42,7 +42,9 @@ describe('RooibosPlugin', () => {
     beforeEach(() => {
         setupProgram({
             rootDir: _rootDir,
-            stagingDir: _stagingFolderPath,
+            stagingDir: outDir,
+            //workaround for bsc bug where outDir does not fall back to stagingDir
+            outDir: outDir,
             rooibos: {
                 isGlobalMethodMockingEnabled: true
             }
@@ -639,17 +641,19 @@ describe('RooibosPlugin', () => {
                     end function
                 end class
             `, `
+                sub __ATest_method_new()
+                    m.super0_new()
+                end sub
+                function __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0()
+                    number = 123
+                    m.assertEqual("123", ("alpha-" + bslib_toString(number) + "-beta"))
+                    m.assertEqual(123, 123)
+                end function
                 function __ATest_builder()
                     instance = __rooibos_BaseTestSuite_builder()
                     instance.super0_new = instance.new
-                    instance.new = sub()
-                        m.super0_new()
-                    end sub
-                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
-                        number = 123
-                        m.assertEqual("123", ("alpha-" + bslib_toString(number) + "-beta"))
-                        m.assertEqual(123, 123)
-                    end function
+                    instance.new = __ATest_method_new
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0
                     return instance
                 end function
                 function ATest()
@@ -660,9 +664,9 @@ describe('RooibosPlugin', () => {
                 '//# sourceMappingURL=./test.spec.brs.map
             `, [
                 // m.assert|Equal("123", ("alpha-" + bslib_toString(number) + "-beta"))    =>    m.|assertEqual("123", `alpha-${number}-beta`)
-                { dest: [8, 16], src: [8, 26] },
+                { dest: [5, 16], src: [8, 26] },
                 // m.assert|Equal(123, 123) => m.|assertEqual(123, 123)
-                { dest: [9, 16], src: [9, 26] }
+                { dest: [6, 16], src: [9, 26] }
 
             ]);
         });
@@ -715,140 +719,144 @@ describe('RooibosPlugin', () => {
             expect(
                 getContents('test.spec.brs')
             ).to.eql(undent`
-                function __ATest_builder()
-                    instance = __rooibos_BaseTestSuite_builder()
-                    instance.super0_new = instance.new
-                    instance.new = sub()
-                        m.super0_new()
-                    end sub
-                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
-                        m.currentAssertLineNumber = 8
-                        m.assertEqual(1, 1)
+                sub __ATest_method_new()
+                    m.super0_new()
+                end sub
+                function __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0()
+                    m.currentAssertLineNumber = 8
+                    m.assertEqual(1, 1)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                    if 1 = 1
+                        m.currentAssertLineNumber = 10
+                        m.assertEqual(2, 2)
                         if m.currentResult?.isFail = true then
                             m.done()
                             return invalid
                         end if
-                        if 1 = 1
-                            m.currentAssertLineNumber = 10
-                            m.assertEqual(2, 2)
+                        if 2 = 2
+                            m.currentAssertLineNumber = 12
+                            m.assertTrue(false)
                             if m.currentResult?.isFail = true then
                                 m.done()
                                 return invalid
                             end if
-                            if 2 = 2
-                                m.currentAssertLineNumber = 12
-                                m.assertTrue(false)
-                                if m.currentResult?.isFail = true then
-                                    m.done()
-                                    return invalid
-                                end if
-                            end if
                         end if
-                    end function
-                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1 = sub()
-                        m.currentAssertLineNumber = 18
-                        m.assertEqual(1, 1)
+                    end if
+                end function
+                sub __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1()
+                    m.currentAssertLineNumber = 18
+                    m.assertEqual(1, 1)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
+                    if 1 = 1
+                        m.currentAssertLineNumber = 20
+                        m.assertEqual(2, 2)
                         if m.currentResult?.isFail = true then
                             m.done()
                             return
                         end if
-                        if 1 = 1
-                            m.currentAssertLineNumber = 20
-                            m.assertEqual(2, 2)
+                        if 2 = 2
+                            m.currentAssertLineNumber = 22
+                            m.assertTrue(false)
                             if m.currentResult?.isFail = true then
                                 m.done()
                                 return
                             end if
-                            if 2 = 2
-                                m.currentAssertLineNumber = 22
-                                m.assertTrue(false)
-                                if m.currentResult?.isFail = true then
-                                    m.done()
-                                    return
-                                end if
-                            end if
                         end if
-                    end sub
+                    end if
+                end sub
+                function __ATest_method_getTestSuiteData()
+                    return {
+                        name: "ATest"
+                        isSolo: false
+                        noCatch: false
+                        isIgnored: false
+                        isAsync: false
+                        pkgPath: "${s`source/test.spec.brs`}"
+                        destPath: "${s`source/test.spec.bs`}"
+                        filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
+                        lineNumber: 3
+                        valid: true
+                        hasFailures: false
+                        hasSoloTests: false
+                        hasIgnoredTests: false
+                        hasSoloGroups: false
+                        setupFunctionName: ""
+                        tearDownFunctionName: ""
+                        beforeEachFunctionName: ""
+                        afterEachFunctionName: ""
+                        isNodeTest: false
+                        isAsync: false
+                        asyncTimeout: 60000
+                        nodeName: ""
+                        generatedNodeName: "ATest"
+                        testGroups: [
+                            {
+                                name: "groupA"
+                                isSolo: false
+                                isIgnored: false
+                                isAsync: false
+                                filename: "${s`source/test.spec.brs`}"
+                                lineNumber: 4
+                                setupFunctionName: ""
+                                tearDownFunctionName: ""
+                                beforeEachFunctionName: ""
+                                afterEachFunctionName: ""
+                                testCases: [
+                                    {
+                                        isSolo: false
+                                        noCatch: false
+                                        funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
+                                        isIgnored: false
+                                        isAsync: false
+                                        asyncTimeout: 2000
+                                        slow: 1000
+                                        isParamTest: false
+                                        name: "is test1"
+                                        lineNumber: 7
+                                        paramLineNumber: 0
+                                        assertIndex: 0
+                                        rawParams: invalid
+                                        paramTestIndex: 0
+                                        expectedNumberOfParams: 0
+                                        isParamsValid: true
+                                    }
+                                    {
+                                        isSolo: false
+                                        noCatch: false
+                                        funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1"
+                                        isIgnored: false
+                                        isAsync: false
+                                        asyncTimeout: 2000
+                                        slow: 75
+                                        isParamTest: false
+                                        name: "is test2"
+                                        lineNumber: 17
+                                        paramLineNumber: 0
+                                        assertIndex: 0
+                                        rawParams: invalid
+                                        paramTestIndex: 0
+                                        expectedNumberOfParams: 0
+                                        isParamsValid: true
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                end function
+                function __ATest_builder()
+                    instance = __rooibos_BaseTestSuite_builder()
+                    instance.super0_new = instance.new
+                    instance.new = __ATest_method_new
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1 = __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1
                     instance.super0_getTestSuiteData = instance.getTestSuiteData
-                    instance.getTestSuiteData = function()
-                        return {
-                            name: "ATest"
-                            isSolo: false
-                            noCatch: false
-                            isIgnored: false
-                            isAsync: false
-                            pkgPath: "${s`source/test.spec.brs`}"
-                            destPath: "${s`source/test.spec.bs`}"
-                            filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
-                            lineNumber: 3
-                            valid: true
-                            hasFailures: false
-                            hasSoloTests: false
-                            hasIgnoredTests: false
-                            hasSoloGroups: false
-                            setupFunctionName: ""
-                            tearDownFunctionName: ""
-                            beforeEachFunctionName: ""
-                            afterEachFunctionName: ""
-                            isNodeTest: false
-                            isAsync: false
-                            asyncTimeout: 60000
-                            nodeName: ""
-                            generatedNodeName: "ATest"
-                            testGroups: [
-                                {
-                                    name: "groupA"
-                                    isSolo: false
-                                    isIgnored: false
-                                    isAsync: false
-                                    filename: "${s`source/test.spec.brs`}"
-                                    lineNumber: 4
-                                    setupFunctionName: ""
-                                    tearDownFunctionName: ""
-                                    beforeEachFunctionName: ""
-                                    afterEachFunctionName: ""
-                                    testCases: [
-                                        {
-                                            isSolo: false
-                                            noCatch: false
-                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
-                                            isIgnored: false
-                                            isAsync: false
-                                            asyncTimeout: 2000
-                                            slow: 1000
-                                            isParamTest: false
-                                            name: "is test1"
-                                            lineNumber: 7
-                                            paramLineNumber: 0
-                                            assertIndex: 0
-                                            rawParams: invalid
-                                            paramTestIndex: 0
-                                            expectedNumberOfParams: 0
-                                            isParamsValid: true
-                                        }
-                                        {
-                                            isSolo: false
-                                            noCatch: false
-                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1"
-                                            isIgnored: false
-                                            isAsync: false
-                                            asyncTimeout: 2000
-                                            slow: 75
-                                            isParamTest: false
-                                            name: "is test2"
-                                            lineNumber: 17
-                                            paramLineNumber: 0
-                                            assertIndex: 0
-                                            rawParams: invalid
-                                            paramTestIndex: 0
-                                            expectedNumberOfParams: 0
-                                            isParamsValid: true
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    end function
+                    instance.getTestSuiteData = __ATest_method_getTestSuiteData
                     return instance
                 end function
                 function ATest()
@@ -897,76 +905,79 @@ describe('RooibosPlugin', () => {
             expect(
                 getContents('test.spec.brs')
             ).to.eql(undent`
+                sub __ATest_method_new()
+                    m.super0_new()
+                end sub
+                function __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0()
+                end function
+                function __ATest_method_getTestSuiteData()
+                    return {
+                        name: "ATest"
+                        isSolo: false
+                        noCatch: false
+                        isIgnored: false
+                        isAsync: false
+                        pkgPath: "${s`source/test.spec.brs`}"
+                        destPath: "${s`source/test.spec.bs`}"
+                        filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
+                        lineNumber: 3
+                        valid: true
+                        hasFailures: false
+                        hasSoloTests: false
+                        hasIgnoredTests: false
+                        hasSoloGroups: false
+                        setupFunctionName: ""
+                        tearDownFunctionName: ""
+                        beforeEachFunctionName: ""
+                        afterEachFunctionName: ""
+                        isNodeTest: false
+                        isAsync: false
+                        asyncTimeout: 60000
+                        nodeName: ""
+                        generatedNodeName: "ATest"
+                        testGroups: [
+                            {
+                                name: "1groupA"
+                                isSolo: false
+                                isIgnored: false
+                                isAsync: false
+                                filename: "${s`source/test.spec.brs`}"
+                                lineNumber: 4
+                                setupFunctionName: ""
+                                tearDownFunctionName: ""
+                                beforeEachFunctionName: ""
+                                afterEachFunctionName: ""
+                                testCases: [
+                                    {
+                                        isSolo: false
+                                        noCatch: false
+                                        funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
+                                        isIgnored: false
+                                        isAsync: false
+                                        asyncTimeout: 2000
+                                        slow: 1000
+                                        isParamTest: false
+                                        name: "is test1"
+                                        lineNumber: 7
+                                        paramLineNumber: 0
+                                        assertIndex: 0
+                                        rawParams: invalid
+                                        paramTestIndex: 0
+                                        expectedNumberOfParams: 0
+                                        isParamsValid: true
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                end function
                 function __ATest_builder()
                     instance = __rooibos_BaseTestSuite_builder()
                     instance.super0_new = instance.new
-                    instance.new = sub()
-                        m.super0_new()
-                    end sub
-                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = function()
-                    end function
+                    instance.new = __ATest_method_new
+                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0
                     instance.super0_getTestSuiteData = instance.getTestSuiteData
-                    instance.getTestSuiteData = function()
-                        return {
-                            name: "ATest"
-                            isSolo: false
-                            noCatch: false
-                            isIgnored: false
-                            isAsync: false
-                            pkgPath: "${s`source/test.spec.brs`}"
-                            destPath: "${s`source/test.spec.bs`}"
-                            filePath: "${s`${tmpPath}/rootDir/source/test.spec.bs`}"
-                            lineNumber: 3
-                            valid: true
-                            hasFailures: false
-                            hasSoloTests: false
-                            hasIgnoredTests: false
-                            hasSoloGroups: false
-                            setupFunctionName: ""
-                            tearDownFunctionName: ""
-                            beforeEachFunctionName: ""
-                            afterEachFunctionName: ""
-                            isNodeTest: false
-                            isAsync: false
-                            asyncTimeout: 60000
-                            nodeName: ""
-                            generatedNodeName: "ATest"
-                            testGroups: [
-                                {
-                                    name: "1groupA"
-                                    isSolo: false
-                                    isIgnored: false
-                                    isAsync: false
-                                    filename: "${s`source/test.spec.brs`}"
-                                    lineNumber: 4
-                                    setupFunctionName: ""
-                                    tearDownFunctionName: ""
-                                    beforeEachFunctionName: ""
-                                    afterEachFunctionName: ""
-                                    testCases: [
-                                        {
-                                            isSolo: false
-                                            noCatch: false
-                                            funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
-                                            isIgnored: false
-                                            isAsync: false
-                                            asyncTimeout: 2000
-                                            slow: 1000
-                                            isParamTest: false
-                                            name: "is test1"
-                                            lineNumber: 7
-                                            paramLineNumber: 0
-                                            assertIndex: 0
-                                            rawParams: invalid
-                                            paramTestIndex: 0
-                                            expectedNumberOfParams: 0
-                                            isParamsValid: true
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    end function
+                    instance.getTestSuiteData = __ATest_method_getTestSuiteData
                     return instance
                 end function
                 function ATest()
@@ -1067,7 +1078,9 @@ describe('RooibosPlugin', () => {
         it('adds launch hook with custom scene', async () => {
             setupProgram({
                 rootDir: _rootDir,
-                stagingDir: _stagingFolderPath,
+                stagingDir: outDir,
+                //workaround for bsc bug where outDir does not fall back to stagingDir
+                outDir: outDir,
                 rooibos: {
                     testSceneName: 'CustomRooibosScene'
                 }
@@ -1107,6 +1120,12 @@ describe('RooibosPlugin', () => {
                             m.expectCalled(m.thing@.getFunction(), "return")
                             m.expectCalled(m.thing@.getFunction("a", "b"))
                             m.expectCalled(m.thing@.getFunction("a", "b"), "return")
+                        end function
+
+                        ' commented code
+                        @it("test2")
+                        function _()
+                            m.expectCalled(m.thing@.getFunction())
                         end function
 
                         thing as roSGNode
@@ -1287,7 +1306,7 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(
-                    getTestSubContents()
+                    getTestFunctionContents()
                 ).to.eql(undent`
                     m.currentAssertLineNumber = 7
                     m._expectCalled(m.thing, "getFunction", m, "m.thing", [])
@@ -2438,7 +2457,9 @@ describe('RooibosPlugin', () => {
             beforeEach(() => {
                 setupProgram({
                     rootDir: _rootDir,
-                    stagingDir: _stagingFolderPath
+                    stagingDir: outDir,
+                    //workaround for bsc bug where outDir does not fall back to stagingDir
+                    outDir: outDir
                 });
             });
 
@@ -2587,7 +2608,7 @@ describe('RooibosPlugin', () => {
             await builder.build();
 
             expect(
-                getTestFunctionContents()
+                getTestFunctionContents('ATest1')
             ).to.eql(undent`
                 item = {
                     id: "item"
@@ -2612,53 +2633,60 @@ describe('RooibosPlugin', () => {
                 'import "pkg:/source/rooibos/JUnitTestReporter.bs"
                 'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
                 'import "pkg:/source/rooibos/MochaTestReporter.bs"
+                function __rooibos_RuntimeConfig_method_new()
+                    m.testSuites = {}
+                    m.testSuites = m.getTestSuiteClassMap()
+                end function
+                function __rooibos_RuntimeConfig_method_getVersionText() as string
+                    return "6.0.0-alpha.49"
+                end function
+                function __rooibos_RuntimeConfig_method_getRuntimeConfig() as dynamic
+                    return {
+                        "reporters": [
+                            rooibos_ConsoleTestReporter
+                        ]
+                        "failFast": true
+                        "sendHomeOnFinish": true
+                        "logLevel": 0
+                        "showOnlyFailures": true
+                        "printTestTimes": true
+                        "lineWidth": 60
+                        "printLcov": false
+                        "port": "invalid"
+                        "catchCrashes": true
+                        "colorizeOutput": false
+                        "throwOnFailedAssertion": false
+                        "keepAppOpen": true
+                        "isRecordingCodeCoverage": false
+                    }
+                end function
+                function __rooibos_RuntimeConfig_method_getTestSuiteClassMap() as dynamic
+                    return {
+                        "ATest1": ATest1
+                        "ATest2": ATest2
+                    }
+                end function
+                function __rooibos_RuntimeConfig_method_getTestSuiteClassWithName(name as string) as function
+                    return m.testSuites[name]
+                end function
+                function __rooibos_RuntimeConfig_method_getAllTestSuitesNames() as object
+                    return m.testSuites.keys()
+                end function
+                function __rooibos_RuntimeConfig_method_getIgnoredTestInfo() as dynamic
+                    return {
+                        "count": 0
+                        "items": []
+                    }
+                end function
                 function __rooibos_RuntimeConfig_builder()
                     instance = {}
-                    instance.new = function()
-                        m.testSuites = {}
-                        m.testSuites = m.getTestSuiteClassMap()
-                    end function
-                    instance.getVersionText = function() as string
-                        return "${version}"
-                    end function
-                    instance.getRuntimeConfig = function() as dynamic
-                        return {
-                            "reporters": [
-                                rooibos_ConsoleTestReporter
-                            ]
-                            "failFast": true
-                            "sendHomeOnFinish": true
-                            "logLevel": 0
-                            "showOnlyFailures": true
-                            "printTestTimes": true
-                            "lineWidth": 60
-                            "printLcov": false
-                            "port": "invalid"
-                            "catchCrashes": true
-                            "colorizeOutput": false
-                            "throwOnFailedAssertion": false
-                            "keepAppOpen": true
-                            "isRecordingCodeCoverage": false
-                        }
-                    end function
-                    instance.getTestSuiteClassMap = function() as dynamic
-                        return {
-                            "ATest1": ATest1
-                            "ATest2": ATest2
-                        }
-                    end function
-                    instance.getTestSuiteClassWithName = function(name as string) as function
-                        return m.testSuites[name]
-                    end function
-                    instance.getAllTestSuitesNames = function() as object
-                        return m.testSuites.keys()
-                    end function
-                    instance.getIgnoredTestInfo = function() as dynamic
-                        return {
-                            "count": 0
-                            "items": []
-                        }
-                    end function
+                    instance.new = __rooibos_RuntimeConfig_method_new
+                    instance.getVersionText = __rooibos_RuntimeConfig_method_getVersionText
+                    instance.getRuntimeConfig = __rooibos_RuntimeConfig_method_getRuntimeConfig
+                    instance.getTestSuiteClassMap = __rooibos_RuntimeConfig_method_getTestSuiteClassMap
+                    instance.getTestSuiteClassWithName = __rooibos_RuntimeConfig_method_getTestSuiteClassWithName
+                    instance.getAllTestSuitesNames = __rooibos_RuntimeConfig_method_getAllTestSuitesNames
+                    instance.getIgnoredTestInfo = __rooibos_RuntimeConfig_method_getIgnoredTestInfo
                     return instance
                 end function
                 ' @ignore
@@ -2691,7 +2719,9 @@ describe('RooibosPlugin', () => {
             async function runReporterTest(reporters: string[], expected: string[]) {
                 setupProgram({
                     rootDir: _rootDir,
-                    stagingDir: _stagingFolderPath,
+                    stagingDir: outDir,
+                    //workaround for bsc bug where outDir does not fall back to stagingDir
+                    outDir: outDir,
                     rooibos: {
                         reporters: reporters
                     }
@@ -2700,69 +2730,31 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics()).to.be.empty;
 
                 await builder.build();
-                const content = getContents('rooibos/RuntimeConfig.brs');
-                const noLeadingWhitespace = content.replace(/^\s+/gm, '');
-                const actualLines = noLeadingWhitespace.split(sep);
-                const start = actualLines.slice(actualLines.indexOf('"reporters": [') + 1);
-                const actualReporters = start.slice(0, start.indexOf(']'));
-                const expectedReporters = expected.join(`\n${' '.repeat(36)}`); // each is its own line, indented
+                const content = getFunctionContents(getContents('rooibos/RuntimeConfig.brs'), /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/);
+                const reportersKey = '"reporters": [';
+                const start = content.slice(content.indexOf(reportersKey) + reportersKey.length);
+                const actualReporters = start.slice(1, start.indexOf(']')).split('\n').map(x => x.trim()).filter(x => x.length > 0);
+                const expectedReporters = expected.join(`\n${' '.repeat(28)}`); // each is its own line, indented
 
                 let fullExpected = undent`
-                    'import "pkg:/source/rooibos/JUnitTestReporter.bs"
-                    'import "pkg:/source/rooibos/ConsoleTestReporter.bs"
-                    'import "pkg:/source/rooibos/MochaTestReporter.bs"
-                    function __rooibos_RuntimeConfig_builder()
-                        instance = {}
-                        instance.new = function()
-                            m.testSuites = {}
-                            m.testSuites = m.getTestSuiteClassMap()
-                        end function
-                        instance.getVersionText = function() as string
-                            return "${version}"
-                        end function
-                        instance.getRuntimeConfig = function() as dynamic
-                            return {
-                                "reporters": [
-                                    ${expectedReporters}
-                                ]
-                                "failFast": true
-                                "sendHomeOnFinish": true
-                                "logLevel": 0
-                                "showOnlyFailures": true
-                                "printTestTimes": true
-                                "lineWidth": 60
-                                "printLcov": false
-                                "port": "invalid"
-                                "catchCrashes": true
-                                "colorizeOutput": false
-                                "throwOnFailedAssertion": false
-                                "keepAppOpen": true
-                                "isRecordingCodeCoverage": false
-                            }
-                        end function
-                        instance.getTestSuiteClassMap = function() as dynamic
-                            return {}
-                        end function
-                        instance.getTestSuiteClassWithName = function(name as string) as function
-                            return m.testSuites[name]
-                        end function
-                        instance.getAllTestSuitesNames = function() as object
-                            return m.testSuites.keys()
-                        end function
-                        instance.getIgnoredTestInfo = function() as dynamic
-                            return {
-                                "count": 0
-                                "items": []
-                            }
-                        end function
-                        return instance
-                    end function
-                    ' @ignore
-                    function rooibos_RuntimeConfig()
-                        instance = __rooibos_RuntimeConfig_builder()
-                        instance.new()
-                        return instance
-                    end function
+                    return {
+                        "reporters": [
+                            ${expectedReporters}
+                        ]
+                        "failFast": true
+                        "sendHomeOnFinish": true
+                        "logLevel": 0
+                        "showOnlyFailures": true
+                        "printTestTimes": true
+                        "lineWidth": 60
+                        "printLcov": false
+                        "port": "invalid"
+                        "catchCrashes": true
+                        "colorizeOutput": false
+                        "throwOnFailedAssertion": false
+                        "keepAppOpen": true
+                        "isRecordingCodeCoverage": false
+                    }
                 `;
 
                 expect(content).to.eql(fullExpected);
@@ -2923,7 +2915,7 @@ describe('RooibosPlugin', () => {
         const actualContents = getContents('test.spec.brs');
         expect(actualContents).to.eql(undent`${expectedText}`);
 
-        const map = fsExtra.readFileSync(s`${_stagingFolderPath}/source/test.spec.brs.map`).toString();
+        const map = fsExtra.readFileSync(s`${outDir}/source/test.spec.brs.map`).toString();
 
         //load the source map
         await SourceMapConsumer.with(map, null, (consumer) => {
@@ -2952,29 +2944,39 @@ describe('RooibosPlugin', () => {
 
 function getContents(filename: string) {
     return undent(
-        fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString()
+        fsExtra.readFileSync(s`${outDir}/source/${filename}`).toString()
     );
 }
 
 function getComponentContents(filename: string) {
     return undent(
-        fsExtra.readFileSync(s`${_stagingFolderPath}/components/${filename}`).toString()
+        fsExtra.readFileSync(s`${outDir}/components/${filename}`).toString()
     );
 }
 
-function getTestFunctionContents() {
+function getTestFunctionContents(className = 'ATest', index = 0) {
     const contents = getContents('test.spec.brs');
+    const funcNameRegex = new RegExp(`__${className}_method_rooiboos_test_case_.*_${index}`);
 
-    let [, result] = /instance.[\w_]+\s?\= function\((?:[\w,\s]*)\)\s?([\S\s]*|.*)(?=^\s*end function\s+instance\.)/img.exec(contents);
-
-    return undent(result);
+    return getFunctionContents(contents, funcNameRegex);
 }
 
-function getTestSubContents() {
-    const contents = getContents('test.spec.brs');
-    const [, body] = /rooiboos_test_case_[a-z0-9]+_\d+ \= sub\(\)([\S\s]*|.*)(?=end sub)/gim.exec(contents);
-    let result = undent(
-        body.split('end sub')[0]
-    );
-    return result;
+function getFunctionContents(rawCode: string, functionNameRegex: RegExp) {
+    const { ast } = Parser.parse(rawCode);
+    const funcStmt = ast.statements.find(stmt => {
+        if (stmt instanceof FunctionStatement) {
+            const funcName = stmt.tokens.name.text;
+            return functionNameRegex.test(funcName);
+        }
+        return false;
+    }) as FunctionStatement;
+
+    if (funcStmt) {
+        const start = funcStmt.func.body.location.range.start;
+        const end = funcStmt.func.body.location.range.end;
+        const lines = rawCode.split(/\r?\n/);
+        const extractedLines = lines.slice(start.line, end.line + 1);
+        return undent(extractedLines.join('\n'));
+    }
+    return '';
 }

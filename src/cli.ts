@@ -42,9 +42,10 @@ async function main() {
 
     const rawConfig: BsConfig = util.loadConfigFile(bsconfigPath);
     const bsConfig = util.normalizeConfig(rawConfig);
+    bsConfig.outDir ??= (bsConfig as any).stagingDir ?? (bsConfig as any).stagingFolderPath;
 
-    const host = options.host ?? bsConfig.host;
-    const password = options.password ?? bsConfig.password;
+    const host = options.host ?? (bsConfig as any).host;
+    const password = options.password ?? (bsConfig as any).password;
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
     const builder = new ProgramBuilder();
@@ -114,13 +115,17 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        const outFile = bsConfig.outFile;
+        const outDir = bsConfig.outDir;
+
+        await rokuDeploy.zip({
+            outDir: outDir,
+            stagingDir: bsConfig.outDir
+        });
 
         await rokuDeploy.sideload({
             password: password,
             host: host,
-            outFile: outFile,
-            outDir: process.cwd()
+            outDir: outDir
         });
     }
 

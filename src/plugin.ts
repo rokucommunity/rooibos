@@ -3,13 +3,13 @@ import type {
     CompilerPlugin,
     ProgramBuilder,
     XmlFile,
-    BeforeProgramCreateEvent,
-    AfterProgramCreateEvent,
-    AfterProgramValidateEvent,
     OnPrepareFileEvent,
     BeforeBuildProgramEvent,
     AfterProvideFileEvent,
-    AfterFileRemoveEvent
+    BeforeProgramCreateEvent,
+    AfterFileRemoveEvent,
+    AfterProgramCreateEvent,
+    AfterProgramValidateEvent
 } from 'brighterscript';
 import {
     isBrsFile,

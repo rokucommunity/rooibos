@@ -266,11 +266,11 @@ export function diagnosticCorruptTestProduced(file: BrsFile, annotation: Annotat
     );
 }
 
-export function diagnosticNoStagingDir(file: BrsFile) {
+export function diagnosticNoOutDir(file: BrsFile) {
     addDiagnostic(
         file,
         2221,
-        `The bsconfig must define stagingDir, or the deprecated stagingFolderPath options`, 1, 1, 1, 1, DiagnosticSeverity.Error
+        `The bsconfig must define the outDir option`, 1, 1, 1, 1, DiagnosticSeverity.Error
     );
 }
 
@@ -282,4 +282,3 @@ export function diagnosticSlowAnnotationRequiresNumber(file: BrsFile, annotation
         annotation
     );
 }
-
