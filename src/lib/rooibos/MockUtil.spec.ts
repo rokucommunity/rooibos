@@ -50,13 +50,13 @@ describe('MockUtil', () => {
             program.logger = builder.logger;
             program.plugins.add(plugin);
             program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProgramCreate({ builder: builder });
-            plugin.afterProgramCreate({ program: program, builder: builder });
+            plugin.beforeProvideProgram({ builder: builder });
+            plugin.afterProvideProgram({ program: program, builder: builder });
 
         });
 
         afterEach(() => {
-            plugin.afterProgramCreate({ program: program, builder: builder });
+            plugin.afterProvideProgram({ program: program, builder: builder });
             builder.dispose();
             program.dispose();
             fsExtra.removeSync(tmpPath);
