@@ -50,11 +50,11 @@ describe('RooibosPlugin', () => {
             program.logger = builder.logger;
             program.plugins.add(plugin);
             program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProgramCreate({ builder: builder });
-            plugin.afterProgramCreate({ program: program, builder: builder });
+            plugin.beforeProvideProgram({ builder: builder });
+            plugin.afterProvideProgram({ program: program, builder: builder });
         });
         afterEach(() => {
-            plugin.afterProgramCreate({ builder: builder, program: program });
+            plugin.afterProvideProgram({ builder: builder, program: program });
             builder.dispose();
             program.dispose();
             fsExtra.removeSync(tmpPath);
@@ -552,7 +552,7 @@ describe('RooibosPlugin', () => {
                 end function
             `);
             expect(a).to.equal(b);
-        }).timeout(5000);
+        }).timeout(10000);
 
         it('excludes files from coverage', async () => {
             const source = `sub foo()

@@ -6,10 +6,10 @@ import type {
     OnPrepareFileEvent,
     BeforeBuildProgramEvent,
     AfterProvideFileEvent,
-    BeforeProgramCreateEvent,
-    AfterFileRemoveEvent,
-    AfterProgramCreateEvent,
-    AfterProgramValidateEvent
+    BeforeProvideProgramEvent,
+    AfterRemoveFileEvent,
+    AfterProvideProgramEvent,
+    AfterValidateProgramEvent
 } from 'brighterscript';
 import {
     isBrsFile,
@@ -37,7 +37,7 @@ export class RooibosPlugin implements CompilerPlugin {
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
 
-    beforeProgramCreate(event: BeforeProgramCreateEvent): void {
+    beforeProvideProgram(event: BeforeProvideProgramEvent): void {
         const builder = event.builder;
         this._builder = builder;
 
@@ -122,11 +122,11 @@ export class RooibosPlugin implements CompilerPlugin {
         return config;
     }
 
-    afterProgramCreate(event: AfterProgramCreateEvent) {
+    afterProvideProgram(event: AfterProvideProgramEvent) {
         this.fileFactory.addFrameworkFiles(event.program);
     }
 
-    afterFileRemove(event: AfterFileRemoveEvent) {
+    afterRemoveFile(event: AfterRemoveFileEvent) {
         // eslint-disable-next-line @typescript-eslint/dot-notation
         const xmlFile = event.file['rooibosXmlFile'] as XmlFile;
         if (xmlFile) {
@@ -213,7 +213,7 @@ export class RooibosPlugin implements CompilerPlugin {
         this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, event.program);
     }
 
-    afterProgramValidate(event: AfterProgramValidateEvent) {
+    afterValidateProgram(event: AfterValidateProgramEvent) {
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
             testSuite.validate();

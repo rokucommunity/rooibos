@@ -1780,7 +1780,7 @@ namespace rooibos
                     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                     ' NOTE: Legacy check for children via array support.
                     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                    for each value in subset
+                    for each value in subset as roArray
                         if rooibos.common.nodeContains(node, value) then
                             if msg = "" then
                                 msg = `expected "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(node, true))}" to not contain child "${rooibos.common.truncateString(rooibos.common.getTypeWithComponentWrapper(value, true))}" by reference`
@@ -1791,7 +1791,7 @@ namespace rooibos
                     end for
                 else if rooibos.common.isAssociativeArray(subset) then
                     foundValues = {}
-                    for each key in subset
+                    for each key in subset as roAssociativeArray
                         subsetValue = subset[key]
                         nodeValue = node[key]
                         if rooibos.common.eqValues(nodeValue, subsetValue) then
