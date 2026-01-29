@@ -2638,7 +2638,7 @@ describe('RooibosPlugin', () => {
                     m.testSuites = m.getTestSuiteClassMap()
                 end function
                 function __rooibos_RuntimeConfig_method_getVersionText() as string
-                    return "6.0.0-alpha.49"
+                    return "${version}"
                 end function
                 function __rooibos_RuntimeConfig_method_getRuntimeConfig() as dynamic
                     return {
