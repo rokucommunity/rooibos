@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.50](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.49...v6.0.0-alpha.50) - 2026-01-29
+### Changed
+ - bsc-v1.0.0-alpha.50 ([#365](https://github.com/rokucommunity/rooibos/pull/365))
+ - upgrade to [brighterscript@1.0.0-alpha.50](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha50---2026-01-28). Notable changes since 1.0.0-alpha.49:
+     - Adds ability to declare type on "For Each" loop item ([#1614](https://github.com/rokucommunity/brighterscript/pull/1614))
+     - Intersection Type ([#1603](https://github.com/rokucommunity/brighterscript/pull/1603))
+     - Re-ran Doc scraper ([#1609](https://github.com/rokucommunity/brighterscript/pull/1609))
+     - #1397 Align event names ([#1557](https://github.com/rokucommunity/brighterscript/pull/1557))
+     - Fix bug with stagingDir fallback not working ([#1606](https://github.com/rokucommunity/brighterscript/pull/1606))
+     - Fix bug with normalizing `virtual:/` path scheme ([#1607](https://github.com/rokucommunity/brighterscript/pull/1607))
+     - Fixes getting types from pocket tables in Try/Catch ([#1602](https://github.com/rokucommunity/brighterscript/pull/1602))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.50](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha50---2026-01-28). Notable changes since 1.0.0-alpha.49:
+ - upgrade to [ropm@0.11.4](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0114---2026-01-26). Notable changes since 0.11.2:
+     - Increase install buffer for json ([#125](https://github.com/rokucommunity/ropm/pull/125))
+     - Add support for workspace projects ([#67](https://github.com/rokucommunity/ropm/pull/67))
+
+
+
 ## [6.0.0-alpha.49](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.48...v6.0.0-alpha.49) - 2025-12-11
 ### Changed
  - upgrade to [brighterscript@1.0.0-alpha.49](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha49---2025-12-10). Notable changes since 1.0.0-alpha.48:
