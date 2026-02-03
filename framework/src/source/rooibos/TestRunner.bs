@@ -223,7 +223,8 @@ namespace rooibos
             if testSuite.generatedNodeName <> "" then
                 rooibos.common.logDebug(`+++++RUNNING NODE TEST${chr(10)}node type is ${testSuite.generatedNodeName}`)
 
-                node = m.testScene.createChild(testSuite.generatedNodeName)
+                nodeCreator = CreateObject("roSGNode", "RooibosNodeCreator")
+                node = nodeCreator@.CreateNode(testSuite.generatedNodeName, m.testScene)
                 port = CreateObject("roMessagePort")
                 node.observeField("rooibosTestResult", port)
                 ' Trigger test via observer so that thread ownership

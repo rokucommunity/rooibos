@@ -1,0 +1,5 @@
+<component name="RooibosNodeCreator" extends="Node">
+    <interface>
+        <function name="CreateNode" />
+    </interface>
+</component>
