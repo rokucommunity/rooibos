@@ -1,4 +1,5 @@
 <component name="RooibosNodeCreator" extends="Node">
+    <script type="text/brightscript" uri="RooibosNodeCreator.brs" />
     <interface>
         <function name="CreateNode" />
     </interface>
