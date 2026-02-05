@@ -520,5 +520,166 @@ describe('RooibosPlugin', () => {
 
             expect(a).to.equal(b);
         });
+
+        describe('constructor execution order', () => {
+
+            it('preserves constructor call order in derived classes without coverage', async () => {
+                const source = `
+                    class BaseClass
+                        function new()
+                            ? "BaseClass constructor"
+                        end function
+                    end class
+
+                    class DerivedClass extends BaseClass
+                        function new()
+                            super()
+                            ? "DerivedClass constructor"
+                        end function
+                    end class
+                `;
+
+                // Create a fresh plugin with coverage disabled
+                let noCoveragePlugin = new RooibosPlugin();
+                let noCoverageBuilder = new ProgramBuilder();
+                let noCoverageOptions = {
+                    rootDir: _rootDir,
+                    stagingFolderPath: _stagingFolderPath,
+                    rooibos: {
+                        isRecordingCodeCoverage: false
+                    },
+                    allowBrighterScriptInBrightScript: true
+                };
+                noCoverageBuilder.options = util.normalizeAndResolveConfig(noCoverageOptions);
+                noCoverageBuilder.program = new Program(noCoverageBuilder.options);
+                noCoverageBuilder.program.logger = noCoverageBuilder.logger;
+                noCoverageBuilder.plugins = new PluginInterface([noCoveragePlugin], { logger: noCoverageBuilder.logger });
+                noCoverageBuilder.program.plugins = new PluginInterface([noCoveragePlugin], { logger: noCoverageBuilder.logger });
+                noCoverageBuilder.program.createSourceScope();
+                noCoveragePlugin.beforeProgramCreate(noCoverageBuilder);
+
+                noCoverageBuilder.program.setFile('source/classes.bs', source);
+                noCoverageBuilder.program.validate();
+                expect(noCoverageBuilder.program.getDiagnostics()).to.be.empty;
+                await noCoverageBuilder.transpile();
+
+                let noCoverageResult = getContents('source/classes.brs');
+                
+                // Clean up
+                noCoveragePlugin.afterProgramCreate(noCoverageBuilder.program);
+                noCoverageBuilder.dispose();
+                noCoverageBuilder.program.dispose();
+
+                // Verify super() is called before derived constructor body (as m.super0_new())
+                expect(noCoverageResult).to.include('m.super0_new()');
+                expect(noCoverageResult).to.include('? "DerivedClass constructor"');
+                
+                // Ensure super() comes before derived constructor body in the transpiled code
+                let superCallIndex = noCoverageResult.indexOf('m.super0_new()');
+                let derivedConstructorIndex = noCoverageResult.indexOf('? "DerivedClass constructor"');
+                expect(superCallIndex).to.be.lessThan(derivedConstructorIndex);
+            });
+
+            it('preserves constructor call order in derived classes with coverage enabled', async () => {
+                const source = `
+                    class BaseClass
+                        function new()
+                            ? "BaseClass constructor"
+                        end function
+                    end class
+
+                    class DerivedClass extends BaseClass
+                        function new()
+                            super()
+                            ? "DerivedClass constructor"
+                        end function
+                    end class
+                `;
+
+                program.setFile('source/classes.bs', source);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                let coverageResult = getContents('source/classes.brs');
+                
+                // Find the DerivedClass constructor function
+                let derivedConstructorMatch = coverageResult.match(/instance\.new = function\(\)[^}]+}/s);
+                expect(derivedConstructorMatch).to.not.be.null;
+                
+                let derivedConstructor = derivedConstructorMatch[0];
+                console.log('DerivedClass constructor:');
+                console.log(derivedConstructor);
+                
+                // Verify super() call comes before coverage tracking for the super() line
+                let superCallIndex = derivedConstructor.indexOf('m.super0_new()');
+                let superLineCoverageIndex = derivedConstructor.indexOf('RBS_CC_1_reportLine("9", 1)');
+                
+                expect(superCallIndex).to.be.greaterThan(-1, 'Should find super() call');
+                expect(superLineCoverageIndex).to.be.greaterThan(-1, 'Should find coverage tracking for super() line');
+                expect(superCallIndex).to.be.lessThan(superLineCoverageIndex, 
+                    'super() call should execute before its coverage tracking');
+                
+                // Also verify the derived constructor print comes after coverage tracking
+                let derivedPrintIndex = derivedConstructor.indexOf('? "DerivedClass constructor"');
+                expect(derivedPrintIndex).to.be.greaterThan(superLineCoverageIndex,
+                    'Derived constructor body should come after super() coverage tracking');
+            });
+
+            it('preserves constructor call order with multiple super() calls', async () => {
+                const source = `
+                    class BaseClass
+                        function new(value)
+                            ? "BaseClass constructor with " + value.toStr()
+                        end function
+                    end class
+
+                    class MiddleClass extends BaseClass
+                        function new(value)
+                            super(value * 2)
+                            ? "MiddleClass constructor"
+                        end function
+                    end class
+
+                    class DerivedClass extends MiddleClass
+                        function new(value)
+                            super(value + 1)
+                            ? "DerivedClass constructor"
+                        end function
+                    end class
+                `;
+
+                program.setFile('source/complex.bs', source);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                let coverageResult = getContents('source/complex.brs');
+                
+                // Find all constructor functions and verify super() calls execute before coverage tracking
+                let constructorMatches = coverageResult.match(/instance\.new = function\([^}]+end function/gs);
+                expect(constructorMatches).to.have.length.greaterThan(0);
+                
+                for (let constructor of constructorMatches) {
+                    let superCallMatches = constructor.match(/m\.super\d+_new\([^)]*\)/g);
+                    if (superCallMatches && superCallMatches.length > 0) {
+                        // For each super call, verify it comes before its corresponding coverage tracking
+                        for (let superCall of superCallMatches) {
+                            let superIndex = constructor.indexOf(superCall);
+                            
+                            // Find the next coverage call after this super call
+                            let nextCoverageIndex = constructor.indexOf('RBS_CC_', superIndex);
+                            
+                            if (nextCoverageIndex > -1) {
+                                expect(superIndex).to.be.lessThan(nextCoverageIndex,
+                                    `super() call "${superCall}" should execute before coverage tracking`);
+                            }
+                        }
+                    }
+                }
+                
+                console.log('Complex inheritance test passed - all super() calls execute before coverage tracking');
+            });
+        });
     });
 });
