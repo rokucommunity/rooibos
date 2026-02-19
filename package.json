@@ -22,7 +22,7 @@
         "brighterscript": "0.67.4",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
-        "minimatch": "^3.0.4",
+        "minimatch": "^10.2.1",
         "roku-debug": "^0.21.10",
         "roku-deploy": "^3.12.1",
         "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
