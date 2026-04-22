@@ -18,13 +18,6 @@ namespace rooibos
         scene.id = "ROOT"
         screen.show()
 
-        ' Start RALE TrackerTask if available
-        trackerTask = createObject("roSGNode", "TrackerTask") ' bs:disable-line
-        if trackerTask <> invalid
-            trackerTask.control = "RUN"
-            m.trackerTask = trackerTask
-        end if
-
         m.global = screen.getGlobalNode()
         m.global.addFields({
             "testsScene": scene
