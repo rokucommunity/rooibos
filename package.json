@@ -10,7 +10,7 @@
         "ropm": "ropm install",
         "copy-framework-files": "cp -r ./framework/src ./dist/lib/framework",
         "build": "ropm copy && npm run compile && npm run copy-framework-files",
-        "build-test-project": "bsc --cwd test-project --project bsconfig.json",
+        "build-test-project": "node -r ./test/testSetup.js ./node_modules/brighterscript/dist/cli.js --cwd test-project --project bsconfig.json",
         "docs": "jsdoc -c jsdoc.json -d .tmp/docs --verbose",
         "test": "nyc mocha",
         "test:nocover": "mocha",
