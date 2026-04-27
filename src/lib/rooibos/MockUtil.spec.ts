@@ -331,13 +331,15 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = undent(`
+                    sub __Person_method_new()
+                    end sub
+                    sub __Person_method_sayHello(a1, a2)
+                        print "hello"
+                    end sub
                     function __Person_builder()
                         instance = {}
-                        instance.new = sub()
-                        end sub
-                        instance.sayHello = sub(a1, a2)
-                            print "hello"
-                        end sub
+                        instance.new = __Person_method_new
+                        instance.sayHello = __Person_method_sayHello
                         return instance
                     end function
                     function Person()
@@ -370,13 +372,15 @@ describe('MockUtil', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = undent(`
+                    sub __beings_Person_method_new()
+                    end sub
+                    sub __beings_Person_method_sayHello(a1, a2)
+                        print "hello"
+                    end sub
                     function __beings_Person_builder()
                         instance = {}
-                        instance.new = sub()
-                        end sub
-                        instance.sayHello = sub(a1, a2)
-                            print "hello"
-                        end sub
+                        instance.new = __beings_Person_method_new
+                        instance.sayHello = __beings_Person_method_sayHello
                         return instance
                     end function
                     function beings_Person()
