@@ -82,16 +82,45 @@ export class FileFactory {
                 <interface>
                     <field id="rooibosTestResult" type="assocarray"/>
                     <field id="testText" type="string" alias="statusLabel.text" />
-                    <field id="failedText" type="string" alias="failedLabel.text" />
+                    <field id="failedText" type="string" alias="resultsLabel.text" />
+                    <field id="resultImageUri" type="string" alias="resultImage.uri" />
+                    <field id="summaryText" type="string" alias="summaryLabel.text" />
+                    <field id="progressWidth" type="float" alias="progressFill.width" />
                     <field id="statusColor" type="string" alias="statusBackground.color" />
                     <function name='Rooibos_CreateTestNode' />
                 </interface>
 
                 <children>
-                    <Rectangle id="statusBackground" color="#444444" width="1920" height="1080" />
-                    <LayoutGroup translation="[960, 540]" vertAlignment="center"  horizAlignment="center">
-                        <Label id="statusLabel" text='Rooibos is running tests' width="1800" />
-                        <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
+                    <Rectangle id="statusBackground" color="#1a1a2e" width="1920" height="1080" />
+
+                    <Poster uri="pkg:/images/rooibos/your-company-logo.png" width="113" height="62" translation="[1167, 658]" />
+
+                    <LayoutGroup id="contentGroup" translation="[640, 25]" horizAlignment="center" itemSpacings="[20]">
+                        <Poster id="resultImage" uri="pkg:/images/rooibos/loading.png" width="75" height="75" loadWidth="75" loadHeight="75" loadDisplayMode="scaleToFit" />
+
+                        <Label id="statusLabel" text=""
+                               width="500" height="40" horizAlign="center" color="#ffffff"
+                               font="font:MediumBoldSystemFont" />
+
+                        <Rectangle color="#00000000" width="500" height="8">
+                            <Rectangle id="progressBg" color="#333355" width="500" height="8" />
+                            <Rectangle id="progressFill" color="#6c63ff" width="0" height="8" />
+                        </Rectangle>
+
+                        <Rectangle color="#444466" width="500" height="1" />
+
+                        <ScrollableText id="resultsLabel" text=""
+                               width="500" height="420"
+                               color="#b0b0b0"
+                               font="font:SmallestSystemFont"
+                               scrollbarTrackBitmapUri="pkg:/images/rooibos/scrollbar-track.9.png"
+                               scrollbarThumbBitmapUri="pkg:/images/rooibos/scrollbar-thumb.9.png" />
+
+                        <Rectangle color="#444466" width="500" height="1" />
+
+                        <Label id="summaryLabel" text=""
+                               width="500" height="30" horizAlign="center" color="#888899"
+                               font="font:SmallestSystemFont" />
                     </LayoutGroup>
                 </children>
             </component>
@@ -148,6 +177,22 @@ export class FileFactory {
             );
         } catch (error) {
             console.error(`Error adding framework file: ${path} : ${error.message}`);
+        }
+    }
+
+    public copyImageAssets(program: Program) {
+        let imageFiles = fastGlob.sync(['images/**/*.{png,jpg,jpeg,gif}'], {
+            cwd: this.frameworkSourcePath,
+            absolute: false,
+            onlyFiles: true
+        });
+        for (let imgPath of imageFiles) {
+            let srcPath = path.resolve(this.frameworkSourcePath, imgPath);
+            let destPath = path.join(
+                program.options.stagingFolderPath ?? program.options.stagingDir ?? program.options.sourceRoot,
+                imgPath
+            );
+            fse.copySync(srcPath, destPath);
         }
     }
 }
