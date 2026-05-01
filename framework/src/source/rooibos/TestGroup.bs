@@ -184,6 +184,10 @@ namespace rooibos
         private function onAsyncTestComplete()
             rooibos.common.logTrace("++ CURRENT TEST COMPLETED")
             m.notifyReportersOnTestComplete(m.currentTest)
+            if m.testSuite.isAutoAssertingMocks = true then
+                m.testSuite.assertMocks()
+                m.testSuite.cleanStubs()
+            end if
             m.runSuiteFunction(m.afterEachFunctionName, "afterEach", m.currentTest)
             m.stats.appendTestResult(m.currentTest.result)
 

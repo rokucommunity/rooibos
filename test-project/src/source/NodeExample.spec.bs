@@ -91,6 +91,23 @@ namespace tests
             SetLabelText(text)
             m.assertEqual(m.node.nameText.text, text)
         end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectCalled and expectNotCalled work in node tests")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("expectCalled passes when function is called once")
+        function _()
+            obj = { foo: function() : return invalid : end function }
+            m.expectCalled(obj.foo())
+            obj.foo()
+        end function
+
+        @it("expectNotCalled passes when function is not called")
+        function _()
+            obj = { foo: function() : return invalid : end function }
+            m.expectNotCalled(obj.foo())
+        end function
     end class
 end namespace
 
