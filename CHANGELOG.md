@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [5.16.0](https://github.com/rokucommunity/rooibos/compare/5.15.7...v5.16.0) - 2026-05-01
+### Changed
+ - upgade to [brighterscript@0.72.0](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0720---2026-04-30). This finally fixes the blocking bug, allowing devs to upgrade to latest bsc again
+ - chore: add and implement linting rules ([#338](https://github.com/rokucommunity/rooibos/pull/338))
+ - chore: stricter linting for TypeScript ([#343](https://github.com/rokucommunity/rooibos/pull/343))
+ - chore: shared CI Support Prerelease ([#341](https://github.com/rokucommunity/rooibos/pull/341), [#339](https://github.com/rokucommunity/rooibos/pull/339))
+ - upgrade to [roku-debug@0.23.6](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0236---2026-04-30). 
+ - upgrade to [roku-deploy@3.17.1](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3171---2026-04-27)
+ - upgrade to [@rokucommunity/bslint@0.8.41](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0841---2026-03-25)
+ - upgrade to [ropm@0.11.5](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0115---2026-03-24)
+### Fixed
+ - Fix bug where genreated nodes were not always being created on the render thread ([#367](https://github.com/rokucommunity/rooibos/pull/367))
+ - Fix missing floating point precision and incorrect failure states ([#352](https://github.com/rokucommunity/rooibos/pull/352))
+ - Fix method creation bug when bsc version is newer than version from rooibos ([#358](https://github.com/rokucommunity/rooibos/pull/358))
+ - Fixed a crash when searching for assertions to rewrite ([#347](https://github.com/rokucommunity/rooibos/pull/347))
+ - Fixed a runtime crash in the mocha reporting when generating diffs ([#345](https://github.com/rokucommunity/rooibos/pull/345))
+
+
+
 ## [5.15.7](https://github.com/rokucommunity/rooibos/compare/v5.15.6...v5.15.7) - 2025-04-16
 ### Changed
  - (chore) adopt keepachangelog format for this changelog fle moving forward
