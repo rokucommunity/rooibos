@@ -5,6 +5,7 @@ import "pkg:/source/rooibos/Coverage.bs"
 import "pkg:/source/rooibos/RuntimeConfig.bs"
 import "pkg:/source/rooibos/Stats.bs"
 import "pkg:/source/rooibos/Test.bs"
+import "pkg:/source/rooibos/TestRunnerUIReporter.bs"
 
 namespace rooibos
     ' @ignore
@@ -14,6 +15,7 @@ namespace rooibos
         public nodeContext = invalid
         public config = invalid
         public testSuites = []
+        public uiReporter = invalid
         private runtimeConfig = invalid
         private stats = invalid
         private top = invalid
@@ -37,145 +39,283 @@ namespace rooibos
 
         ' Executes all tests for a project, as per the config
         public function run()
+            m.notifyReporters("onBegin", { runner: m })
 
-            for each reporter in m.testReporters
-                if rooibos.common.isFunction(reporter.onBegin) then
-                    reporter.onBegin({ runner: m })
-                end if
-            end for
+            timer = createObject("roTimespan")
+            timer.mark()
 
-            rooibosTimer = createObject("roTimespan")
-            rooibosTimer.mark()
             suiteNames = m.runtimeConfig.getAllTestSuitesNames()
-            isFailed = false
-            failedText = ""
-            suiteResultsText = ""
-            passedSuites = 0
-            failedSuites = 0
-            statusNode = invalid
-            resultsNode = invalid
-            summaryNode = invalid
-            progressNode = invalid
-            i = 0
-            numSuites = suiteNames.count()
-            testSuite = invalid
-            for each name in suiteNames
-                i++
-                suiteClass = m.runtimeConfig.getTestSuiteClassWithName(name)
-                testSuite = invalid
-                if suiteClass <> invalid then
-                    testSuite = suiteClass()
-                    testSuite.testRunner = m
-                    testSuite.testReporters = m.testReporters
-                    testSuite.global = m.nodeContext.global
-                    testSuite.context = m.nodeContext
-                    testSuite.top = m.nodeContext.top
-                    testSuite.scene = m.nodeContext.global.testsScene
-                    testSuite.catchCrashes = m.config.catchCrashes
-                    testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
-                    if statusNode = invalid
-                        statusNode = testSuite.scene.findNode("statusLabel")
-                        resultsNode = testSuite.scene.findNode("resultsLabel")
-                        summaryNode = testSuite.scene.findNode("summaryLabel")
-                        progressNode = testSuite.scene.findNode("progressFill")
-                        if resultsNode <> invalid
-                            resultsNode.setFocus(true)
-                        end if
-                    end if
-                    statusNode.text = "Running (" + i.toStr().trim() + "/" + numSuites.toStr().trim() + "): " + name
-                    m.runTestSuite(testSuite)
+            m.attachUIReporter(m.precomputeTotalTests(suiteNames))
 
-                    newLine = ""
-                    if testSuite.stats.hasFailures
-                        failedSuites++
-                        newLine = chr(10) + "  X    " + name + " (" + testSuite.stats.passedCount.toStr().trim() + "/" + testSuite.stats.ranCount.toStr().trim() + ")"
-                    else
-                        passedSuites++
-                        newLine = chr(10) + "  OK   " + name + " (" + testSuite.stats.passedCount.toStr().trim() + "/" + testSuite.stats.ranCount.toStr().trim() + ")"
-                    end if
-                    resultsNode.text = resultsNode.text + newLine
-                    progressNode.width = 500.0 * i / numSuites
-                    summaryNode.text = "Passed: " + passedSuites.toStr().trim() + " | Failed: " + failedSuites.toStr().trim() + " | " + i.toStr().trim() + "/" + numSuites.toStr().trim() + " suites"
-
-                    if m.stats.hasFailures = true then
-                        if not isFailed then
-                            isFailed = true
-                        end if
-                        if m.config.failFast = true then
-                            exit for
-                        end if
-                    end if
-                else
-                    rooibos.common.logError(`Could not create test for suite : ${name}`)
-                    if resultsNode <> invalid
-                        resultsNode.text = resultsNode.text + chr(10) + "  !!   " + name + " (could not create)"
-                    end if
-                end if
-            end for
-
-            if not isFailed and testSuite <> invalid then
-                statusNode.text = "All suites passed!"
-                resultImageNode = testSuite.scene.findNode("resultImage")
-                if resultImageNode <> invalid then resultImageNode.uri = "pkg:/images/rooibos/success.png"
-                progressNode.width = 500.0
-                elapsed = (rooibosTimer.totalMilliseconds() / 1000).toStr()
-                summaryNode.text = "Passed: " + passedSuites.toStr().trim() + " | Failed: 0 | " + numSuites.toStr().trim() + " suites in " + elapsed + "s"
-            end if
-
-            if isFailed and testSuite <> invalid then
-                statusNode.text = "Some suites failed"
-                resultImageNode = testSuite.scene.findNode("resultImage")
-                if resultImageNode <> invalid then resultImageNode.uri = "pkg:/images/rooibos/failure.png"
-                progressNode.width = 500.0
-                elapsed = (rooibosTimer.totalMilliseconds() / 1000).toStr()
-                summaryNode.text = "Passed: " + passedSuites.toStr().trim() + " | Failed: " + failedSuites.toStr().trim() + " | " + numSuites.toStr().trim() + " suites in " + elapsed + "s"
-            end if
-
-            if testSuite = invalid then
-                m.nodeContext.global.testsScene.failedText = "No tests were found"
-            end if
-
-            ' Give focus to results so user can scroll with D-pad
-            if resultsNode <> invalid
-                resultsNode.setFocus(true)
-            end if
-
-            m.stats.time = rooibosTimer.totalMilliseconds()
-
-            for each reporter in m.testReporters
-                if rooibos.common.isFunction(reporter.onEnd) then
-                    reporter.onEnd({ stats: m.stats })
-                end if
-            end for
-
-            rooibosResult = {
-                stats: m.stats
-                testSuites: m.testSuites
+            ctx = {
+                isFailed: false
+                passedSuites: 0
+                failedSuites: 0
+                numSuites: suiteNames.count()
+                index: 0
+                lastSuite: invalid
+                ui: invalid ' resolved on first suite
             }
-            m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
 
-            if m.config.isRecordingCodeCoverage then
-                rooibos.Coverage.reportCodeCoverage()
-
-                if m.config.printLcov = true then
-                    rooibos.Coverage.printLCovInfo()
+            for each name in suiteNames
+                ctx.index++
+                m.executeSuite(name, ctx)
+                if ctx.isFailed and m.config.failFast = true then
+                    exit for
                 end if
-            else
-                rooibos.common.logDebug("rooibos.Coverage.reportCodeCoverage is not a function")
-            end if
+            end for
 
-            ' Final results to be logged after all test reporters have finished
-            resultStatus = "PASS"
-            if isFailed then resultStatus = "FAIL"
-            print "[Rooibos Result]: " + resultStatus
-            print "[Rooibos Shutdown]"
+            m.finalizeRun(ctx, timer)
+            m.dispatchOnEnd()
+            m.publishRooibosResult()
+            m.maybeRunCoverage()
+            m.printFinalStatus(ctx.isFailed)
 
             if m.config.sendHomeOnFinish <> false then
                 m.sendHomeKeyPress()
             end if
         end function
 
+        '----------------------------------------------------------------
+        ' run() helpers
+        '----------------------------------------------------------------
+
+        private function precomputeTotalTests(suiteNames as object) as integer
+            total = 0
+            for each name in suiteNames
+                cls = m.runtimeConfig.getTestSuiteClassWithName(name)
+                if cls <> invalid then
+                    suite = cls()
+                    if suite.groupsData <> invalid then
+                        for each gd in suite.groupsData
+                            if gd.testCases <> invalid then total += gd.testCases.count()
+                        end for
+                    end if
+                end if
+            end for
+            return total
+        end function
+
+        private function attachUIReporter(totalTests as integer) as void
+            m.uiReporter = new rooibos.TestRunnerUIReporter(m, totalTests)
+            m.testReporters.push(m.uiReporter)
+        end function
+
+        private function executeSuite(name as string, ctx as object) as void
+            cls = m.runtimeConfig.getTestSuiteClassWithName(name)
+            if cls = invalid then
+                rooibos.common.logError(`Could not create test for suite : ${name}`)
+                if ctx.ui <> invalid and ctx.ui.resultsNode <> invalid then
+                    ctx.ui.resultsNode.callFunc("appendLine", { name: name + " (could not create)", passed: false })
+                end if
+                return
+            end if
+
+            testSuite = m.buildSuite(cls)
+            ctx.lastSuite = testSuite
+
+            if ctx.ui = invalid then
+                ctx.ui = m.resolveUINodes(testSuite.scene)
+                m.uiReporter.bindNodes(testSuite.scene)
+            end if
+
+            m.uiReporter.setCurrentSuite(name)
+
+            startedBefore = m.uiReporter.testsStarted
+            m.runTestSuite(testSuite)
+
+            ' Node/async test suites fire per-test callbacks on the child node, not on
+            ' our reporter list, so reconcile against the suite's final stats.
+            if m.uiReporter.testsStarted = startedBefore and testSuite.stats.ranCount > 0 then
+                m.uiReporter.recordSuiteStats(testSuite.stats)
+            end if
+
+            m.appendSuiteResultLine(ctx, name, testSuite)
+            m.updateInProgressSummary(ctx)
+
+            if m.stats.hasFailures = true then
+                ctx.isFailed = true
+            end if
+        end function
+
+        private function buildSuite(suiteClass as function) as rooibos.BaseTestSuite
+            testSuite = suiteClass()
+            testSuite.testRunner = m
+            testSuite.testReporters = m.testReporters
+            testSuite.global = m.nodeContext.global
+            testSuite.context = m.nodeContext
+            testSuite.top = m.nodeContext.top
+            testSuite.scene = m.nodeContext.global.testsScene
+            testSuite.catchCrashes = m.config.catchCrashes
+            testSuite.throwOnFailedAssertion = m.config.throwOnFailedAssertion
+            return testSuite
+        end function
+
+        private function resolveUINodes(scene as object) as object
+            return {
+                statusNode: scene.findNode("statusLabel")
+                resultsNode: scene.findNode("resultsLabel")
+                summaryNode: scene.findNode("summaryLabel")
+                progressNode: scene.findNode("progressFill")
+            }
+        end function
+
+        private function appendSuiteResultLine(ctx as object, name as string, testSuite as rooibos.BaseTestSuite) as void
+            if ctx.ui = invalid or ctx.ui.resultsNode = invalid then return
+
+            if testSuite.stats.hasFailures then
+                ctx.failedSuites++
+                ctx.ui.resultsNode.callFunc("appendLine", {
+                    name: name
+                    passed: false
+                    failedCount: testSuite.stats.failedCount + testSuite.stats.crashedCount
+                    totalCount: testSuite.stats.ranCount
+                })
+            else
+                ctx.passedSuites++
+                ctx.ui.resultsNode.callFunc("appendLine", {
+                    name: name
+                    passed: true
+                    failedCount: 0
+                    totalCount: testSuite.stats.ranCount
+                })
+            end if
+        end function
+
+        private function updateInProgressSummary(ctx as object) as void
+            if ctx.ui = invalid or ctx.ui.summaryNode = invalid then return
+            ctx.ui.summaryNode.text = "Passed: " + ctx.passedSuites.toStr().trim() + " | Failed: " + ctx.failedSuites.toStr().trim() + " | " + ctx.index.toStr().trim() + "/" + ctx.numSuites.toStr().trim() + " suites"
+        end function
+
+        private function finalizeRun(ctx as object, timer as object) as void
+            if ctx.lastSuite = invalid then
+                m.handleNoSuitesFound()
+                return
+            end if
+
+            if ctx.ui = invalid then return
+
+            elapsed = (timer.totalMilliseconds() / 1000).toStr()
+            if ctx.isFailed then
+                m.renderFailureFinalState(ctx, elapsed)
+            else
+                m.renderSuccessFinalState(ctx, elapsed)
+            end if
+            m.giveFocusToResults(ctx)
+            m.stats.time = timer.totalMilliseconds()
+        end function
+
+        private function renderSuccessFinalState(ctx as object, elapsed as string) as void
+            if ctx.ui.statusNode <> invalid then ctx.ui.statusNode.text = "All suites passed!"
+            m.swapResultImage(ctx.lastSuite.scene, "pkg:/images/rooibos/success.png")
+            if ctx.ui.progressNode <> invalid then ctx.ui.progressNode.width = 500.0
+            if ctx.ui.summaryNode <> invalid then
+                ctx.ui.summaryNode.text = "Passed: " + ctx.passedSuites.toStr().trim() + " | Failed: 0 | " + ctx.numSuites.toStr().trim() + " suites in " + elapsed + "s"
+            end if
+        end function
+
+        private function renderFailureFinalState(ctx as object, elapsed as string) as void
+            if ctx.ui.statusNode <> invalid then
+                ctx.ui.statusNode.text = (m.stats.failedCount + m.stats.crashedCount).toStr().trim() + " tests failed across " + ctx.failedSuites.toStr().trim() + " of " + ctx.numSuites.toStr().trim() + " suites"
+            end if
+            m.swapResultImage(ctx.lastSuite.scene, "pkg:/images/rooibos/failure.png")
+            if ctx.ui.progressNode <> invalid then ctx.ui.progressNode.width = 500.0
+            if ctx.ui.summaryNode <> invalid then
+                ctx.ui.summaryNode.text = "Passed: " + ctx.passedSuites.toStr().trim() + " | Failed: " + ctx.failedSuites.toStr().trim() + " | " + ctx.numSuites.toStr().trim() + " suites in " + elapsed + "s"
+            end if
+        end function
+
+        private function swapResultImage(scene as object, uri as string) as void
+            if scene = invalid then return
+            spinner = scene.findNode("resultSpinner")
+            if spinner <> invalid then
+                spinner.control = "stop"
+                spinner.scale = [0, 0]
+            end if
+            poster = scene.findNode("resultPoster")
+            if poster <> invalid then
+                poster.uri = uri
+                poster.scale = [1, 1]
+            end if
+        end function
+
+        private function giveFocusToResults(ctx as object) as void
+            if ctx.ui <> invalid and ctx.ui.resultsNode <> invalid then
+                ctx.ui.resultsNode.setFocus(true)
+            end if
+        end function
+
+        private function handleNoSuitesFound() as void
+            results = m.nodeContext.global.testsScene.findNode("resultsLabel")
+            if results <> invalid then
+                results.callFunc("appendLine", { name: "No tests were found", passed: false })
+            end if
+        end function
+
+        private function notifyReporters(method as string, event as object) as void
+            for each reporter in m.testReporters
+                if rooibos.common.isFunction(reporter[method]) then
+                    reporter[method](event)
+                end if
+            end for
+        end function
+
+        private function dispatchOnEnd() as void
+            m.notifyReporters("onEnd", { stats: m.stats })
+        end function
+
+        private function publishRooibosResult() as void
+            m.nodeContext.global.testsScene.rooibosTestResult = {
+                stats: m.stats
+                testSuites: m.testSuites
+            }
+        end function
+
+        private function maybeRunCoverage() as void
+            if m.config.isRecordingCodeCoverage then
+                rooibos.Coverage.reportCodeCoverage()
+                if m.config.printLcov = true then
+                    rooibos.Coverage.printLCovInfo()
+                end if
+            else
+                rooibos.common.logDebug("rooibos.Coverage.reportCodeCoverage is not a function")
+            end if
+        end function
+
+        private function printFinalStatus(isFailed as boolean) as void
+            resultStatus = "PASS"
+            if isFailed then resultStatus = "FAIL"
+            print "[Rooibos Result]: " + resultStatus
+            print "[Rooibos Shutdown]"
+        end function
+
         public function runInNodeMode(nodeTestName as string) as void
+            ' Push a reporter that updates the test node's rooibosTestsRunSoFar field
+            ' so the main thread can observe per-test progress for real-time UI updates
+            nodeProgressReporter = {
+                topNode: m.top
+                count: 0
+                passedCount: 0
+                failedCount: 0
+                onTestBegin: function(_args as object)
+                    m.count++
+                    if m.topNode <> invalid then m.topNode.rooibosTestsRunSoFar = m.count
+                end function
+                onTestComplete: function(args as object)
+                    if args <> invalid and args.test <> invalid and args.test.result <> invalid then
+                        result = args.test.result
+                        if result.isCrash or result.isFail then
+                            m.failedCount++
+                            if m.topNode <> invalid then m.topNode.rooibosTestsFailed = m.failedCount
+                        else if not result.isSkipped then
+                            m.passedCount++
+                            if m.topNode <> invalid then m.topNode.rooibosTestsPassed = m.passedCount
+                        end if
+                    end if
+                end function
+            }
+            m.testReporters.push(nodeProgressReporter)
+
             suiteClass = m.runtimeConfig.getTestSuiteClassWithName(nodeTestName)
             testSuite = invalid
 
@@ -273,6 +413,14 @@ namespace rooibos
                 end if
                 node = m.testNodeContainer.createChild(testSuite.generatedNodeName)
                 port = CreateObject("roMessagePort")
+                ' Per-test progress fields — child node writes to these from render thread,
+                ' main thread observes for real-time UI updates during node-test suite execution
+                node.addField("rooibosTestsRunSoFar", "integer", false)
+                node.addField("rooibosTestsPassed", "integer", false)
+                node.addField("rooibosTestsFailed", "integer", false)
+                node.observeField("rooibosTestsRunSoFar", port)
+                node.observeField("rooibosTestsPassed", port)
+                node.observeField("rooibosTestsFailed", port)
                 node.observeField("rooibosTestResult", port)
                 ' Trigger test via observer so that thread ownership
                 ' can be transferred to the render thread
@@ -284,7 +432,12 @@ namespace rooibos
                     while true
                         event = wait(0, port)
                         if type(event) = "roSGNodeEvent" then
-                            exit while
+                            field = event.getField()
+                            if field = "rooibosTestResult" then
+                                exit while
+                            else if m.uiReporter <> invalid then
+                                m.uiReporter.applyNodeProgressEvent(field)
+                            end if
                         end if
                     end while
                     nodeResults = event.getData()

@@ -76,14 +76,28 @@ export class FileFactory {
             scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.pkgPath.replace(/\\/g, '/')}" />`);
         }
 
+        // Node-test components run offscreen and don't need the visual UI.
+        // Emitting it here would also create duplicate scene-graph IDs
+        // (e.g. multiple `resultImage` BusySpinners), which corrupts the
+        // SceneGraph state and crashes the runtime at end of run.
+        if (suite) {
+            return `<?xml version="1.0" encoding="UTF-8" ?>
+            <component name="${name}" extends="${baseName}">
+                ${scriptImports.join('\n')}
+                <interface>
+                    <field id="rooibosTestResult" type="assocarray"/>
+                    <function name='Rooibos_CreateTestNode' />
+                </interface>
+            </component>
+        `;
+        }
+
         let contents = `<?xml version="1.0" encoding="UTF-8" ?>
             <component name="${name}" extends="${baseName}">
                 ${scriptImports.join('\n')}
                 <interface>
                     <field id="rooibosTestResult" type="assocarray"/>
                     <field id="testText" type="string" alias="statusLabel.text" />
-                    <field id="failedText" type="string" alias="resultsLabel.text" />
-                    <field id="resultImageUri" type="string" alias="resultImage.uri" />
                     <field id="summaryText" type="string" alias="summaryLabel.text" />
                     <field id="progressWidth" type="float" alias="progressFill.width" />
                     <field id="statusColor" type="string" alias="statusBackground.color" />
@@ -96,11 +110,20 @@ export class FileFactory {
                     <Poster uri="pkg:/images/rooibos/your-company-logo.png" width="113" height="62" translation="[1167, 658]" />
 
                     <LayoutGroup id="contentGroup" translation="[640, 25]" horizAlignment="center" itemSpacings="[20]">
-                        <Poster id="resultImage" uri="pkg:/images/rooibos/loading.png" width="75" height="75" loadWidth="75" loadHeight="75" loadDisplayMode="scaleToFit" />
+                        <Group id="resultImage">
+                            <BusySpinner id="resultSpinner" uri="pkg:/images/rooibos/loading.png" spinInterval="2" control="start" />
+                            <Poster id="resultPoster" width="75" height="75" scale="[0, 0]" />
+                        </Group>
 
-                        <Label id="statusLabel" text=""
-                               width="500" height="40" horizAlign="center" color="#ffffff"
-                               font="font:MediumBoldSystemFont" />
+                        <LayoutGroup itemSpacings="[4]" horizAlignment="center">
+                            <Label id="statusLabel" text=""
+                                   width="500" height="36" horizAlign="center" color="#ffffff"
+                                   font="font:MediumBoldSystemFont" />
+
+                            <Label id="statusCounts" text=""
+                                   width="500" height="22" horizAlign="center" color="#aaaabb"
+                                   font="font:SmallestBoldSystemFont" />
+                        </LayoutGroup>
 
                         <Rectangle color="#00000000" width="500" height="8">
                             <Rectangle id="progressBg" color="#333355" width="500" height="8" />
@@ -109,12 +132,10 @@ export class FileFactory {
 
                         <Rectangle color="#444466" width="500" height="1" />
 
-                        <ScrollableText id="resultsLabel" text=""
-                               width="500" height="420"
-                               color="#b0b0b0"
-                               font="font:SmallestSystemFont"
-                               scrollbarTrackBitmapUri="pkg:/images/rooibos/scrollbar-track.9.png"
-                               scrollbarThumbBitmapUri="pkg:/images/rooibos/scrollbar-thumb.9.png" />
+                        <RooibosScrollableResults id="resultsLabel"
+                               itemSize="[500, 22]"
+                               vertFocusAnimationStyle="floatingFocus"
+                               numRows="17" />
 
                         <Rectangle color="#444466" width="500" height="1" />
 
