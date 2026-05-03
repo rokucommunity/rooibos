@@ -276,7 +276,7 @@ export class CodeCoverageProcessor {
                     isIfArm: true,
                     branches: []
                 });
-                (ifStatement as any).condition = new BinaryExpression(
+                const conditionWrap = new BinaryExpression(
                     new RawCodeExpression(this.getReportLineHitFuncCallText(ifStatement.condition.range.start.line, CodeCoverageLineType.condition, ifStatement, owner, key)),
                     createToken(TokenKind.And),
                     new GroupingExpression({
@@ -284,6 +284,11 @@ export class CodeCoverageProcessor {
                         right: createToken(TokenKind.RightParen)
                     }, ifStatement.condition)
                 );
+                // Mark our synthetic AND as processed so the BinaryExpression visitor doesn't
+                // try to wrap its operands - this And exists purely to fire reportLine before
+                // the user's condition runs, not as a real branch decision.
+                this.processedExpressions.add(conditionWrap);
+                (ifStatement as any).condition = conditionWrap;
 
                 // let blockStatements = ifStatement?.thenBranch?.statements;
                 // if (blockStatements) {
@@ -351,6 +356,47 @@ export class CodeCoverageProcessor {
 
                 this.addStatement(ds, ds.range.start.line);
                 this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+            },
+            BinaryExpression: (expr) => {
+                // Only instrument logical-style and/or operators. BS uses these tokens for both
+                // bitwise (integer) and logical (boolean) cases - we wrap unconditionally; the
+                // wrap is semantically inert for bitwise (just records hits and returns the
+                // value), and for logical it captures short-circuit because BS won't evaluate
+                // the wrapped right side when the left short-circuits.
+                if (expr.operator.kind !== TokenKind.And && expr.operator.kind !== TokenKind.Or) {
+                    return;
+                }
+                if (this.processedExpressions.has(expr)) {
+                    return;
+                }
+                this.processedExpressions.add(expr);
+
+                const blockId = this.blockId++;
+                this.foundBlocks.push({
+                    id: blockId,
+                    isIfArm: false,
+                    branches: [
+                        {
+                            id: 0,
+                            line: expr.left.range.start.line + 1,
+                            column: expr.left.range.start.character,
+                            endColumn: expr.left.range.end.character - 1,
+                            totalHit: 0
+                        },
+                        {
+                            id: 1,
+                            line: expr.right.range.start.line + 1,
+                            column: expr.right.range.start.character,
+                            endColumn: expr.right.range.end.character - 1,
+                            totalHit: 0
+                        }
+                    ]
+                });
+
+                const wrappedLeft = this.wrapBranchValue(blockId, 0, expr.left);
+                const wrappedRight = this.wrapBranchValue(blockId, 1, expr.right);
+                this.astEditor.setProperty(expr, 'left', wrappedLeft);
+                this.astEditor.setProperty(expr, 'right', wrappedRight);
             },
             NullCoalescingExpression: (expr) => {
                 if (this.processedExpressions.has(expr)) {

@@ -666,10 +666,7 @@ describe('RooibosPlugin', () => {
                 expect(a).to.include('RBS_CC_0_reportLine(12)'); // return a / b
             });
 
-            // Anonymous function expressions (e.g. `x = function(y) ... end function`) are not walked by
-            // the coverage visitor, so their bodies are uninstrumented. Tracked separately from the
-            // 1-indexed line-number fix; keeping the snapshot here for when we tackle that case.
-            it.skip('correctly transpiles some statements', async () => {
+            it('correctly transpiles some statements', async () => {
                 const source = `sub foo()
                     x = function(y)
                         if (true) then
@@ -841,42 +838,42 @@ describe('RooibosPlugin', () => {
                             RBS_CC_0_reportBranch(0, 0)
                             RBS_CC_0_reportLine(4)
                             print "action1"
-                        else if RBS_CC_0_reportLine(5) and (action = "action2" or action = "action2") then
+                        else if RBS_CC_0_reportLine(5) and (RBS_CC_0_branchValue(2, 0, action = "action2") or RBS_CC_0_branchValue(2, 1, action = "action2")) then
                             RBS_CC_0_reportBranch(1, 0)
                             RBS_CC_0_reportLine(6)
                             print "action2"
                         else if RBS_CC_0_reportLine(7) and (action = "action3") then
-                            RBS_CC_0_reportBranch(2, 0)
+                            RBS_CC_0_reportBranch(3, 0)
                             RBS_CC_0_reportLine(8)
                             print "action3"
                         else if RBS_CC_0_reportLine(9) and (action = "action4") then
-                            RBS_CC_0_reportBranch(3, 0)
-                        else if RBS_CC_0_reportLine(10) and (action = "action5") then
                             RBS_CC_0_reportBranch(4, 0)
+                        else if RBS_CC_0_reportLine(10) and (action = "action5") then
+                            RBS_CC_0_reportBranch(5, 0)
                             RBS_CC_0_reportLine(11)
                             print "action5"
                         else if RBS_CC_0_reportLine(12) and (action = "action6") then
-                            RBS_CC_0_reportBranch(5, 0)
+                            RBS_CC_0_reportBranch(6, 0)
                             RBS_CC_0_reportLine(13)
                             print "action6"
                         else if RBS_CC_0_reportLine(14) and (action = "action7") then
-                            RBS_CC_0_reportBranch(6, 0)
+                            RBS_CC_0_reportBranch(7, 0)
                             RBS_CC_0_reportLine(15)
                             print "action7"
                         else if RBS_CC_0_reportLine(16) and (action = "action8") then
-                            RBS_CC_0_reportBranch(7, 0)
+                            RBS_CC_0_reportBranch(8, 0)
                             RBS_CC_0_reportLine(17)
                             print "action8"
                         else if RBS_CC_0_reportLine(18) and (action = "action9") then
-                            RBS_CC_0_reportBranch(8, 0)
+                            RBS_CC_0_reportBranch(9, 0)
                             RBS_CC_0_reportLine(19)
                             print "action9"
                         else if RBS_CC_0_reportLine(20) and (action = "action10") then
-                            RBS_CC_0_reportBranch(9, 0)
+                            RBS_CC_0_reportBranch(10, 0)
                             RBS_CC_0_reportLine(21)
                             print "action10"
                         else
-                            RBS_CC_0_reportBranch(9, 1)
+                            RBS_CC_0_reportBranch(10, 1)
                         end if
                     end sub
 
