@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, ExpressionStatement, FunctionExpression, Program, ProgramBuilder, Statement } from 'brighterscript';
 import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isForEachStatement, isWhileStatement, isTryCatchStatement, isCatchStatement } from 'brighterscript';
-import type { IfStatement, TryCatchStatement, CatchStatement, Expression, AssignmentStatement, CallExpression } from 'brighterscript';
+import type { AssignmentStatement, BrsFile, CallExpression, CatchStatement, Editor, Expression, ExpressionStatement, FunctionExpression, IfStatement, Program, ProgramBuilder, Statement, TryCatchStatement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
@@ -92,10 +91,6 @@ export class CodeCoverageProcessor {
         this.baseCoverageReport = {
             files: []
         };
-        try {
-        } catch (e) {
-            console.log('Error:', e.stack);
-        }
     }
 
     private baseCoverageReport: CoverageMap;
@@ -540,7 +535,7 @@ export class CodeCoverageProcessor {
         // Queue the splice; flushed after the walk so we don't disrupt the visitor descending
         // into this statement's children. owner is captured by reference; the statement's index
         // is recomputed at flush time since other deferred inserts may shift things.
-        this.pendingLineReports.push({ owner, statement, callText });
+        this.pendingLineReports.push({ owner: owner, statement: statement, callText: callText });
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
     }
