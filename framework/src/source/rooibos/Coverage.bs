@@ -3,7 +3,7 @@ namespace rooibos.Coverage
     function saveResults() as dynamic
         m.global._rbs_ccn.save = true
         cc = m.global._rbs_ccn
-        if cc.coverageResults = invalid
+        if cc.coverageResults = invalid then
             ' The results are still being formatted
             ' Wait for them to be reported
             port = createObject("roMessagePort")
@@ -20,7 +20,7 @@ namespace rooibos.Coverage
 
     function reportCodeCoverage(coverageResults as dynamic) as void
 
-        if m.global._rbs_ccn = invalid
+        if m.global._rbs_ccn = invalid then
             ? "There was no rooibos code coverage component - not generating coverage report"
             return
         end if
@@ -38,8 +38,8 @@ namespace rooibos.Coverage
             expectedCount = file.lineTotalFound
             allLinesCount += expectedCount
             allLinesHit += file.lineTotalHit
-            if expectedCount > 0
-                if file.lineTotalHit = 0
+            if expectedCount > 0 then
+                if file.lineTotalHit = 0 then
                     resolvedPercent = 0
                 else
                     resolvedPercent = (file.lineTotalHit / expectedCount) * 100
@@ -49,7 +49,7 @@ namespace rooibos.Coverage
                 missFiles.push(filename + ": MISS!")
             end if
         end for
-        if allLinesHit = 0
+        if allLinesHit = 0 then
             allLinesPercent = 0
         else
             allLinesPercent = (allLinesHit / allLinesCount) * 100
@@ -81,7 +81,7 @@ namespace rooibos.Coverage
         ? "+++++++++++++++++++++++++++++++++++++++++++"
     end function
 
-    function createLCovOutput(coverageResults as dynamic, logToConsole = true as boolean)
+    function createLCovOutput(coverageResults as dynamic, logToConsole = true as boolean) as string
         ? "Generating lcov.info file..."
         fileResults = []
 

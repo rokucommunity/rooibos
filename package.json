@@ -37,7 +37,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^0.8.41",
+        "@rokucommunity/bslint": "^0.8.42",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
