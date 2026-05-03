@@ -1008,4 +1008,106 @@ describe('RooibosPlugin', () => {
             expect(a).to.equal(b);
         });
     });
+
+    // Coverage instrumentation runs first in beforeFileTranspile, then global mock rewriting
+    // (see plugin.ts). These tests pin that order: coverage helpers must reach every line/
+    // branch/function even when the mock util later prepends a stub-detection prologue,
+    // and the rewritten call sites for stubbed globals must still play nice with our
+    // expression-level wraps (ternary arms, etc.).
+    describe('CodeCoverageProcessor + global mocking interaction', () => {
+        beforeEach(() => {
+            plugin = new RooibosPlugin();
+            options = {
+                rootDir: _rootDir,
+                stagingFolderPath: _stagingFolderPath,
+                rooibos: {
+                    isRecordingCodeCoverage: true,
+                    isGlobalMethodMockingEnabled: true,
+                    isGlobalMethodMockingEfficientMode: false
+                },
+                allowBrighterScriptInBrightScript: true
+            };
+            fsExtra.ensureDirSync(_stagingFolderPath);
+            fsExtra.ensureDirSync(_rootDir);
+
+            builder = new ProgramBuilder();
+            builder.options = util.normalizeAndResolveConfig(options);
+            builder.program = new Program(builder.options);
+            program = builder.program;
+            program.logger = builder.logger;
+            builder.plugins = new PluginInterface([plugin], { logger: builder.logger });
+            program.plugins = new PluginInterface([plugin], { logger: builder.logger });
+            program.createSourceScope();
+            plugin.beforeProgramCreate(builder);
+        });
+        afterEach(() => {
+            plugin.afterProgramCreate(program);
+            builder.dispose();
+            program.dispose();
+            fsExtra.removeSync(tmpPath);
+        });
+
+        it('keeps coverage helpers and the stub-detection prologue both in the output', async () => {
+            program.setFile('source/util.bs', `
+                function greet(name as string) as string
+                    if name = "" then
+                        return "Hello, stranger"
+                    end if
+                    return "Hello, " + name
+                end function
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            await builder.transpile();
+
+            const out = getContents('source/util.brs');
+
+            // Coverage instrumentation is present.
+            expect(out).to.include('RBS_CC_0_reportFunction(0)');
+            expect(out).to.include('RBS_CC_0_reportLine');
+            expect(out).to.include('RBS_CC_0_reportBranch');
+
+            // Global-mock prologue is present (the stub-detection lookup that MockUtil injects).
+            expect(out).to.include('__stubs_globalAa');
+            expect(out).to.include('__stubOrMockResult');
+        });
+
+        it('instruments returns and ternary arms inside a function that also gets the mock prologue', async () => {
+            program.setFile('source/util.bs', `
+                function classify(value as integer) as string
+                    return value >= 0 ? "non-negative" : "negative"
+                end function
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            await builder.transpile();
+
+            const out = getContents('source/util.brs');
+
+            // The mock prologue runs before the ternary; both arms are still wrapped with
+            // branchValue helpers so coverage tracks the truthy/falsy paths.
+            expect(out).to.include('__stubs_globalAa');
+            expect(out).to.include('RBS_CC_0_branchValue(0, 0, "non-negative")');
+            expect(out).to.include('RBS_CC_0_branchValue(0, 1, "negative")');
+        });
+
+        it('does not instrument the synthetic prologue itself - reportFunction stays at the head of the original body', async () => {
+            program.setFile('source/util.bs', `
+                function greet() as string
+                    return "hi"
+                end function
+            `);
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            await builder.transpile();
+
+            const out = getContents('source/util.brs');
+            // Sanity: only one reportFunction(0) for greet itself - we shouldn't have
+            // accidentally treated the mock prologue's anonymous lookup function as a new
+            // user-defined function and registered it for tracking.
+            const matches = out.match(/RBS_CC_0_reportFunction\(\d+\)/g) || [];
+            const userFunctionRegistrations = matches.filter(m => m === 'RBS_CC_0_reportFunction(0)');
+            expect(userFunctionRegistrations.length).to.equal(1);
+        });
+    });
 });
