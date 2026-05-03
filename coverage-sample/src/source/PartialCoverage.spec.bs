@@ -76,6 +76,29 @@ namespace bench
             m.assertTrue(bench.isTrue(true, false))
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("anonymous function expression - falsy arm never exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("describeFlag returns 'on' for a truthy flag")
+        function _()
+            ' Only the truthy branch of the inner anon function runs; the else arm should
+            ' show as missed.
+            m.assertEqual(bench.describeFlag(true), "on")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("unusedHandler - anon function returned but never invoked")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns the handler without invoking it")
+        function _()
+            ' The outer function runs and returns the inner anon, but the anon is never
+            ' called - its body lines and FNDA should all be 0.
+            handler = bench.unusedHandler()
+            m.assertNotInvalid(handler)
+        end function
+
     end class
 
 end namespace

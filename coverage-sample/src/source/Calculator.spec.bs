@@ -130,6 +130,22 @@ namespace bench
             m.assertFalse(calc.isInRange(0, 1, 10))
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("anonymous function expression - both arms exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("classifySign returns non-negative for zero")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classifySign(0), "non-negative")
+        end function
+
+        @it("classifySign returns negative for a negative value")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classifySign(-2), "negative")
+        end function
+
     end class
 
 end namespace
