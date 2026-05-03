@@ -41,6 +41,12 @@ namespace bench
                 return -1
             end try
         end function
+
+        ' Ternary expression - both arms exercised by the spec to confirm the renderer
+        ' shows fully-covered ternary as no badge.
+        function abs(value as integer) as integer
+            return value >= 0 ? value : -value
+        end function
     end class
 
     function sumRange(low as integer, high as integer) as integer

@@ -46,4 +46,10 @@ namespace bench
         end try
     end function
 
+    ' Ternary where the spec only passes truthy values. The falsy arm (after `:`) should show
+    ' as a missed branch.
+    function asLabel(active as boolean) as string
+        return active ? "on" : "off"
+    end function
+
 end namespace

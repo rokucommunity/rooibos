@@ -118,6 +118,13 @@ namespace rooibos.Coverage
                         brh++
                     end if
                     buffer += `BRDA:${branch.line},${block.id},${branch.id},${branch.totalHit}\n`
+                    ' Custom non-LCOV line carrying start/end column info for expression-level
+                    ' branches (e.g. ternary arms). The HTML renderer uses this to wrap the arm
+                    ' in a yellow `cbranch-no` span when missed, matching nyc/Istanbul's TS
+                    ' rendering of unhit ternary arms.
+                    if branch.column <> invalid and branch.endColumn <> invalid then
+                        buffer += `RBSCOL:${block.id},${branch.id},${branch.column},${branch.endColumn}\n`
+                    end if
                 end for
                 if block.isIfArm = true and block.branches.count() = 1 then
                     ifLine = block.branches[0].line
