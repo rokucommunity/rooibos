@@ -114,6 +114,22 @@ namespace bench
             m.assertEqual(calc.withDefault(invalid), 0)
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("logical AND - both short-circuit and full-eval paths exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("isInRange returns true when within range (full eval)")
+        function _()
+            calc = new Calculator()
+            m.assertTrue(calc.isInRange(5, 1, 10))
+        end function
+
+        @it("isInRange returns false when below range (short-circuits AND)")
+        function _()
+            calc = new Calculator()
+            m.assertFalse(calc.isInRange(0, 1, 10))
+        end function
+
     end class
 
 end namespace

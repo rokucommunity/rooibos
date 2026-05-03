@@ -58,4 +58,10 @@ namespace bench
         return name ?? "anonymous"
     end function
 
+    ' Logical OR where the spec only passes truthy left values. The right side never evaluates
+    ' (short-circuit), so it should render as a missed branch.
+    function isTrue(flag as boolean, fallback as boolean) as boolean
+        return flag or fallback
+    end function
+
 end namespace

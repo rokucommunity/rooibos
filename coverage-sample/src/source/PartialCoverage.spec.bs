@@ -65,6 +65,17 @@ namespace bench
             m.assertEqual(bench.nameOrDefault("alice"), "alice")
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("isTrue - logical OR right side never evaluated")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns true when the left flag is already true")
+        function _()
+            ' Only the left side evaluates; OR short-circuits, so `fallback` should render
+            ' as a missed branch.
+            m.assertTrue(bench.isTrue(true, false))
+        end function
+
     end class
 
 end namespace

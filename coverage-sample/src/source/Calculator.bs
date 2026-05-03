@@ -52,6 +52,11 @@ namespace bench
         function withDefault(value as dynamic) as integer
             return value ?? 0
         end function
+
+        ' Logical AND with both short-circuit and full-eval paths exercised.
+        function isInRange(value as integer, low as integer, high as integer) as boolean
+            return value >= low and value <= high
+        end function
     end class
 
     function sumRange(low as integer, high as integer) as integer
