@@ -1,0 +1,22 @@
+name: publish-docs
+on:
+  push:
+    branches:
+      - 'master'
+jobs:
+  publish-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: "18.18.2"
+      - run: npm install
+      - run: npm run docs
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: .tmp/docs
+          clean: true # Automatically remove deleted files from the deploy branch

@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="images/logo.png" alt="Rooibos test framework" width="200" height="200"/>
+  <img src="docs/images/logo.png" alt="Rooibos test framework" width="200" height="200"/>
 </p>
 <h3 align="center">
 Simple, mocha and junit inspired, flexible, and fun Brightscript test framework for Roku apps
 </h3>
 <p align="center">
-  <img src="images/exampleImage.png" alt="Mocha test framework" />
+  <img src="docs/images/exampleImage.png" alt="Mocha test framework" />
 </p>
 
 [![build status](https://img.shields.io/github/actions/workflow/status/rokucommunity/rooibos/build.yml?branch=master&logo=github)](https://github.com/rokucommunity/rooibos/actions?query=branch%3Amaster+workflow%3Abuild)

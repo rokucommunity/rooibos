@@ -740,6 +740,9 @@ In addition to the `isGlobalMethodMockingEnabled`, you use the following config 
 
 ### Known limitations:
 
+> [!WARNING]
+> The current mocking and stubbing implementation only works within the current node context. Overrides are registered and stored inside the local `m`. Since a SceneGraph node's isolated `m` is distinct from the test suite's `m`, there is no way to mock its internal methods from the test suite.
+
 #### You must include default values in your expect calls, even if your invoking code does not use them
  - if you mock or stub a global or namespaced method, you will have to expect default parameters in your expectCalled invocation, as rooibos will receive the default values.
 
@@ -1045,7 +1048,7 @@ namespace Tests
     function helloFromNode_simple()
       'bs:disable-next-line
       text = HelloFromNode("rokucommunity", 12)
-      m.assertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
+      m.assertEqual(text, "HELLO rokucommunity" + " age:" + strI(12))
     end function
 ...
 ```
@@ -1109,7 +1112,7 @@ namespace tests
     function _()
       'bs:disable-next-line
       text = HelloFromNode("rokucommunity", 12)
-      m.AssertEqual(text, "HELLO rokucommunity" + " age:" + stri(12))
+      m.AssertEqual(text, "HELLO rokucommunity" + " age:" + strI(12))
       m.done()
     end function
 
@@ -1128,7 +1131,7 @@ namespace tests
     function _(name, age)
       'bs:disable-next-line
       text = HelloFromNode(name, age)
-      m.AssertEqual(text, "HELLO " + name + " age:" + stri(age))
+      m.AssertEqual(text, "HELLO " + name + " age:" + strI(age))
       m.timer = createObject("roSGNode", "Timer")
       m.timer.duration = 0.5
       m.timer.observeFieldScoped("fire", "OnTimer")

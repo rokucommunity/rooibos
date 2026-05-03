@@ -1,28 +1,25 @@
 namespace rooibos.Matcher
+    function anyString(value as dynamic) as boolean
+        return rooibos.common.isString(value)
+    end function
 
-  function anyString(value)
-    return rooibos.common.isString(value)
-  end function
+    function anyBool(value as dynamic) as boolean
+        return rooibos.common.isBoolean(value)
+    end function
 
-  function anyBool(value)
-    return rooibos.common.isBoolean(value)
-  end function
+    function anyNumber(value as dynamic) as boolean
+        return rooibos.common.isNumber(value)
+    end function
 
-  function anyNumber(value)
-    return rooibos.common.isNumber(value)
-  end function
+    function anyAA(value as dynamic) as boolean
+        return rooibos.common.isAssociativeArray(value)
+    end function
 
-  function anyAA(value)
-    return rooibos.common.isAssociativeArray(value)
-  end function
+    function anyArray(value as dynamic) as boolean
+        return rooibos.common.isArray(value)
+    end function
 
-  function anyArray(value)
-    return rooibos.common.isArray(value)
-  end function
-
-  function anyNode(value)
-    return rooibos.common.isSGNode(value)
-  end function
-
-
+    function anyNode(value as dynamic) as boolean
+        return rooibos.common.isSGNode(value)
+    end function
 end namespace
