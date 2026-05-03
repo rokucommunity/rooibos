@@ -47,6 +47,11 @@ namespace bench
         function abs(value as integer) as integer
             return value >= 0 ? value : -value
         end function
+
+        ' Null-coalescing where both arms are exercised by the spec.
+        function withDefault(value as dynamic) as integer
+            return value ?? 0
+        end function
     end class
 
     function sumRange(low as integer, high as integer) as integer

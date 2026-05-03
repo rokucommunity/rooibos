@@ -55,6 +55,16 @@ namespace bench
             m.assertEqual(bench.asLabel(true), "on")
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("nameOrDefault - null-coalescing alternate never fires")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns the value when it's non-null")
+        function _()
+            ' Only the consequent runs; the `?? "anonymous"` alternate should show as missed
+            m.assertEqual(bench.nameOrDefault("alice"), "alice")
+        end function
+
     end class
 
 end namespace

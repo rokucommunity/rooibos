@@ -352,6 +352,45 @@ export class CodeCoverageProcessor {
                 this.addStatement(ds, ds.range.start.line);
                 this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
             },
+            NullCoalescingExpression: (expr) => {
+                if (this.processedExpressions.has(expr)) {
+                    return;
+                }
+                this.processedExpressions.add(expr);
+
+                // Same model as ternary: branch 0 = consequent (left side / `??`'s primary),
+                // branch 1 = alternate (right side, only runs when consequent was nullish).
+                // Wrapping both arms with branchValue: branch 0 fires every evaluation since
+                // BS always evaluates the consequent to null-check it; branch 1 fires only
+                // when alternate runs. The renderer flags the missed alternate in yellow,
+                // which is the case worth catching.
+                const blockId = this.blockId++;
+                this.foundBlocks.push({
+                    id: blockId,
+                    isIfArm: false,
+                    branches: [
+                        {
+                            id: 0,
+                            line: expr.consequent.range.start.line + 1,
+                            column: expr.consequent.range.start.character,
+                            endColumn: expr.consequent.range.end.character - 1,
+                            totalHit: 0
+                        },
+                        {
+                            id: 1,
+                            line: expr.alternate.range.start.line + 1,
+                            column: expr.alternate.range.start.character,
+                            endColumn: expr.alternate.range.end.character - 1,
+                            totalHit: 0
+                        }
+                    ]
+                });
+
+                const wrappedConsequent = this.wrapBranchValue(blockId, 0, expr.consequent);
+                const wrappedAlternate = this.wrapBranchValue(blockId, 1, expr.alternate);
+                this.astEditor.setProperty(expr, 'consequent', wrappedConsequent);
+                this.astEditor.setProperty(expr, 'alternate', wrappedAlternate);
+            },
             TernaryExpression: (ternary) => {
                 if (this.processedExpressions.has(ternary)) {
                     return;

@@ -98,6 +98,22 @@ namespace bench
             m.assertEqual(calc.abs(-3), 3)
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("null-coalescing - both arms exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("withDefault returns the value when non-null")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.withDefault(7), 7)
+        end function
+
+        @it("withDefault falls through to 0 when value is invalid")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.withDefault(invalid), 0)
+        end function
+
     end class
 
 end namespace
