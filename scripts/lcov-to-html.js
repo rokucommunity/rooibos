@@ -88,6 +88,30 @@ lcovParse.source(raw, (err, data) => {
         const match = line.match(/^\s*/);
         return match ? match[0].length : 0;
     }
+    function getKeywordColumn(filePath, lineNumber) {
+        let lines = sourceLineCache.get(filePath);
+        if (!lines) {
+            try {
+                lines = fs.readFileSync(filePath, 'utf8').split('\n');
+            } catch {
+                lines = [];
+            }
+            sourceLineCache.set(filePath, lines);
+        }
+        const line = lines[lineNumber - 1];
+        if (!line) {
+            return 0;
+        }
+        // Find the `function` or `sub` keyword position; word-boundary anchored so we don't
+        // hit comments containing the word, and case-insensitive since BS keywords are.
+        const match = line.match(/\b(function|sub)\b/i);
+        if (match) {
+            return match.index;
+        }
+        // Fallback: leading whitespace boundary.
+        const indent = line.match(/^\s*/);
+        return indent ? indent[0].length : 0;
+    }
     const pointAt = (line, column = 0) => ({ start: { line, column }, end: { line, column } });
     // Statements span a whole line so Istanbul's HTML annotator paints the entire line red on
     // miss instead of just marking the gutter.
@@ -111,10 +135,20 @@ lcovParse.source(raw, (err, data) => {
         });
 
         (file.functions.details || []).forEach((fn, i) => {
+            // Find the column of the `function`/`sub` keyword on the declaration line so the
+            // missed-function highlight wraps just the signature (matching nyc/Istanbul TS
+            // reports) rather than the whole line including any prefix like `handler = `.
+            const declCol = getKeywordColumn(resolvedPath, fn.line);
             fileCoverage.fnMap[i] = {
                 name: fn.name,
-                decl: lineSpan(fn.line),
-                loc: lineSpan(fn.line)
+                decl: {
+                    start: { line: fn.line, column: declCol },
+                    end: { line: fn.line, column: 1024 }
+                },
+                loc: {
+                    start: { line: fn.line, column: declCol },
+                    end: { line: fn.line, column: 1024 }
+                }
             };
             fileCoverage.f[i] = fn.hit || 0;
         });

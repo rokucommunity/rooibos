@@ -57,6 +57,18 @@ namespace bench
         function isInRange(value as integer, low as integer, high as integer) as boolean
             return value >= low and value <= high
         end function
+
+        ' Anonymous function expression with an if/else inside - the spec exercises both arms.
+        function classifySign(value as integer) as string
+            classify = function(v as integer) as string
+                if v >= 0 then
+                    return "non-negative"
+                else
+                    return "negative"
+                end if
+            end function
+            return classify(value)
+        end function
     end class
 
     function sumRange(low as integer, high as integer) as integer

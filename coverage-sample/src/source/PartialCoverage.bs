@@ -64,4 +64,28 @@ namespace bench
         return flag or fallback
     end function
 
+    ' Anonymous function expression where the spec only triggers the truthy branch. The else
+    ' arm of the inner anon function should render as a missed branch (E badge), and the
+    ' falsy `return "off"` line as a missed statement.
+    function describeFlag(flag as boolean) as string
+        labelOf = function(f as boolean) as string
+            if f then
+                return "on"
+            else
+                return "off"
+            end if
+        end function
+        return labelOf(flag)
+    end function
+
+    ' Anonymous function stored in a local but never invoked. The anon function declaration
+    ' line is found via FN: but every body line should be unhit and FNDA should be 0.
+    function unusedHandler() as object
+        handler = function(value as dynamic) as dynamic
+            adjusted = value + 1
+            return adjusted
+        end function
+        return handler
+    end function
+
 end namespace
