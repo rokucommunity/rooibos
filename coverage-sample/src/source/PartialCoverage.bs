@@ -1,0 +1,91 @@
+namespace bench
+
+    ' Both branches reachable; the spec only exercises the `then` branch so the `else` should show
+    ' as a missed branch and `return false` as a missed line.
+    function isPositive(value as integer) as boolean
+        if value > 0 then
+            return true
+        else
+            return false
+        end if
+    end function
+
+    ' Tail return is reachable but the spec returns from the if before getting there. Tail line
+    ' should appear unhit; the if-then branch should appear fully hit.
+    function describe(value as integer) as string
+        if value = 0 then
+            return "zero"
+        end if
+        return "non-zero"
+    end function
+
+    ' Spec only passes an empty array, so the for-each body never executes. Loop entry line is
+    ' hit (the for-each token itself); body lines should be unhit.
+    function joinAll(items as object) as string
+        result = ""
+        for each item in items
+            result = result + item
+        end for
+        return result
+    end function
+
+    ' Never called by the spec at all. The function declaration line is found via FN: but should
+    ' have zero function hits, and every body line should be unhit.
+    function neverCalled() as integer
+        x = 1
+        return x + 41
+    end function
+
+    ' Try/catch where the spec only exercises the happy path. The catch arm should show as a
+    ' missed branch (E badge on the `try` line) and its body should appear unhit.
+    function parseSafe(input as string) as integer
+        try
+            return input.toInt()
+        catch e
+            return -1
+        end try
+    end function
+
+    ' Ternary where the spec only passes truthy values. The falsy arm (after `:`) should show
+    ' as a missed branch.
+    function asLabel(active as boolean) as string
+        return active ? "on" : "off"
+    end function
+
+    ' Null-coalescing where the spec only passes non-null values. The alternate (after `??`)
+    ' should show as a missed branch.
+    function nameOrDefault(name as dynamic) as string
+        return name ?? "anonymous"
+    end function
+
+    ' Logical OR where the spec only passes truthy left values. The right side never evaluates
+    ' (short-circuit), so it should render as a missed branch.
+    function isTrue(flag as boolean, fallback as boolean) as boolean
+        return flag or fallback
+    end function
+
+    ' Anonymous function expression where the spec only triggers the truthy branch. The else
+    ' arm of the inner anon function should render as a missed branch (E badge), and the
+    ' falsy `return "off"` line as a missed statement.
+    function describeFlag(flag as boolean) as string
+        labelOf = function(f as boolean) as string
+            if f then
+                return "on"
+            else
+                return "off"
+            end if
+        end function
+        return labelOf(flag)
+    end function
+
+    ' Anonymous function stored in a local but never invoked. The anon function declaration
+    ' line is found via FN: but every body line should be unhit and FNDA should be 0.
+    function unusedHandler() as object
+        handler = function(value as dynamic) as dynamic
+            adjusted = value + 1
+            return adjusted
+        end function
+        return handler
+    end function
+
+end namespace

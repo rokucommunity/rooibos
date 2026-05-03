@@ -6,6 +6,7 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
+import * as path from 'path';
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -14,6 +15,7 @@ let options = yargs
     .option('host', { type: 'string', description: 'Host of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
+    .option('coverage-output', { type: 'string', description: 'Path to write the captured lcov.info file. Defaults to ./coverage/lcov.info when coverage markers are seen.' })
     .check((argv) => {
         if (!argv.host) {
             return new Error('You must provide a host. (--host)');
@@ -66,6 +68,26 @@ async function main() {
     const failRegex = /\[Rooibos Result\]: (FAIL|PASS)/g;
     const endRegex = /\[Rooibos Shutdown\]/g;
 
+    const coverageOutputPath = path.resolve(options['coverage-output'] ?? './coverage/lcov.info');
+    const rootDirAbs = path.resolve(bsConfig.rootDir ?? './');
+    let capturingCoverage = false;
+    let coverageBuffer: string[] = [];
+
+    function writeLcov(content: string) {
+        const rewritten = content.split('\n').map(line => {
+            // The framework writes SF lines as `SF:./relative/from/rootDir.bs`. Rewrite to absolute paths
+            // so genhtml can locate the original source files regardless of where it's invoked from.
+            if (line.startsWith('SF:./')) {
+                return `SF:${path.resolve(rootDirAbs, line.substring(5))}`;
+            }
+            return line;
+        }).join('\n');
+
+        fs.mkdirSync(path.dirname(coverageOutputPath), { recursive: true });
+        fs.writeFileSync(coverageOutputPath, rewritten);
+        console.log(`[rooibos] wrote lcov to ${coverageOutputPath}`);
+    }
+
     async function doExit(emitAppExit = false) {
         if (emitAppExit) {
             (telnet as any).beginAppExit();
@@ -76,6 +98,26 @@ async function main() {
 
     telnet.on('console-output', (output) => {
         console.log(output);
+
+        for (const line of output.split('\n')) {
+            if (line.includes('+-=-coverage:start')) {
+                capturingCoverage = true;
+                coverageBuffer = [];
+                continue;
+            }
+            if (line.includes('+-=-coverage:end')) {
+                capturingCoverage = false;
+                try {
+                    writeLcov(coverageBuffer.join('\n'));
+                } catch (e) {
+                    console.error('[rooibos] failed to write lcov:', e);
+                }
+                continue;
+            }
+            if (capturingCoverage) {
+                coverageBuffer.push(line);
+            }
+        }
 
         //check for Fails or Crashes
         let failMatches = failRegex.exec(output);
