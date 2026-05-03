@@ -4,7 +4,6 @@ import type { BrsFile, Editor, ExpressionStatement, FunctionExpression, Program,
 import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isForEachStatement, isWhileStatement, isTryCatchStatement, isCatchStatement } from 'brighterscript';
 import type { IfStatement, TryCatchStatement, CatchStatement, Expression, AssignmentStatement, CallExpression } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
-import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
 
@@ -105,7 +104,6 @@ export class CodeCoverageProcessor {
     private blockId: number;
     private functionMap: Array<Array<string>>;
     private executableLines: Map<number, Statement>;
-    private transpileState: BrsTranspileState;
     private fileFactory: FileFactory;
     private processedStatements: Set<Statement>;
     private processedFunctions: Set<FunctionExpression>;
@@ -141,7 +139,6 @@ export class CodeCoverageProcessor {
 
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {
         if (this.config.isRecordingCodeCoverage) {
-            this.transpileState = new BrsTranspileState(file);
             this.blockId = 0;
             this._processFile(file, astEditor);
             this.fileId++;
@@ -164,8 +161,8 @@ export class CodeCoverageProcessor {
         this.astEditor = astEditor;
 
         file.ast.walk(createVisitor({
-            FunctionStatement: (statement, parent, owner, key) => {
-                this.getFunctionIdInFile(statement, ParseMode.BrighterScript, owner, key);
+            FunctionStatement: (statement) => {
+                this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
             },
             Block: (statement, parent, owner, key) => {
                 if (isFunctionExpression(parent)) {
@@ -225,12 +222,12 @@ export class CodeCoverageProcessor {
                     });
                 }
 
-                const parsed = Parser.parse(this.getReportBranchHitFuncCallText(blockId, branchId, statement, owner, key)).ast.statements[0] as ExpressionStatement;
+                const parsed = Parser.parse(this.getReportBranchHitFuncCallText(blockId, branchId, statement)).ast.statements[0] as ExpressionStatement;
                 this.astEditor.addToArray(statement.statements, 0, parsed);
             },
             ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds, ds.range.start.line);
-                ds.forToken.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds, owner, key)}: for`;
+                ds.forToken.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds)}: for`;
             },
             TryCatchStatement: (tryCatch, parent, owner, key) => {
                 this.addStatement(tryCatch, tryCatch.range.start.line);
@@ -239,7 +236,7 @@ export class CodeCoverageProcessor {
                 // WhileStatement / ForEachStatement) rather than arraySplice; splicing the
                 // owner array mid-visit causes the walker to re-read owner[key] and skip
                 // the try-statement's children.
-                tryCatch.tokens.try.text = `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, CodeCoverageLineType.code, tryCatch, owner, key)}: try`;
+                tryCatch.tokens.try.text = `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, CodeCoverageLineType.code, tryCatch)}: try`;
                 // Reserve a single block.id covering the try and catch arms. Both Block visits
                 // (for tryBranch and catchBranch) will discover their reservation here and
                 // append to the same block, anchoring I/E badges at the `try` keyword line.
@@ -277,7 +274,7 @@ export class CodeCoverageProcessor {
                     branches: []
                 });
                 const conditionWrap = new BinaryExpression(
-                    new RawCodeExpression(this.getReportLineHitFuncCallText(ifStatement.condition.range.start.line, CodeCoverageLineType.condition, ifStatement, owner, key)),
+                    new RawCodeExpression(this.getReportLineHitFuncCallText(ifStatement.condition.range.start.line, CodeCoverageLineType.condition, ifStatement)),
                     createToken(TokenKind.And),
                     new GroupingExpression({
                         left: createToken(TokenKind.LeftParen),
@@ -292,14 +289,14 @@ export class CodeCoverageProcessor {
 
                 // let blockStatements = ifStatement?.thenBranch?.statements;
                 // if (blockStatements) {
-                //     let coverageStatement = new RawCodeStatement(this.getReportLineHitFuncCallText(ifStatement.range.start.line, CodeCoverageLineType.branch, ifStatement, owner, key));
+                //     let coverageStatement = new RawCodeStatement(this.getReportLineHitFuncCallText(ifStatement.range.start.line, CodeCoverageLineType.branch, ifStatement));
                 //     blockStatements.splice(0, 0, coverageStatement);
                 // }
 
                 // // Handle the else blocks
                 // let elseBlock = ifStatement.elseBranch;
                 // if (isBlock(elseBlock) && elseBlock.statements) {
-                //     let coverageStatement = new RawCodeStatement(this.getReportLineHitFuncCallText(elseBlock.range.start.line - 1, CodeCoverageLineType.branch, elseBlock, owner, key));
+                //     let coverageStatement = new RawCodeStatement(this.getReportLineHitFuncCallText(elseBlock.range.start.line - 1, CodeCoverageLineType.branch, elseBlock));
                 //     elseBlock.statements.splice(0, 0, coverageStatement);
                 // }
 
@@ -310,7 +307,7 @@ export class CodeCoverageProcessor {
 
             },
             WhileStatement: (ds, parent, owner, key) => {
-                ds.tokens.while.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds, owner, key)}: while`;
+                ds.tokens.while.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds)}: while`;
             },
             ReturnStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds, ds.range.start.line);
@@ -318,7 +315,7 @@ export class CodeCoverageProcessor {
             },
             ForEachStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds, ds.range.start.line);
-                ds.tokens.forEach.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds, owner, key)}: for each`;
+                ds.tokens.forEach.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds)}: for each`;
             },
             ExitWhileStatement: (ds, parent, owner, key) => {
 
@@ -539,7 +536,7 @@ export class CodeCoverageProcessor {
         }
 
         const lineNumber = statement.range.start.line;
-        const callText = this.getReportLineHitFuncCallText(lineNumber, coverageType, statement, owner, key);
+        const callText = this.getReportLineHitFuncCallText(lineNumber, coverageType, statement);
         // Queue the splice; flushed after the walk so we don't disrupt the visitor descending
         // into this statement's children. owner is captured by reference; the statement's index
         // is recomputed at flush time since other deferred inserts may shift things.
@@ -569,13 +566,16 @@ export class CodeCoverageProcessor {
         }
     }
 
-    private getReportLineHitFuncCallText(lineNumber: number, lineType: CodeCoverageLineType, statement: Statement, owner: any, key: any) {
-        const funcId = this.getFunctionIdInFile(statement, ParseMode.BrighterScript, owner, key);
+    private getReportLineHitFuncCallText(lineNumber: number, lineType: CodeCoverageLineType, statement: Statement) {
+        // Side effect: registers the containing function so its reportFunction call gets
+        // queued for insertion after the walk. owner/key are kept on the signature for symmetry
+        // with brighterscript's visitor handlers but unused here.
+        this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
         return `RBS_CC_${this.fileId}_reportLine(${lineNumber + 1})`;
     }
 
-    private getReportBranchHitFuncCallText(blockId: number, branchId: number, statement: Statement, owner: any, key: any) {
-        const funcId = this.getFunctionIdInFile(statement, ParseMode.BrighterScript, owner, key);
+    private getReportBranchHitFuncCallText(blockId: number, branchId: number, statement: Statement) {
+        this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
         return `RBS_CC_${this.fileId}_reportBranch(${blockId}, ${branchId})`;
     }
 
@@ -583,12 +583,21 @@ export class CodeCoverageProcessor {
         return `RBS_CC_${this.fileId}_reportFunction(${functionId})`;
     }
 
-    private getFunctionIdInFile(statement: Statement, parseMode: ParseMode, owner: any, key: any) {
+    /**
+     * Idempotently registers the FunctionExpression that contains this statement so its
+     * reportFunction insertion gets queued for after the walk. Builds a stable name for
+     * the function (using parent-function indices for nested anonymous expressions) so
+     * each function is registered exactly once even when reached via multiple call sites.
+     */
+    private ensureFunctionTracked(statement: Statement, parseMode: ParseMode) {
         let originalFunc: FunctionExpression;
         if (isFunctionStatement(statement)) {
             originalFunc = statement.func;
         } else {
             originalFunc = statement.findAncestor(isFunctionExpression);
+        }
+        if (this.processedFunctions.has(originalFunc)) {
+            return;
         }
         let func: FunctionExpression = originalFunc;
 
@@ -598,38 +607,28 @@ export class CodeCoverageProcessor {
             nameParts.unshift(`anon${index}`);
             func = func.parentFunction;
         }
-        //get the index of this function in its parent
-        nameParts.unshift(
-            func.functionStatement.getName(parseMode)
-        );
-
+        nameParts.unshift(func.functionStatement.getName(parseMode));
         const name = nameParts.join('$');
 
-        if (!this.processedFunctions.has(originalFunc)) {
-            this.processedFunctions.add(originalFunc);
-            if (!this.functionMap[this.fileId]) {
-                this.functionMap[this.fileId] = [];
-            }
-
-            // Defer the reportFunction insertion until after the walk completes.
-            // brighterscript's walker re-reads owner[key] after the visitor returns; mutating the
-            // function body's index 0 mid-visit makes it walk the inserted node and skip the
-            // original child's subtree (e.g. if-statement's thenBranch/elseBranch).
-            this.pendingFunctionReports.push({
-                func: originalFunc,
-                callText: this.getReportFunctionHitFuncCallText(this.functionMap[this.fileId].length, statement)
-            });
-
-            this.foundFunctions.push({
-                name: name,
-                startLine: originalFunc.range.start.line + 1,
-                endLine: originalFunc.range.end.line + 1,
-                totalHit: 0
-            });
-            this.functionMap[this.fileId].push(name);
+        this.processedFunctions.add(originalFunc);
+        if (!this.functionMap[this.fileId]) {
+            this.functionMap[this.fileId] = [];
         }
-
-        return this.functionMap[this.fileId].indexOf(name);
+        // Defer the reportFunction insertion until after the walk completes.
+        // brighterscript's walker re-reads owner[key] after the visitor returns; mutating
+        // the function body's index 0 mid-visit makes it walk the inserted node and skip
+        // the original child's subtree (e.g. if-statement's thenBranch/elseBranch).
+        this.pendingFunctionReports.push({
+            func: originalFunc,
+            callText: this.getReportFunctionHitFuncCallText(this.functionMap[this.fileId].length, statement)
+        });
+        this.foundFunctions.push({
+            name: name,
+            startLine: originalFunc.range.start.line + 1,
+            endLine: originalFunc.range.end.line + 1,
+            totalHit: 0
+        });
+        this.functionMap[this.fileId].push(name);
     }
 }
 
@@ -684,245 +683,3 @@ interface LineCoverage {
     lineNumber: number;
     totalHit: number;
 }
-
-function createCovMap(files: Array<FileCoverage>) {
-
-    let report = '';
-
-    let covrageMap: CoverageMap = {
-        files: []
-    };
-
-    for (const file of files) {
-        report += `TN:\n`;
-        report += `SF:${file.sourceFile}\n`;
-        report += `VER:\n`;
-
-        // Add all the found functions for the file
-        for (const func of file.functions) {
-            report += `FN:${func.startLine},${func.endLine},${func.name}\n`;
-        }
-
-        // Write function related data
-        for (const func of file.functions) {
-            if (func.totalHit > 0) {
-                report += `FNDA:${func.totalHit},${func.name}\n`;
-            }
-        }
-
-        report += `FNF:${file.functionTotalFound}\n`;
-        report += `FNH:${file.functionTotalHit}\n`;
-
-        // Write branch related data
-        for (const block of file.blocks) {
-            for (const branch of block.branches) {
-                if (branch.totalHit > 0) {
-                    report += `BRDA:${branch.line},${block.id},${branch.id},${branch.totalHit}\n`;
-                }
-            }
-        }
-
-        report += `BRF:${file.branchTotalFound}\n`;
-        report += `BRH:${file.branchTotalHit}\n`;
-
-        // Write the per line related data
-        for (const line of file.lines) {
-            report += `DA:${line.lineNumber},${line.totalHit}`;
-        }
-
-        report += `LF:${file.lineTotalFound}\n`;
-        report += `LH:${file.lineTotalHit}\n`;
-        report += `end_of_record\n`;
-    }
-}
-// function write_info($$$) {
-//     my $self = $_[0];
-//     local *INFO_HANDLE = $_[1];
-//     my $checksum = defined($_[2]) ? $_[2] : 0;
-//     my $br_found;
-//     my $br_hit;
-//     my $ln_total_found = 0;
-//     my $ln_total_hit = 0;
-//     my $fn_total_found = 0;
-//     my $fn_total_hit = 0;
-//     my $br_total_found = 0;
-//     my $br_total_hit = 0;
-
-//     my $srcReader = ReadCurrentSource->new()
-//       if (lcovutil::is_filter_enabled());
-
-//     foreach my $source_file (sort($self->files())) {
-//       next if lcovutil::is_external($source_file);
-//       my $entry = $self->data($source_file);
-//       die("expected TraceInfo, got '" . ref($entry) . "'")
-//         unless('TraceInfo' eq ref($entry));
-
-//       my ($testdata, $sumcount, $funcdata, $checkdata, $testfncdata,
-//           $testbrdata, $sumbrcount, $found, $hit,
-//           $f_found, $f_hit, $br_found, $br_hit) = $entry->get_info();
-
-//       # munge the source file name, if requested
-//       $source_file = lcovutil::subst_file_name($source_file);
-//       # Add to totals
-//       $ln_total_found += $found;
-//       $ln_total_hit += $hit;
-//       $fn_total_found += $f_found;
-//       $fn_total_hit += $f_hit;
-//       $br_total_found += $br_found;
-//       $br_total_hit += $br_hit;
-
-//       foreach my $testname (sort($testdata->keylist())) {
-//         my $testcount = $testdata->value($testname);
-//         my $testfnccount = $testfncdata->value($testname);
-//         my $testbrcount = $testbrdata->value($testname);
-//         $found = 0;
-//         $hit   = 0;
-
-//         print(INFO_HANDLE "TN:$testname\n");
-//         print(INFO_HANDLE "SF:$source_file\n");
-//         print(INFO_HANDLE "VER:" . $entry->version() . "\n")
-//           if defined($entry->version());
-//         if (defined($srcReader)) {
-//           $srcReader->close();
-//           if (is_c_file($source_file)) {
-//             lcovutil::debug("reading $source_file for lcov filtering\n");
-//             if (-e $source_file) {
-//               $srcReader->open($source_file);
-//             } else {
-//               lcovutil::ignorable_error($lcovutil::ERROR_SOURCE,
-//                                         "'$source_file' not found (for filtering)")
-//                 if (lcovutil::warn_once($source_file));
-//             }
-//           } else {
-//             lcovutil::debug("not reading $source_file: no ext match\n");
-//           }
-//         }
-//         my $functionMap = $testfncdata->{$testname};
-//         # Write function related data - sort  by line number
-//         foreach my $key ( sort({$functionMap->findKey($a)->line() <=> $functionMap->findKey($b)->line()}
-//                                 $functionMap->keylist())) {
-//           my $data = $functionMap->findKey($key);
-//           my $aliases = $data->aliases();
-//           foreach my $alias (keys %$aliases) {
-//             print(INFO_HANDLE "FN:" . $data->line(). ",$alias\n");
-//           }
-//         }
-//         my $f_found = 0;
-//         my $f_hit = 0;
-//         foreach my $key ($functionMap->keylist()) {
-//           my $data = $functionMap->findKey($key);
-//           my $aliases = $data->aliases();
-//           foreach my $alias (keys %$aliases) {
-//             my $hit = $aliases->{$alias};
-//             ++ $f_found;
-//             ++ $f_hit if $hit > 0;
-//             print(INFO_HANDLE "FNDA:$hit,$alias\n");
-//           }
-//         }
-//         print(INFO_HANDLE "FNF:$f_found\n");
-//         print(INFO_HANDLE "FNH:$f_hit\n");
-
-//         # Write branch related data
-//         $br_found = 0;
-//         $br_hit = 0;
-//         my $currentBranchLine;
-//         my $skipBranch = 0;
-//         my $reader = $srcReader
-//           if (defined($srcReader) && $srcReader->notEmpty());
-//         my $branchHistogram = $cov_filter[$FILTER_BRANCH_NO_COND]
-//           if $reader;
-
-//         foreach my $line (sort({$a <=> $b}
-//                                $testbrcount->keylist())) {
-
-//           # omit if line excluded or branches excluded on this line
-//           next
-//             if (defined($reader) &&
-//                 ($reader->isOutOfRange($line, 'branch') ||
-//                  $reader->isExcluded($line, 1)));
-
-//           my $brdata = $testbrcount->value($line);
-//           if (defined($branchHistogram)) {
-//             $skipBranch = ! $reader->containsConditional($line);
-//             if ($skipBranch) {
-//               ++ $branchHistogram->[0]; # one line where we skip
-//               $branchHistogram->[1] += scalar($brdata->blocks());
-//               lcovutil::info(2, "skip BRDA '" .
-//                              $reader->getLine($line) .
-//                              "' $source_file:$line\n");
-//               next;
-//             }
-//           }
-//           # want the block_id to be treated as 32-bit unsigned integer
-//           #  (need masking to match regression tests)
-//           my $mask =  (1<<32) -1;
-//           foreach my $block_id ($brdata->blocks()) {
-//             my $blockData = $brdata->getBlock($block_id);
-//             $block_id &= $mask;
-//             foreach my $br (@$blockData) {
-//               my $taken = $br->data();
-//               my $branch_id = $br->id();
-//               my $branch_expr = $br->expr();
-//               # mostly for Verilog:  if there is a branch expression: use it.
-//               printf(INFO_HANDLE "BRDA:%u,%u,%s,%s\n",
-//                      $line, $block_id,
-//                      defined($branch_expr) ? $branch_expr : $branch_id, $taken);
-//               $br_found++;
-//               $br_hit++
-//                 if ($taken ne '-' && $taken > 0);
-//             }
-//           }
-//         }
-//         if ($br_found > 0) {
-//           print(INFO_HANDLE "BRF:$br_found\n");
-//           print(INFO_HANDLE "BRH:$br_hit\n");
-//         }
-
-//         # Write line related data
-//         my ($brace_histogram, $blank_histogram);
-//         if (defined($reader)) {
-//           $brace_histogram = $cov_filter[$FILTER_LINE_CLOSE_BRACE];
-//           $blank_histogram = $cov_filter[$FILTER_BLANK_LINE];
-//         }
-//         foreach my $line (sort({$a <=> $b} $testcount->keylist())) {
-//           next
-//             if (defined($reader) &&
-//                 ($reader->isOutOfRange($line, 'line') || $reader->isExcluded($line)));
-
-//           my $l_hit = $testcount->value($line);
-//           if ( ! defined($sumbrcount->value($line))) {
-//             # don't suppresss if this line has associated branch data
-
-//             if ($brace_histogram &&
-//                 $reader->suppressCloseBrace($line, $l_hit, $testcount)) {
-//               lcovutil::info(2, "skip DA '" . $reader->getLine($line)
-//                              . "' $source_file:$line\n");
-//               ++$brace_histogram->[0]; # one location where this applied
-//               ++$brace_histogram->[1]; # one coverpoint suppressed
-//               next;
-//             } elsif ($blank_histogram &&
-//                      $l_hit == 0 &&
-//                      $reader->isBlank($line)) {
-//               lcovutil::info(2, "skip DA (empty) $source_file:$line\n");
-//               ++ $blank_histogram->[0]; # one location where this applied
-//               ++ $blank_histogram->[1]; # one coverpoint suppressed
-//               next;
-//             }
-//           }
-//           my $chk = $checkdata->{$line};
-//           print(INFO_HANDLE "DA:$line,$l_hit" .
-//                 (defined($chk) && $checksum ? ",". $chk : "")
-//                 ."\n");
-//           $found++;
-//           $hit++
-//             if ($l_hit > 0);
-//         }
-//         print(INFO_HANDLE "LF:$found\n");
-//         print(INFO_HANDLE "LH:$hit\n");
-//         print(INFO_HANDLE "end_of_record\n");
-//       }
-//     }
-
-//     return ($ln_total_found, $ln_total_hit, $fn_total_found, $fn_total_hit,
-//             $br_total_found, $br_total_hit);
-//   }
