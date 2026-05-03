@@ -28,6 +28,19 @@ namespace bench
             end if
             return "negative"
         end function
+
+        ' Both arms exercised by the spec: one call divides cleanly, the other passes a divisor
+        ' of zero so the catch arm fires.
+        function safeDivide(a as integer, b as integer) as integer
+            try
+                if b = 0 then
+                    throw "divide by zero"
+                end if
+                return a / b
+            catch e
+                return -1
+            end try
+        end function
     end class
 
     function sumRange(low as integer, high as integer) as integer

@@ -36,4 +36,14 @@ namespace bench
         return x + 41
     end function
 
+    ' Try/catch where the spec only exercises the happy path. The catch arm should show as a
+    ' missed branch (E badge on the `try` line) and its body should appear unhit.
+    function parseSafe(input as string) as integer
+        try
+            return input.toInt()
+        catch e
+            return -1
+        end try
+    end function
+
 end namespace

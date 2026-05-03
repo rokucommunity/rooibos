@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ExpressionStatement, FunctionExpression, Program, ProgramBuilder, Statement } from 'brighterscript';
-import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isForEachStatement, isWhileStatement } from 'brighterscript';
-import type { IfStatement } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isForEachStatement, isWhileStatement, isTryCatchStatement, isCatchStatement } from 'brighterscript';
+import type { IfStatement, TryCatchStatement, CatchStatement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -102,6 +102,12 @@ export class CodeCoverageProcessor {
     private pendingFunctionReports: Array<{ func: FunctionExpression; callText: string }>;
     /** Tracks the block.id and anchor line reserved for an IfStatement so its then/else branches share both. */
     private allocatedIfBlocks: Map<IfStatement, { blockId: number; line: number }>;
+    /**
+     * Tracks the block.id reserved for a TryCatchStatement so its try-branch and catch-branch
+     * pair under one block. The CatchStatement is stored separately because the Block visitor
+     * sees CatchStatement (not TryCatchStatement) as the parent when walking the catch body.
+     */
+    private allocatedTryBlocks: Map<TryCatchStatement | CatchStatement, { blockId: number; line: number }>;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
         this.fileFactory.createCoverageComponent(program, this.baseCoverageReport);
@@ -126,6 +132,7 @@ export class CodeCoverageProcessor {
         this.addedStatements = new Set<Statement>();
         this.pendingFunctionReports = [];
         this.allocatedIfBlocks = new Map();
+        this.allocatedTryBlocks = new Map();
         this.astEditor = astEditor;
 
         file.ast.walk(createVisitor({
@@ -151,6 +158,18 @@ export class CodeCoverageProcessor {
                     branchId = blockEntry.branches.length;
                     // Both arms anchor to the if-statement's line so the I/E badge appears
                     // next to the `if` keyword in the rendered HTML, matching nyc's TS output.
+                    blockEntry.branches.push({
+                        id: branchId,
+                        line: reserved.line,
+                        totalHit: 0
+                    });
+                } else if ((isTryCatchStatement(parent) || isCatchStatement(parent)) && this.allocatedTryBlocks.has(parent)) {
+                    const reserved = this.allocatedTryBlocks.get(parent)!;
+                    blockId = reserved.blockId;
+                    const blockEntry = this.foundBlocks.find(b => b.id === blockId)!;
+                    branchId = blockEntry.branches.length;
+                    // Both arms anchor to the try-statement's line so the I/E badge sits next
+                    // to the `try` keyword.
                     blockEntry.branches.push({
                         id: branchId,
                         line: reserved.line,
@@ -184,6 +203,34 @@ export class CodeCoverageProcessor {
             ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds, ds.range.start.line);
                 ds.forToken.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds, owner, key)}: for`;
+            },
+            TryCatchStatement: (tryCatch, parent, owner, key) => {
+                this.addStatement(tryCatch, tryCatch.range.start.line);
+                // Prefix the `try` token with a reportLine call so the try line gets counted
+                // at runtime. Done via token-text mutation (same pattern as ForStatement /
+                // WhileStatement / ForEachStatement) rather than arraySplice; splicing the
+                // owner array mid-visit causes the walker to re-read owner[key] and skip
+                // the try-statement's children.
+                tryCatch.tokens.try.text = `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, CodeCoverageLineType.code, tryCatch, owner, key)}: try`;
+                // Reserve a single block.id covering the try and catch arms. Both Block visits
+                // (for tryBranch and catchBranch) will discover their reservation here and
+                // append to the same block, anchoring I/E badges at the `try` keyword line.
+                const reservedId = this.blockId++;
+                const reservation = {
+                    blockId: reservedId,
+                    line: tryCatch.range.start.line + 1
+                };
+                this.allocatedTryBlocks.set(tryCatch, reservation);
+                if (tryCatch.catchStatement) {
+                    this.allocatedTryBlocks.set(tryCatch.catchStatement, reservation);
+                }
+                this.foundBlocks.push({
+                    id: reservedId,
+                    // Treat try/catch like an if/else pair - both arms tracked, no synthetic
+                    // implicit-arm needed. isIfArm=false skips the implicit-else synthesis.
+                    isIfArm: false,
+                    branches: []
+                });
             },
             IfStatement: (ifStatement, parent, owner, key) => {
                 this.addStatement(ifStatement, ifStatement.range.start.line);
