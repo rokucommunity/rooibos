@@ -186,6 +186,31 @@ describe('RooibosPlugin', () => {
                         end if
                         return true
                     end function
+
+                    function RBS_CC_0_branchValue(blockId, branchId, value)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return value
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return value
+                        end if
+                        return value
+                    end function
                 `);
                 expect(a).to.equal(b);
 
@@ -319,6 +344,31 @@ describe('RooibosPlugin', () => {
                             return true
                         end if
                         return true
+                    end function
+
+                    function RBS_CC_0_branchValue(blockId, branchId, value)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return value
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return value
+                        end if
+                        return value
                     end function
                 `);
                 expect(a).to.equal(b);
@@ -474,6 +524,31 @@ describe('RooibosPlugin', () => {
                             return true
                         end if
                         return true
+                    end function
+
+                    function RBS_CC_0_branchValue(blockId, branchId, value)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return value
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return value
+                        end if
+                        return value
                     end function
                 `);
                 expect(a).to.equal(b);
@@ -696,6 +771,31 @@ describe('RooibosPlugin', () => {
                         end if
                         return true
                     end function
+
+                    function RBS_CC_0_branchValue(blockId, branchId, value)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return value
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return value
+                        end if
+                        return value
+                    end function
                 `);
 
                 expect(a).to.equal(b);
@@ -849,6 +949,31 @@ describe('RooibosPlugin', () => {
                             return true
                         end if
                         return true
+                    end function
+
+                    function RBS_CC_0_branchValue(blockId, branchId, value)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return value
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return value
+                        end if
+                        return value
                     end function
                 `);
 

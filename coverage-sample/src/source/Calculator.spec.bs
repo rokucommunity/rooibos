@@ -82,6 +82,22 @@ namespace bench
             m.assertEqual(calc.safeDivide(10, 0), -1)
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("ternary expression - both arms exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("abs returns positive value unchanged")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.abs(5), 5)
+        end function
+
+        @it("abs negates a negative value")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.abs(-3), 3)
+        end function
+
     end class
 
 end namespace

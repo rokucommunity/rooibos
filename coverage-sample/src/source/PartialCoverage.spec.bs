@@ -45,6 +45,16 @@ namespace bench
             m.assertEqual(bench.parseSafe("42"), 42)
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("asLabel - ternary truthy arm only")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns the truthy label for a true value")
+        function _()
+            ' Only the truthy arm runs; the falsy arm of the ternary should show as missed
+            m.assertEqual(bench.asLabel(true), "on")
+        end function
+
     end class
 
 end namespace

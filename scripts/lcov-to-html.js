@@ -29,7 +29,36 @@ const sourceRoot = path.resolve(sourceRootArg || process.cwd());
 // The Rooibos framework emits FN lines as `FN:start,end,name` (modern LCOV spec).
 // lcov-parse only understands the older `FN:line,name` form, so collapse 3-arg FN
 // rows to 2-arg before parsing.
-const raw = fs.readFileSync(lcovPath, 'utf8').replace(/^FN:(\d+),\d+,(.+)$/gm, 'FN:$1,$2');
+const rawWithExtensions = fs.readFileSync(lcovPath, 'utf8').replace(/^FN:(\d+),\d+,(.+)$/gm, 'FN:$1,$2');
+
+// Extract our custom RBSCOL extension lines (column data for expression-level branches like
+// ternary arms) and strip them out so lcov-parse doesn't choke. Keyed by `<file>:<block>:<branch>`
+// since records are per-file and we walk SF: in order.
+// Maps `<file>:<block>:<branch>` -> { startColumn, endColumn } for expression-level branches.
+// When present, the renderer treats the branch as a wrap target (type !== 'if') so Istanbul's
+// annotator paints the missed arm yellow via the cbranch-no class.
+const branchColumns = new Map();
+let raw = '';
+let currentSf = null;
+for (let line of rawWithExtensions.split('\n')) {
+    // The lcov can be captured from device console output that uses CRLF line endings; strip
+    // the trailing CR so our anchors match.
+    line = line.replace(/\r$/, '');
+    const sfMatch = line.match(/^SF:(.+)$/);
+    if (sfMatch) {
+        currentSf = sfMatch[1];
+    }
+    const colMatch = line.match(/^RBSCOL:(\d+),(\d+),(\d+),(\d+)$/);
+    if (colMatch && currentSf) {
+        const [, blockId, branchId, startCol, endCol] = colMatch;
+        branchColumns.set(`${currentSf}:${blockId}:${branchId}`, {
+            startColumn: Number(startCol),
+            endColumn: Number(endCol)
+        });
+        continue;
+    }
+    raw += line + '\n';
+}
 
 lcovParse.source(raw, (err, data) => {
     if (err) {
@@ -102,19 +131,35 @@ lcovParse.source(raw, (err, data) => {
         }
 
         let bIdx = 0;
-        for (const branches of branchesByBlock.values()) {
+        for (const [blockId, branches] of branchesByBlock.entries()) {
             branches.sort((a, b) => a.branch - b.branch);
             const earliestLine = Math.min(...branches.map(b => b.line));
-            // Always use type:'if' so the annotator goes through the inline-badge path
-            // (insertAt with consumeBlanks=false) instead of the line-wrap path (which has
-            // a snap-to-whitespace bug that emits a stray fragment-wide yellow highlight on
-            // the first character). A single-arm block missed renders as one 'I' badge,
-            // matching how nyc/Istanbul show missed for/while bodies in TS reports.
+            const colKey = (branchId) => `${file.file}:${blockId}:${branchId}`;
+
+            // Detect whether this is an expression-level branch (ternary etc.). RBSCOL data
+            // means the framework recorded both start and end columns for the arms; switch to
+            // type:'cond-expr' so Istanbul's annotator wraps each missed arm with cbranch-no
+            // (the yellow !important highlight) instead of inserting an I/E badge. Block-level
+            // branches (no column data) keep type:'if' for the badge - the wrap path's
+            // snap-to-whitespace logic mis-handles full-line wraps.
+            const hasColumnData = branches.every(b => branchColumns.has(colKey(b.branch)));
+            const locations = branches.map(b => {
+                const cols = branchColumns.get(colKey(b.branch));
+                if (cols) {
+                    return {
+                        start: { line: b.line, column: cols.startColumn },
+                        end: { line: b.line, column: cols.endColumn }
+                    };
+                }
+                const indent = getIndentColumn(resolvedPath, b.line);
+                return pointAt(b.line, indent);
+            });
+
             fileCoverage.branchMap[bIdx] = {
-                type: 'if',
+                type: hasColumnData ? 'cond-expr' : 'if',
                 line: earliestLine,
                 loc: pointAt(earliestLine, getIndentColumn(resolvedPath, earliestLine)),
-                locations: branches.map(b => pointAt(b.line, getIndentColumn(resolvedPath, b.line)))
+                locations
             };
             fileCoverage.b[bIdx] = branches.map(b => b.taken || 0);
             bIdx++;

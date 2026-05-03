@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ExpressionStatement, FunctionExpression, Program, ProgramBuilder, Statement } from 'brighterscript';
 import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isForEachStatement, isWhileStatement, isTryCatchStatement, isCatchStatement } from 'brighterscript';
-import type { IfStatement, TryCatchStatement, CatchStatement } from 'brighterscript';
+import type { IfStatement, TryCatchStatement, CatchStatement, Expression, AssignmentStatement, CallExpression } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -66,6 +66,22 @@ export class CodeCoverageProcessor {
             end if
             return true
         end function
+
+        function RBS_CC_#ID#_branchValue(blockId, branchId, value)
+            _rbs_ccn = m._rbs_ccn
+            if _rbs_ccn <> invalid
+                _rbs_ccn.entry = { "f": #ID#, "bl": blockId, "br": branchId, "r": ${CodeCoverageLineType.branch} }
+                return value
+            end if
+
+            _rbs_ccn = m?.global?._rbs_ccn
+            if _rbs_ccn <> invalid
+                _rbs_ccn.entry = { "f": #ID#, "bl": blockId, "br": branchId, "r": ${CodeCoverageLineType.branch} }
+                m._rbs_ccn = _rbs_ccn
+                return value
+            end if
+            return value
+        end function
     `;
 
     constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
@@ -100,6 +116,14 @@ export class CodeCoverageProcessor {
     private foundFunctions: Array<FunctionCoverage>;
     private foundBlocks: Array<BranchCoverage>;
     private pendingFunctionReports: Array<{ func: FunctionExpression; callText: string }>;
+    /**
+     * Queued reportLine insertions, applied after the walk completes. Inserting mid-visit via
+     * arraySplice on the owner array breaks brighterscript's walker - after a splice it
+     * re-reads owner[key] and finds the inserted node, then marks the original as processed
+     * without descending into its children. Deferring lets the walker descend into expressions
+     * (e.g. a ternary inside a return statement) before any structural mutation happens.
+     */
+    private pendingLineReports: Array<{ owner: any; statement: Statement; callText: string }>;
     /** Tracks the block.id and anchor line reserved for an IfStatement so its then/else branches share both. */
     private allocatedIfBlocks: Map<IfStatement, { blockId: number; line: number }>;
     /**
@@ -108,6 +132,8 @@ export class CodeCoverageProcessor {
      * sees CatchStatement (not TryCatchStatement) as the parent when walking the catch body.
      */
     private allocatedTryBlocks: Map<TryCatchStatement | CatchStatement, { blockId: number; line: number }>;
+    /** Tracks expressions we've already wrapped (e.g. ternary arms) so we don't double-wrap on re-visits. */
+    private processedExpressions: Set<Expression>;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
         this.fileFactory.createCoverageComponent(program, this.baseCoverageReport);
@@ -131,8 +157,10 @@ export class CodeCoverageProcessor {
         this.processedStatements = new Set<Statement>();
         this.addedStatements = new Set<Statement>();
         this.pendingFunctionReports = [];
+        this.pendingLineReports = [];
         this.allocatedIfBlocks = new Map();
         this.allocatedTryBlocks = new Map();
+        this.processedExpressions = new Set();
         this.astEditor = astEditor;
 
         file.ast.walk(createVisitor({
@@ -323,6 +351,49 @@ export class CodeCoverageProcessor {
 
                 this.addStatement(ds, ds.range.start.line);
                 this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+            },
+            TernaryExpression: (ternary) => {
+                if (this.processedExpressions.has(ternary)) {
+                    return;
+                }
+                this.processedExpressions.add(ternary);
+
+                // Reserve a 2-arm block: branch 0 = consequent (truthy), branch 1 = alternate (falsy).
+                // Anchor each arm to its own start line and column so the I/E badge lands right
+                // before the missed arm in the rendered HTML, rather than at the start of the line.
+                const blockId = this.blockId++;
+                // Columns are 0-indexed (LSP convention) - matches what Istanbul's annotator
+                // expects, no further conversion needed in the renderer. End columns are stored
+                // inclusive (last character index) since Istanbul's annotator does `endCol + 1`
+                // when computing the wrap range.
+                this.foundBlocks.push({
+                    id: blockId,
+                    isIfArm: false,
+                    branches: [
+                        {
+                            id: 0,
+                            line: ternary.consequent.range.start.line + 1,
+                            column: ternary.consequent.range.start.character,
+                            endColumn: ternary.consequent.range.end.character - 1,
+                            totalHit: 0
+                        },
+                        {
+                            id: 1,
+                            line: ternary.alternate.range.start.line + 1,
+                            column: ternary.alternate.range.start.character,
+                            endColumn: ternary.alternate.range.end.character - 1,
+                            totalHit: 0
+                        }
+                    ]
+                });
+
+                // Wrap each arm with a branchValue helper call. The original sub-expressions are
+                // grafted in as the third argument so the walker can still descend into them
+                // (catches nested ternaries/expressions).
+                const wrappedConsequent = this.wrapBranchValue(blockId, 0, ternary.consequent);
+                const wrappedAlternate = this.wrapBranchValue(blockId, 1, ternary.alternate);
+                this.astEditor.setProperty(ternary, 'consequent', wrappedConsequent);
+                this.astEditor.setProperty(ternary, 'alternate', wrappedAlternate);
             }
         }), { walkMode: WalkMode.visitAllRecursive });
 
@@ -332,6 +403,18 @@ export class CodeCoverageProcessor {
         for (const { func, callText } of this.pendingFunctionReports) {
             const parsed = Parser.parse(callText).ast.statements[0] as ExpressionStatement;
             this.astEditor.addToArray(func.body.statements, 0, parsed);
+        }
+
+        // Apply queued reportLine inserts. Look up each statement's current position in its
+        // parent array because other queued inserts may have shifted it.
+        for (const { owner, statement, callText } of this.pendingLineReports) {
+            const idx = Array.isArray(owner) ? owner.indexOf(statement) : -1;
+            if (idx < 0) {
+                continue;
+            }
+            const parsed = Parser.parse(callText).ast.statements[0] as ExpressionStatement;
+            this.astEditor.arraySplice(owner, idx, 0, parsed);
+            this.addedStatements.add(parsed);
         }
 
         this.addBrsAPIText(file, astEditor);
@@ -350,15 +433,32 @@ export class CodeCoverageProcessor {
         };
     }
 
+    /**
+     * Builds a CallExpression of the form `RBS_CC_<fileId>_branchValue(blockId, branchId, original)`
+     * where `original` is the user-written expression preserved as a sub-AST node. Done by
+     * parsing a template assignment with a placeholder arg and swapping the placeholder for
+     * the original expression - this keeps the original's AST intact so the walker descends
+     * into it (e.g. nested ternaries get instrumented too).
+     */
+    private wrapBranchValue(blockId: number, branchId: number, original: Expression): Expression {
+        const callText = `RBS_CC_${this.fileId}_branchValue(${blockId}, ${branchId}, __rbs_placeholder__)`;
+        const stmt = Parser.parse(`__rbs_wrapped__ = ${callText}`).ast.statements[0] as AssignmentStatement;
+        const call = stmt.value as CallExpression;
+        call.args[2] = original;
+        return call;
+    }
+
     private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
         if (this.processedStatements.has(statement) || this.addedStatements.has(statement)) {
             return;
         }
 
         const lineNumber = statement.range.start.line;
-        const parsed = Parser.parse(this.getReportLineHitFuncCallText(lineNumber, coverageType, statement, owner, key)).ast.statements[0] as ExpressionStatement;
-        this.astEditor.arraySplice(owner, key, 0, parsed);
-        this.addedStatements.add(parsed);
+        const callText = this.getReportLineHitFuncCallText(lineNumber, coverageType, statement, owner, key);
+        // Queue the splice; flushed after the walk so we don't disrupt the visitor descending
+        // into this statement's children. owner is captured by reference; the statement's index
+        // is recomputed at flush time since other deferred inserts may shift things.
+        this.pendingLineReports.push({ owner, statement, callText });
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
     }
@@ -478,6 +578,14 @@ interface BranchCoverage {
         id: number;
         totalHit: number;
         line: number;
+        /**
+         * Start/end column of the arm (0-indexed, inclusive end). Set for expression-level
+         * branches (ternary arms) where the renderer wraps the arm in a yellow `cbranch-no`
+         * span when the arm's hit count is zero. Undefined for block-level branches where
+         * the I/E badge alone is enough.
+         */
+        column?: number;
+        endColumn?: number;
     }>;
 }
 interface FunctionCoverage {
