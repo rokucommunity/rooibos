@@ -1,158 +1,184 @@
 namespace rooibos.Coverage
 
-  function saveResults() as dynamic
-    m.global._rbs_ccn.save = true
-    cc = m.global._rbs_ccn
-    if cc.coverageResults = invalid
-      ' The results are still being formatted
-      ' Wait for them to be reported
-      port = createObject("roMessagePort")
-      cc.observeFieldScoped("coverageResults", port)
-      msg = wait(0, port)
-      coverageResults = msg.getData()
-    else
-      ' Results are ready to go
-      coverageResults = cc.coverageResults
-    end if
-
-    return coverageResults
-  end function
-
-  function reportCodeCoverage(coverageResults as dynamic) as void
-
-    if m.global._rbs_ccn = invalid
-      ? "There was no rooibos code coverage component - not generating coverage report"
-      return
-    end if
-    t = createObject("roTimespan")
-    ? ""
-    ? "...Generating code coverage report"
-    ? ""
-
-    hitFiles = []
-    missFiles = []
-    allLinesCount = 0
-    allLinesHit = 0
-    for each file in coverageResults.files
-      filename = "pkg:/" + file.sourceFile
-      expectedCount = file.lineTotalFound
-      allLinesCount += expectedCount
-      allLinesHit += file.lineTotalHit
-      if expectedCount > 0
-        if file.lineTotalHit = 0
-          resolvedPercent = 0
+    function saveResults() as dynamic
+        m.global._rbs_ccn.save = true
+        cc = m.global._rbs_ccn
+        if cc.coverageResults = invalid
+            ' The results are still being formatted
+            ' Wait for them to be reported
+            port = createObject("roMessagePort")
+            cc.observeFieldScoped("coverageResults", port)
+            msg = wait(0, port)
+            coverageResults = msg.getData()
         else
-          resolvedPercent = (file.lineTotalHit / expectedCount) * 100
+            ' Results are ready to go
+            coverageResults = cc.coverageResults
         end if
-        hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(file.lineTotalHit).trim() + "/" + stri(expectedCount).trim() + ")" })
-      else
-        missFiles.push(filename + ": MISS!")
-      end if
-    end for
-    if allLinesHit = 0
-      allLinesPercent = 0
-    else
-      allLinesPercent = (allLinesHit / allLinesCount) * 100
-    end if
-    ? ""
-    ? ""
-    ? "+++++++++++++++++++++++++++++++++++++++++++"
-    ? "Code Coverage Report"
-    ? "+++++++++++++++++++++++++++++++++++++++++++"
-    ? ""
-    ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
-    ? "Files: " ; hitFiles.count(); "/" ; coverageResults.files.count()
-    ? ""
-    ? "HIT FILES"
-    ? "---------"
-    hitFiles.SortBy("percent")
-    for i = 0 to hitFiles.count() - 1
-      ? hitFiles[i].text
-    end for
-    ? ""
-    ? "MISSED FILES"
-    ? "------------"
-    for i = 0 to missFiles.count() - 1
-      ? missFiles[i]
-    end for
-    ? ""
-    ? "+++++++++++++++++++++++++++++++++++++++++++"
-    ? "Code Coverage Report Complete"; t.totalMilliseconds(); "ms"
-    ? "+++++++++++++++++++++++++++++++++++++++++++"
-  end function
 
-  function createLCovOutput(coverageResults as dynamic, logToConsole = true)
-    ? "Generating lcov.info file..."
-    fileResults = []
+        return coverageResults
+    end function
 
-    for each file in coverageResults.files
-      buffer = `TN:\n`
-      buffer += `SF:${file.sourceFile}\n`
-      ' buffer += `VER:\n`
+    function reportCodeCoverage(coverageResults as dynamic) as void
 
-      ' Add all the found functions for the file
-      for each func in file.functions
-        buffer += `FN:${func.startLine},${func.endLine},${func.name}\n`
-      end for
-
-      ' Write function related data
-      for each func in file.functions
-        if func.totalHit > 0
-          buffer += `FNDA:${func.totalHit},${func.name}\n`
+        if m.global._rbs_ccn = invalid
+            ? "There was no rooibos code coverage component - not generating coverage report"
+            return
         end if
-      end for
+        t = createObject("roTimespan")
+        ? ""
+        ? "...Generating code coverage report"
+        ? ""
 
-      buffer += `FNF:${file.functionTotalFound}\n`
-      buffer += `FNH:${file.functionTotalHit}\n`
+        hitFiles = []
+        missFiles = []
+        allLinesCount = 0
+        allLinesHit = 0
+        for each file in coverageResults.files
+            filename = "pkg:/" + file.sourceFile
+            expectedCount = file.lineTotalFound
+            allLinesCount += expectedCount
+            allLinesHit += file.lineTotalHit
+            if expectedCount > 0
+                if file.lineTotalHit = 0
+                    resolvedPercent = 0
+                else
+                    resolvedPercent = (file.lineTotalHit / expectedCount) * 100
+                end if
+                hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(file.lineTotalHit).trim() + "/" + stri(expectedCount).trim() + ")" })
+            else
+                missFiles.push(filename + ": MISS!")
+            end if
+        end for
+        if allLinesHit = 0
+            allLinesPercent = 0
+        else
+            allLinesPercent = (allLinesHit / allLinesCount) * 100
+        end if
+        ? ""
+        ? ""
+        ? "+++++++++++++++++++++++++++++++++++++++++++"
+        ? "Code Coverage Report"
+        ? "+++++++++++++++++++++++++++++++++++++++++++"
+        ? ""
+        ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
+        ? "Files: " ; hitFiles.count(); "/" ; coverageResults.files.count()
+        ? ""
+        ? "HIT FILES"
+        ? "---------"
+        hitFiles.SortBy("percent")
+        for i = 0 to hitFiles.count() - 1
+            ? hitFiles[i].text
+        end for
+        ? ""
+        ? "MISSED FILES"
+        ? "------------"
+        for i = 0 to missFiles.count() - 1
+            ? missFiles[i]
+        end for
+        ? ""
+        ? "+++++++++++++++++++++++++++++++++++++++++++"
+        ? "Code Coverage Report Complete"; t.totalMilliseconds(); "ms"
+        ? "+++++++++++++++++++++++++++++++++++++++++++"
+    end function
 
-      ' Write branch related data
-      for each block in file.blocks
-          for each branch in block.branches
-              if branch.totalHit > 0
-                buffer += `BRDA:${branch.line},${block.id},${branch.id},${branch.totalHit}\n`
-              end if
-          end for
-      end for
+    function createLCovOutput(coverageResults as dynamic, logToConsole = true as boolean)
+        ? "Generating lcov.info file..."
+        fileResults = []
 
-      buffer += `BRF:${file.branchTotalFound}\n`
-      buffer += `BRH:${file.branchTotalHit}\n`
+        for each file in coverageResults.files
+            buffer = `TN:\n`
+            buffer += `SF:${file.sourceFile}\n`
+            ' buffer += `VER:\n`
 
-      ' Write the per line related data
-      for each line in file.lines
-        buffer += `DA:${line.lineNumber},${line.totalHit}\n`
-      end for
+            ' Add all the found functions for the file
+            for each func in file.functions
+                buffer += `FN:${func.startLine},${func.endLine},${func.name}\n`
+            end for
 
-      buffer += `LF:${file.lineTotalFound}\n`
-      buffer += `LH:${file.lineTotalHit}\n`
-      buffer += `end_of_record`
+            ' Write function related data. Emit FNDA for every function (including unhit ones with 0)
+            ' so consumers like genhtml / istanbul-reports can show missed functions.
+            for each func in file.functions
+                buffer += `FNDA:${func.totalHit},${func.name}\n`
+            end for
 
-      if logToConsole
-        ? buffer
-        ' When logging to the console it is very possible to flood the buffer and cause the application to exit.
-        ' Sleep for a short amount of time so as to give console scrapers time to empty the buffer
-        sleep(30)
-      else
-        fileResults.push(buffer)
-      end if
-    end for
+            buffer += `FNF:${file.functionTotalFound}\n`
+            buffer += `FNH:${file.functionTotalHit}\n`
 
-    if not logToConsole
-      return fileResults.join(chr(10))
-    else
-      return ""
-    end if
-  end function
+            ' Write branch related data. Emit BRDA for every branch including unhit ones so missed
+            ' branches render in the HTML report. For single-arm ifs (isIfArm=true with only one
+            ' tracked arm), synthesize the implicit-else branch from the if-line's evaluation count
+            ' minus the tracked arm hits. This lets the HTML viewer flag never-taken falsy paths
+            ' even though we don't directly instrument the implicit fall-through.
+            brf = 0
+            brh = 0
+            for each block in file.blocks
+                for each branch in block.branches
+                    brf++
+                    if branch.totalHit > 0 then
+                        brh++
+                    end if
+                    buffer += `BRDA:${branch.line},${block.id},${branch.id},${branch.totalHit}\n`
+                end for
+                if block.isIfArm = true and block.branches.count() = 1 then
+                    ifLine = block.branches[0].line
+                    evaluations = 0
+                    for each line in file.lines
+                        if line.lineNumber = ifLine then
+                            evaluations = line.totalHit
+                            exit for
+                        end if
+                    end for
+                    skipHits = evaluations - block.branches[0].totalHit
+                    if skipHits < 0 then
+                        skipHits = 0
+                    end if
+                    brf++
+                    if skipHits > 0 then
+                        brh++
+                    end if
+                    buffer += `BRDA:${ifLine},${block.id},1,${skipHits}\n`
+                end if
+            end for
 
-  function printLCovInfo(coverageResults as dynamic)
+            buffer += `BRF:${brf}\n`
+            buffer += `BRH:${brh}\n`
 
-    ?
-    ? "+++++++++++++++++++++++++++++++++++++++++++"
-    ? "LCOV.INFO FILE"
-    ? "+++++++++++++++++++++++++++++++++++++++++++"
-    ?
-    ? "+-=-coverage:start"
-    rooibos.coverage.createLCovOutput(coverageResults)
-    ? "+-=-coverage:end"
-  end function
+            ' Write the per line related data
+            for each line in file.lines
+                buffer += `DA:${line.lineNumber},${line.totalHit}\n`
+            end for
+
+            buffer += `LF:${file.lineTotalFound}\n`
+            buffer += `LH:${file.lineTotalHit}\n`
+            buffer += `end_of_record`
+
+            if logToConsole then
+                ? buffer
+                ' When logging to the console it is very possible to flood the buffer and cause the application to exit.
+                ' Sleep for a short amount of time so as to give console scrapers time to empty the buffer
+                sleep(30)
+            else
+                fileResults.push(buffer)
+            end if
+        end for
+
+        if not logToConsole then
+            return fileResults.join(chr(10))
+        else
+            return ""
+        end if
+    end function
+
+    function printLCovInfo(coverageResults as dynamic)
+
+        ?
+        ? "+++++++++++++++++++++++++++++++++++++++++++"
+        ? "LCOV.INFO FILE"
+        ? "+++++++++++++++++++++++++++++++++++++++++++"
+        ?
+        ? "+-=-coverage:start"
+        rooibos.coverage.createLCovOutput(coverageResults)
+        ? "+-=-coverage:end"
+    end function
 
 end namespace

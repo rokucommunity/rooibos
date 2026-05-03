@@ -1,0 +1,40 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+namespace bench
+
+    @suite
+    class PartialCoverageTests extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("isPositive - one-sided branch coverage")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns true for a positive value")
+        function _()
+            ' Intentionally not testing the value <= 0 path - the else branch should show as missed
+            m.assertTrue(bench.isPositive(5))
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("describe - early return leaves tail unhit")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns zero for value = 0")
+        function _()
+            ' Only the if-then path runs; the tail "non-zero" return should show as missed
+            m.assertEqual(bench.describe(0), "zero")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("joinAll - empty input never enters loop body")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns empty string for empty array")
+        function _()
+            ' Body of the for each never runs - those lines should show as missed
+            m.assertEqual(bench.joinAll([]), "")
+        end function
+
+    end class
+
+end namespace

@@ -87,30 +87,30 @@ describe('RooibosPlugin', () => {
                 let b = undent(`
                     function new(a1, a2)
                         RBS_CC_0_reportFunction(0)
-                        RBS_CC_0_reportLine(2)
-                        c = 0
                         RBS_CC_0_reportLine(3)
+                        c = 0
+                        RBS_CC_0_reportLine(4)
                         text = ""
-                        RBS_CC_0_reportLine(4): for i = 0 to 10
+                        RBS_CC_0_reportLine(5): for i = 0 to 10
                             RBS_CC_0_reportBranch(0, 0)
-                            RBS_CC_0_reportLine(5)
-                            text = text + "hello"
                             RBS_CC_0_reportLine(6)
-                            c++
+                            text = text + "hello"
                             RBS_CC_0_reportLine(7)
+                            c++
+                            RBS_CC_0_reportLine(8)
                             c += 1
-                            if RBS_CC_0_reportLine(8) and (c = 2)
-                                RBS_CC_0_reportBranch(1, 1)
-                                RBS_CC_0_reportLine(9)
+                            if RBS_CC_0_reportLine(9) and (c = 2)
+                                RBS_CC_0_reportBranch(1, 0)
+                                RBS_CC_0_reportLine(10)
                                 ? "is true"
                             end if
-                            if RBS_CC_0_reportLine(12) and (c = 3)
-                                RBS_CC_0_reportBranch(2, 2)
-                                RBS_CC_0_reportLine(13)
+                            if RBS_CC_0_reportLine(13) and (c = 3)
+                                RBS_CC_0_reportBranch(2, 0)
+                                RBS_CC_0_reportLine(14)
                                 ? "free"
                             else
-                                RBS_CC_0_reportBranch(3, 3)
-                                RBS_CC_0_reportLine(15)
+                                RBS_CC_0_reportBranch(2, 1)
+                                RBS_CC_0_reportLine(16)
                                 ? "not free"
                             end if
                         end for
@@ -221,30 +221,30 @@ describe('RooibosPlugin', () => {
                 let b = undent(`
                     function new(a1, a2)
                         RBS_CC_0_reportFunction(0)
-                        RBS_CC_0_reportLine(2)
-                        c = 0
                         RBS_CC_0_reportLine(3)
+                        c = 0
+                        RBS_CC_0_reportLine(4)
                         text = ""
-                        RBS_CC_0_reportLine(4): for i = 0 to 10
+                        RBS_CC_0_reportLine(5): for i = 0 to 10
                             RBS_CC_0_reportBranch(0, 0)
-                            RBS_CC_0_reportLine(5)
-                            text = text + "hello"
                             RBS_CC_0_reportLine(6)
-                            c++
+                            text = text + "hello"
                             RBS_CC_0_reportLine(7)
+                            c++
+                            RBS_CC_0_reportLine(8)
                             c += 1
-                            if RBS_CC_0_reportLine(8) and (c = 2)
-                                RBS_CC_0_reportBranch(1, 1)
-                                RBS_CC_0_reportLine(9)
+                            if RBS_CC_0_reportLine(9) and (c = 2)
+                                RBS_CC_0_reportBranch(1, 0)
+                                RBS_CC_0_reportLine(10)
                                 ? "is true"
                             end if
-                            if RBS_CC_0_reportLine(12) and (c = 3)
-                                RBS_CC_0_reportBranch(2, 2)
-                                RBS_CC_0_reportLine(13)
+                            if RBS_CC_0_reportLine(13) and (c = 3)
+                                RBS_CC_0_reportBranch(2, 0)
+                                RBS_CC_0_reportLine(14)
                                 ? "free"
                             else
-                                RBS_CC_0_reportBranch(3, 3)
-                                RBS_CC_0_reportLine(15)
+                                RBS_CC_0_reportBranch(2, 1)
+                                RBS_CC_0_reportLine(16)
                                 ? "not free"
                             end if
                         end for
@@ -365,31 +365,31 @@ describe('RooibosPlugin', () => {
                     function __BasicClass_method_new(a1, a2)
                         m.field1 = invalid
                         m.field2 = invalid
-                        RBS_CC_0_reportLine(6)
                         RBS_CC_0_reportFunction(0)
-                        c = 0
                         RBS_CC_0_reportLine(7)
+                        c = 0
+                        RBS_CC_0_reportLine(8)
                         text = ""
-                        RBS_CC_0_reportLine(8): for i = 0 to 10
+                        RBS_CC_0_reportLine(9): for i = 0 to 10
                             RBS_CC_0_reportBranch(0, 0)
-                            RBS_CC_0_reportLine(9)
-                            text = text + "hello"
                             RBS_CC_0_reportLine(10)
-                            c++
+                            text = text + "hello"
                             RBS_CC_0_reportLine(11)
+                            c++
+                            RBS_CC_0_reportLine(12)
                             c += 1
-                            if RBS_CC_0_reportLine(12) and (c = 2)
-                                RBS_CC_0_reportBranch(1, 1)
-                                RBS_CC_0_reportLine(13)
+                            if RBS_CC_0_reportLine(13) and (c = 2)
+                                RBS_CC_0_reportBranch(1, 0)
+                                RBS_CC_0_reportLine(14)
                                 ? "is true"
                             end if
-                            if RBS_CC_0_reportLine(16) and (c = 3)
-                                RBS_CC_0_reportBranch(2, 2)
-                                RBS_CC_0_reportLine(17)
+                            if RBS_CC_0_reportLine(17) and (c = 3)
+                                RBS_CC_0_reportBranch(2, 0)
+                                RBS_CC_0_reportLine(18)
                                 ? "free"
                             else
-                                RBS_CC_0_reportBranch(3, 3)
-                                RBS_CC_0_reportLine(19)
+                                RBS_CC_0_reportBranch(2, 1)
+                                RBS_CC_0_reportLine(20)
                                 ? "not free"
                             end if
                         end for
@@ -479,6 +479,121 @@ describe('RooibosPlugin', () => {
                 expect(a).to.equal(b);
             });
 
+            it('instruments return statements with 1-indexed line numbers', async () => {
+                // Source line 3 (1-indexed) is `if value > 0 then`; line 4 is `return "positive"`.
+                // The visitor reports range.start.line + 1 so LCOV/Istanbul see the editor-style line numbers.
+                program.setFile('source/code.bs', `
+                    function classify(value as integer) as string
+                        if value > 0 then
+                            return "positive"
+                        end if
+                        return "negative"
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                expect(a).to.include('RBS_CC_0_reportLine(3)');
+                expect(a).to.include('RBS_CC_0_reportLine(4)');
+                expect(a).to.include('RBS_CC_0_reportLine(6)');
+                expect(a).to.include('return "positive"');
+                expect(a).to.include('return "negative"');
+            });
+
+            it('instruments returns inside a namespaced function', async () => {
+                program.setFile('source/code.bs', `
+                    namespace bench
+                        function classify(value as integer) as string
+                            if value > 0 then
+                                return "positive"
+                            end if
+                            return "negative"
+                        end function
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                expect(a).to.include('RBS_CC_0_reportLine(4)'); // line 4 = return "positive"
+                expect(a).to.include('RBS_CC_0_reportLine(7)'); // line 7 = return "negative"
+            });
+
+            it('instruments single class method with if/else', async () => {
+                program.setFile('source/code.bs', `
+                    class Calculator
+                        function divide(a as integer, b as integer) as integer
+                            x = 1
+                            if b = 0 then
+                                return 0
+                            else
+                                return a / b
+                            end if
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                console.log('=== SINGLE METHOD CLASS ===\n' + a + '\n=== END ===');
+                expect(a).to.include('RBS_CC_0_reportLine(6)'); // return 0
+            });
+
+            it('instruments returns in if/else at top level', async () => {
+                program.setFile('source/code.bs', `
+                    function divide(a as integer, b as integer) as integer
+                        if b = 0 then
+                            return 0
+                        else
+                            return a / b
+                        end if
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                expect(a).to.include('RBS_CC_0_reportLine(4)'); // return 0
+                expect(a).to.include('RBS_CC_0_reportLine(6)'); // return a / b
+            });
+
+            it('instruments class method body and returns', async () => {
+                program.setFile('source/code.bs', `
+                    namespace bench
+                        class Calculator
+                            function new()
+                                m.history = []
+                            end function
+
+                            function divide(a as integer, b as integer) as integer
+                                if b = 0 then
+                                    return 0
+                                else
+                                    return a / b
+                                end if
+                            end function
+                        end class
+                    end namespace
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                expect(a).to.include('RBS_CC_0_reportLine(5)'); // m.history = []
+                expect(a).to.include('RBS_CC_0_reportLine(10)'); // return 0
+                expect(a).to.include('RBS_CC_0_reportLine(12)'); // return a / b
+            });
+
+            // Anonymous function expressions (e.g. `x = function(y) ... end function`) are not walked by
+            // the coverage visitor, so their bodies are uninstrumented. Tracked separately from the
+            // 1-indexed line-number fix; keeping the snapshot here for when we tackle that case.
             it.skip('correctly transpiles some statements', async () => {
                 const source = `sub foo()
                     x = function(y)
@@ -498,15 +613,15 @@ describe('RooibosPlugin', () => {
                 let b = undent(`
                     sub foo()
                         RBS_CC_0_reportFunction(0)
-                        RBS_CC_0_reportLine(1)
+                        RBS_CC_0_reportLine(2)
                         x = function(y)
                             RBS_CC_0_reportFunction(1)
-                            if RBS_CC_0_reportLine(2) and ((true)) then
+                            if RBS_CC_0_reportLine(3) and ((true)) then
                                 RBS_CC_0_reportBranch(0, 0)
-                                RBS_CC_0_reportLine(3)
+                                RBS_CC_0_reportLine(4)
                                 return 1
                             end if
-                            RBS_CC_0_reportLine(5)
+                            RBS_CC_0_reportLine(6)
                             return 0
                         end function
                     end sub
@@ -622,46 +737,46 @@ describe('RooibosPlugin', () => {
                 let b = undent(`
                     sub foo(action as string)
                         RBS_CC_0_reportFunction(0)
-                        if RBS_CC_0_reportLine(2) and (action = "action1") then
+                        if RBS_CC_0_reportLine(3) and (action = "action1") then
                             RBS_CC_0_reportBranch(0, 0)
-                            RBS_CC_0_reportLine(3)
+                            RBS_CC_0_reportLine(4)
                             print "action1"
-                        else if RBS_CC_0_reportLine(4) and (action = "action2" or action = "action2") then
-                            RBS_CC_0_reportBranch(1, 1)
-                            RBS_CC_0_reportLine(5)
+                        else if RBS_CC_0_reportLine(5) and (action = "action2" or action = "action2") then
+                            RBS_CC_0_reportBranch(1, 0)
+                            RBS_CC_0_reportLine(6)
                             print "action2"
-                        else if RBS_CC_0_reportLine(6) and (action = "action3") then
-                            RBS_CC_0_reportBranch(2, 2)
-                            RBS_CC_0_reportLine(7)
+                        else if RBS_CC_0_reportLine(7) and (action = "action3") then
+                            RBS_CC_0_reportBranch(2, 0)
+                            RBS_CC_0_reportLine(8)
                             print "action3"
-                        else if RBS_CC_0_reportLine(8) and (action = "action4") then
-                            RBS_CC_0_reportBranch(3, 3)
-                        else if RBS_CC_0_reportLine(9) and (action = "action5") then
-                            RBS_CC_0_reportBranch(4, 4)
-                            RBS_CC_0_reportLine(10)
+                        else if RBS_CC_0_reportLine(9) and (action = "action4") then
+                            RBS_CC_0_reportBranch(3, 0)
+                        else if RBS_CC_0_reportLine(10) and (action = "action5") then
+                            RBS_CC_0_reportBranch(4, 0)
+                            RBS_CC_0_reportLine(11)
                             print "action5"
-                        else if RBS_CC_0_reportLine(11) and (action = "action6") then
-                            RBS_CC_0_reportBranch(5, 5)
-                            RBS_CC_0_reportLine(12)
+                        else if RBS_CC_0_reportLine(12) and (action = "action6") then
+                            RBS_CC_0_reportBranch(5, 0)
+                            RBS_CC_0_reportLine(13)
                             print "action6"
-                        else if RBS_CC_0_reportLine(13) and (action = "action7") then
-                            RBS_CC_0_reportBranch(6, 6)
-                            RBS_CC_0_reportLine(14)
+                        else if RBS_CC_0_reportLine(14) and (action = "action7") then
+                            RBS_CC_0_reportBranch(6, 0)
+                            RBS_CC_0_reportLine(15)
                             print "action7"
-                        else if RBS_CC_0_reportLine(15) and (action = "action8") then
-                            RBS_CC_0_reportBranch(7, 7)
-                            RBS_CC_0_reportLine(16)
+                        else if RBS_CC_0_reportLine(16) and (action = "action8") then
+                            RBS_CC_0_reportBranch(7, 0)
+                            RBS_CC_0_reportLine(17)
                             print "action8"
-                        else if RBS_CC_0_reportLine(17) and (action = "action9") then
-                            RBS_CC_0_reportBranch(8, 8)
-                            RBS_CC_0_reportLine(18)
+                        else if RBS_CC_0_reportLine(18) and (action = "action9") then
+                            RBS_CC_0_reportBranch(8, 0)
+                            RBS_CC_0_reportLine(19)
                             print "action9"
-                        else if RBS_CC_0_reportLine(19) and (action = "action10") then
-                            RBS_CC_0_reportBranch(9, 9)
-                            RBS_CC_0_reportLine(20)
+                        else if RBS_CC_0_reportLine(20) and (action = "action10") then
+                            RBS_CC_0_reportBranch(9, 0)
+                            RBS_CC_0_reportLine(21)
                             print "action10"
                         else
-                            RBS_CC_0_reportBranch(10, 10)
+                            RBS_CC_0_reportBranch(9, 1)
                         end if
                     end sub
 

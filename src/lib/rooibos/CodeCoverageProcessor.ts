@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ExpressionStatement, FunctionExpression, Program, ProgramBuilder, Statement } from 'brighterscript';
-import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isForEachStatement, isWhileStatement } from 'brighterscript';
+import type { IfStatement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -86,7 +87,6 @@ export class CodeCoverageProcessor {
     private config: RooibosConfig;
     private fileId: number;
     private blockId: number;
-    private branchId: number;
     private functionMap: Array<Array<string>>;
     private executableLines: Map<number, Statement>;
     private transpileState: BrsTranspileState;
@@ -99,6 +99,9 @@ export class CodeCoverageProcessor {
     private foundLines: Array<LineCoverage>;
     private foundFunctions: Array<FunctionCoverage>;
     private foundBlocks: Array<BranchCoverage>;
+    private pendingFunctionReports: Array<{ func: FunctionExpression; callText: string }>;
+    /** Tracks the block.id and anchor line reserved for an IfStatement so its then/else branches share both. */
+    private allocatedIfBlocks: Map<IfStatement, { blockId: number; line: number }>;
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
         this.fileFactory.createCoverageComponent(program, this.baseCoverageReport);
@@ -108,7 +111,6 @@ export class CodeCoverageProcessor {
         if (this.config.isRecordingCodeCoverage) {
             this.transpileState = new BrsTranspileState(file);
             this.blockId = 0;
-            this.branchId = 0;
             this._processFile(file, astEditor);
             this.fileId++;
         }
@@ -122,6 +124,8 @@ export class CodeCoverageProcessor {
         this.executableLines = new Map<number, Statement>();
         this.processedStatements = new Set<Statement>();
         this.addedStatements = new Set<Statement>();
+        this.pendingFunctionReports = [];
+        this.allocatedIfBlocks = new Map();
         this.astEditor = astEditor;
 
         file.ast.walk(createVisitor({
@@ -129,23 +133,53 @@ export class CodeCoverageProcessor {
                 this.getFunctionIdInFile(statement, ParseMode.BrighterScript, owner, key);
             },
             Block: (statement, parent, owner, key) => {
-                if (!isFunctionExpression(parent)) {
+                if (isFunctionExpression(parent)) {
+                    return;
+                }
 
-                    const lineNumber = statement.range.start.line;
-                    const parsed = Parser.parse(this.getReportBranchHitFuncCallText(this.blockId, this.branchId, statement, owner, key)).ast.statements[0] as ExpressionStatement;
-                    this.astEditor.addToArray(statement.statements, 0, parsed);
+                const lineNumber = statement.range.start.line + 1;
+                let blockId: number;
+                let branchId: number;
+
+                // Pair then/else blocks of an IfStatement under the same block.id so consumers
+                // (genhtml, istanbul-reports) can render them as one branching decision with
+                // multiple outcomes (the I/E badges in nyc-style HTML reports).
+                if (isIfStatement(parent) && this.allocatedIfBlocks.has(parent)) {
+                    const reserved = this.allocatedIfBlocks.get(parent)!;
+                    blockId = reserved.blockId;
+                    const blockEntry = this.foundBlocks.find(b => b.id === blockId)!;
+                    branchId = blockEntry.branches.length;
+                    // Both arms anchor to the if-statement's line so the I/E badge appears
+                    // next to the `if` keyword in the rendered HTML, matching nyc's TS output.
+                    blockEntry.branches.push({
+                        id: branchId,
+                        line: reserved.line,
+                        totalHit: 0
+                    });
+                } else {
+                    blockId = this.blockId++;
+                    branchId = 0;
+                    // For loop body blocks, anchor the branch to the loop statement's line
+                    // (e.g. `for each ...`) rather than the first body line, so the I badge
+                    // for "loop body never entered" lands on the loop keyword, matching the
+                    // anchoring style of nyc/Istanbul TS reports.
+                    let anchorLine = lineNumber;
+                    if (isForStatement(parent) || isForEachStatement(parent) || isWhileStatement(parent)) {
+                        anchorLine = parent.range.start.line + 1;
+                    }
                     this.foundBlocks.push({
-                        id: this.branchId,
+                        id: blockId,
+                        isIfArm: false,
                         branches: [{
-                            id: this.branchId,
-                            line: lineNumber,
+                            id: branchId,
+                            line: anchorLine,
                             totalHit: 0
                         }]
                     });
-                    this.blockId++;
-                    this.branchId++;
-
                 }
+
+                const parsed = Parser.parse(this.getReportBranchHitFuncCallText(blockId, branchId, statement, owner, key)).ast.statements[0] as ExpressionStatement;
+                this.astEditor.addToArray(statement.statements, 0, parsed);
             },
             ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds, ds.range.start.line);
@@ -153,6 +187,20 @@ export class CodeCoverageProcessor {
             },
             IfStatement: (ifStatement, parent, owner, key) => {
                 this.addStatement(ifStatement, ifStatement.range.start.line);
+                // Reserve a block.id for this if-statement; its then-branch and (optional)
+                // else-branch will share it via the Block handler above. We also record the
+                // if-statement's own line so paired branches anchor the I/E badge to the
+                // `if` keyword rather than the first line of each branch's body.
+                const reservedId = this.blockId++;
+                this.allocatedIfBlocks.set(ifStatement, {
+                    blockId: reservedId,
+                    line: ifStatement.range.start.line + 1
+                });
+                this.foundBlocks.push({
+                    id: reservedId,
+                    isIfArm: true,
+                    branches: []
+                });
                 (ifStatement as any).condition = new BinaryExpression(
                     new RawCodeExpression(this.getReportLineHitFuncCallText(ifStatement.condition.range.start.line, CodeCoverageLineType.condition, ifStatement, owner, key)),
                     createToken(TokenKind.And),
@@ -231,6 +279,14 @@ export class CodeCoverageProcessor {
             }
         }), { walkMode: WalkMode.visitAllRecursive });
 
+        // Apply queued reportFunction insertions now that the walk is finished. Doing this
+        // during the walk would shift the function body's first statement and prevent the
+        // walker from descending into that statement's children. See pendingFunctionReports above.
+        for (const { func, callText } of this.pendingFunctionReports) {
+            const parsed = Parser.parse(callText).ast.statements[0] as ExpressionStatement;
+            this.astEditor.addToArray(func.body.statements, 0, parsed);
+        }
+
         this.addBrsAPIText(file, astEditor);
 
         this.baseCoverageReport.files[this.fileId] = {
@@ -269,11 +325,13 @@ export class CodeCoverageProcessor {
     }
 
     private addStatement(statement: Statement, lineNumber: number) {
-        if (!this.executableLines.has(lineNumber)) {
-            this.executableLines.set(lineNumber, statement);
+        // BrighterScript ranges are 0-indexed; LCOV / Istanbul HTML renderers expect 1-indexed lines.
+        const oneIndexed = lineNumber + 1;
+        if (!this.executableLines.has(oneIndexed)) {
+            this.executableLines.set(oneIndexed, statement);
 
             this.foundLines.push({
-                lineNumber: lineNumber,
+                lineNumber: oneIndexed,
                 totalHit: 0
             });
         }
@@ -281,7 +339,7 @@ export class CodeCoverageProcessor {
 
     private getReportLineHitFuncCallText(lineNumber: number, lineType: CodeCoverageLineType, statement: Statement, owner: any, key: any) {
         const funcId = this.getFunctionIdInFile(statement, ParseMode.BrighterScript, owner, key);
-        return `RBS_CC_${this.fileId}_reportLine(${lineNumber})`;
+        return `RBS_CC_${this.fileId}_reportLine(${lineNumber + 1})`;
     }
 
     private getReportBranchHitFuncCallText(blockId: number, branchId: number, statement: Statement, owner: any, key: any) {
@@ -321,13 +379,19 @@ export class CodeCoverageProcessor {
                 this.functionMap[this.fileId] = [];
             }
 
-            const parsed = Parser.parse(this.getReportFunctionHitFuncCallText(this.functionMap[this.fileId].length, statement)).ast.statements[0] as ExpressionStatement;
-            this.astEditor.addToArray(originalFunc.body.statements, 0, parsed);
+            // Defer the reportFunction insertion until after the walk completes.
+            // brighterscript's walker re-reads owner[key] after the visitor returns; mutating the
+            // function body's index 0 mid-visit makes it walk the inserted node and skip the
+            // original child's subtree (e.g. if-statement's thenBranch/elseBranch).
+            this.pendingFunctionReports.push({
+                func: originalFunc,
+                callText: this.getReportFunctionHitFuncCallText(this.functionMap[this.fileId].length, statement)
+            });
 
             this.foundFunctions.push({
                 name: name,
-                startLine: originalFunc.range.start.line,
-                endLine: originalFunc.range.end.line,
+                startLine: originalFunc.range.start.line + 1,
+                endLine: originalFunc.range.end.line + 1,
                 totalHit: 0
             });
             this.functionMap[this.fileId].push(name);
@@ -357,6 +421,12 @@ interface FileCoverage {
 
 interface BranchCoverage {
     id: number;
+    /**
+     * True when this block was reserved by an IfStatement (rather than a loop body or else
+     * standalone block). Used at lcov-write time in the BS runtime to synthesize an implicit
+     * else arm for single-arm ifs, so the report can flag never-taken falsy paths.
+     */
+    isIfArm: boolean;
     branches: Array<{
         id: number;
         totalHit: number;

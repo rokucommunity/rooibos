@@ -1,0 +1,39 @@
+namespace bench
+
+    ' Both branches reachable; the spec only exercises the `then` branch so the `else` should show
+    ' as a missed branch and `return false` as a missed line.
+    function isPositive(value as integer) as boolean
+        if value > 0 then
+            return true
+        else
+            return false
+        end if
+    end function
+
+    ' Tail return is reachable but the spec returns from the if before getting there. Tail line
+    ' should appear unhit; the if-then branch should appear fully hit.
+    function describe(value as integer) as string
+        if value = 0 then
+            return "zero"
+        end if
+        return "non-zero"
+    end function
+
+    ' Spec only passes an empty array, so the for-each body never executes. Loop entry line is
+    ' hit (the for-each token itself); body lines should be unhit.
+    function joinAll(items as object) as string
+        result = ""
+        for each item in items
+            result = result + item
+        end for
+        return result
+    end function
+
+    ' Never called by the spec at all. The function declaration line is found via FN: but should
+    ' have zero function hits, and every body line should be unhit.
+    function neverCalled() as integer
+        x = 1
+        return x + 41
+    end function
+
+end namespace

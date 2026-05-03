@@ -1,0 +1,71 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+namespace bench
+
+    @suite
+    class CalculatorTests extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("Calculator class")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("add records and returns sum")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.add(2, 3), 5)
+            m.assertEqual(calc.history.count(), 1)
+        end function
+
+        @it("divide returns 0 when divisor is zero")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.divide(10, 0), 0)
+        end function
+
+        @it("divide returns quotient for non-zero divisor")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.divide(10, 2), 5)
+        end function
+
+        @it("classify returns positive for value > 0")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classify(5), "positive")
+        end function
+
+        @it("classify returns zero for value = 0")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classify(0), "zero")
+        end function
+
+        @it("classify returns negative for value < 0")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classify(-3), "negative")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("namespace functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("sumRange sums inclusive integer range")
+        function _()
+            m.assertEqual(bench.sumRange(1, 4), 10)
+        end function
+
+        @it("countDown counts iterations to reach zero")
+        function _()
+            m.assertEqual(bench.countDown(3), 3)
+        end function
+
+        @it("joinKeys concatenates aa keys")
+        function _()
+            result = bench.joinKeys({ a: 1, b: 2 })
+            m.assertEqual(result.len(), 2)
+        end function
+
+    end class
+
+end namespace

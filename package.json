@@ -11,11 +11,15 @@
         "copy-framework-files": "cp -r ./framework/src ./dist/lib/framework",
         "build": "ropm copy && npm run compile && npm run copy-framework-files",
         "build-test-project": "bsc --cwd test-project --project bsconfig.json",
+        "build-coverage-sample": "bsc --cwd coverage-sample --project bsconfig.json",
         "docs": "jsdoc -c jsdoc.json -d .tmp/docs --verbose",
         "test": "nyc mocha",
         "test:nocover": "mocha",
         "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
         "cli": "ts-node src/cli.ts",
+        "coverage:run": "ts-node src/cli.ts --project coverage-sample/bsconfig.json --coverage-output coverage-sample/coverage/lcov.info",
+        "coverage:html": "node scripts/lcov-to-html.js coverage-sample/coverage/lcov.info coverage-sample/coverage/html coverage-sample/src",
+        "coverage:report": "npm run coverage:run && npm run coverage:html",
         "package": "npm run build && npm pack"
     },
     "dependencies": {

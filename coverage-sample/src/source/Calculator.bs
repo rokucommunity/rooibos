@@ -1,0 +1,58 @@
+namespace bench
+
+    class Calculator
+        function new()
+            m.history = []
+        end function
+
+        function add(a as integer, b as integer) as integer
+            result = a + b
+            m.history.push(result)
+            return result
+        end function
+
+        function divide(a as integer, b as integer) as integer
+            if b = 0 then
+                return 0
+            else
+                return a / b
+            end if
+        end function
+
+        function classify(value as integer) as string
+            if value > 0 then
+                return "positive"
+            end if
+            if value = 0 then
+                return "zero"
+            end if
+            return "negative"
+        end function
+    end class
+
+    function sumRange(low as integer, high as integer) as integer
+        total = 0
+        for i = low to high
+            total = total + i
+        end for
+        return total
+    end function
+
+    function countDown(start as integer) as integer
+        count = 0
+        while start > 0
+            start = start - 1
+            count = count + 1
+        end while
+        return count
+    end function
+
+    function joinKeys(aa as object) as string
+        result = ""
+        for each key in aa
+            result = result + key
+        end for
+        return result
+    end function
+
+end namespace
