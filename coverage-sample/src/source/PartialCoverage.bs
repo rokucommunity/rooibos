@@ -52,4 +52,10 @@ namespace bench
         return active ? "on" : "off"
     end function
 
+    ' Null-coalescing where the spec only passes non-null values. The alternate (after `??`)
+    ' should show as a missed branch.
+    function nameOrDefault(name as dynamic) as string
+        return name ?? "anonymous"
+    end function
+
 end namespace
