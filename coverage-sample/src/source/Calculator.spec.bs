@@ -66,6 +66,22 @@ namespace bench
             m.assertEqual(result.len(), 2)
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("try/catch - both arms exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("safeDivide returns quotient when divisor is non-zero")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.safeDivide(10, 2), 5)
+        end function
+
+        @it("safeDivide returns -1 when the catch arm fires")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.safeDivide(10, 0), -1)
+        end function
+
     end class
 
 end namespace

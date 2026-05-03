@@ -35,6 +35,16 @@ namespace bench
             m.assertEqual(bench.joinAll([]), "")
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("parseSafe - try succeeds, catch never fires")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns the parsed integer for a numeric string")
+        function _()
+            ' Only the try arm runs - the catch should show as a missed branch
+            m.assertEqual(bench.parseSafe("42"), 42)
+        end function
+
     end class
 
 end namespace
