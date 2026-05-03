@@ -1,0 +1,8 @@
+function init()
+    m.top.functionName = "runTaskThread"
+end function
+
+function runTaskThread()
+    sleep(m.top.sleepTime)
+    m.top.result = "done"
+end function

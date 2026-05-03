@@ -1,0 +1,23 @@
+
+function Main(args)
+end function
+
+function globalFunctionWithReturn() as dynamic
+    m.wasCalled = false
+    return false
+end function
+
+function globalFunctionWithoutReturn()
+    m.wasCalled = false
+end function
+
+namespace testNamespace
+    function functionWithReturn() as dynamic
+        m.wasCalled = false
+        return false
+    end function
+
+    function functionWithoutReturn()
+        m.wasCalled = false
+    end function
+end namespace
