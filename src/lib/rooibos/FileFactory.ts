@@ -76,22 +76,72 @@ export class FileFactory {
             scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.pkgPath.replace(/\\/g, '/')}" />`);
         }
 
+        // Node-test components run offscreen and don't need the visual UI.
+        // Emitting it here would also create duplicate scene-graph IDs
+        // (e.g. multiple `resultImage` BusySpinners), which corrupts the
+        // SceneGraph state and crashes the runtime at end of run.
+        if (suite) {
+            return `<?xml version="1.0" encoding="UTF-8" ?>
+            <component name="${name}" extends="${baseName}">
+                ${scriptImports.join('\n')}
+                <interface>
+                    <field id="rooibosTestResult" type="assocarray"/>
+                    <function name='Rooibos_CreateTestNode' />
+                </interface>
+            </component>
+        `;
+        }
+
         let contents = `<?xml version="1.0" encoding="UTF-8" ?>
             <component name="${name}" extends="${baseName}">
                 ${scriptImports.join('\n')}
                 <interface>
                     <field id="rooibosTestResult" type="assocarray"/>
                     <field id="testText" type="string" alias="statusLabel.text" />
-                    <field id="failedText" type="string" alias="failedLabel.text" />
+                    <field id="summaryText" type="string" alias="summaryLabel.text" />
+                    <field id="progressWidth" type="float" alias="progressFill.width" />
                     <field id="statusColor" type="string" alias="statusBackground.color" />
                     <function name='Rooibos_CreateTestNode' />
                 </interface>
 
                 <children>
-                    <Rectangle id="statusBackground" color="#444444" width="1920" height="1080" />
-                    <LayoutGroup translation="[960, 540]" vertAlignment="center"  horizAlignment="center">
-                        <Label id="statusLabel" text='Rooibos is running tests' width="1800" />
-                        <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
+                    <Rectangle id="statusBackground" color="#1a1a2e" width="1920" height="1080" />
+
+                    <Poster uri="pkg:/images/rooibos/your-company-logo.png" width="113" height="62" translation="[1167, 658]" />
+
+                    <LayoutGroup id="contentGroup" translation="[640, 25]" horizAlignment="center" itemSpacings="[20]">
+                        <Group id="resultImage">
+                            <BusySpinner id="resultSpinner" uri="pkg:/images/rooibos/loading.png" spinInterval="2" control="start" />
+                            <Poster id="resultPoster" width="75" height="75" scale="[0, 0]" />
+                        </Group>
+
+                        <LayoutGroup itemSpacings="[4]" horizAlignment="center">
+                            <Label id="statusLabel" text=""
+                                   width="500" height="36" horizAlign="center" color="#ffffff"
+                                   font="font:MediumBoldSystemFont" />
+
+                            <Label id="statusCounts" text=""
+                                   width="500" height="22" horizAlign="center" color="#aaaabb"
+                                   font="font:SmallestBoldSystemFont" />
+                        </LayoutGroup>
+
+                        <Rectangle color="#00000000" width="500" height="8">
+                            <Rectangle id="progressBg" color="#333355" width="500" height="8" />
+                            <Rectangle id="progressFill" color="#6c63ff" width="0" height="8" />
+                        </Rectangle>
+
+                        <Rectangle color="#444466" width="500" height="1" />
+
+                        <RooibosScrollableResults id="resultsLabel"
+                               itemSize="[500, 22]"
+                               vertFocusAnimationStyle="floatingFocus"
+                               numRows="17" />
+
+                        <Rectangle color="#444466" width="500" height="1" />
+
+                        <Label id="summaryLabel" text=""
+                               width="500" height="30" horizAlign="center" color="#888899"
+                               font="font:SmallestSystemFont" />
                     </LayoutGroup>
                 </children>
             </component>
@@ -148,6 +198,22 @@ export class FileFactory {
             );
         } catch (error) {
             console.error(`Error adding framework file: ${path} : ${error.message}`);
+        }
+    }
+
+    public copyImageAssets(program: Program) {
+        let imageFiles = fastGlob.sync(['images/**/*.{png,jpg,jpeg,gif}'], {
+            cwd: this.frameworkSourcePath,
+            absolute: false,
+            onlyFiles: true
+        });
+        for (let imgPath of imageFiles) {
+            let srcPath = path.resolve(this.frameworkSourcePath, imgPath);
+            let destPath = path.join(
+                program.options.stagingFolderPath ?? program.options.stagingDir ?? program.options.sourceRoot,
+                imgPath
+            );
+            fse.copySync(srcPath, destPath);
         }
     }
 }
