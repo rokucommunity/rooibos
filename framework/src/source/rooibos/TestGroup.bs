@@ -186,6 +186,7 @@ namespace rooibos
             m.notifyReportersOnTestComplete(m.currentTest)
             if m.testSuite.isAutoAssertingMocks = true then
                 m.testSuite.assertMocks()
+                m.testSuite.cleanMocks()
                 m.testSuite.cleanStubs()
             end if
             m.runSuiteFunction(m.afterEachFunctionName, "afterEach", m.currentTest)

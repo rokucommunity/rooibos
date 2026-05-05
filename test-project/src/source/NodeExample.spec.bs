@@ -108,6 +108,25 @@ namespace tests
             obj = { foo: function() : return invalid : end function }
             m.expectNotCalled(obj.foo())
         end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectCalled and expectNotCalled fail correctly in node tests")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("expectCalled fails when function is not called")
+        function _()
+            obj = { foo: function() : return invalid : end function }
+            m.expectCalled(obj.foo())
+            ' foo is never called - this test should fail
+        end function
+
+        @it("expectNotCalled fails when function is called")
+        function _()
+            obj = { foo: function() : return invalid : end function }
+            m.expectNotCalled(obj.foo())
+            obj.foo()
+            ' foo was called - this test should fail
+        end function
     end class
 end namespace
 
