@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [5.16.1](https://github.com/rokucommunity/rooibos/compare/5.16.0...v5.16.1) - 2026-05-06
+### Changed
+ - upgrade to [roku-deploy@3.17.2](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3172---2026-05-05). Notable changes since 3.17.1:
+     - Expanded the default files array to include the locale folder ([#237](https://github.com/rokucommunity/roku-deploy/pull/237))
+ - upgrade to [@rokucommunity/bslint@0.8.42](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0842---2026-05-01). Notable changes since 0.8.41:
+### Fixed
+ - fix: expectCalled/expectNotCalled broken for node tests since v5.15 ([#384](https://github.com/rokucommunity/rooibos/pull/384))
+
+
+
 ## [5.16.0](https://github.com/rokucommunity/rooibos/compare/5.15.7...v5.16.0) - 2026-05-01
 ### Changed
  - upgade to [brighterscript@0.72.0](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0720---2026-04-30). This finally fixes the blocking bug, allowing devs to upgrade to latest bsc again
