@@ -50,6 +50,15 @@ export class TestGroup extends TestBlock {
                             const callPath = util.getAllDottedGetParts(callExpression.callee.obj)?.map((part) => part.text).join('.');
 
                             if (callPath) {
+                                // Skip if callPath starts with a namespace name — this is a namespace
+                                // function call (e.g. some.space.assertEqual()), not a method call on
+                                // an object like m. Injecting assertion tracking on a namespace prefix
+                                // produces invalid output (e.g. some_space.currentAssertLineNumber).
+                                const callPathFirstPart = callPath.split('.')[0].toLowerCase();
+                                if (namespaceLookup.has(callPathFirstPart) || scope?.namespaceLookup?.has(callPathFirstPart)) {
+                                    return;
+                                }
+
                                 if (dge.name.text === 'stubCall') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                     return expressionStatement;
