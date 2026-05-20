@@ -6,6 +6,7 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
+import * as path from 'path';
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -14,6 +15,8 @@ let options = yargs
     .option('host', { type: 'string', description: 'Host of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
+    .option('coverage-output', { type: 'string', description: 'Path to write the captured lcov.info file. Defaults to ./coverage/lcov.info when coverage markers are seen.' })
+    .option('package', { type: 'string', description: 'Path to a pre-built .zip to deploy. When set, the rooibos CLI skips its own build step. Assumes the package was already built with the rooibos plugin so coverage helpers are present in the bundled code.' })
     .check((argv) => {
         if (!argv.host) {
             return new Error('You must provide a host. (--host)');
@@ -47,14 +50,37 @@ async function main() {
     const password = options.password ?? bsConfig.password;
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
-    const builder = new ProgramBuilder();
-
-    builder.logger.logLevel = logLevel;
-
-
-    await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
-
     const rokuDeploy = new RokuDeploy();
+    const prebuiltPackage = options['package'] as string | undefined;
+    // Resolved path to the .zip we'll actually deploy. When --package points at a directory
+    // we zip it into out/rooibos-prebuilt.zip first, since roku-deploy.publish only takes
+    // an existing zip.
+    let deployZipPath: string | undefined;
+
+    if (prebuiltPackage) {
+        const resolved = path.resolve(prebuiltPackage);
+        if (!fs.existsSync(resolved)) {
+            console.error(`[rooibos] --package path not found: ${resolved}`);
+            process.exit(1);
+        }
+        if (fs.statSync(resolved).isDirectory()) {
+            const zipped = path.resolve('out/rooibos-prebuilt.zip');
+            fs.mkdirSync(path.dirname(zipped), { recursive: true });
+            console.log(`Zipping pre-built folder ${resolved} -> ${zipped}`);
+            // Exclude source maps - they're useful in the staging dir but shouldn't ship
+            // in the package (they bloat channel size and Roku has no use for them).
+            await rokuDeploy.zipFolder(resolved, zipped, undefined, ['**/*', '!**/*.map']);
+            deployZipPath = zipped;
+        } else {
+            console.log(`Using pre-built package: ${resolved} (skipping rooibos build)`);
+            deployZipPath = resolved;
+        }
+    } else {
+        const builder = new ProgramBuilder();
+        builder.logger.logLevel = logLevel;
+        await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
+    }
+
     const deviceInfo = await rokuDeploy.getDeviceInfo({ host: host });
     const rendezvousTracker = new RendezvousTracker({ softwareVersion: deviceInfo['software-version'] }, { host: host, remotePort: 8085 } as any);
     const telnet = new TelnetAdapter({ host: options.host }, rendezvousTracker);
@@ -66,6 +92,26 @@ async function main() {
     const failRegex = /\[Rooibos Result\]: (FAIL|PASS)/g;
     const endRegex = /\[Rooibos Shutdown\]/g;
 
+    const coverageOutputPath = path.resolve(options['coverage-output'] ?? './coverage/lcov.info');
+    const rootDirAbs = path.resolve(bsConfig.rootDir ?? './');
+    let capturingCoverage = false;
+    let coverageBuffer: string[] = [];
+
+    function writeLcov(content: string) {
+        const rewritten = content.split('\n').map(line => {
+            // The framework writes SF lines as `SF:./relative/from/rootDir.bs`. Rewrite to absolute paths
+            // so genhtml can locate the original source files regardless of where it's invoked from.
+            if (line.startsWith('SF:./')) {
+                return `SF:${path.resolve(rootDirAbs, line.substring(5))}`;
+            }
+            return line;
+        }).join('\n');
+
+        fs.mkdirSync(path.dirname(coverageOutputPath), { recursive: true });
+        fs.writeFileSync(coverageOutputPath, rewritten);
+        console.log(`[rooibos] wrote lcov to ${coverageOutputPath}`);
+    }
+
     async function doExit(emitAppExit = false) {
         if (emitAppExit) {
             (telnet as any).beginAppExit();
@@ -76,6 +122,26 @@ async function main() {
 
     telnet.on('console-output', (output) => {
         console.log(output);
+
+        for (const line of output.split('\n')) {
+            if (line.includes('+-=-coverage:start')) {
+                capturingCoverage = true;
+                coverageBuffer = [];
+                continue;
+            }
+            if (line.includes('+-=-coverage:end')) {
+                capturingCoverage = false;
+                try {
+                    writeLcov(coverageBuffer.join('\n'));
+                } catch (e) {
+                    console.error('[rooibos] failed to write lcov:', e);
+                }
+                continue;
+            }
+            if (capturingCoverage) {
+                coverageBuffer.push(line);
+            }
+        }
 
         //check for Fails or Crashes
         let failMatches = failRegex.exec(output);
@@ -114,13 +180,15 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        const outFile = bsConfig.outFile;
-        console.log(`Deploying ${outFile} to ${host}`);
+        // When the user supplied a --package path, deploy the (possibly just-zipped) artifact;
+        // otherwise fall back to the bsconfig-driven outFile that the rooibos build just produced.
+        const packagePath = deployZipPath ?? path.resolve(process.cwd(), bsConfig.outFile);
+        console.log(`Deploying ${packagePath} to ${host}`);
         await rokuDeploy.publish({ // roku-deploy v4: .sideload({...})
             password: password,
             host: host,
-            outFile: outFile,
-            outDir: process.cwd()
+            outFile: path.basename(packagePath),
+            outDir: path.dirname(packagePath)
         });
     }
 
