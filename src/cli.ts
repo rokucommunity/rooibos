@@ -67,7 +67,9 @@ async function main() {
             const zipped = path.resolve('out/rooibos-prebuilt.zip');
             fs.mkdirSync(path.dirname(zipped), { recursive: true });
             console.log(`Zipping pre-built folder ${resolved} -> ${zipped}`);
-            await rokuDeploy.zipFolder(resolved, zipped);
+            // Exclude source maps - they're useful in the staging dir but shouldn't ship
+            // in the package (they bloat channel size and Roku has no use for them).
+            await rokuDeploy.zipFolder(resolved, zipped, undefined, ['**/*', '!**/*.map']);
             deployZipPath = zipped;
         } else {
             console.log(`Using pre-built package: ${resolved} (skipping rooibos build)`);
