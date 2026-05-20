@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [5.16.3](https://github.com/rokucommunity/rooibos/compare/5.16.2...v5.16.3) - 2026-05-20
+### Changed
+ - Update ropm to 0.11.7 and remove lodash override ([#391](https://github.com/rokucommunity/rooibos/pull/391))
+ - Security enhancements ([#390](https://github.com/rokucommunity/rooibos/pull/390))
+ - upgrade to [brighterscript@0.72.2](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0722---2026-05-19). Notable changes since 0.72.1:
+     - Security enhancements ([#1714](https://github.com/rokucommunity/brighterscript/pull/1714))
+ - upgrade to [roku-debug@0.23.8](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0238---2026-05-19). Notable changes since 0.23.6:
+     - Security enhancements ([#350](https://github.com/rokucommunity/roku-debug/pull/350))
+     - Fix deferred capability handling for exception breakpoints ([#342](https://github.com/rokucommunity/roku-debug/pull/342))
+     - Fix sourcemap race in preprocessStagingFiles ([#339](https://github.com/rokucommunity/roku-debug/pull/339))
+ - upgrade to [roku-deploy@3.17.4](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3174---2026-05-19). Notable changes since 3.17.2:
+     - Security enhancements ([#263](https://github.com/rokucommunity/roku-deploy/pull/263))
+ - upgrade to [@rokucommunity/bslint@0.8.43](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0843---2026-05-12).
+ - upgrade to [ropm@0.11.7](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0117---2026-05-20). Notable changes since 0.11.5:
+     - Replace @xml-tools/ast with in-repo shim ([#138](https://github.com/rokucommunity/ropm/pull/138))
+     - Security enhancements ([#137](https://github.com/rokucommunity/ropm/pull/137))
+
+
+
 ## [5.16.2](https://github.com/rokucommunity/rooibos/compare/5.16.1...v5.16.2) - 2026-05-11
 ### Changed
  - upgrade to [brighterscript@0.72.1](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0721---2026-05-11). Notable changes since 0.72.0:
