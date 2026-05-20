@@ -14,23 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
      - Security enhancements ([#1714](https://github.com/rokucommunity/brighterscript/pull/1714))
  - upgrade to [roku-debug@0.23.8](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0238---2026-05-19). Notable changes since 0.23.6:
      - Security enhancements ([#350](https://github.com/rokucommunity/roku-debug/pull/350))
-     - Fix TelnetAdapter crash when methods are called after destroy ([#349](https://github.com/rokucommunity/roku-debug/pull/349))
      - Fix deferred capability handling for exception breakpoints ([#342](https://github.com/rokucommunity/roku-debug/pull/342))
-     - Fixes bug on windows with rdb file copying ([#343](https://github.com/rokucommunity/roku-debug/pull/343))
-     - Inject breakpoint STOPs after InitializedEvent ([#340](https://github.com/rokucommunity/roku-debug/pull/340))
      - Fix sourcemap race in preprocessStagingFiles ([#339](https://github.com/rokucommunity/roku-debug/pull/339))
-     - Defer DAP capabilities and InitializedEvent until after adapter connects ([#328](https://github.com/rokucommunity/roku-debug/pull/328))
-     - Bump ip-address from 10.1.0 to 10.2.0 ([#336](https://github.com/rokucommunity/roku-debug/pull/336))
  - upgrade to [roku-deploy@3.17.4](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3174---2026-05-19). Notable changes since 3.17.2:
-     - npm audit fixes ([#263](https://github.com/rokucommunity/roku-deploy/pull/263))
-     - Add `autoLaunch` option to control `dev_autolaunch` on sideload ([#261](https://github.com/rokucommunity/roku-deploy/pull/261))
- - upgrade to [@rokucommunity/bslint@0.8.43](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0843---2026-05-12). Notable changes since 0.8.42:
-     - Add for-terminator-style rule ([#182](https://github.com/rokucommunity/bslint/pull/182))
+     - Security enhancements ([#263](https://github.com/rokucommunity/roku-deploy/pull/263))
+ - upgrade to [@rokucommunity/bslint@0.8.43](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0843---2026-05-12).
  - upgrade to [ropm@0.11.7](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0117---2026-05-20). Notable changes since 0.11.5:
      - Replace @xml-tools/ast with in-repo shim ([#138](https://github.com/rokucommunity/ropm/pull/138))
      - Security enhancements ([#137](https://github.com/rokucommunity/ropm/pull/137))
-     - Bump brace-expansion from 1.1.12 to 1.1.14 ([#136](https://github.com/rokucommunity/ropm/pull/136))
-     - Bump picomatch from 2.3.1 to 2.3.2 ([#134](https://github.com/rokucommunity/ropm/pull/134))
 
 
 
