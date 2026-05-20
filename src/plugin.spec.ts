@@ -867,6 +867,39 @@ describe('RooibosPlugin', () => {
             })).not.to.exist;
         });
 
+        it('does not inject assertion tracking for namespace function calls with assertion-like names', async () => {
+            // Regression test: some.space.assertEqual(...) inside a test method should NOT have
+            // currentAssertLineNumber injected with `some.space` as the target object.
+            // The call is a namespaced function, not a method call on an object.
+            program.setFile<BrsFile>('source/someSpace.bs', `
+                namespace some.space
+                    function assertEqual(a, b)
+                    end function
+                end namespace
+            `);
+            plugin.afterProgramCreate(program);
+            program.setFile<BrsFile>('source/test.spec.bs', `
+                @suite
+                class ATest extends rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("is test1")
+                    function Test_1()
+                        some.space.assertEqual(1, 1)
+                        m.assertEqual(2, 2)
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.transpile();
+            const contents = getContents('test.spec.brs');
+            // The namespace function call must NOT produce some_space.currentAssertLineNumber
+            expect(contents).not.to.include('some_space.currentAssertLineNumber');
+            // The m.assertEqual assertion MUST still get currentAssertLineNumber injected
+            expect(contents).to.include('m.currentAssertLineNumber');
+            // The namespace call must be transpiled correctly as underscored function
+            expect(contents).to.include('some_space_assertEqual(1, 1)');
+        });
+
         it('handles groups that start with numbers', async () => {
             plugin.afterProgramCreate(program);
             // program.validate();
