@@ -4,7 +4,7 @@
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "scripts": {
         "preversion": "npm run build && npm run lint && npm run test",
-        "clean": "rm -rf ./dist && mkdir dist",
+        "clean": "node -e \"require('fs').rmSync('./dist', {recursive: true, force: true})\"",
         "compile": "npm run clean && tsc -p .",
         "lint": "eslint \"src/**\"",
         "ropm": "ropm install",
@@ -14,7 +14,7 @@
         "docs": "jsdoc -c jsdoc.json -d .tmp/docs --verbose",
         "test": "nyc mocha",
         "test:nocover": "mocha",
-        "publish-coverage": "nyc report --reporter=text-lcov | coveralls",
+        "audit": "npm audit",
         "cli": "ts-node src/cli.ts",
         "package": "npm run build && npm pack"
     },
@@ -24,10 +24,10 @@
         "fs-extra": "^10.1.0",
         "minimatch": "^3.0.4",
         "roku-debug": "^0.23.6",
-        "roku-deploy": "^3.17.2",
+        "roku-deploy": "^3.17.4",
         "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
         "source-map": "^0.7.3",
-        "undent": "^0.1.0",
+        "undent": "^1.0.1",
         "vscode-languageserver": "~6.1.1",
         "vscode-languageserver-protocol": "~3.17.5",
         "yargs": "^16.2.0"
@@ -38,29 +38,30 @@
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
         "@types/minimatch": "^3.0.5",
-        "@types/mocha": "^9.1.1",
+        "@types/mocha": "^10.0.10",
         "@types/node": "^14.18.41",
         "@types/yargs": "^15.0.5",
         "@typescript-eslint/eslint-plugin": "^5.27.0",
         "@typescript-eslint/parser": "^5.27.0",
         "brighterscript-jsdocs-plugin": "^0.7.3",
         "chai": "^4.2.0",
-        "coveralls": "^3.0.0",
-        "cz-conventional-changelog": "^3.3.0",
+        "docdash": "^2.0.2",
         "eslint": "^8.16.0",
         "eslint-import-resolver-typescript": "^3.6.1",
         "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-jsdoc": "^39.3.6",
         "eslint-plugin-no-only-tests": "2.6.0",
-        "jsdoc": "^3.5.5",
-        "minami": "^1.2.3",
-        "mocha": "^11.1.0",
+        "jsdoc": "^4.0.5",
+        "mocha": "^10.8.2",
         "nyc": "^15.1.0",
-        "release-it": "^17.6.0",
         "ropm": "^0.11.5",
         "source-map-support": "^0.5.13",
         "ts-node": "^10.7.0",
         "typescript": "^4.7.2"
+    },
+    "overrides": {
+        "lodash": "^4.18.1",
+        "serialize-javascript": "^7.0.5"
     },
     "main": "dist/plugin.js",
     "bin": {
@@ -97,7 +98,8 @@
         ],
         "reporter": [
             "text-summary",
-            "html"
+            "html",
+            "lcovonly"
         ],
         "sourceMap": true,
         "instrument": true,
