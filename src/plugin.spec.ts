@@ -1,10 +1,12 @@
 import type { BrsFile, CallExpression, ClassMethodStatement, ClassStatement, ExpressionStatement } from 'brighterscript';
-import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, FunctionStatement, Parser, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
+import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, FunctionStatement, Parser, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement, isMethodStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
 import undent from 'undent';
 import { SourceMapConsumer } from 'source-map';
+import type { TestCase } from './lib/rooibos/TestCase';
+import { expectTestCaseFunctionName, TestCaseMD5Sum } from './testHelpers.spec';
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let _stagingFolderPath = s`${tmpPath}/staging`;
@@ -389,9 +391,14 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
-            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(true);
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(true);
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
+            const testSuite = plugin.session.sessionInfo.testSuites.get('ATest');
+            expect(testSuite.isIgnored).to.equal(true);
+            for (let groupa of testSuite.testGroups.values()) {
+                expect(groupa.isIgnored).to.equal(true);
+                for (let test of groupa.testCases) {
+                    expect(test.isIgnored).to.equal(true);
+                }
+            }
         });
 
         it('ignores a group', () => {
@@ -412,9 +419,9 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
-            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(false);
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(true);
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
+            const testSuite = plugin.session.sessionInfo.testSuites.get('ATest');
+            const testGroup = testSuite.testGroups.get('groupA');
+            expect(testGroup.isIgnored).to.equal(true);
         });
 
         it('ignores a test', () => {
@@ -436,9 +443,10 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun.length).to.be.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
-            expect([...plugin.session.sessionInfo.testSuites.entries()][0][1].isIgnored).to.equal(false);
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].isIgnored).to.equal(false);
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].isIgnored).to.equal(true);
+            const testSuite = plugin.session.sessionInfo.testSuites.get('ATest');
+            const testGroup = testSuite.testGroups.get('groupA');
+            expect(testGroup.testCases[0].name).to.equal('is test1');
+            expect(testGroup.testCases[0].isIgnored).to.equal(true);
         });
 
         it('multiple groups', () => {
@@ -495,12 +503,23 @@ describe('RooibosPlugin', () => {
             program.validate();
 
             expect(program.getDiagnostics()).to.be.empty;
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0');
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][0][1].testCases[0].name).to.equal('is test1');
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[0].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1');
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[0].name).to.equal('is test1');
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[1].funcName).to.equal('rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_2');
-            expect([...[...plugin.session.sessionInfo.testSuites.entries()][0][1].testGroups.entries()][1][1].testCases[1].name).to.equal('is test1');
+            const testSuite = plugin.session.sessionInfo.testSuites.get('ATest');
+
+
+            const allTestCases: TestCase[] = [].concat(...testSuite.getTestGroups().map(group => group.testCases));
+
+            expect(allTestCases).to.be.length(3);
+
+            // each has different function name
+            expectTestCaseFunctionName(allTestCases[0], 0);
+            expectTestCaseFunctionName(allTestCases[1], 1);
+            expectTestCaseFunctionName(allTestCases[2], 2);
+
+            // all have same test name
+            for (let testCase of allTestCases) {
+                expect(testCase.name).to.equal('is test1');
+            }
+
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.length(1);
         });
 
@@ -638,7 +657,7 @@ describe('RooibosPlugin', () => {
             `, `
                 sub __ATest_method_new()
                 end sub
-                function __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0()
+                function __ATest_method_rooiboos_test_case_${TestCaseMD5Sum}_0()
                     number = 123
                     m.assertEqual("123", ("alpha-" + bslib_toString(number) + "-beta"))
                     m.assertEqual(123, 123)
@@ -646,7 +665,7 @@ describe('RooibosPlugin', () => {
                 function __ATest_builder()
                     instance = {}
                     instance.new = __ATest_method_new
-                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0
+                    instance.rooiboos_test_case_${TestCaseMD5Sum}_0 = __ATest_method_rooiboos_test_case_${TestCaseMD5Sum}_0
                     return instance
                 end function
                 function ATest()
@@ -717,7 +736,7 @@ describe('RooibosPlugin', () => {
                 sub __ATest_method_new()
                     m.super0_new()
                 end sub
-                function __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0()
+                function __ATest_method_rooiboos_test_case_${TestCaseMD5Sum}_0()
                     m.currentAssertLineNumber = 8
                     m.assertEqual(1, 1)
                     if m.currentResult?.isFail = true then
@@ -741,7 +760,7 @@ describe('RooibosPlugin', () => {
                         end if
                     end if
                 end function
-                sub __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1()
+                sub __ATest_method_rooiboos_test_case_${TestCaseMD5Sum}_1()
                     m.currentAssertLineNumber = 18
                     m.assertEqual(1, 1)
                     if m.currentResult?.isFail = true then
@@ -805,7 +824,7 @@ describe('RooibosPlugin', () => {
                                     {
                                         isSolo: false
                                         noCatch: false
-                                        funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
+                                        funcName: "rooiboos_test_case_${TestCaseMD5Sum}_0"
                                         isIgnored: false
                                         isAsync: false
                                         asyncTimeout: 2000
@@ -823,7 +842,7 @@ describe('RooibosPlugin', () => {
                                     {
                                         isSolo: false
                                         noCatch: false
-                                        funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1"
+                                        funcName: "rooiboos_test_case_${TestCaseMD5Sum}_1"
                                         isIgnored: false
                                         isAsync: false
                                         asyncTimeout: 2000
@@ -847,8 +866,8 @@ describe('RooibosPlugin', () => {
                     instance = __rooibos_BaseTestSuite_builder()
                     instance.super0_new = instance.new
                     instance.new = __ATest_method_new
-                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0
-                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1 = __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_1
+                    instance.rooiboos_test_case_${TestCaseMD5Sum}_0 = __ATest_method_rooiboos_test_case_${TestCaseMD5Sum}_0
+                    instance.rooiboos_test_case_${TestCaseMD5Sum}_1 = __ATest_method_rooiboos_test_case_${TestCaseMD5Sum}_1
                     instance.super0_getTestSuiteData = instance.getTestSuiteData
                     instance.getTestSuiteData = __ATest_method_getTestSuiteData
                     return instance
@@ -862,8 +881,8 @@ describe('RooibosPlugin', () => {
 
             //verify the AST was restored after transpile
             const cls = file.ast.statements[0] as ClassStatement;
-            expect(cls.body.find((x: ClassMethodStatement) => {
-                return x.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            expect(cls.body.find((x) => {
+                return isMethodStatement(x) && x.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
         });
 
@@ -903,7 +922,7 @@ describe('RooibosPlugin', () => {
                 sub __ATest_method_new()
                     m.super0_new()
                 end sub
-                function __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0()
+                function __ATest_method_rooiboos_test_case_${TestCaseMD5Sum}_0()
                 end function
                 function __ATest_method_getTestSuiteData()
                     return {
@@ -945,7 +964,7 @@ describe('RooibosPlugin', () => {
                                     {
                                         isSolo: false
                                         noCatch: false
-                                        funcName: "rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0"
+                                        funcName: "rooiboos_test_case_${TestCaseMD5Sum}_0"
                                         isIgnored: false
                                         isAsync: false
                                         asyncTimeout: 2000
@@ -969,7 +988,7 @@ describe('RooibosPlugin', () => {
                     instance = __rooibos_BaseTestSuite_builder()
                     instance.super0_new = instance.new
                     instance.new = __ATest_method_new
-                    instance.rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0 = __ATest_method_rooiboos_test_case_0d635a9477c4624180ef87bef352afd3_0
+                    instance.rooiboos_test_case_${TestCaseMD5Sum}_0 = __ATest_method_rooiboos_test_case_${TestCaseMD5Sum}_0
                     instance.super0_getTestSuiteData = instance.getTestSuiteData
                     instance.getTestSuiteData = __ATest_method_getTestSuiteData
                     return instance
@@ -983,8 +1002,8 @@ describe('RooibosPlugin', () => {
 
             //verify the AST was restored after transpile
             const cls = file.ast.statements[0] as ClassStatement;
-            expect(cls.body.find((x: ClassMethodStatement) => {
-                return x.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            expect(cls.body.find((x) => {
+                return isMethodStatement(x) && x.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
         });
 
