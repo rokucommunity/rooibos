@@ -51,7 +51,7 @@ namespace rooibos
         protected anyArrayMatcher = { "matcher": rooibos.Matcher.anyArray }
         protected anyNodeMatcher = { "matcher": rooibos.Matcher.anyNode }
         protected allowNonExistingMethodsOnMocks = true
-        protected isAutoAssertingMocks = true
+        public isAutoAssertingMocks = true
 
         protected currentResult as rooibos.TestResult = invalid
 
@@ -1959,7 +1959,7 @@ namespace rooibos
             end try
         end function
 
-        function expectCalled(invocation as dynamic, returnValue = invalid as dynamic) as object
+        function expectCalled(invocation as dynamic, returnValue = invalid as dynamic) as object 'bs:disable-line: LINT1006
             'mock function body - the plugin replaces this
             return invalid
         end function
@@ -2012,7 +2012,7 @@ namespace rooibos
             return false
         end function
 
-        function expectNotCalled(invocation as dynamic) as object
+        function expectNotCalled(invocation as dynamic) as object 'bs:disable-line: LINT1006
             'mock function body - the plugin replaces this
             return invalid
         end function
