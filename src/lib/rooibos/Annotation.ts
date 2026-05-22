@@ -72,7 +72,6 @@ export class RooibosAnnotation {
 
     /**
      * Represents a group of comments which contain tags such as @only, @suite, @describe, @it etc
-     * @param statement block of comments that contain annotations to apply to the next statement
      */
     constructor(
         public file: BrsFile,
@@ -104,9 +103,9 @@ export class RooibosAnnotation {
         let isIgnore = false;
         let noCatch = false;
         let noEarlyExit = false;
-        let nodeName = null;
+        let nodeName: string;
         let asyncTimeout = -1;
-        let tags = [] as string[];
+        let tags: string[] = [];
         if (statement.annotations?.length) {
             let describeAnnotations = statement.annotations.filter((a) => getAnnotationType(a.name) === AnnotationType.Describe);
             if (describeAnnotations.length > 1) {
@@ -131,10 +130,9 @@ export class RooibosAnnotation {
             }
 
             for (const annotationBlock of blocks) {
-                // eslint-disable-next-line no-inner-declarations
-                function getAnnotationsOfType(...names: string[]) {
+                const getAnnotationsOfType = (...names: string[]) => {
                     return annotationBlock.filter(a => names.includes(a.name.toLowerCase()));
-                }
+                };
 
                 noEarlyExit = getAnnotationsOfType(AnnotationType.NoEarlyExit).length > 0;
                 noCatch = getAnnotationsOfType(AnnotationType.NoCatch).length > 0;
@@ -148,11 +146,9 @@ export class RooibosAnnotation {
                 for (const annotation of getAnnotationsOfType(AnnotationType.Async)) {
                     async = true;
                     asyncTimeout = annotation.getArguments().length === 1 ? parseInt(annotation.getArguments()[0] as any) : -1;
-                    if (nodeName === null) {
-                        // If the test is async, it must be a node test
-                        // Default to `Node` if no node is specified
-                        nodeName = 'Node';
-                    }
+                    // If the test is async, it must be a node test
+                    // Default to `Node` if no node is specified
+                    nodeName ??= 'Node';
                 }
 
                 for (const annotation of getAnnotationsOfType(AnnotationType.Tags)) {
@@ -166,7 +162,7 @@ export class RooibosAnnotation {
 
                 for (const annotation of getAnnotationsOfType(AnnotationType.Describe, AnnotationType.TestSuite)) {
                     const groupName = annotation.getArguments()[0] as string;
-                    blockAnnotation = new RooibosAnnotation(file, annotation, getAnnotationType(annotation.name), annotation.name, groupName, isIgnore, isSolo, null, nodeName, tags, noCatch, noEarlyExit);
+                    blockAnnotation = new RooibosAnnotation(file, annotation, getAnnotationType(annotation.name), annotation.name, groupName, isIgnore, isSolo, undefined, nodeName, tags, noCatch, noEarlyExit);
                     blockAnnotation.isAsync = async;
                     blockAnnotation.asyncTimeout = asyncTimeout === -1 ? 60000 : asyncTimeout;
                     nodeName = null;

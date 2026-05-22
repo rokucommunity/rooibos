@@ -204,10 +204,24 @@ namespace rooibos.common
                 return value.ToStr()
             end if
         else if rooibos.common.isFloat(value) or rooibos.common.isDouble(value) then
+            valueAsStr = value.toStr("%.40f")
+
+            if valueAsStr.inStr(".") > -1 then
+                ' remove trailing zeros resulting from the high precision string formatting
+                while valueAsStr.endsWith("0")
+                    valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
+                end while
+            end if
+
+            if valueAsStr.endsWith(".") then
+                ' remove trailing dot
+                valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
+            end if
+
             if includeType then
-                return Str(value).Trim() + " (" + rooibos.common.getSafeType(value) + ")"
+                return valueAsStr.Trim() + " (" + rooibos.common.getSafeType(value) + ")"
             else
-                return Str(value).Trim()
+                return valueAsStr.Trim()
             end if
         else if type(value) = "roSGNode" then
             return "Node(" + value.subType() + ")"
@@ -274,10 +288,24 @@ namespace rooibos.common
                 return value.ToStr()
             end if
         else if rooibos.common.isFloat(value) or rooibos.common.isDouble(value) then
+            valueAsStr = value.toStr("%.40f")
+
+            if valueAsStr.inStr(".") > -1 then
+                ' remove trailing zeros resulting from the high precision string formatting
+                while valueAsStr.endsWith("0")
+                    valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
+                end while
+            end if
+
+            if valueAsStr.endsWith(".") then
+                ' remove trailing dot
+                valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
+            end if
+
             if includeType then
-                return Str(value).Trim() + " (" + rooibos.common.getSafeType(value) + ")"
+                return valueAsStr.Trim() + " (" + rooibos.common.getSafeType(value) + ")"
             else
-                return Str(value).Trim()
+                return valueAsStr.Trim()
             end if
         else if type(value) = "roSGNode" then
             return "Node(" + value.subType() + ")"

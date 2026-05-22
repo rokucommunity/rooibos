@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { BrsFile, BscFile, ClassStatement, Editor, FunctionStatement, NamespaceContainer, NamespaceStatement, Program, ProgramBuilder, Scope } from 'brighterscript';
+import type { BrsFile, BscFile, ClassStatement, Editor, FunctionStatement, NamespaceContainer, Program, ProgramBuilder, Scope } from 'brighterscript';
 import { isBrsFile, isCallExpression, isClassStatement, isDottedGetExpression, isVariableExpression, ParseMode, Parser, WalkMode } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -160,9 +160,9 @@ export class RooibosSession {
                         "logLevel": ${this.config.logLevel ?? 0}
                         "showOnlyFailures": ${this.config.showOnlyFailures ? 'true' : 'false'}
                         "printTestTimes": ${this.config.printTestTimes ? 'true' : 'false'}
-                        "lineWidth": ${this.config.lineWidth || 60}
+                        "lineWidth": ${this.config.lineWidth ?? 60}
                         "printLcov": ${this.config.printLcov ? 'true' : 'false'}
-                        "port": "${this.config.port || 'invalid'}"
+                        "port": "${this.config.port ?? 'invalid'}"
                         "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
                         "colorizeOutput": ${this.config.colorizeOutput ? 'true' : 'false'}
                         "throwOnFailedAssertion": ${this.config.throwOnFailedAssertion ? 'true' : 'false'}

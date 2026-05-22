@@ -40,11 +40,13 @@
     },
     "brightscript.bsdk": "node_modules/brighterscript",
     "cSpell.words": [
+        "brighterscript",
         "clazz",
         "fugly",
         "Noderooibos",
         "ROIBOS",
         "rooibos",
         "Stubbable"
-    ]
+    ],
+    "js/ts.tsdk.path": "node_modules/typescript/lib"
 }

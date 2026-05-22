@@ -8,9 +8,6 @@ on:
 jobs:
   ci:
     runs-on: ${{ matrix.os }}
-    env:
-      #hardcode the coveralls token...it's not overly important to protect, and github actions won't allow forks to work with coveralls otherwise
-      COVERALLS_REPO_TOKEN: "ppWEadjj41ovqxQn4LelJ0TAtCKuMNDaH"
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -18,9 +15,14 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
         with:
-          node-version: "16.20.2"
+          node-version: "18.20.4"
           architecture: 'x64' # fix for macos-latest
       - run: npm ci
       - run: npm run preversion
-      - run: npm run publish-coverage
       - run: npm run build-test-project
+      - name: Publish code coverage to coveralls
+        if: matrix.os == 'ubuntu-latest'
+        uses: coverallsapp/github-action@v2
+        env:
+          #hardcode the coveralls token...it's not overly important to protect, and github actions won't allow forks to work with coveralls otherwise
+          COVERALLS_REPO_TOKEN: "ppWEadjj41ovqxQn4LelJ0TAtCKuMNDaH"

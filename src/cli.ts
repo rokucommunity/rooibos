@@ -25,7 +25,7 @@ let options = yargs
             console.log('No project file specified. Using "./bsconfig.json"');
 
         }
-        let bsconfigPath = argv.project || './bsconfig.json';
+        let bsconfigPath = argv.project ?? './bsconfig.json';
 
         if (!fs.existsSync(bsconfigPath)) {
             return new Error(`Unable to load ${bsconfigPath}`);

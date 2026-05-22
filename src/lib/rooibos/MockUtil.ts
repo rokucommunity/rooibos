@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { BrsFile, Editor, NamespaceStatement, ProgramBuilder, Scope } from 'brighterscript';
-import { ParseMode, Parser, isClassStatement, isNamespaceStatement } from 'brighterscript';
-import * as brighterscript from 'brighterscript';
+import type { BrsFile, CallExpression, Editor, Expression, FunctionStatement, NamespaceStatement, ProgramBuilder, Scope } from 'brighterscript';
+import { ParseMode, Parser, SymbolTypeFlag, WalkMode, createVisitor, isCallExpression, isClassStatement, isDottedGetExpression, isNamespaceStatement, isVariableExpression } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
-import type { FileFactory } from './FileFactory';
 import undent from 'undent';
 import type { RooibosSession } from './RooibosSession';
 import { diagnosticErrorProcessingFile, RooibosLogPrefix } from '../utils/Diagnostics';
@@ -14,12 +10,11 @@ import { functionRequiresReturnValue, getAllDottedGetParts, getFileLookups, getS
 
 export class MockUtil {
 
-    constructor(public builder: ProgramBuilder, fileFactory: FileFactory, session: RooibosSession) {
+    constructor(public builder: ProgramBuilder, session: RooibosSession) {
         this.config = (builder.options as any).rooibos as RooibosConfig || {};
         this.filePathMap = {};
         this.fileId = 0;
         this.session = session;
-        this.fileFactory = fileFactory;
     }
     session: RooibosSession;
 
@@ -35,8 +30,7 @@ export class MockUtil {
     private config: RooibosConfig;
     private fileId: number;
     private filePathMap: any;
-    private fileFactory: FileFactory;
-    private processedStatements: Set<brighterscript.FunctionStatement>;
+    private processedStatements: Set<FunctionStatement>;
     private astEditor: Editor;
 
     enableGlobalMethodMocks(file: BrsFile, astEditor: Editor) {
@@ -47,7 +41,7 @@ export class MockUtil {
 
     _processFile(file: BrsFile, astEditor: Editor) {
         this.fileId++;
-        this.processedStatements = new Set<brighterscript.FunctionStatement>();
+        this.processedStatements = new Set<FunctionStatement>();
         this.astEditor = astEditor;
         // console.log('processing global methods on ', file.pkgPath);
         for (let functionStatement of getFileLookups(file).functionStatements) {
@@ -60,7 +54,7 @@ export class MockUtil {
         }
     }
 
-    private enableMockOnFunction(file: BrsFile, functionStatement: brighterscript.FunctionStatement) {
+    private enableMockOnFunction(file: BrsFile, functionStatement: FunctionStatement) {
         if (isClassStatement(functionStatement.parent?.parent)) {
             // console.log('skipping class', functionStatement.parent?.parent?.name?.text);
             return;
@@ -70,7 +64,7 @@ export class MockUtil {
             return;
         }
 
-        const methodName = functionStatement?.getName(brighterscript.ParseMode.BrightScript).toLowerCase() || '';
+        const methodName = functionStatement?.getName(ParseMode.BrightScript).toLowerCase() || '';
         // console.log('MN', methodName);
         if (this.config.isGlobalMethodMockingEfficientMode && !this.session.globalStubbedMethods.has(methodName)) {
             // console.log('skipping method that is not stubbed', methodName);
@@ -88,14 +82,6 @@ export class MockUtil {
         if (isDisabledFoMocking) {
             // The developer has stated that this function is not safe to be mocked
             return;
-        }
-
-        // console.log('processing  stubbed method', methodName);
-        // TODO check if the user has actually mocked or stubbed this function, otherwise leave it alone!
-
-        for (let param of functionStatement.func.parameters) {
-            //  WHY ?
-            //  param.tokens.as = null;
         }
 
         const paramNames = functionStatement.func.parameters.map((param) => param.tokens.name.text).join(',');
@@ -143,10 +129,10 @@ export class MockUtil {
     private gatherMockedGlobalMethods(testSuite: TestSuite, testCase: TestCase) {
         try {
             let func = testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === testCase.funcName.toLowerCase());
-            func.walk(brighterscript.createVisitor({
+            func.walk(createVisitor({
                 ExpressionStatement: (expressionStatement, parent, owner) => {
-                    let callExpression = expressionStatement.expression as brighterscript.CallExpression;
-                    if (brighterscript.isCallExpression(callExpression) && brighterscript.isDottedGetExpression(callExpression.callee)) {
+                    let callExpression = expressionStatement.expression as CallExpression;
+                    if (isCallExpression(callExpression) && isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.tokens.name.text)) {
@@ -164,28 +150,24 @@ export class MockUtil {
                     }
                 }
             }), {
-                walkMode: brighterscript.WalkMode.visitStatementsRecursive
+                walkMode: WalkMode.visitStatementsRecursive
             });
-        } catch (e) {
+        } catch (e: unknown) {
             this.builder.program.logger.error(RooibosLogPrefix, 'Error processing global method mocks', e);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            diagnosticErrorProcessingFile(testSuite.file, e.message);
+            diagnosticErrorProcessingFile(testSuite.file, (e as Error).message);
         }
     }
 
-    private processGlobalStubbedMethod(callExpression: brighterscript.CallExpression, testSuite: TestSuite) {
-        let isNotCalled = false;
+    private processGlobalStubbedMethod(callExpression: CallExpression, testSuite: TestSuite) {
         let isStubCall = false;
         const scope = getScopeForSuite(testSuite);
-        const namespaceLookup = this.session.namespaceLookup;
-        if (brighterscript.isDottedGetExpression(callExpression.callee)) {
+        if (isDottedGetExpression(callExpression.callee)) {
             const nameText = callExpression.callee.tokens.name.text;
-            isNotCalled = nameText === 'expectNotCalled';
             isStubCall = nameText === 'stubCall';
         }
         //modify args
         let arg0 = callExpression.args[0];
-        let arg1 = callExpression.args[1];
 
         if (isStubCall) {
             let functionName = this.getGlobalFunctionName(arg0, scope);
@@ -195,7 +177,7 @@ export class MockUtil {
             }
         }
 
-        if (brighterscript.isCallExpression(arg0)) {
+        if (isCallExpression(arg0)) {
             let functionName = this.getGlobalFunctionName(arg0.callee, scope);
             if (functionName) {
                 this.session.globalStubbedMethods.add(functionName.toLowerCase());
@@ -204,18 +186,18 @@ export class MockUtil {
     }
 
 
-    private getGlobalFunctionName(expression: brighterscript.Expression, scope: Scope) {
+    private getGlobalFunctionName(expression: Expression, scope: Scope) {
         let result: string;
-        if (brighterscript.isDottedGetExpression(expression)) {
+        if (isDottedGetExpression(expression)) {
             let nameParts = getAllDottedGetParts(expression);
             let functionName = nameParts.join('.');
             let callable = scope.getCallableByName(functionName);
             if (callable) {
                 result = callable.getName(ParseMode.BrightScript);
             }
-        } else if (brighterscript.isVariableExpression(expression)) {
+        } else if (isVariableExpression(expression)) {
             let functionName = expression.getName(ParseMode.BrightScript);
-            if (scope.symbolTable.hasSymbol(functionName, brighterscript.SymbolTypeFlag.runtime)) {
+            if (scope.symbolTable.hasSymbol(functionName, SymbolTypeFlag.runtime)) {
                 result = functionName;
             }
 

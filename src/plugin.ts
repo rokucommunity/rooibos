@@ -47,7 +47,7 @@ export class RooibosPlugin implements CompilerPlugin {
         if (!this.session) {
             this.session = new RooibosSession(builder, this.fileFactory);
             this.codeCoverageProcessor = new CodeCoverageProcessor(builder, this.fileFactory);
-            this.mockUtil = new MockUtil(builder, this.fileFactory, this.session);
+            this.mockUtil = new MockUtil(builder, this.session);
         }
     }
     private getConfig(options: any) {
@@ -100,7 +100,8 @@ export class RooibosPlugin implements CompilerPlugin {
             '**/*.spec.bs',
             '**/roku_modules/**/*',
             '**/source/main.bs',
-            '**/source/rooibos/**/*'
+            '**/source/rooibos/**/*',
+            '**/components/rooibos/**/*'
         ];
 
         // Set default coverage exclusions, or merge with defaults if available.
@@ -113,7 +114,8 @@ export class RooibosPlugin implements CompilerPlugin {
         const defaultGlobalMethodMockingExcluded = [
             '**/*.spec.bs',
             '**/source/main.bs',
-            '**/source/rooibos/**/*'
+            '**/source/rooibos/**/*',
+            '**/components/rooibos/**/*'
         ];
         if (config.globalMethodMockingExcludedFiles === undefined) {
             config.globalMethodMockingExcludedFiles = defaultGlobalMethodMockingExcluded;
