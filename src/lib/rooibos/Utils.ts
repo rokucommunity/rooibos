@@ -1,4 +1,5 @@
-import { AnnotationExpression, BrsFile, BscType, ClassStatement, createIdentifier, DottedGetExpression, Editor, Expression, FunctionStatement, MethodStatement, TypeExpression, VariableExpression, ParseMode, Parser, SymbolTypeFlag, createStringLiteral, isCallExpression, isCallfuncExpression, isDottedGetExpression, isFunctionStatement, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isVoidType, isXmlScope } from 'brighterscript';
+import type { AnnotationExpression, BrsFile, BscType, ClassStatement, Editor, Expression, FunctionStatement, MethodStatement } from 'brighterscript';
+import { createIdentifier, DottedGetExpression, TypeExpression, VariableExpression, ParseMode, Parser, SymbolTypeFlag, createStringLiteral, isCallExpression, isCallfuncExpression, isDottedGetExpression, isFunctionStatement, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isVoidType, isXmlScope } from 'brighterscript';
 import type { CachedLookups } from 'brighterscript/dist/astUtils/CachedLookups';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';

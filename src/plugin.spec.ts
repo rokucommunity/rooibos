@@ -2728,7 +2728,7 @@ describe('RooibosPlugin', () => {
         });
     });
 
-    describe('test reporters', function runTests() {
+    describe('test reporters', () => {
         async function runReporterTest(reporters: string[], expected: string[]) {
             setupProgram({
                 rootDir: _rootDir,
