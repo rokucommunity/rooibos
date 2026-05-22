@@ -2692,7 +2692,7 @@ describe('RooibosPlugin', () => {
                 function __rooibos_RuntimeConfig_method_getTestSuiteClassWithName(name as string) as function
                     return m.testSuites[name]
                 end function
-                function __rooibos_RuntimeConfig_method_getAllTestSuitesNames() as object
+                function __rooibos_RuntimeConfig_method_getAllTestSuitesNames() as dynamic
                     return m.testSuites.keys()
                 end function
                 function __rooibos_RuntimeConfig_method_getIgnoredTestInfo() as dynamic
