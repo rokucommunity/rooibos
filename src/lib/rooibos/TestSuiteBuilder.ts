@@ -2,11 +2,9 @@
 import type {
     BrsFile,
     ClassStatement,
-    FunctionStatement,
     MethodStatement
 } from 'brighterscript';
 import {
-    isFunctionStatement,
     isMethodStatement,
     util
 } from 'brighterscript';
@@ -32,7 +30,7 @@ import {
     diagnosticTestWithArgsButNoParams
 } from '../utils/Diagnostics';
 import type { RooibosSession } from './RooibosSession';
-import { getFileLookups, getTypeExpressionFromBscType } from './Utils';
+import { getFileLookups } from './Utils';
 
 export class TestSuiteBuilder {
     constructor(public session: RooibosSession) {
@@ -62,9 +60,9 @@ export class TestSuiteBuilder {
                     }
                 }
             }
-        } catch (e) {
+        } catch (e: unknown) {
             // console.log(e);
-            diagnosticErrorProcessingFile(file, e.message);
+            diagnosticErrorProcessingFile(file, (e as Error).message);
         }
         this.session.sessionInfo.updateTestSuites(suites);
         return suites;
