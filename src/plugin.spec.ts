@@ -1,5 +1,5 @@
 import type { BrsFile, CallExpression, MethodStatement, ClassStatement, ExpressionStatement } from 'brighterscript';
-import { CallfuncExpression, FunctionStatement, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement, Parser, SourceMapConsumer, Position } from 'brighterscript';
+import { CallfuncExpression, FunctionStatement, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement, Parser, SourceMapConsumer, Position, isMethodStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
@@ -865,8 +865,8 @@ describe('RooibosPlugin', () => {
 
             //verify the AST was restored after transpile
             const cls = file.ast.statements[0] as ClassStatement;
-            expect(cls.body.find((x: MethodStatement) => {
-                return x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            expect(cls.body.find((x) => {
+                return isMethodStatement(x) && x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
         });
 
@@ -986,8 +986,8 @@ describe('RooibosPlugin', () => {
 
             //verify the AST was restored after transpile
             const cls = file.ast.statements[0] as ClassStatement;
-            expect(cls.body.find((x: MethodStatement) => {
-                return x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            expect(cls.body.find((x) => {
+                return isMethodStatement(x) && x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
         });
 

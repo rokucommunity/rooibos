@@ -115,6 +115,7 @@
             "source-map-support/register",
             "ts-node/register"
         ],
+        "timeout": "3000",
         "watchExtensions": [
             "ts"
         ]

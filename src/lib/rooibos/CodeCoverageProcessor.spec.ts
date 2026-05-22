@@ -34,7 +34,8 @@ describe('RooibosPlugin', () => {
                         '**/*.coverageExcluded.bs'
                     ]
                 },
-                allowBrighterScriptInBrightScript: true
+                allowBrighterScriptInBrightScript: true,
+                logLevel: 'debug'
             };
             fsExtra.ensureDirSync(outDir);
             fsExtra.ensureDirSync(_rootDir);
