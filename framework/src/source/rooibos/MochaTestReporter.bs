@@ -244,7 +244,7 @@ namespace rooibos
         '      -0 (Integer)
         '      +true (Boolean)
         function unifiedDiff(actual as string, expected as string) as string
-            cleanUp = function(line as string, m as rooibos.MochaTestReporter) as string or dynamic
+            cleanUp = function(line as string, m as rooibos.MochaTestReporter) as string or dynamic  'bs:disable-line: LINT1006
                 indent = "      "
                 if line.left(1) = "+" then
                     return indent + m.colorLines(rooibos.reporters.mocha.colors.diffAdded, line)
@@ -352,7 +352,7 @@ namespace rooibos
         end function
 
         ' Diff two sets of strings, comparing them line by line
-        function diffLines(oldStr as string, newStr as string, callback as dynamic) as roArray
+        function diffLines(oldStr as string, newStr as string, callback as dynamic) as roArray  'bs:disable-line: LINT1006
             lineDiff = rooibos.reporters.mocha.new_lineDiff()
 
             return lineDiff.diff(oldStr, newStr, {
@@ -818,7 +818,7 @@ namespace rooibos
                         return ret
                     end function
 
-                    tokenize: function(value as string, options as roAssociativeArray) as string[]
+                    tokenize: function(value as string, options as roAssociativeArray) as string[]  'bs:disable-line: LINT1006
                         return value.split("")
                     end function
 
@@ -826,7 +826,7 @@ namespace rooibos
                         return chars.join("")
                     end function
 
-                    postProcess: function(changeObjects as dynamic, options as roAssociativeArray) as dynamic
+                    postProcess: function(changeObjects as dynamic, options as roAssociativeArray) as dynamic  'bs:disable-line: LINT1006
                         return changeObjects
                     end function
 

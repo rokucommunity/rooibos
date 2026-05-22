@@ -225,7 +225,7 @@ namespace rooibos
         '++ printing
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        function printLine(depth = 0 as integer, text = "" as string)
+        function printLine(depth = 0 as integer, text = "" as string)  'bs:disable-line: LINT1006
             ? " " ; text
         end function
 

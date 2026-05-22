@@ -2415,7 +2415,7 @@ namespace rooibos
         end function
 
 
-        function mockFail(lineNumber as integer, methodName as dynamic, message as string) as dynamic
+        function mockFail(lineNumber as integer, methodName as dynamic, message as string) as dynamic  'bs:disable-line: LINT1006
             if m.currentResult.isFail then
                 return false
             end if
