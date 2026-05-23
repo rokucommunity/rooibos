@@ -150,7 +150,13 @@ export class CodeCoverageProcessor {
             },
             ExpressionStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                
+                // Special handling for super() calls in constructors
+                if (this.isSuperCallStatement(ds)) {
+                    this.convertSuperCallToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                } else {
+                    this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                }
             }
         }), { walkMode: WalkMode.visitAllRecursive });
 
@@ -174,6 +180,40 @@ export class CodeCoverageProcessor {
         this.astEditor.arraySplice(owner, key, 0, parsed);
         this.addedStatements.add(parsed);
         // store the statement in a set to avoid handling again after inserting statement above
+        this.processedStatements.add(statement);
+    }
+
+    private isSuperCallStatement(statement: Statement): boolean {
+        // Check if this is an expression statement containing a super() call
+        if (statement.constructor.name === 'ExpressionStatement') {
+            const exprStatement = statement as any;
+            if (exprStatement.expression && exprStatement.expression.constructor.name === 'CallExpression') {
+                const callExpr = exprStatement.expression;
+                if (callExpr.callee && callExpr.callee.constructor.name === 'VariableExpression') {
+                    return callExpr.callee.name?.text === 'super';
+                }
+            }
+        }
+        return false;
+    }
+
+    private convertSuperCallToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
+        if (this.processedStatements.has(statement) || this.addedStatements.has(statement)) {
+            return;
+        }
+
+        const lineNumber = statement.range.start.line;
+        this.coverageMap.set(lineNumber, coverageType);
+        
+        // For super() calls, we insert the coverage tracking AFTER the super() call
+        // instead of before it to preserve constructor execution order
+        const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
+        
+        // Insert coverage tracking statement AFTER the super() call (at index key + 1)
+        this.astEditor.arraySplice(owner, key + 1, 0, parsed);
+        this.addedStatements.add(parsed);
+        
+        // Mark as processed to avoid reprocessing
         this.processedStatements.add(statement);
     }
 
