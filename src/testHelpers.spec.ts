@@ -1,15 +1,14 @@
 import * as chai from 'chai';
 const expect = chai.expect;
 import type { TestCase } from './lib/rooibos/TestCase';
-import { FunctionStatement, isClassStatement, ParseMode, Parser, standardizePath as s } from 'brighterscript';
-import type { Body, BscFile, BsDiagnostic, ClassStatement, CodeDescription, DiagnosticRelatedInformation, DiagnosticSeverity, DiagnosticTag, ParseOptions } from 'brighterscript';
+import { FunctionStatement, Parser, standardizePath as s } from 'brighterscript';
+import type { BscFile, BsDiagnostic, CodeDescription, DiagnosticRelatedInformation, DiagnosticSeverity, DiagnosticTag, ParseOptions } from 'brighterscript';
 import type { Range } from 'vscode-languageserver';
 import * as fsExtra from 'fs-extra';
 import undent from 'undent';
 
-let tmpPath = s`${process.cwd()}/.tmp`;
-let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+const tmpPath = s`${process.cwd()}/.tmp`;
+const _stagingFolderPath = s`${tmpPath}/staging`;
 
 export const TestCaseMD5Sum = `0d635a9477c4624180ef87bef352afd3`;
 

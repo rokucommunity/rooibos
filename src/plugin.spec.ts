@@ -1,5 +1,5 @@
-import type { BrsFile, CallExpression, ClassMethodStatement, ClassStatement, CommentStatement, ExpressionStatement, FunctionStatement, ImportStatement } from 'brighterscript';
-import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Parser, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement, isMethodStatement, isFunctionStatement, isReturnStatement, isAALiteralExpression, isImportStatement, isCommentStatement } from 'brighterscript';
+import type { BrsFile, CallExpression, ClassStatement, CommentStatement, ExpressionStatement, FunctionStatement, MethodStatement } from 'brighterscript';
+import { CallfuncExpression, DiagnosticSeverity, DottedGetExpression, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement, isMethodStatement, isFunctionStatement, isReturnStatement, isAALiteralExpression, isCommentStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
@@ -393,9 +393,9 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
             const testSuite = plugin.session.sessionInfo.testSuites.get('ATest');
             expect(testSuite.isIgnored).to.equal(true);
-            for (let groupa of testSuite.testGroups.values()) {
-                expect(groupa.isIgnored).to.equal(true);
-                for (let test of groupa.testCases) {
+            for (let group of testSuite.testGroups.values()) {
+                expect(group.isIgnored).to.equal(true);
+                for (let test of group.testCases) {
                     expect(test.isIgnored).to.equal(true);
                 }
             }
@@ -2230,7 +2230,7 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
-                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
+                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as MethodStatement);
 
                 const call1 = (testMethod.func.body.statements[1] as ExpressionStatement).expression as CallExpression;
                 expect(call1.args).to.be.lengthOf(1);
@@ -2270,7 +2270,7 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
-                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as ClassMethodStatement);
+                const testMethod = ((file.ast.statements[0] as ClassStatement).memberMap['_'] as MethodStatement);
                 const call = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
                 const arg0 = call.args[0] as DottedGetExpression;
                 expect(call.args).to.be.lengthOf(1);
