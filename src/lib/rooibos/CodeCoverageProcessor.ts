@@ -40,7 +40,7 @@ export class CodeCoverageProcessor {
         this.fileFactory = fileFactory;
         try {
         } catch (e) {
-            console.log('Error:', e.stack);
+            console.log('Error:', (e as Error).stack);
         }
     }
 

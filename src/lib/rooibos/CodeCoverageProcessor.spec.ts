@@ -1,10 +1,12 @@
-import { Program, ProgramBuilder, util, standardizePath as s } from 'brighterscript';
+import { Program, ProgramBuilder, util, standardizePath as s, isExpressionStatement, isCallExpression, isIfStatement } from 'brighterscript';
+import type { BinaryExpression, Expression, ExpressionStatement, LiteralExpression, Statement, VariableExpression } from 'brighterscript';
 import { expect } from 'chai';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
 import { RooibosPlugin } from '../../plugin';
 import undent from 'undent';
-import { getContents } from '../../testHelpers.spec';
+import { expectFunctionContents, expectZeroDiagnostics, getContents, getFunctionAstNode } from '../../testHelpers.spec';
+import { CodeCoverageLineType } from './CodeCoverageType';
 
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
@@ -78,72 +80,119 @@ describe('CodeCoverageProcessor', () => {
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
             await builder.transpile();
-            let a = getContents('source/code.brs');
-            let b = undent(`
-                function new(a1, a2)
-                    RBS_CC_1_reportLine("2", 1)
-                    c = 0
-                    RBS_CC_1_reportLine("3", 1)
-                    text = ""
-                    RBS_CC_1_reportLine("4", 1): for i = 0 to 10
-                        RBS_CC_1_reportLine("5", 1)
-                        text = text + "hello"
-                        RBS_CC_1_reportLine("6", 1)
-                        c++
-                        RBS_CC_1_reportLine("7", 1)
-                        c += 1
-                        if RBS_CC_1_reportLine("8", 2) and (c = 2)
-                            RBS_CC_1_reportLine("8", 3)
-                            RBS_CC_1_reportLine("9", 1)
-                            ? "is true"
-                        end if
-                        if RBS_CC_1_reportLine("12", 2) and (c = 3)
-                            RBS_CC_1_reportLine("12", 3)
-                            RBS_CC_1_reportLine("13", 1)
-                            ? "free"
-                        else
-                            RBS_CC_1_reportLine("14", 3)
-                            RBS_CC_1_reportLine("15", 1)
-                            ? "not free"
-                        end if
-                    end for
-                end function
-
-                function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                    _rbs_ccn = m._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        return true
+            const transpiledContents = getContents('source/code.brs');
+            expectFunctionContents(transpiledContents, 'new', `
+                RBS_CC_1_reportLine("2", 1)
+                c = 0
+                RBS_CC_1_reportLine("3", 1)
+                text = ""
+                RBS_CC_1_reportLine("4", 1): for i = 0 to 10
+                    RBS_CC_1_reportLine("5", 1)
+                    text = text + "hello"
+                    RBS_CC_1_reportLine("6", 1)
+                    c++
+                    RBS_CC_1_reportLine("7", 1)
+                    c += 1
+                    if RBS_CC_1_reportLine("8", 2) and (c = 2)
+                        RBS_CC_1_reportLine("8", 3)
+                        RBS_CC_1_reportLine("9", 1)
+                        ? "is true"
                     end if
-                    _rbs_ccn = m?.global?._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        m._rbs_ccn = _rbs_ccn
-                        return true
+                    if RBS_CC_1_reportLine("12", 2) and (c = 3)
+                        RBS_CC_1_reportLine("12", 3)
+                        RBS_CC_1_reportLine("13", 1)
+                        ? "free"
+                    else
+                        RBS_CC_1_reportLine("14", 3)
+                        RBS_CC_1_reportLine("15", 1)
+                        ? "not free"
                     end if
-                    return true
-                end function
+                end for
             `);
-            expect(a).to.equal(b);
-
+            const reportLineFunction = getFunctionAstNode(transpiledContents, 'RBS_CC_1_reportLine');
+            expect(reportLineFunction).to.exist;
         });
     });
 
     describe('basic bs tests', () => {
+        it('adds the code coverage function to a file', async () => {
+            program.setFile('source/code.bs', `
+                function foo()
+                    x = 2
+                    print x
+                end function
+            `);
+            program.validate();
+            expectZeroDiagnostics(program);
+            await builder.transpile();
+            const transpiledSource = getContents('source/code.brs');
+            const funcAst = getFunctionAstNode(transpiledSource, 'RBS_CC_1_reportLine');
+            expect(funcAst).to.exist;
+            expect(funcAst.func.parameters.map(p => p.name.text)).to.deep.equal(['lineNumber', 'reportType']);
+            expectFunctionContents(transpiledSource, 'RBS_CC_1_reportLine', `
+                _rbs_ccn = m._rbs_ccn
+                if _rbs_ccn <> invalid
+                    _rbs_ccn.entry = {
+                        "f": "1"
+                        "l": lineNumber
+                        "r": reportType
+                    }
+                    return true
+                end if
+                _rbs_ccn = m?.global?._rbs_ccn
+                if _rbs_ccn <> invalid
+                    _rbs_ccn.entry = {
+                        "f": "1"
+                        "l": lineNumber
+                        "r": reportType
+                    }
+                    m._rbs_ccn = _rbs_ccn
+                    return true
+                end if
+                return true
+            `);
+        });
+
+        it('adds code coverage reportLine statements to a function', async () => {
+            program.setFile('source/code.bs', `
+                function foo()
+                    x = 2
+                    print x
+                end function
+            `);
+            program.validate();
+            expectZeroDiagnostics(program);
+            await builder.transpile();
+            const funcAst = getFunctionAstNode(getContents('source/code.brs'), 'foo');
+            expectReportLineFunctionCalls(funcAst.func.body, 'RBS_CC_1_reportLine', { currentLine: 2 });
+        });
+
+
+        it('adds code coverage reportLine statements to a function with if statements', async () => {
+            program.setFile('source/code.bs', `
+                function foo(x)
+                    if x = 1
+                       print "one"
+                    else if x = 2
+                       print "two"
+                    else
+                       print "other"
+                    end if
+                end function
+            `);
+            program.validate();
+            expectZeroDiagnostics(program);
+            await builder.transpile();
+            const transpiledSource = getContents('source/code.brs');
+            const funcAst = getFunctionAstNode(transpiledSource, 'foo');
+            expectReportLineFunctionCalls(funcAst.func.body, 'RBS_CC_1_reportLine', { currentLine: 2 });
+        });
 
         it('adds code coverage to a bs file', async () => {
             program.setFile('source/code.bs', `
                 function new(a1, a2)
-                c = 0
-                text = ""
+                    c = 0
+                    text = ""
                     for i = 0 to 10
                         text = text + "hello"
                         c++
@@ -163,68 +212,41 @@ describe('CodeCoverageProcessor', () => {
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
             await builder.transpile();
-            let a = getContents('source/code.brs');
-            let b = undent(`
-                function new(a1, a2)
-                    RBS_CC_1_reportLine("2", 1)
-                    c = 0
-                    RBS_CC_1_reportLine("3", 1)
-                    text = ""
-                    RBS_CC_1_reportLine("4", 1): for i = 0 to 10
-                        RBS_CC_1_reportLine("5", 1)
-                        text = text + "hello"
-                        RBS_CC_1_reportLine("6", 1)
-                        c++
-                        RBS_CC_1_reportLine("7", 1)
-                        c += 1
-                        if RBS_CC_1_reportLine("8", 2) and (c = 2)
-                            RBS_CC_1_reportLine("8", 3)
-                            RBS_CC_1_reportLine("9", 1)
-                            ? "is true"
-                        end if
-                        if RBS_CC_1_reportLine("12", 2) and (c = 3)
-                            RBS_CC_1_reportLine("12", 3)
-                            RBS_CC_1_reportLine("13", 1)
-                            ? "free"
-                        else
-                            RBS_CC_1_reportLine("14", 3)
-                            RBS_CC_1_reportLine("15", 1)
-                            ? "not free"
-                        end if
-                    end for
-                end function
-
-                function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                    _rbs_ccn = m._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        return true
+            let transpiledContents = getContents('source/code.brs');
+            expectFunctionContents(transpiledContents, 'new', `
+                RBS_CC_1_reportLine("2", 1)
+                c = 0
+                RBS_CC_1_reportLine("3", 1)
+                text = ""
+                RBS_CC_1_reportLine("4", 1): for i = 0 to 10
+                    RBS_CC_1_reportLine("5", 1)
+                    text = text + "hello"
+                    RBS_CC_1_reportLine("6", 1)
+                    c++
+                    RBS_CC_1_reportLine("7", 1)
+                    c += 1
+                    if RBS_CC_1_reportLine("8", 2) and (c = 2)
+                        RBS_CC_1_reportLine("8", 3)
+                        RBS_CC_1_reportLine("9", 1)
+                        ? "is true"
                     end if
-                    _rbs_ccn = m?.global?._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        m._rbs_ccn = _rbs_ccn
-                        return true
+                    if RBS_CC_1_reportLine("12", 2) and (c = 3)
+                        RBS_CC_1_reportLine("12", 3)
+                        RBS_CC_1_reportLine("13", 1)
+                        ? "free"
+                    else
+                        RBS_CC_1_reportLine("14", 3)
+                        RBS_CC_1_reportLine("15", 1)
+                        ? "not free"
                     end if
-                    return true
-                end function
+                end for
             `);
-            expect(a).to.equal(b);
-
         });
     });
 
     describe('basic tests', () => {
 
-        it('adds code coverage to a bs file', async () => {
+        it('adds code coverage to a bs file with a class', async () => {
             program.setFile('source/code.bs', `
                 class BasicClass
                     private field1
@@ -256,73 +278,9 @@ describe('CodeCoverageProcessor', () => {
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
             await builder.transpile();
-            let a = getContents('source/code.brs');
-            let b = undent(`
-                function __BasicClass_method_new(a1, a2)
-                    m.field1 = invalid
-                    m.field2 = invalid
-                    RBS_CC_1_reportLine("6", 1)
-                    c = 0
-                    RBS_CC_1_reportLine("7", 1)
-                    text = ""
-                    RBS_CC_1_reportLine("8", 1): for i = 0 to 10
-                        RBS_CC_1_reportLine("9", 1)
-                        text = text + "hello"
-                        RBS_CC_1_reportLine("10", 1)
-                        c++
-                        RBS_CC_1_reportLine("11", 1)
-                        c += 1
-                        if RBS_CC_1_reportLine("12", 2) and (c = 2)
-                            RBS_CC_1_reportLine("12", 3)
-                            RBS_CC_1_reportLine("13", 1)
-                            ? "is true"
-                        end if
-                        if RBS_CC_1_reportLine("16", 2) and (c = 3)
-                            RBS_CC_1_reportLine("16", 3)
-                            RBS_CC_1_reportLine("17", 1)
-                            ? "free"
-                        else
-                            RBS_CC_1_reportLine("18", 3)
-                            RBS_CC_1_reportLine("19", 1)
-                            ? "not free"
-                        end if
-                    end for
-                end function
-                function __BasicClass_builder()
-                    instance = {}
-                    instance.new = __BasicClass_method_new
-                    return instance
-                end function
-                function BasicClass(a1, a2)
-                    instance = __BasicClass_builder()
-                    instance.new(a1, a2)
-                    return instance
-                end function
-
-                function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                    _rbs_ccn = m._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        return true
-                    end if
-                    _rbs_ccn = m?.global?._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        m._rbs_ccn = _rbs_ccn
-                        return true
-                    end if
-                    return true
-                end function
-            `);
-            expect(a).to.equal(b);
+            const transpiledSource = getContents('source/code.brs');
+            const funcAst = getFunctionAstNode(transpiledSource, '__BasicClass_method_new');
+            expectReportLineFunctionCalls(funcAst.func.body, 'RBS_CC_1_reportLine', { currentLine: 2 });
         });
 
         it.skip('correctly transpiles some statements', async () => {
@@ -339,47 +297,18 @@ describe('CodeCoverageProcessor', () => {
             program.validate();
             expect(program.getDiagnostics()).to.be.empty;
             await builder.transpile();
-
-            let a = getContents('source/code.brs');
-            let b = undent(`
-                sub foo()
-                    RBS_CC_1_reportLine("1", 1)
-                    x = function(y)
-                        if RBS_CC_1_reportLine("2", 2) and ((true)) then
-                            RBS_CC_1_reportLine("2", 3)
-                            RBS_CC_1_reportLine("3", 1)
-                            return 1
-                        end if
-                        RBS_CC_1_reportLine("5", 1)
-                        return 0
-                    end function
-                end sub
-
-                function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                    _rbs_ccn = m._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        return true
+            expectFunctionContents(getContents('source/code.brs'), 'foo', `
+                RBS_CC_1_reportLine("1", 1)
+                x = function(y)
+                    if RBS_CC_1_reportLine("2", 2) and ((true)) then
+                        RBS_CC_1_reportLine("2", 3)
+                        RBS_CC_1_reportLine("3", 1)
+                        return 1
                     end if
-                    _rbs_ccn = m?.global?._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        m._rbs_ccn = _rbs_ccn
-                        return true
-                    end if
-                    return true
+                    RBS_CC_1_reportLine("5", 1)
+                    return 0
                 end function
             `);
-
-            expect(a).to.equal(b);
         });
 
         it('correctly transpiles some statements', async () => {
@@ -518,3 +447,50 @@ describe('CodeCoverageProcessor', () => {
         expect(a).to.equal(b);
     });
 });
+
+
+function expectReportLineFunctionCalls(ast: { statements: Statement[] }, reportLineFuncName: string, opts: { currentLine: number }) {
+    let previousStmt: Statement;
+
+    function checkForReportLine(expr: Expression, opts: { currentLine: number }, coverageType: CodeCoverageLineType) {
+        expect(isCallExpression(expr), `Expected statement ${opts.currentLine} to be an call expression`).to.be.true;
+        if (isCallExpression(expr)) {
+            const callExpr = expr;
+            let callee = (callExpr.callee as VariableExpression).name;
+            expect(callee.text, `Expected callee to be "${reportLineFuncName}"`).to.equal(reportLineFuncName);
+            expect(callExpr.args.length).to.be.equal(2);
+            let lineArg = callExpr.args[0];
+            let reportTypeArg = callExpr.args[1];
+            expect((lineArg as LiteralExpression).token.text, `Expected line argument to be "${opts.currentLine.toString()}"`).to.equal(`"${opts.currentLine.toString()}"`);
+            expect((reportTypeArg as LiteralExpression).token.text, `Expected report type argument to be "${coverageType}"`).to.equal(`${coverageType}`);
+        }
+    }
+
+    for (const stmt of ast.statements) {
+        if (isIfStatement(stmt)) {
+            checkForReportLine((stmt.condition as BinaryExpression).left, opts, CodeCoverageLineType.condition);
+            if (stmt.thenBranch) {
+                checkForReportLine((stmt.thenBranch.statements[0] as ExpressionStatement).expression, opts, CodeCoverageLineType.branch);
+                opts.currentLine++;
+                expectReportLineFunctionCalls(stmt.thenBranch, reportLineFuncName, opts);
+            }
+            if (stmt.elseBranch) {
+                if (isIfStatement(stmt.elseBranch)) {
+                    expectReportLineFunctionCalls({ statements: [stmt.elseBranch] }, reportLineFuncName, opts);
+                } else {
+                    checkForReportLine((stmt.elseBranch.statements[0] as ExpressionStatement).expression, opts, CodeCoverageLineType.branch);
+                    opts.currentLine++;
+                    expectReportLineFunctionCalls(stmt.elseBranch, reportLineFuncName, opts);
+                }
+            }
+        } else if (!isExpressionStatement(stmt)) {
+            checkForReportLine((previousStmt as ExpressionStatement).expression, opts, CodeCoverageLineType.code);
+            opts.currentLine++;
+            if (isIfStatement(stmt)) {
+                expectReportLineFunctionCalls(stmt.thenBranch, reportLineFuncName, opts);
+            }
+        }
+        previousStmt = stmt;
+
+    }
+}

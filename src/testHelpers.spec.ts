@@ -156,3 +156,9 @@ export function normalizeGeneratedMockFunctionNames(text: string) {
     return text.replace(/RBS_SM_[0-9]+_getMocksByFunctionName/g, 'RBS_SM_getMocksByFunctionName');
 }
 
+export function getFunctionAstNode(rawCode: string, functionName: RegExp | string) {
+    const ast = getAstFromFileContents(rawCode);
+    return ast.statements.find((stmt) => {
+        return stmt instanceof FunctionStatement && (typeof functionName === 'string' ? stmt.name.text === functionName : functionName.test(stmt.name.text));
+    }) as FunctionStatement | undefined;
+}
