@@ -75,8 +75,11 @@ export function expectZeroDiagnostics(diagnostics: DiagnosticCollection) {
 }
 
 export function getContents(filename: string) {
+    if (!filename.includes('/')) {
+        filename = `source/${filename}`;
+    }
     return undent(
-        fsExtra.readFileSync(s`${_stagingFolderPath}/source/${filename}`).toString()
+        fsExtra.readFileSync(s`${_stagingFolderPath}/${filename}`).toString()
     );
 }
 

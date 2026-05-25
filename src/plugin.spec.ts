@@ -2561,7 +2561,7 @@ describe('RooibosPlugin', () => {
                 end if
             `);
 
-            const runtimeConfigContents = getContents('rooibos/RuntimeConfig.brs');
+            const runtimeConfigContents = getContents('source/rooibos/RuntimeConfig.brs');
 
             const runtimeConfigAst = getAstFromFileContents(runtimeConfigContents);
 
@@ -2571,11 +2571,11 @@ describe('RooibosPlugin', () => {
             expect(commentedImports[0].text).to.include('pkg:/source/rooibos/ConsoleTestReporter.bs');
             expect(commentedImports[0].text).to.include('pkg:/source/rooibos/MochaTestReporter.bs');
 
-            expectFunctionContents(getContents('rooibos/RuntimeConfig.brs'), '__rooibos_RuntimeConfig_method_getVersionText', `
+            expectFunctionContents(runtimeConfigContents, '__rooibos_RuntimeConfig_method_getVersionText', `
                 return "${version}"
             `);
 
-            expectFunctionContents(getContents('rooibos/RuntimeConfig.brs'), '__rooibos_RuntimeConfig_method_getRuntimeConfig', `
+            expectFunctionContents(runtimeConfigContents, '__rooibos_RuntimeConfig_method_getRuntimeConfig', `
                 return {
                     "reporters": [
                         rooibos_ConsoleTestReporter
@@ -2596,7 +2596,7 @@ describe('RooibosPlugin', () => {
                 }
             `);
 
-            expectFunctionContents(getContents('rooibos/RuntimeConfig.brs'), '__rooibos_RuntimeConfig_method_getTestSuiteClassMap', `
+            expectFunctionContents(runtimeConfigContents, '__rooibos_RuntimeConfig_method_getTestSuiteClassMap', `
                 return {
                     "ATest1": ATest1
                     "ATest2": ATest2
@@ -2656,7 +2656,7 @@ describe('RooibosPlugin', () => {
                 `;
 
                 const runtimeConfigContents = getFunctionContents(
-                    getContents('rooibos/RuntimeConfig.brs'),
+                    getContents('source/rooibos/RuntimeConfig.brs'),
                     /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/
                 );
 
