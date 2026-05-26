@@ -253,8 +253,8 @@ describe('CodeCoverageProcessor', () => {
                     public field2
 
                     function new(a1, a2)
-                    c = 0
-                    text = ""
+                        c = 0
+                        text = ""
                         for i = 0 to 10
                             text = text + "hello"
                             c++
@@ -280,7 +280,7 @@ describe('CodeCoverageProcessor', () => {
             await builder.transpile();
             const transpiledSource = getContents('source/code.brs');
             const funcAst = getFunctionAstNode(transpiledSource, '__BasicClass_method_new');
-            expectReportLineFunctionCalls(funcAst.func.body, 'RBS_CC_1_reportLine', { currentLine: 2 });
+            expectReportLineFunctionCalls(funcAst.func.body, 'RBS_CC_1_reportLine', { currentLine: 6 });
         });
 
         it.skip('correctly transpiles some statements', async () => {
@@ -483,8 +483,8 @@ function expectReportLineFunctionCalls(ast: { statements: Statement[] }, reportL
                     expectReportLineFunctionCalls(stmt.elseBranch, reportLineFuncName, opts);
                 }
             }
-        } else if (!isExpressionStatement(stmt)) {
-            checkForReportLine((previousStmt as ExpressionStatement).expression, opts, CodeCoverageLineType.code);
+        } else if (!isExpressionStatement(stmt) && isExpressionStatement(previousStmt)) {
+            checkForReportLine(previousStmt.expression, opts, CodeCoverageLineType.code);
             opts.currentLine++;
             if (isIfStatement(stmt)) {
                 expectReportLineFunctionCalls(stmt.thenBranch, reportLineFuncName, opts);
