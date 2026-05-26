@@ -727,9 +727,9 @@ describe('RooibosPlugin', () => {
             `);
             program.validate();
             await builder.transpile();
-            console.log(builder.getDiagnostics());
-            expect(builder.getDiagnostics()).to.have.length(1);
-            expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+            expectDiagnostics(program, [
+                { code: 'RBS2213', severity: DiagnosticSeverity.Warning } // no main function
+            ]);
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
             expect(plugin.session.sessionInfo.suitesCount).to.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
@@ -2397,9 +2397,9 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.transpile();
-                console.log(builder.getDiagnostics());
-                expect(builder.getDiagnostics()).to.have.length(1);
-                expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+                expectDiagnostics(program, [
+                    { code: 'RBS2213', severity: DiagnosticSeverity.Warning } // no main function
+                ]);
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
                 expect(plugin.session.sessionInfo.testSuitesToRun[1].name).to.equal('b');
@@ -2410,9 +2410,9 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.transpile();
-                console.log(builder.getDiagnostics());
-                expect(builder.getDiagnostics()).to.have.length(1);
-                expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+                expectDiagnostics(program, [
+                    { code: 'RBS2213', severity: DiagnosticSeverity.Warning } // no main function
+                ]);
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
             });
@@ -2422,9 +2422,9 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.transpile();
-                console.log(builder.getDiagnostics());
-                expect(builder.getDiagnostics()).to.have.length(1);
-                expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+                expectDiagnostics(program, [
+                    { code: 'RBS2213', severity: DiagnosticSeverity.Warning } // no main function
+                ]);
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
             });
@@ -2434,9 +2434,9 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.transpile();
-                console.log(builder.getDiagnostics());
-                expect(builder.getDiagnostics()).to.have.length(1);
-                expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+                expectDiagnostics(program, [
+                    { code: 'RBS2213', severity: DiagnosticSeverity.Warning } // no main function
+                ]);
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
             });
@@ -2447,9 +2447,9 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.transpile();
-                console.log(builder.getDiagnostics());
-                expect(builder.getDiagnostics()).to.have.length(1);
-                expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+                expectDiagnostics(program, [
+                    { code: 'RBS2213', severity: DiagnosticSeverity.Warning } // no main function
+                ]);
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
             });
 
@@ -2458,9 +2458,9 @@ describe('RooibosPlugin', () => {
                 program.setFile('source/test.spec.bs', testSource);
                 program.validate();
                 await builder.transpile();
-                console.log(builder.getDiagnostics());
-                expect(builder.getDiagnostics()).to.have.length(1);
-                expect(builder.getDiagnostics()[0].severity).to.equal(DiagnosticSeverity.Warning);
+                expectDiagnostics(program, [
+                    { code: 'RBS2213', severity: DiagnosticSeverity.Warning } // no main function
+                ]);
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
             });
@@ -2723,7 +2723,6 @@ describe('RooibosPlugin', () => {
             ).catch(e => {
                 console.error(e, !swv);
             });
-            console.log('done');
         });
     });
 
