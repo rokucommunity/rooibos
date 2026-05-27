@@ -97,12 +97,14 @@ export function expectFunctionContents(fileContents: string, functionName: strin
     }
 }
 
+function normalizeFunctionContentsForContains(value: string) {
+    return undent(value).replace(/\s+/g, ' ').trim();
+}
+
 export function expectFunctionContentsContains(fileContents: string, functionName: string, expectedContents: string) {
-    let contents = getFunctionContents(fileContents, functionName);
-    expectedContents = expectedContents.replace(/ +/g, ' ');
+    const contents = getFunctionContents(fileContents, functionName);
     if (contents) {
-        contents = contents.replace(/ +/g, ' ');
-        expect(contents).to.contain(expectedContents);
+        expect(normalizeFunctionContentsForContains(contents)).to.contain(normalizeFunctionContentsForContains(expectedContents));
     }
 }
 
