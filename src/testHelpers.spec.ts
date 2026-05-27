@@ -69,8 +69,18 @@ function getActualDiagnostics(diagnostics: DiagnosticCollection): Array<BsDiagno
     }
 }
 
+function getSortedActualDiagnostics(diagnostics: DiagnosticCollection): Array<BsDiagnostic> {
+    const diags = getActualDiagnostics(diagnostics);
+    return diags.sort((a, b) => {
+        return a.code.toString().localeCompare(b.code.toString()) ||
+            a.message.localeCompare(b.message) ||
+            a.range.start.line - b.range.start.line ||
+            a.range.start.character - b.range.start.character;
+    });
+}
+
 export function expectZeroDiagnostics(diagnostics: DiagnosticCollection) {
-    const actualDiagnostics = getActualDiagnostics(diagnostics);
+    const actualDiagnostics = getSortedActualDiagnostics(diagnostics);
     expect(actualDiagnostics).to.be.empty;
 }
 
@@ -103,6 +113,7 @@ function normalizeFunctionContentsForContains(value: string) {
 
 export function expectFunctionContentsContains(fileContents: string, functionName: string, expectedContents: string) {
     const contents = getFunctionContents(fileContents, functionName);
+    expect(contents, `Function not found: '${functionName}'`).to.not.equal('');
     if (contents) {
         expect(normalizeFunctionContentsForContains(contents)).to.contain(normalizeFunctionContentsForContains(expectedContents));
     }
@@ -132,8 +143,11 @@ export function getTestFunctionContents(options?: TestFunctionContentsOptions) {
 
 export function expectTestFunctionContents(expectedContents: string, options?: TestFunctionContentsOptions) {
     const contents = getTestFunctionContents(options);
+    expect(contents, 'Test function not found').to.not.equal('');
     if (contents) {
         expect(undent(contents)).to.equal(undent(expectedContents));
+    } else {
+
     }
 }
 
