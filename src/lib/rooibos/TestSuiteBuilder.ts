@@ -60,7 +60,7 @@ export class TestSuiteBuilder {
             }
         } catch (e) {
             // console.log(e);
-            diagnosticErrorProcessingFile(file, e.message);
+            diagnosticErrorProcessingFile(file, (e as Error).message);
         }
         this.session.sessionInfo.updateTestSuites(suites);
         return suites;
