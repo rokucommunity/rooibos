@@ -1,3 +1,4 @@
+'bs:disable: LINT1006
 namespace rooibos
     namespace utils
         class MockNode

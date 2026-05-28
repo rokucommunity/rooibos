@@ -2,7 +2,7 @@ namespace rooibos
     ' @ignore
     class JUnitTestReporter extends rooibos.BaseTestReporter
 
-        override function onEnd(event as rooibos.TestReporterOnEndEvent)
+        override function onEnd(event as rooibos.TestReporterOnEndEvent) 'bs:disable-line: LINT1006
             root = createObject("roXMLElement")
             root.SetName("testsuites")
             properties = root.addElement("properties")

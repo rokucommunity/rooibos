@@ -12,6 +12,7 @@
     "allowJs": true,
     "target": "ES2017",
     "downlevelIteration": true,
+    "noUnusedLocals": true,
     "typeRoots": [
       "./node_modules/@types"
     ],
@@ -21,6 +22,11 @@
       "es2019.array",
       "esnext",
       "dom"
+    ],
+    "types": [
+      "node",
+      "mocha",
+      "chai"
     ]
   },
   "outDir": "./dist",

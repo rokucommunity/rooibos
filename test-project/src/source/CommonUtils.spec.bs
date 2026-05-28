@@ -1,0 +1,40 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/source/rooibos/CommonUtils.bs"
+
+namespace tests
+
+    @noEarlyExit
+    @suite("Rooibos CommonUtils tests")
+    class CommonUtilsTests extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("asMultilineString()")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("correctly handles floats")
+        function _()
+            varA! = 157.3333282470703
+            objA = { a: varA! }
+            varB! = 157.3332977294922
+            objB = { a: varB! }
+
+            m.assertEqual(rooibos.Common.asMultilineString(objA), `{\n  "a": 157.3333282470703125\n}`)
+            m.assertEqual(rooibos.Common.asMultilineString(objB), `{\n  "a": 157.3332977294921875\n}`)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("asString()")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("correctly handles floats")
+        function _()
+            varA! = 157.3333282470703
+            objA = { a: varA! }
+            varB! = 157.3332977294922
+            objB = { a: varB! }
+
+            m.assertEqual(rooibos.Common.asString(objA), `{a:157.3333282470703125}`)
+            m.assertEqual(rooibos.Common.asString(objB), `{a:157.3332977294921875}`)
+        end function
+    end class
+end namespace

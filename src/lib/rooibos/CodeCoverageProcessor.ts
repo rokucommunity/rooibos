@@ -1,10 +1,7 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { BrsFile, Editor, ExpressionStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
 import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock, InternalWalkMode } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
-import { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
 import { RooibosLogPrefix } from '../utils/Diagnostics';
@@ -45,7 +42,7 @@ export class CodeCoverageProcessor {
         this.fileFactory = fileFactory;
         try {
         } catch (e) {
-            builder.logger.error(RooibosLogPrefix, 'Error:', e.stack);
+            builder.logger.error(RooibosLogPrefix, 'Error:', (e as Error).stack);
         }
     }
 
@@ -54,7 +51,6 @@ export class CodeCoverageProcessor {
     private filePathMap: any;
     private expectedCoverageMap: any;
     private executableLines: Map<number, Statement>;
-    private transpileState: BrsTranspileState;
     private coverageMap: Map<number, number>;
     private fileFactory: FileFactory;
     private processedStatements: Set<Statement>;
@@ -67,7 +63,6 @@ export class CodeCoverageProcessor {
 
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {
         if (this.config.isRecordingCodeCoverage) {
-            this.transpileState = new BrsTranspileState(file);
             this._processFile(file, astEditor);
         }
     }

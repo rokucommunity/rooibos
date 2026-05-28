@@ -2,11 +2,9 @@
 import type {
     BrsFile,
     ClassStatement,
-    FunctionStatement,
     MethodStatement
 } from 'brighterscript';
 import {
-    isFunctionStatement,
     isMethodStatement,
     util
 } from 'brighterscript';
@@ -32,7 +30,7 @@ import {
     diagnosticTestWithArgsButNoParams
 } from '../utils/Diagnostics';
 import type { RooibosSession } from './RooibosSession';
-import { getFileLookups, getTypeExpressionFromBscType } from './Utils';
+import { getFileLookups } from './Utils';
 
 export class TestSuiteBuilder {
     constructor(public session: RooibosSession) {
@@ -55,7 +53,6 @@ export class TestSuiteBuilder {
 
                 if (annotation) {
                     if (annotation.annotationType === AnnotationType.TestSuite) {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                         this.addSuiteIfValid(file, annotation, cs, suites);
                     } else {
                         diagnosticWrongAnnotation(file, cs, 'Expected a TestSuite annotation, got: ' + annotation.annotationType);
@@ -63,12 +60,10 @@ export class TestSuiteBuilder {
                     }
                 }
             }
-        } catch (e) {
+        } catch (e: unknown) {
             // console.log(e);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            diagnosticErrorProcessingFile(file, e.message);
+            diagnosticErrorProcessingFile(file, (e as Error).message);
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         this.session.sessionInfo.updateTestSuites(suites);
         return suites;
     }

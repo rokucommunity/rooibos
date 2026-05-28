@@ -66,11 +66,7 @@ export class TestCase {
     fixBadJson(o) {
         // In case of an array we'll stringify all objects.
         if (Array.isArray(o)) {
-            return `[${o
-                .map(obj => `${this.fixBadJson(obj)}`)
-                .join(',')
-                // eslint-disable-next-line @typescript-eslint/indent
-                }]`;
+            return `[${o.map(obj => `${this.fixBadJson(obj)}`).join(',')}]`;
         }
         // not an object, stringify using native function
         if (typeof o !== 'object' || o === null) {
@@ -81,9 +77,7 @@ export class TestCase {
             .map(key => {
                 return `"${key.replace(/"/g, '')}":${this.fixBadJson(o[key])}`;
             })
-            .join(',')
-            // eslint-disable-next-line @typescript-eslint/indent
-            }}`;
+            .join(',')}}`;
     }
 
 }

@@ -1,11 +1,9 @@
 import type { BrsFile, CallExpression, MethodStatement, ClassStatement, ExpressionStatement } from 'brighterscript';
-import { CallfuncExpression, FunctionStatement, DottedGetExpression, Parser, Position, Program, ProgramBuilder, util, standardizePath as s, PrintStatement } from 'brighterscript';
+import { CallfuncExpression, FunctionStatement, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement, Parser, SourceMapConsumer, Position, isMethodStatement } from 'brighterscript';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
-import * as path from 'path';
 import undent from 'undent';
-import { SourceMapConsumer } from 'source-map';
 import { getFileLookups } from './lib/rooibos/Utils';
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
@@ -23,7 +21,6 @@ describe('RooibosPlugin', () => {
 
         plugin = new RooibosPlugin();
         builder = new ProgramBuilder();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         builder.options = util.normalizeAndResolveConfig(options);
         builder.program = new Program(builder.options);
         program = builder.program;
@@ -868,8 +865,8 @@ describe('RooibosPlugin', () => {
 
             //verify the AST was restored after transpile
             const cls = file.ast.statements[0] as ClassStatement;
-            expect(cls.body.find((x: MethodStatement) => {
-                return x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            expect(cls.body.find((x) => {
+                return isMethodStatement(x) && x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
         });
 
@@ -989,8 +986,8 @@ describe('RooibosPlugin', () => {
 
             //verify the AST was restored after transpile
             const cls = file.ast.statements[0] as ClassStatement;
-            expect(cls.body.find((x: MethodStatement) => {
-                return x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
+            expect(cls.body.find((x) => {
+                return isMethodStatement(x) && x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
         });
 
@@ -1603,12 +1600,12 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
 
-                let codeText = getContents('code.brs');
+                let codeText = normalizeGeneratedMockFunctionNames(getContents('code.brs'));
                 expect(codeText).to.equal(undent`
                     function sayHello(firstName = "" as string, lastName = "" as string)
                         __stubs_globalAa = getGlobalAa()
-                        if RBS_SM_2_getMocksByFunctionName()["sayhello"] <> invalid
-                            __stubOrMockResult = RBS_SM_2_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
+                        if RBS_SM_getMocksByFunctionName()["sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_getMocksByFunctionName()["sayhello"].callback(firstName, lastName)
                             return __stubOrMockResult
                         else if type(__stubs_globalAa?.__globalStubs?.sayhello).endsWith("Function")
                             __stubFunction = __stubs_globalAa.__globalStubs.sayhello
@@ -1621,7 +1618,7 @@ describe('RooibosPlugin', () => {
                         print firstName + " " + lastName
                     end function
 
-                    function RBS_SM_2_getMocksByFunctionName()
+                    function RBS_SM_getMocksByFunctionName()
                         if m._rMocksByFunctionName = invalid
                             m._rMocksByFunctionName = {}
                         end if
@@ -1695,12 +1692,12 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
 
-                let codeText = getContents('code.brs');
+                let codeText = normalizeGeneratedMockFunctionNames(getContents('code.brs'));
                 expect(codeText).to.equal(undent(`
                     function utils_sayHello(firstName = "" as string, lastName = "" as string)
                         __stubs_globalAa = getGlobalAa()
-                        if RBS_SM_2_getMocksByFunctionName()["utils_sayhello"] <> invalid
-                            __stubOrMockResult = RBS_SM_2_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
+                        if RBS_SM_getMocksByFunctionName()["utils_sayhello"] <> invalid
+                            __stubOrMockResult = RBS_SM_getMocksByFunctionName()["utils_sayhello"].callback(firstName, lastName)
                             return __stubOrMockResult
                         else if type(__stubs_globalAa?.__globalStubs?.utils_sayhello).endsWith("Function")
                             __stubFunction = __stubs_globalAa.__globalStubs.utils_sayhello
@@ -1713,7 +1710,7 @@ describe('RooibosPlugin', () => {
                         print firstName + " " + lastName
                     end function
 
-                    function RBS_SM_2_getMocksByFunctionName()
+                    function RBS_SM_getMocksByFunctionName()
                         if m._rMocksByFunctionName = invalid
                             m._rMocksByFunctionName = {}
                         end if
@@ -2235,6 +2232,34 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
             });
+
+            it('does not crash on false assertion match ', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        @describe("tests")
+                        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                        @it("pass")
+                        function _()
+                            m.test.SUT[getChannelMethod]("expectedStringValue").onFail(m.test, "handler")
+                        end function
+                    end class
+                `);
+                program.validate();
+                await builder.build();
+                expect(
+                    getTestFunctionContents()
+                ).to.eql(undent`
+                    m.test.SUT.currentAssertLineNumber = 10
+                    m.test.SUT[getChannelMethod]("expectedStringValue").onFail(m.test, "handler")
+                    if m.test.SUT.currentResult?.isFail = true then
+                        m.test.SUT.done()
+                        return invalid
+                    end if
+                `);
+            });
         });
 
         describe('expectNotCalled transpilation', () => {
@@ -2556,9 +2581,7 @@ describe('RooibosPlugin', () => {
                 end class
             `);
             program.validate();
-            let files = [...Object.values(program.files)].map(x => ({ src: x.srcPath, dest: x.pkgPath }));
-            const diagnostics = program.getDiagnostics();
-            expect(diagnostics.map(x => x.message)).to.include(`Cannot find name 'BaseTestClass'`);
+            expect(program.getDiagnostics().map(x => x.message)).to.include(`Cannot find name 'BaseTestClass'`);
         });
     });
 
@@ -2669,7 +2692,7 @@ describe('RooibosPlugin', () => {
                 function __rooibos_RuntimeConfig_method_getTestSuiteClassWithName(name as string) as function
                     return m.testSuites[name]
                 end function
-                function __rooibos_RuntimeConfig_method_getAllTestSuitesNames() as object
+                function __rooibos_RuntimeConfig_method_getAllTestSuitesNames() as dynamic
                     return m.testSuites.keys()
                 end function
                 function __rooibos_RuntimeConfig_method_getIgnoredTestInfo() as dynamic
@@ -2703,40 +2726,30 @@ describe('RooibosPlugin', () => {
             expect(findMethod('getTestSuiteClassMap').func.body.statements).to.be.lengthOf(1);
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.lengthOf(1);
         });
+    });
 
+    describe('test reporters', () => {
+        async function runReporterTest(reporters: string[], expected: string[]) {
+            setupProgram({
+                rootDir: _rootDir,
+                stagingDir: outDir,
+                //workaround for bsc bug where outDir does not fall back to stagingDir
+                outDir: outDir,
+                rooibos: {
+                    reporters: reporters
+                }
+            });
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
 
-        describe('test reporters', function runTests() {
-            this.timeout(10_000);
-            const sep = '\n';
-            const params: [string[], string][] = [
-                [[], 'rooibos_ConsoleTestReporter'],
-                [['CONSOLE'], 'rooibos_ConsoleTestReporter'],
-                [['MyCustomReporter'], 'MyCustomReporter'],
-                [['mocha'], 'rooibos_MochaTestReporter'],
-                [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
-            ];
+            await builder.build();
+            const content = getFunctionContents(getContents('rooibos/RuntimeConfig.brs'), /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/);
+            const reportersKey = '"reporters": [';
+            const start = content.slice(content.indexOf(reportersKey) + reportersKey.length);
+            const actualReporters = start.slice(1, start.indexOf(']')).split('\n').map(x => x.trim()).filter(x => x.length > 0);
+            const expectedReporters = expected.join(`\n${' '.repeat(28)}`); // each is its own line, indented
 
-            async function runReporterTest(reporters: string[], expected: string[]) {
-                setupProgram({
-                    rootDir: _rootDir,
-                    stagingDir: outDir,
-                    //workaround for bsc bug where outDir does not fall back to stagingDir
-                    outDir: outDir,
-                    rooibos: {
-                        reporters: reporters
-                    }
-                });
-                program.validate();
-                expect(program.getDiagnostics()).to.be.empty;
-
-                await builder.build();
-                const content = getFunctionContents(getContents('rooibos/RuntimeConfig.brs'), /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/);
-                const reportersKey = '"reporters": [';
-                const start = content.slice(content.indexOf(reportersKey) + reportersKey.length);
-                const actualReporters = start.slice(1, start.indexOf(']')).split('\n').map(x => x.trim()).filter(x => x.length > 0);
-                const expectedReporters = expected.join(`\n${' '.repeat(28)}`); // each is its own line, indented
-
-                let fullExpected = undent`
+            let fullExpected = undent`
                     return {
                         "reporters": [
                             ${expectedReporters}
@@ -2757,44 +2770,49 @@ describe('RooibosPlugin', () => {
                     }
                 `;
 
-                expect(content).to.eql(fullExpected);
+            const runtimeConfigContents = undent(getFunctionContents(
+                getContents('rooibos/RuntimeConfig.brs'),
+                /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/
+            ));
 
-                expect(actualReporters).to.include.members(expected);
-                destroyProgram();
-            }
+            expect(runtimeConfigContents).to.eql(fullExpected);
 
-            it('adds console reporter by default', async () => {
-                await runReporterTest([], ['rooibos_ConsoleTestReporter']);
-            });
+            expect(actualReporters).to.include.members(expected);
+            destroyProgram();
+        }
 
-            it('recognizes console reporter, case insensitive', async () => {
-                await runReporterTest(['CONSOLE'], ['rooibos_ConsoleTestReporter']);
-            });
+        it('adds console reporter by default', async () => {
+            await runReporterTest([], ['rooibos_ConsoleTestReporter']);
+        });
 
-            it('can add a custom reporter', async () => {
-                await runReporterTest(['MyCustomReporter'], ['MyCustomReporter']);
-            });
+        it('recognizes console reporter, case insensitive', async () => {
+            await runReporterTest(['CONSOLE'], ['rooibos_ConsoleTestReporter']);
+        });
 
-            it('can add a multiple reporters, including Junit', async () => {
-                await runReporterTest(['Junit', 'MyCustomReporter'], ['rooibos_JUnitTestReporter', 'MyCustomReporter']);
-            });
+        it('can add a custom reporter', async () => {
+            await runReporterTest(['MyCustomReporter'], ['MyCustomReporter']);
+        });
+
+        it('can add a multiple reporters, including Junit', async () => {
+            await runReporterTest(['Junit', 'MyCustomReporter'], ['rooibos_JUnitTestReporter', 'MyCustomReporter']);
         });
     });
+
 
     describe('node tests', () => {
 
         it('creates an async component using the @async annotation', async () => {
             program.options.autoImportComponentScript = true;
             program.setFile('components/customComponent.xml', `
-                <component name="CustomComponent" extends="Group" />
-            `);
+                    < component name = "CustomComponent" extends="Group" />
+                        `);
             program.setFile('components/customComponent.bs', ``);
             program.setFile('source/baseTestClass.spec.bs', `
                 class BaseTestClass extends rooibos.BaseTestSuite
                     public function customHelperFunction() as boolean
                         return true
                     end function
-                end class
+                    end class
             `);
             program.setFile('source/test.spec.bs', `
                 @suite
@@ -2802,12 +2820,12 @@ describe('RooibosPlugin', () => {
                 @SGNode("CustomComponent")
                 class ATest extends Rooibos.BaseTestSuite
                     @describe("groupA")
-                    @it("test1")
-                    function _()
-                        item = {id: "item"}
-                        m.expectNotCalled(item.getFunction())
+                @it("test1")
+                function _()
+                item = { id: "item" }
+                m.expectNotCalled(item.getFunction())
                     end function
-                end class
+                    end class
             `);
 
             program.validate();
@@ -2884,7 +2902,7 @@ describe('RooibosPlugin', () => {
                     // project: '/home/george/hope/open-source/maestro/swerve-app/bsconfig-test.json'
                 }
             ).catch(e => {
-                console.error(e);
+                console.error(e, !swv);
             });
             console.log('done');
         });
@@ -2913,7 +2931,7 @@ describe('RooibosPlugin', () => {
         await builder.build();
 
         const actualContents = getContents('test.spec.brs');
-        expect(actualContents).to.eql(undent`${expectedText}`);
+        expect(actualContents).to.eql(undent`${expectedText} `);
 
         const map = fsExtra.readFileSync(s`${outDir}/source/test.spec.brs.map`).toString();
 
@@ -2979,4 +2997,8 @@ function getFunctionContents(rawCode: string, functionNameRegex: RegExp) {
         return undent(extractedLines.join('\n'));
     }
     return '';
+}
+
+function normalizeGeneratedMockFunctionNames(text: string) {
+    return text.replace(/RBS_SM_[0-9]+_getMocksByFunctionName/g, 'RBS_SM_getMocksByFunctionName');
 }

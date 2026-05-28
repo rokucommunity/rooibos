@@ -204,10 +204,24 @@ namespace rooibos.common
                 return value.ToStr()
             end if
         else if rooibos.common.isFloat(value) or rooibos.common.isDouble(value) then
+            valueAsStr = value.toStr("%.40f")
+
+            if valueAsStr.inStr(".") > -1 then
+                ' remove trailing zeros resulting from the high precision string formatting
+                while valueAsStr.endsWith("0")
+                    valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
+                end while
+            end if
+
+            if valueAsStr.endsWith(".") then
+                ' remove trailing dot
+                valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
+            end if
+
             if includeType then
-                return Str(value).Trim() + " (" + rooibos.common.getSafeType(value) + ")"
+                return valueAsStr.Trim() + " (" + rooibos.common.getSafeType(value) + ")"
             else
-                return Str(value).Trim()
+                return valueAsStr.Trim()
             end if
         else if type(value) = "roSGNode" then
             return "Node(" + value.subType() + ")"
@@ -274,10 +288,24 @@ namespace rooibos.common
                 return value.ToStr()
             end if
         else if rooibos.common.isFloat(value) or rooibos.common.isDouble(value) then
+            valueAsStr = value.toStr("%.40f")
+
+            if valueAsStr.inStr(".") > -1 then
+                ' remove trailing zeros resulting from the high precision string formatting
+                while valueAsStr.endsWith("0")
+                    valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
+                end while
+            end if
+
+            if valueAsStr.endsWith(".") then
+                ' remove trailing dot
+                valueAsStr = valueAsStr.left(len(valueAsStr) - 1)
+            end if
+
             if includeType then
-                return Str(value).Trim() + " (" + rooibos.common.getSafeType(value) + ")"
+                return valueAsStr.Trim() + " (" + rooibos.common.getSafeType(value) + ")"
             else
-                return Str(value).Trim()
+                return valueAsStr.Trim()
             end if
         else if type(value) = "roSGNode" then
             return "Node(" + value.subType() + ")"
@@ -439,7 +467,7 @@ namespace rooibos.common
     ' @param {Dynamic} compareAttribute - attribute to use for comparisons
     ' @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
     ' @returns {Integer} element index if array contains a value, else return -1
-    function findElementIndexInArray(array as dynamic, value as dynamic, compareAttribute = invalid as dynamic, caseSensitive = false as boolean, callCount = 0 as integer) as integer
+    function findElementIndexInArray(array as dynamic, value as dynamic, compareAttribute = invalid as dynamic, caseSensitive = false as boolean, callCount = 0 as integer) as integer  'bs:disable-line: LINT1006
         if callCount = 0 and not rooibos.common.isArray(array) then
             array = rooibos.common.asArray(array)
         end if
@@ -455,7 +483,7 @@ namespace rooibos.common
                 if rooibos.common.eqValues(compareValue, value, callCount + 1) then
                     return i
                 end if
-            next
+            end for
         end if
         return -1
     end function
