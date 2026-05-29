@@ -19,13 +19,13 @@
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "^1.0.0-alpha.50",
+        "brighterscript": "^1.0.0-alpha.51",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
         "minimatch": "^3.0.4",
         "roku-debug": "^0.23.8",
         "roku-deploy": "^4.0.0-alpha.2",
-        "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
+        "rooibos_promises": "npm:@rokucommunity/promises@^0.7.0",
         "source-map": "^0.7.3",
         "undent": "^1.0.1",
         "vscode-languageserver": "~6.1.1",
@@ -33,7 +33,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^1.0.0-alpha.50",
+        "@rokucommunity/bslint": "^1.0.0-alpha.51",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
