@@ -131,7 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - chore: add and implement linting rules ([#338](https://github.com/rokucommunity/rooibos/pull/338))
  - chore: stricter linting for TypeScript ([#343](https://github.com/rokucommunity/rooibos/pull/343))
  - chore: shared CI Support Prerelease ([#341](https://github.com/rokucommunity/rooibos/pull/341), [#339](https://github.com/rokucommunity/rooibos/pull/339))
- - upgrade to [roku-debug@0.23.6](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0236---2026-04-30). 
+ - upgrade to [roku-debug@0.23.6](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0236---2026-04-30).
  - upgrade to [roku-deploy@3.17.1](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3171---2026-04-27)
  - upgrade to [@rokucommunity/bslint@0.8.41](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0841---2026-03-25)
  - upgrade to [ropm@0.11.5](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0115---2026-03-24)

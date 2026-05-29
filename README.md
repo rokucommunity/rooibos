@@ -68,3 +68,7 @@ Yes, it's been used in production by quite a few respectable companies. There ar
 ### Is Rooibos actively maintained?
 
 We at RokuCommunity love rooibos, and regularly keep it up to date.
+
+## Accepted security advisories
+
+Dependencies flagged by `npm audit` that we have reviewed and chosen not to upgrade are tracked in [audit-ci.jsonc](https://github.com/RokuCommunity/rooibos/blob/master/audit-ci.jsonc). Each entry includes the advisory ID, the date it was added, and the reason it does not apply to this project.

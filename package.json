@@ -14,7 +14,7 @@
         "docs": "jsdoc -c jsdoc.json -d .tmp/docs --verbose",
         "test": "nyc mocha",
         "test:nocover": "mocha",
-        "audit": "npm audit",
+        "audit": "npm audit || audit-ci --config ./audit-ci.jsonc",
         "cli": "ts-node src/cli.ts",
         "package": "npm run build && npm pack"
     },
@@ -43,6 +43,7 @@
         "@types/yargs": "^15.0.5",
         "@typescript-eslint/eslint-plugin": "^5.27.0",
         "@typescript-eslint/parser": "^5.27.0",
+        "audit-ci": "^7.1.0",
         "brighterscript-jsdocs-plugin": "^0.7.3",
         "chai": "^4.2.0",
         "docdash": "^2.0.2",

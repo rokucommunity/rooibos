@@ -1536,6 +1536,36 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
             });
+            it('adds mocksByFunctionName lookup function', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("test1")
+                        function _()
+                            m.expectCalled(sayHello("arg1", "arg2"), "return")
+                        end function
+                    end class
+                `);
+                program.setFile('source/code.bs', `
+                    function sayHello(firstName = "" as string, lastName = "" as string)
+                        print firstName + " " + lastName
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.build();
+                let codeText = normalizeGeneratedMockFunctionNames(getContents('code.brs'));
+                const lookupContents = getFunctionContents(codeText, /^RBS_SM_getMocksByFunctionName$/);
+                expect(lookupContents).to.not.equal('');
+                expect(lookupContents).to.equal(undent`
+                    if m._rMocksByFunctionName = invalid
+                        m._rMocksByFunctionName = {}
+                    end if
+                    return m._rMocksByFunctionName
+                `);
+            });
             it('correctly transpiles global function calls', async () => {
 
                 program.setFile('source/test.spec.bs', `
