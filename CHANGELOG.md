@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.51](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.50...v6.0.0-alpha.51) - 2026-05-29
+### Changed
+ - Merge master v6 again ([#398](https://github.com/rokucommunity/rooibos/pull/398))
+ - Merge Latest from Master into v6 Branch ([#394](https://github.com/rokucommunity/rooibos/pull/394))
+ - upgrade to [brighterscript@1.0.0-alpha.51](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha51---2026-05-20). Notable changes since 1.0.0-alpha.50:
+     - Merges latest v0.72.2 into v1 ([#1717](https://github.com/rokucommunity/brighterscript/pull/1717))
+     - Token leadingTrivia handling and reduce memory retention in long-lived compiler/LSP caches ([#1705](https://github.com/rokucommunity/brighterscript/pull/1705))
+     - Merge/master 0.72.0 ([#1702](https://github.com/rokucommunity/brighterscript/pull/1702))
+     - Fix for each validation error ([#1646](https://github.com/rokucommunity/brighterscript/pull/1646))
+     - Allow typed functions in type expressions ([#1620](https://github.com/rokucommunity/brighterscript/pull/1620))
+     - Fixes issue with forEach iterating over a union of iterables ([#1629](https://github.com/rokucommunity/brighterscript/pull/1629))
+     - Allow typecast statement on all variables ([#1622](https://github.com/rokucommunity/brighterscript/pull/1622))
+     - Documentation updates ([#1616](https://github.com/rokucommunity/brighterscript/pull/1616))
+ - upgrade to [roku-debug@0.23.10](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#02310---2026-05-28).
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.51](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha51---2026-05-20). Notable changes since 1.0.0-alpha.50:
+     - Make sure scope-based diagnostics are cleared when needed ([#183](https://github.com/rokucommunity/bslint/pull/183))
+ - upgrade to [ropm@0.11.7](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0117---2026-05-20). 
+
+
+
 ## [6.0.0-alpha.50](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.49...v6.0.0-alpha.50) - 2026-01-29
 ### Changed
  - upgrade to brighterscript v1.0.0-alpha.50 ([#365](https://github.com/rokucommunity/rooibos/pull/365))
