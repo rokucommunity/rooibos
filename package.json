@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "6.0.0-alpha.51",
+    "version": "6.0.0-alpha.52",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "scripts": {
         "preversion": "npm run build && npm run lint && npm run test",
@@ -55,7 +55,7 @@
         "jsdoc": "^4.0.5",
         "mocha": "^10.8.2",
         "nyc": "^15.1.0",
-        "ropm": "^0.11.7",
+        "ropm": "^0.11.8",
         "source-map-support": "^0.5.13",
         "ts-node": "^10.7.0",
         "typescript": "^4.7.2"
@@ -116,7 +116,7 @@
             "source-map-support/register",
             "ts-node/register"
         ],
-        "timeout": "3000",
+        "timeout": "4000",
         "watchExtensions": [
             "ts"
         ]
