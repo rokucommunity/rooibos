@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.52](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.51...v6.0.0-alpha.52) - 2026-06-02
+### Changed
+ - Updated to Brighterscript-v1.0.0a-alpha.52 ([#401](https://github.com/rokucommunity/rooibos/pull/401))
+ - upgrade to [brighterscript@1.0.0-alpha.52](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha52---2026-06-01). Notable changes since 1.0.0-alpha.51:
+     - Guard transpileComments against undefined trivia tokens ([#1725](https://github.com/rokucommunity/brighterscript/pull/1725))
+     - Merge master into v1 ([#1726](https://github.com/rokucommunity/brighterscript/pull/1726))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.52](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha52---2026-06-01). Notable changes since 1.0.0-alpha.51:
+     - Updated to Brighterscript-v1.0.0.alpha-52 ([#192](https://github.com/rokucommunity/bslint/pull/192))
+ - upgrade to [ropm@0.11.8](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0118---2026-05-30). Notable changes since 0.11.7:
+     - Add --rootDir flag support to copy/install/clean commands ([#143](https://github.com/rokucommunity/ropm/pull/143))
+     - Update minimum audit threshold ([#142](https://github.com/rokucommunity/ropm/pull/142))
+     - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#141](https://github.com/rokucommunity/ropm/pull/141))
+     - Add security-audit-required job to security-audit workflow ([#140](https://github.com/rokucommunity/ropm/pull/140))
+
+
+
 ## [6.0.0-alpha.51](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.50...v6.0.0-alpha.51) - 2026-05-29
 ### Changed
  - Merge master v6 again ([#398](https://github.com/rokucommunity/rooibos/pull/398))
