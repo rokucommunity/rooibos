@@ -1,9 +1,5 @@
-import type {
-    BscFile,
-    WalkOptions,
-    WalkVisitor
-} from 'brighterscript';
-import { Expression, Range } from 'brighterscript';
+import type { AstNodeKind, BscFile, WalkOptions, WalkVisitor } from 'brighterscript';
+import { Expression, Range, util } from 'brighterscript';
 import type { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 
 import { SourceNode } from 'source-map';
@@ -17,19 +13,25 @@ export class RawCodeExpression extends Expression {
         super();
     }
 
-    public clone() {
-        return new RawCodeExpression(this.source, this.sourceFile, this.range);
+    readonly kind = 'RawCodeExpression' as AstNodeKind;
+
+    get location() {
+        return util.createLocationFromFileRange(this.sourceFile, this.range);
     }
 
     public transpile(state: BrsTranspileState) {
         return [new SourceNode(
             this.range.start.line + 1,
             this.range.start.character,
-            this.sourceFile ? this.sourceFile.pathAbsolute : state.srcPath,
+            this.sourceFile ? this.sourceFile.srcPath : state.srcPath,
             this.source
         )];
     }
     public walk(visitor: WalkVisitor, options: WalkOptions) {
         //nothing to walk
+    }
+
+    public clone() {
+        return new RawCodeExpression(this.source, this.sourceFile, util.cloneLocation({ range: this.range } as any).range);
     }
 }

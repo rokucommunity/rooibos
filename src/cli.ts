@@ -42,9 +42,10 @@ async function main() {
 
     const rawConfig: BsConfig = util.loadConfigFile(bsconfigPath);
     const bsConfig = util.normalizeConfig(rawConfig);
+    bsConfig.outDir ??= (bsConfig as any).stagingDir ?? (bsConfig as any).stagingFolderPath;
 
-    const host = options.host ?? bsConfig.host;
-    const password = options.password ?? bsConfig.password;
+    const host = options.host ?? (bsConfig as any).host;
+    const password = options.password ?? (bsConfig as any).password;
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
     const builder = new ProgramBuilder();
@@ -52,7 +53,7 @@ async function main() {
     builder.logger.logLevel = logLevel;
 
 
-    await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
+    await builder.run(<any>{ ...options, retainStagingDir: true });
 
     const rokuDeploy = new RokuDeploy();
     const deviceInfo = await rokuDeploy.getDeviceInfo({ host: host });
@@ -70,7 +71,7 @@ async function main() {
         if (emitAppExit) {
             (telnet as any).beginAppExit();
         }
-        await rokuDeploy.pressHomeButton(host); // roku-deploy v4: keyPress({ host: options.host, key: 'home' });
+        await rokuDeploy.keyPress({ host: options.host, key: 'home' });
         process.exit(currentErrorCode);
     }
 
@@ -114,13 +115,17 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        const outFile = bsConfig.outFile;
-        console.log(`Deploying ${outFile} to ${host}`);
-        await rokuDeploy.publish({ // roku-deploy v4: .sideload({...})
+        const outDir = bsConfig.outDir;
+
+        await rokuDeploy.zip({
+            outDir: outDir,
+            stagingDir: bsConfig.outDir
+        });
+
+        await rokuDeploy.sideload({
             password: password,
             host: host,
-            outFile: outFile,
-            outDir: process.cwd()
+            outDir: outDir
         });
     }
 

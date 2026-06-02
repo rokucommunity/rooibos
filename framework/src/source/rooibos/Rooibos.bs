@@ -31,7 +31,7 @@ namespace rooibos
         else
             rooibos.common.logInfo("scene is ready; running tests now")
             print ""
-            runner = new rooibos.TestRunner(scene, m)
+            runner = new rooibos.TestRunner(scene, m as rooibos.NodeContext)
             runner.Run()
 
             if runner.config.keepAppOpen = false then
@@ -57,7 +57,7 @@ namespace rooibos
                 if msg.getField() = "isReadyToStartTests" and msg.getData() = true then
                     rooibos.common.logInfo("scene is ready; running tests now")
                     print ""
-                    runner = new rooibos.TestRunner(scene, m)
+                    runner = new rooibos.TestRunner(scene, m as rooibos.NodeContext)
                     runner.Run()
                 end if
             end if

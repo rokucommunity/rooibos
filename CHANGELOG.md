@@ -6,6 +6,123 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.52](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.51...v6.0.0-alpha.52) - 2026-06-02
+### Changed
+ - Updated to Brighterscript-v1.0.0a-alpha.52 ([#401](https://github.com/rokucommunity/rooibos/pull/401))
+ - upgrade to [brighterscript@1.0.0-alpha.52](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha52---2026-06-01). Notable changes since 1.0.0-alpha.51:
+     - Guard transpileComments against undefined trivia tokens ([#1725](https://github.com/rokucommunity/brighterscript/pull/1725))
+     - Merge master into v1 ([#1726](https://github.com/rokucommunity/brighterscript/pull/1726))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.52](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha52---2026-06-01). Notable changes since 1.0.0-alpha.51:
+     - Updated to Brighterscript-v1.0.0.alpha-52 ([#192](https://github.com/rokucommunity/bslint/pull/192))
+ - upgrade to [ropm@0.11.8](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0118---2026-05-30). Notable changes since 0.11.7:
+     - Add --rootDir flag support to copy/install/clean commands ([#143](https://github.com/rokucommunity/ropm/pull/143))
+     - Update minimum audit threshold ([#142](https://github.com/rokucommunity/ropm/pull/142))
+     - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#141](https://github.com/rokucommunity/ropm/pull/141))
+     - Add security-audit-required job to security-audit workflow ([#140](https://github.com/rokucommunity/ropm/pull/140))
+
+
+
+## [6.0.0-alpha.51](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.50...v6.0.0-alpha.51) - 2026-05-29
+### Changed
+ - Merge master v6 again ([#398](https://github.com/rokucommunity/rooibos/pull/398))
+ - Merge Latest from Master into v6 Branch ([#394](https://github.com/rokucommunity/rooibos/pull/394))
+ - upgrade to [brighterscript@1.0.0-alpha.51](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha51---2026-05-20). Notable changes since 1.0.0-alpha.50:
+     - Merges latest v0.72.2 into v1 ([#1717](https://github.com/rokucommunity/brighterscript/pull/1717))
+     - Token leadingTrivia handling and reduce memory retention in long-lived compiler/LSP caches ([#1705](https://github.com/rokucommunity/brighterscript/pull/1705))
+     - Merge/master 0.72.0 ([#1702](https://github.com/rokucommunity/brighterscript/pull/1702))
+     - Fix for each validation error ([#1646](https://github.com/rokucommunity/brighterscript/pull/1646))
+     - Allow typed functions in type expressions ([#1620](https://github.com/rokucommunity/brighterscript/pull/1620))
+     - Fixes issue with forEach iterating over a union of iterables ([#1629](https://github.com/rokucommunity/brighterscript/pull/1629))
+     - Allow typecast statement on all variables ([#1622](https://github.com/rokucommunity/brighterscript/pull/1622))
+     - Documentation updates ([#1616](https://github.com/rokucommunity/brighterscript/pull/1616))
+ - upgrade to [roku-debug@0.23.10](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#02310---2026-05-28).
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.51](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha51---2026-05-20). Notable changes since 1.0.0-alpha.50:
+     - Make sure scope-based diagnostics are cleared when needed ([#183](https://github.com/rokucommunity/bslint/pull/183))
+ - upgrade to [ropm@0.11.7](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0117---2026-05-20). 
+
+
+
+## [6.0.0-alpha.50](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.49...v6.0.0-alpha.50) - 2026-01-29
+### Changed
+ - upgrade to brighterscript v1.0.0-alpha.50 ([#365](https://github.com/rokucommunity/rooibos/pull/365))
+ - upgrade to [brighterscript@1.0.0-alpha.50](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha50---2026-01-28). Notable changes since 1.0.0-alpha.49:
+     - Adds ability to declare type on "For Each" loop item ([#1614](https://github.com/rokucommunity/brighterscript/pull/1614))
+     - Intersection Type ([#1603](https://github.com/rokucommunity/brighterscript/pull/1603))
+     - Align event names ([#1557](https://github.com/rokucommunity/brighterscript/pull/1557))
+     - Fix bug with `stagingDir` fallback not working ([#1606](https://github.com/rokucommunity/brighterscript/pull/1606))
+     - Fix bug with normalizing `virtual:/` path scheme ([#1607](https://github.com/rokucommunity/brighterscript/pull/1607))
+     - Fixes getting types from pocket tables in Try/Catch ([#1602](https://github.com/rokucommunity/brighterscript/pull/1602))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.50](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha50---2026-01-28). Notable changes since 1.0.0-alpha.49:
+ - upgrade to [ropm@0.11.4](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0114---2026-01-26). Notable changes since 0.11.2:
+
+
+
+## [6.0.0-alpha.49](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.48...v6.0.0-alpha.49) - 2025-12-11
+### Changed
+ - upgrade to [brighterscript@1.0.0-alpha.49](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha49---2025-12-10). Notable changes since 1.0.0-alpha.48:
+     - Adds TypeStatement for declaring new types ([#1597](https://github.com/rokucommunity/brighterscript/pull/1597))
+     - Adds Inline interfaces ([#1591](https://github.com/rokucommunity/brighterscript/pull/1591))
+     - Make Invalid compatible with typed arrays ([#1596](https://github.com/rokucommunity/brighterscript/pull/1596))
+     - Merge branch 'master' into 'v1' ([#1590](https://github.com/rokucommunity/brighterscript/pull/1590))
+     - Limit scope Validation ([#1586](https://github.com/rokucommunity/brighterscript/pull/1586))
+     - Interface extending node includes callfuncs ([#1585](https://github.com/rokucommunity/brighterscript/pull/1585))
+     - Fix validation exception when calling roFunction ([#1588](https://github.com/rokucommunity/brighterscript/pull/1588))
+     - Remove unused util functions ([#1565](https://github.com/rokucommunity/brighterscript/pull/1565))
+     - #1555 Remove zip and sideload ([#1562](https://github.com/rokucommunity/brighterscript/pull/1562))
+     - Fix `MaskGroup.maskUri` type ([#1559](https://github.com/rokucommunity/brighterscript/pull/1559))
+ - upgrade to [roku-debug@0.22.5](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0225---2025-12-01). Notable changes since 0.21.37:
+     - Support packageTask, packagePath, packageUploadOverrides for complibs ([#282](https://github.com/rokucommunity/roku-debug/pull/282))
+     - Add ability to install component libraries on device ([#279](https://github.com/rokucommunity/roku-debug/pull/279))
+     - chore: suppport OIDC for publishing ([#277](https://github.com/rokucommunity/roku-debug/pull/277))
+     - Change ecp logging to `trace` to make lower level logs more useful ([#276](https://github.com/rokucommunity/roku-debug/pull/276))
+     - Bump brace-expansion from 1.1.11 to 1.1.12 ([#272](https://github.com/rokucommunity/roku-debug/pull/272))
+     - Better handling when the telnet debugger freezes ([#268](https://github.com/rokucommunity/roku-debug/pull/268))
+     - Add more logs to track how long each step takes while sideloading ([#270](https://github.com/rokucommunity/roku-debug/pull/270))
+     - chore: Support dispatch workflows ([#266](https://github.com/rokucommunity/roku-debug/pull/266))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.49](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha49---2025-12-11). Notable changes since 1.0.0-alpha.48:
+     - Update for v49 ([#169](https://github.com/rokucommunity/bslint/pull/169))
+ - upgrade to [ropm@0.11.2](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0112---2025-10-31). Notable changes since 0.10.35:
+     - chore: use OIDC for publishing ([#123](https://github.com/rokucommunity/ropm/pull/123))
+     - Bump brace-expansion from 1.1.11 to 1.1.12 ([#120](https://github.com/rokucommunity/ropm/pull/120))
+     - Fix Issues with npm-ls ([#118](https://github.com/rokucommunity/ropm/pull/118))
+     - Fix packageRootDir crash when directory doesn't exist ([#110](https://github.com/rokucommunity/ropm/pull/110))
+     - Add support for the `create-package` label ([#111](https://github.com/rokucommunity/ropm/pull/111))
+     - chore: Support dispatch workflows ([#107](https://github.com/rokucommunity/ropm/pull/107))
+
+
+
+## [6.0.0-alpha.48](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.47...v6.0.0-alpha.48) - 2025-07-17
+### Changed
+ - upgrade to [brighterscript@1.0.0-alpha.48](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#100-alpha48---2025-07-16). Notable changes since 1.0.0-alpha.47:
+     - Union Return type consistency ([#1508](https://github.com/rokucommunity/rooibos/pull/1508))
+     - Fix issues with undefined/null trivia items ([#1531](https://github.com/rokucommunity/rooibos/pull/1531))
+     - Fix ForEach variable typing issues ([#1498](https://github.com/rokucommunity/rooibos/pull/1498))
+     - `Dynamic` and `Function` do not need semantic tokens in Type expressions ([#1500](https://github.com/rokucommunity/rooibos/pull/1500))
+ - upgrade to [roku-debug@0.21.37](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#02137---2025-07-03). Notable changes since 0.21.36:
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.48](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha48---2025-07-16). Notable changes since 1.0.0-alpha.47:
+ - upgrade to [ropm@0.10.35](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#01035---2025-07-03). Notable changes since 0.10.34:
+
+
+
+## [6.0.0-alpha.47](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.46...v6.0.0-alpha.47) - 2025-06-04
+### Added
+ - added [@rokucommunity/bslint@1.0.0-alpha.46](https://github.com/rokucommunity/bslint)
+ - added [ropm@0.10.30](https://github.com/rokucommunity/ropm)
+### Changed
+ - Task/update with master ([#346](https://github.com/rokucommunity/rooibos/pull/346))
+ - Update v6 with master ([#344](https://github.com/rokucommunity/rooibos/pull/344))
+
+
+
+## [6.0.0-alpha.46](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.45...v6.0.0-alpha.46) - 2025-04-24
+### Changed
+ - Upgrade to brighterscript and bslint v1.0.0-alpha.46 ([3b75efa](https://github.com/rokucommunity/rooibos/commit/3b75efa))
+ - Merge branch 'master' of https://github.com/rokucommunity/rooibos into release-6.0.0 ([7177ebb](https://github.com/rokucommunity/rooibos/commit/7177ebb))
+ - Fix package-lock for #330 ([10d445d](https://github.com/rokucommunity/rooibos/commit/10d445d))
+ - Make sure the correct version of roku-debug is included for the CLI ([#330](https://github.com/rokucommunity/rooibos/pull/330))
+
+
+
 ## [5.16.3](https://github.com/rokucommunity/rooibos/compare/5.16.2...v5.16.3) - 2026-05-20
 ### Changed
  - Update ropm to 0.11.7 and remove lodash override ([#391](https://github.com/rokucommunity/rooibos/pull/391))
@@ -50,7 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - chore: add and implement linting rules ([#338](https://github.com/rokucommunity/rooibos/pull/338))
  - chore: stricter linting for TypeScript ([#343](https://github.com/rokucommunity/rooibos/pull/343))
  - chore: shared CI Support Prerelease ([#341](https://github.com/rokucommunity/rooibos/pull/341), [#339](https://github.com/rokucommunity/rooibos/pull/339))
- - upgrade to [roku-debug@0.23.6](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0236---2026-04-30). 
+ - upgrade to [roku-debug@0.23.6](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0236---2026-04-30).
  - upgrade to [roku-deploy@3.17.1](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3171---2026-04-27)
  - upgrade to [@rokucommunity/bslint@0.8.41](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0841---2026-03-25)
  - upgrade to [ropm@0.11.5](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0115---2026-03-24)

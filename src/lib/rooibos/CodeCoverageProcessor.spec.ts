@@ -1,7 +1,6 @@
 import { Program, ProgramBuilder, util, standardizePath as s, isExpressionStatement, isCallExpression, isIfStatement } from 'brighterscript';
 import type { BinaryExpression, Expression, ExpressionStatement, LiteralExpression, Statement, VariableExpression } from 'brighterscript';
 import { expect } from 'chai';
-import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
 import { RooibosPlugin } from '../../plugin';
 import undent from 'undent';
@@ -10,7 +9,7 @@ import { CodeCoverageLineType } from './CodeCoverageType';
 
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
-let _stagingFolderPath = s`${tmpPath}/staging`;
+let outDir = s`${tmpPath}/staging`;
 
 describe('CodeCoverageProcessor', () => {
     let program: Program;
@@ -22,7 +21,9 @@ describe('CodeCoverageProcessor', () => {
         plugin = new RooibosPlugin();
         options = {
             rootDir: _rootDir,
-            stagingFolderPath: _stagingFolderPath,
+            stagingDir: outDir,
+            //workaround for bsc bug where outDir does not fall back to stagingDir
+            outDir: outDir,
             rooibos: {
                 isRecordingCodeCoverage: true,
                 coverageExcludedFiles: [
@@ -31,7 +32,7 @@ describe('CodeCoverageProcessor', () => {
             },
             allowBrighterScriptInBrightScript: true
         };
-        fsExtra.ensureDirSync(_stagingFolderPath);
+        fsExtra.ensureDirSync(outDir);
         fsExtra.ensureDirSync(_rootDir);
 
         builder = new ProgramBuilder();
@@ -39,14 +40,13 @@ describe('CodeCoverageProcessor', () => {
         builder.program = new Program(builder.options);
         program = builder.program;
         program.logger = builder.logger;
-        builder.plugins = new PluginInterface([plugin], { logger: builder.logger });
-        program.plugins = new PluginInterface([plugin], { logger: builder.logger });
+        program.plugins.add(plugin);
         program.createSourceScope(); //ensure source scope is created
-        plugin.beforeProgramCreate(builder);
-
+        plugin.beforeProvideProgram({ builder: builder });
+        plugin.afterProvideProgram({ program: program, builder: builder });
     });
     afterEach(() => {
-        plugin.afterProgramCreate(program);
+        plugin.afterProvideProgram({ builder: builder, program: program });
         builder.dispose();
         program.dispose();
         fsExtra.removeSync(tmpPath);
@@ -128,7 +128,7 @@ describe('CodeCoverageProcessor', () => {
             const transpiledSource = getContents('source/code.brs');
             const funcAst = getFunctionAstNode(transpiledSource, 'RBS_CC_1_reportLine');
             expect(funcAst).to.exist;
-            expect(funcAst.func.parameters.map(p => p.name.text)).to.deep.equal(['lineNumber', 'reportType']);
+            expect(funcAst.func.parameters.map(p => p.tokens.name.text)).to.deep.equal(['lineNumber', 'reportType']);
             expectFunctionContents(transpiledSource, 'RBS_CC_1_reportLine', `
                 _rbs_ccn = m._rbs_ccn
                 if _rbs_ccn <> invalid
@@ -417,6 +417,36 @@ describe('CodeCoverageProcessor', () => {
         });
     });
 
+    it('adds code coverage in conditional compile statements', async () => {
+        program.setFile('source/code.bs', `
+            #const DEBUG = true
+            sub test()
+                #if DEBUG
+                    print "debug"
+                #else
+                    print "not debug"
+                #end if
+            end sub
+        `);
+        program.validate();
+        expect(program.getDiagnostics()).to.be.empty;
+        await builder.transpile();
+        const transpiledSource = getContents('source/code.brs');
+        expectFunctionContents(transpiledSource, 'test', `
+            #if DEBUG
+                RBS_CC_1_reportLine("3", 4)
+                RBS_CC_1_reportLine("4", 1)
+                print "debug"
+            #else
+                RBS_CC_1_reportLine("5", 4)
+                RBS_CC_1_reportLine("6", 1)
+                print "not debug"
+            #end if
+        `);
+        const reportLineFunction = getFunctionAstNode(transpiledSource, 'RBS_CC_1_reportLine');
+        expect(reportLineFunction).to.exist;
+    }).timeout(10000);
+
     it('excludes files from coverage', async () => {
         const source = `sub foo()
             x = function(y)
@@ -456,13 +486,13 @@ function expectReportLineFunctionCalls(ast: { statements: Statement[] }, reportL
         expect(isCallExpression(expr), `Expected statement ${opts.currentLine} to be an call expression`).to.be.true;
         if (isCallExpression(expr)) {
             const callExpr = expr;
-            let callee = (callExpr.callee as VariableExpression).name;
+            let callee = (callExpr.callee as VariableExpression).tokens.name;
             expect(callee.text, `Expected callee to be "${reportLineFuncName}"`).to.equal(reportLineFuncName);
             expect(callExpr.args.length).to.be.equal(2);
             let lineArg = callExpr.args[0];
             let reportTypeArg = callExpr.args[1];
-            expect((lineArg as LiteralExpression).token.text, `Expected line argument to be "${opts.currentLine.toString()}"`).to.equal(`"${opts.currentLine.toString()}"`);
-            expect((reportTypeArg as LiteralExpression).token.text, `Expected report type argument to be "${coverageType}"`).to.equal(`${coverageType}`);
+            expect((lineArg as LiteralExpression).tokens.value.text, `Expected line argument to be "${opts.currentLine.toString()}"`).to.equal(`"${opts.currentLine.toString()}"`);
+            expect((reportTypeArg as LiteralExpression).tokens.value.text, `Expected report type argument to be "${coverageType}"`).to.equal(`${coverageType}`);
         }
     }
 

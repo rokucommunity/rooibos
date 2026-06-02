@@ -1,16 +1,16 @@
 import type { BrsFile, CallExpression, Editor, Expression, FunctionStatement, NamespaceStatement, ProgramBuilder, Scope } from 'brighterscript';
-import { ParseMode, Parser, WalkMode, createVisitor, isCallExpression, isClassStatement, isDottedGetExpression, isNamespaceStatement, isVariableExpression } from 'brighterscript';
+import { ParseMode, Parser, SymbolTypeFlag, WalkMode, createVisitor, isCallExpression, isClassStatement, isDottedGetExpression, isNamespaceStatement, isVariableExpression } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import undent from 'undent';
 import type { RooibosSession } from './RooibosSession';
-import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
+import { diagnosticErrorProcessingFile, RooibosLogPrefix } from '../utils/Diagnostics';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
-import { functionRequiresReturnValue, getAllDottedGetParts, getScopeForSuite } from './Utils';
+import { functionRequiresReturnValue, getAllDottedGetParts, getFileLookups, getScopeForSuite } from './Utils';
 
 export class MockUtil {
 
-    constructor(builder: ProgramBuilder, session: RooibosSession) {
+    constructor(public builder: ProgramBuilder, session: RooibosSession) {
         this.config = (builder.options as any).rooibos as RooibosConfig || {};
         this.filePathMap = {};
         this.fileId = 0;
@@ -44,7 +44,7 @@ export class MockUtil {
         this.processedStatements = new Set<FunctionStatement>();
         this.astEditor = astEditor;
         // console.log('processing global methods on ', file.pkgPath);
-        for (let functionStatement of file.parser.references.functionStatements) {
+        for (let functionStatement of getFileLookups(file).functionStatements) {
             this.enableMockOnFunction(file, functionStatement);
         }
 
@@ -84,14 +84,7 @@ export class MockUtil {
             return;
         }
 
-        // console.log('processing  stubbed method', methodName);
-        // TODO check if the user has actually mocked or stubbed this function, otherwise leave it alone!
-
-        for (let param of functionStatement.func.parameters) {
-            param.asToken = null;
-        }
-
-        const paramNames = functionStatement.func.parameters.map((param) => param.name.text).join(',');
+        const paramNames = functionStatement.func.parameters.map((param) => param.tokens.name.text).join(',');
         const requiresReturnValue = functionRequiresReturnValue(functionStatement);
         const globalAaName = '__stubs_globalAa';
         const resultName = '__stubOrMockResult';
@@ -135,21 +128,21 @@ export class MockUtil {
     }
     private gatherMockedGlobalMethods(testSuite: TestSuite, testCase: TestCase) {
         try {
-            let func = testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+            let func = testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(createVisitor({
                 ExpressionStatement: (expressionStatement, parent, owner) => {
                     let callExpression = expressionStatement.expression as CallExpression;
                     if (isCallExpression(callExpression) && isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
-                        if (dge && assertRegex.test(dge.name.text)) {
-                            if (dge.name.text === 'stubCall') {
+                        if (dge && assertRegex.test(dge.tokens.name.text)) {
+                            if (dge.tokens.name.text === 'stubCall') {
                                 this.processGlobalStubbedMethod(callExpression, testSuite);
                                 return expressionStatement;
 
                             } else {
 
-                                if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                if (dge.tokens.name.text === 'expectCalled' || dge.tokens.name.text === 'expectNotCalled') {
                                     this.processGlobalStubbedMethod(callExpression, testSuite);
                                 }
                             }
@@ -159,9 +152,10 @@ export class MockUtil {
             }), {
                 walkMode: WalkMode.visitStatementsRecursive
             });
-        } catch (e) {
-            console.log(e);
-            diagnosticErrorProcessingFile(testSuite.file, e.message);
+        } catch (e: unknown) {
+            this.builder.program.logger.error(RooibosLogPrefix, 'Error processing global method mocks', e);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            diagnosticErrorProcessingFile(testSuite.file, (e as Error).message);
         }
     }
 
@@ -169,7 +163,7 @@ export class MockUtil {
         let isStubCall = false;
         const scope = getScopeForSuite(testSuite);
         if (isDottedGetExpression(callExpression.callee)) {
-            const nameText = callExpression.callee.name.text;
+            const nameText = callExpression.callee.tokens.name.text;
             isStubCall = nameText === 'stubCall';
         }
         //modify args
@@ -203,7 +197,7 @@ export class MockUtil {
             }
         } else if (isVariableExpression(expression)) {
             let functionName = expression.getName(ParseMode.BrightScript);
-            if (scope.symbolTable.hasSymbol(functionName)) {
+            if (scope.symbolTable.hasSymbol(functionName, SymbolTypeFlag.runtime)) {
                 result = functionName;
             }
 
