@@ -1,0 +1,130 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/source/Globals.bs"
+
+' Demonstrates `stubCall`, `expectCalled`, and `expectNotCalled` used inside
+' setUp/tearDown/beforeEach/afterEach hooks. The bsc-plugin walks these hook
+' bodies (just like test-case bodies) so the calls are rewritten to their
+' runtime `_stubCall`/`_expectCalled`/`_expectNotCalled` counterparts.
+
+namespace tests
+    @suite
+    class HookStubsTests extends rooibos.BaseTestSuite
+
+        private subject
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall in beforeEach")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @beforeEach
+        function stubInBeforeEach()
+            m.subject = { id: "subject" }
+            ' Every test in this group inherits this stub.
+            m.stubCall(m.subject.getName, "stubbed-name")
+        end function
+
+        @it("stub from beforeEach is visible in the first test")
+        function _()
+            m.assertEqual(m.subject.getName(), "stubbed-name")
+        end function
+
+        @it("stub from beforeEach is reset between tests, then reapplied")
+        function _()
+            ' The stub is re-applied for this test too, even after the runtime's
+            ' per-test cleanMocks/cleanStubs ran.
+            m.assertEqual(m.subject.getName("anything"), "stubbed-name")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectCalled in beforeEach")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @beforeEach
+        function expectInBeforeEach()
+            m.subject = { id: "subject" }
+            ' Setting the expectation up front lets every test in this group
+            ' just exercise the production code and rely on assertMocks().
+            m.expectCalled(m.subject.doWork("payload"), "ok")
+        end function
+
+        @it("test that fulfills the expectation passes")
+        function _()
+            result = m.subject.doWork("payload")
+            m.assertEqual(result, "ok")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("expectNotCalled in beforeEach")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @beforeEach
+        function expectNotCalledInBeforeEach()
+            m.subject = { id: "subject" }
+            m.expectNotCalled(m.subject.shouldNeverRun)
+        end function
+
+        @it("passes when the function is never invoked")
+        function _()
+            ' Nothing calls m.subject.shouldNeverRun, so the expectNotCalled
+            ' set up in beforeEach is satisfied at assertMocks time.
+            m.assertTrue(true)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall on a global function in beforeEach")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @beforeEach
+        function stubGlobalInBeforeEach()
+            getGlobalAA().wasCalled = false
+            m.stubCall(globalFunctionWithReturn, function()
+                m.wasCalled = true
+                return true
+            end function)
+        end function
+
+        @it("global stub from beforeEach is visible to the test")
+        function _()
+            m.assertTrue(globalFunctionWithReturn())
+            m.assertTrue(getGlobalAA().wasCalled)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall in setUp persists across the whole group")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @setup
+        function stubInSetup()
+            ' setUp runs once per group, so this stub is reused by every test
+            ' below. cleanStubs() between tests will clear it; if you need the
+            ' stub on every test, prefer @beforeEach instead.
+            m.subject = { id: "subject" }
+            m.stubCall(m.subject.constantValue, 42)
+        end function
+
+        @it("first test in group sees the setUp stub")
+        function _()
+            m.assertEqual(m.subject.constantValue(), 42)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("stubCall in afterEach is rewritten as well")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @afterEach
+        function stubInAfterEach()
+            ' Stubbing in afterEach is rare but legal — useful to make sure
+            ' production code touched after the test (e.g. teardown logic
+            ' on the SUT) sees a controlled value.
+            scratch = { id: "scratch" }
+            m.stubCall(scratch.cleanup, invalid)
+            scratch.cleanup()
+        end function
+
+        @it("runs a normal assertion; afterEach uses stubCall behind the scenes")
+        function _()
+            m.assertTrue(true)
+        end function
+
+    end class
+end namespace
