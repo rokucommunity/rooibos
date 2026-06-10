@@ -29,12 +29,27 @@ export class TestGroup extends TestBlock {
     }
 
     public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+        let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+        this.modifyAssertionsInFunction(func, noEarlyExit, editor, namespaceLookup, scope);
+    }
+
+    public modifyAssertionsForHook(hookFuncName: string, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+        if (!hookFuncName) {
+            return;
+        }
+        let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === hookFuncName.toLowerCase());
+        if (!func) {
+            return;
+        }
+        this.modifyAssertionsInFunction(func, noEarlyExit, editor, namespaceLookup, scope);
+    }
+
+    private modifyAssertionsInFunction(func: any, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         //for each method
         //if assertion
         //wrap with if is not fail
         //add line number as last param
         try {
-            let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(createVisitor({
                 ExpressionStatement: (expressionStatement, parent, owner, key) => {
                     let callExpression = expressionStatement.expression as CallExpression;
