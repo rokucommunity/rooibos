@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [5.16.4](https://github.com/rokucommunity/rooibos/compare/5.16.3...v5.16.4) - 2026-06-10
+### Changed
+ - Make tests less brittle - removes full transpile string checks ([#396](https://github.com/rokucommunity/rooibos/pull/396))
+ - Security enhancements
+ - upgrade to [brighterscript@0.72.5](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0725---2026-06-10). Notable changes since 0.72.2:
+   - Security enhancements
+ - upgrade to [roku-debug@0.23.11](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#02311---2026-06-04). Notable changes since 0.23.8:
+     - Fix pressHomeButton crash in disconnectRequest ([#358](https://github.com/rokucommunity/roku-debug/pull/358))
+     - Security enhancements
+ - upgrade to [roku-deploy@3.17.6](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3176---2026-06-04). Notable changes since 3.17.4:
+     - Fix case-insensitive matching for absolute `files.src` glob patterns on case-insensitive file systems ([#279](https://github.com/rokucommunity/roku-deploy/pull/279))
+     - Preserve `!` glob-negation prefix in standardizePath ([#277](https://github.com/rokucommunity/roku-deploy/pull/277))
+     - Security enhancements
+ - upgrade to [ropm@0.11.8](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0118---2026-05-30). Notable changes since 0.11.7:
+     - Security enhancements
+
+
+
 ## [5.16.3](https://github.com/rokucommunity/rooibos/compare/5.16.2...v5.16.3) - 2026-05-20
 ### Changed
  - Update ropm to 0.11.7 and remove lodash override ([#391](https://github.com/rokucommunity/rooibos/pull/391))
