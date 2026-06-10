@@ -7,41 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [5.16.4](https://github.com/rokucommunity/rooibos/compare/5.16.3...v5.16.4) - 2026-06-10
-### Added
- - Add security-audit-required job to security-audit workflow ([#393](https://github.com/rokucommunity/rooibos/pull/393))
 ### Changed
  - Make tests less brittle - removes full transpile string checks ([#396](https://github.com/rokucommunity/rooibos/pull/396))
- - Update minimum audit threshold ([#397](https://github.com/rokucommunity/rooibos/pull/397))
- - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#395](https://github.com/rokucommunity/rooibos/pull/395))
+ - Security enhancements
  - upgrade to [brighterscript@0.72.5](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0725---2026-06-10). Notable changes since 0.72.2:
-     - Add parameter name inlay hints ([#1703](https://github.com/rokucommunity/brighterscript/pull/1703))
-     - Update minimum audit threshold ([#1723](https://github.com/rokucommunity/brighterscript/pull/1723))
-     - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#1722](https://github.com/rokucommunity/brighterscript/pull/1722))
-     - Add security-audit-required gate job to security-audit workflow ([#1720](https://github.com/rokucommunity/brighterscript/pull/1720))
-     - Security Audit workflow ([#1718](https://github.com/rokucommunity/brighterscript/pull/1718))
+   - Security enhancements
  - upgrade to [roku-debug@0.23.11](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#02311---2026-06-04). Notable changes since 0.23.8:
-     - Validate breakpoint file types; add (disabled) AST line validation ([#317](https://github.com/rokucommunity/roku-debug/pull/317))
-     - Defer initializeProfiling until after InitializedEvent ([#362](https://github.com/rokucommunity/roku-debug/pull/362))
-     - Drop stale suspend/runtime-error events when debugger is no longer paused ([#356](https://github.com/rokucommunity/roku-debug/pull/356))
      - Fix pressHomeButton crash in disconnectRequest ([#358](https://github.com/rokucommunity/roku-debug/pull/358))
-     - Update minimum audit threshold ([#359](https://github.com/rokucommunity/roku-debug/pull/359))
-     - Reset connected flag on close so _syncBreakpoints doesn't crash on a missing client ([#357](https://github.com/rokucommunity/roku-debug/pull/357))
-     - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#355](https://github.com/rokucommunity/roku-debug/pull/355))
-     - Add security-audit-required job to security-audit workflow ([#353](https://github.com/rokucommunity/roku-debug/pull/353))
-     - Security Audit workflow ([#352](https://github.com/rokucommunity/roku-debug/pull/352))
+     - Security enhancements
  - upgrade to [roku-deploy@3.17.6](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3176---2026-06-04). Notable changes since 3.17.4:
      - Fix case-insensitive matching for absolute `files.src` glob patterns on case-insensitive file systems ([#279](https://github.com/rokucommunity/roku-deploy/pull/279))
      - Preserve `!` glob-negation prefix in standardizePath ([#277](https://github.com/rokucommunity/roku-deploy/pull/277))
-     - Update minimum audit threshold ([#273](https://github.com/rokucommunity/roku-deploy/pull/273))
-     - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#272](https://github.com/rokucommunity/roku-deploy/pull/272))
-     - Add `security-audit-required` gate job to security audit workflow ([#269](https://github.com/rokucommunity/roku-deploy/pull/269))
-     - Use explicit label on Security Audit badge ([#266](https://github.com/rokucommunity/roku-deploy/pull/266))
-     - Security Audit workflow ([#265](https://github.com/rokucommunity/roku-deploy/pull/265))
+     - Security enhancements
  - upgrade to [ropm@0.11.8](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0118---2026-05-30). Notable changes since 0.11.7:
-     - Add --rootDir flag support to copy/install/clean commands ([#143](https://github.com/rokucommunity/ropm/pull/143))
-     - Update minimum audit threshold ([#142](https://github.com/rokucommunity/ropm/pull/142))
-     - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#141](https://github.com/rokucommunity/ropm/pull/141))
-     - Add security-audit-required job to security-audit workflow ([#140](https://github.com/rokucommunity/ropm/pull/140))
+     - Security enhancements
 
 
 
