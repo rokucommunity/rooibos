@@ -2361,6 +2361,220 @@ describe('RooibosPlugin', () => {
             });
         });
 
+        describe('transpilation in setup hooks', () => {
+            it('transpiles stubCall inside beforeEach', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be()
+                            m.stubCall(m.thing.getFunction(), "return")
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__be', `
+                    m._stubCall(m.thing, "getFunction", m, "m.thing", "return")
+                `);
+            });
+
+            it('transpiles expectCalled inside beforeEach with early-exit guard', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be()
+                            m.expectCalled(m.thing.getFunction("arg1"), "return")
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__be', `
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [
+                        "arg1"
+                    ], "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('transpiles expectNotCalled inside afterEach', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+
+                        @afterEach
+                        function _ae()
+                            m.expectNotCalled(m.thing.getFunction())
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__ae', `
+                    m.currentAssertLineNumber = 8
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('transpiles stubCall inside setup and tearDown', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+
+                        @setup
+                        function _su()
+                            m.stubCall(m.thing.suFn(), "su-return")
+                        end function
+
+                        @tearDown
+                        function _td()
+                            m.stubCall(m.thing.tdFn(), "td-return")
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__su', `
+                    m._stubCall(m.thing, "suFn", m, "m.thing", "su-return")
+                `);
+                expectFunctionContents(fileContents, '__ATest_method__td', `
+                    m._stubCall(m.thing, "tdFn", m, "m.thing", "td-return")
+                `);
+            });
+
+            it('registers global stub functions referenced only from a beforeEach', async () => {
+                destroyProgram();
+                setupProgram({
+                    rootDir: _rootDir,
+                    stagingFolderPath: _stagingFolderPath,
+                    stagingDir: _stagingFolderPath,
+                    rooibos: {
+                        isGlobalMethodMockingEnabled: true,
+                        isGlobalMethodMockingEfficientMode: true
+                    }
+                });
+
+                program.setFile('source/code.bs', `
+                    function globalFn()
+                        return "real"
+                    end function
+                `);
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be()
+                            m.stubCall(globalFn, function()
+                                return "stubbed"
+                            end function)
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertEqual(globalFn(), "stubbed")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
+                await builder.transpile();
+                expect(plugin.session.globalStubbedMethods.has('globalfn')).to.be.true;
+            });
+
+            it('walks each hook method at most once even when reused across groups', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be()
+                            m.stubCall(m.thing.getFunction(), "return")
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+
+                        @describe("groupB")
+
+                        @beforeEach
+                        function _be2()
+                            m.stubCall(m.thing.getFunction(), "return")
+                        end function
+
+                        @it("test2")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                // Each beforeEach should have been transpiled exactly once — if it were
+                // walked twice we'd see two m._stubCall(...) lines for the same call.
+                expectFunctionContents(fileContents, '__ATest_method__be', `
+                    m._stubCall(m.thing, "getFunction", m, "m.thing", "return")
+                `);
+                expectFunctionContents(fileContents, '__ATest_method__be2', `
+                    m._stubCall(m.thing, "getFunction", m, "m.thing", "return")
+                `);
+            });
+        });
+
         describe('honours tags - simple tests', () => {
             let testSource = `
                 @tags("one", "two", "exclude")

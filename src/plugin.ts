@@ -173,8 +173,18 @@ export class RooibosPlugin implements CompilerPlugin {
             }
 
             const modifiedTestCases = new Set();
+            const modifiedHookFunctions = new Set();
             testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
+                for (const hookName of [group.setupFunctionName, group.tearDownFunctionName, group.beforeEachFunctionName, group.afterEachFunctionName]) {
+                    if (hookName) {
+                        const hookKey = group.testSuite.generatedNodeName + group.file.pkgPath + hookName.toLowerCase();
+                        if (!modifiedHookFunctions.has(hookKey)) {
+                            group.modifyAssertionsForHook(hookName, noEarlyExit, event.editor as any, this.session.namespaceLookup, scope);
+                            modifiedHookFunctions.add(hookKey);
+                        }
+                    }
+                }
                 for (let testCase of [...group.testCases].filter((tc) => tc.isIncluded)) {
                     let caseName = group.testSuite.generatedNodeName + group.file.pkgPath + testCase.funcName;
                     if (!modifiedTestCases.has(caseName)) {
