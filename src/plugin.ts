@@ -171,7 +171,17 @@ export class RooibosPlugin implements CompilerPlugin {
 
     beforeBuildProgram(event: BeforeBuildProgramEvent) {
         const createdFiles = this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
-        event.files.push(...createdFiles);
+        for (const file of createdFiles) {
+            //if the build already includes a (now stale) file instance for this path, replace it rather than
+            //adding a duplicate. Two instances for the same path would both be serialized, racing to write the
+            //same output file (which intermittently produces corrupt output)
+            const existingIndex = event.files.findIndex(x => x.destPath === file.destPath);
+            if (existingIndex >= 0) {
+                event.files[existingIndex] = file;
+            } else {
+                event.files.push(file);
+            }
+        }
     }
 
     prepareFile(event: OnPrepareFileEvent) {

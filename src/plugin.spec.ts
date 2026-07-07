@@ -2615,6 +2615,46 @@ describe('RooibosPlugin', () => {
         });
     });
 
+    describe('node test file generation', () => {
+        it('only includes a single file instance per generated file in the build', async () => {
+            program.setFile('components/customComponent.xml', `
+                <component name="CustomComponent" extends="Group" />
+            `);
+            program.setFile('source/test.spec.bs', `
+                @suite
+                @SGNode("CustomComponent")
+                class ATest1 extends Rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        m.assertEqual(1, 1)
+                    end function
+                end class
+            `);
+
+            //capture the final build file list (this plugin runs after the rooibos plugin)
+            let buildFilePaths: string[];
+            program.plugins.add({
+                name: 'build-file-collector',
+                beforeBuildProgram: (event) => {
+                    buildFilePaths = event.files.map(x => x.destPath);
+                }
+            } as any);
+
+            program.validate();
+            await builder.build();
+
+            //the generated node-test files are included in the build
+            expect(buildFilePaths.filter(x => x.endsWith('ATest1.xml'))).to.have.lengthOf(1);
+            expect(buildFilePaths.filter(x => x.endsWith('ATest1.bs'))).to.have.lengthOf(1);
+
+            //no destPath appears more than once. (Duplicate file instances for the same path are all
+            //serialized, racing to write the same output file, which intermittently corrupts it)
+            const duplicates = buildFilePaths.filter((x, i) => buildFilePaths.indexOf(x) !== i);
+            expect(duplicates).to.eql([]);
+        });
+    });
+
     describe('addTestRunnerMetadata', () => {
         it('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
