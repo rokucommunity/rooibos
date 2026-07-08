@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { BrsFile, BscFile, ClassStatement, Editor, FunctionStatement, NamespaceContainer, Program, ProgramBuilder, Scope } from 'brighterscript';
+import type { BrsFile, BscFile, ClassStatement, Editor, FunctionStatement, NamespaceContainer, Program, ProgramBuilder, Scope, XmlFile } from 'brighterscript';
 import { isBrsFile, isCallExpression, isClassStatement, isDottedGetExpression, isVariableExpression, ParseMode, Parser, WalkMode } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { SessionInfo } from './RooibosSessionInfo';
@@ -235,10 +235,15 @@ export class RooibosSession {
     }
 
     createNodeFile(program: Program, suite: TestSuite) {
-        let xmlText = this.getNodeTestXmlText(suite);
-        let xmlFile = this.fileFactory.addFile(program, suite.xmlPkgPath, xmlText);
+        const files: BscFile[] = [];
 
-        let bsFile = this.fileFactory.addFile(program, suite.bsPkgPath, undent`
+        let xmlText = this.getNodeTestXmlText(suite);
+        let xmlFile = this.addOrReuseFile(program, suite.xmlPkgPath, xmlText);
+        if (xmlFile) {
+            files.push(xmlFile);
+        }
+
+        let bsFile = this.addOrReuseFile(program, suite.bsPkgPath, undent`
             function init()
                 m.top.addField("rooibosRunSuite", "boolean", false)
                 m.top.observeFieldScoped("rooibosRunSuite", "rooibosRunSuite")
@@ -250,7 +255,26 @@ export class RooibosSession {
                 m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
             end function
         `);
-        return [xmlFile, bsFile];
+        if (bsFile) {
+            files.push(bsFile);
+        }
+        return files;
+    }
+
+    /**
+     * Add the given file to the program, unless an identical file already exists (i.e. the node test xml
+     * created in `afterProvideFile` so the component scope exists during validation). Creating a second file
+     * instance for the same path would cause the build to serialize both instances, racing to write the same
+     * output file (and discarding any edits other plugins have made to the existing instance).
+     * @returns the newly-created file, or undefined when an identical file already exists (an existing file is
+     *          already part of the program's file list, so callers must not re-add it to a build's file array)
+     */
+    private addOrReuseFile(program: Program, destPath: string, contents: string): BscFile | undefined {
+        const existingFile = program.getFile<BrsFile | XmlFile>(destPath);
+        if (existingFile?.fileContents === contents) {
+            return undefined;
+        }
+        return this.fileFactory.addFile(program, destPath, contents);
     }
 
     public getNodeTestXmlText(suite: TestSuite) {
