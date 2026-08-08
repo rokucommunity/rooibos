@@ -7,6 +7,7 @@ import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
 import * as path from 'path';
+import { generateHtmlReport } from './lib/rooibos/CoverageHtmlGenerator';
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -16,6 +17,8 @@ let options = yargs
     .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
     .option('coverage-output', { type: 'string', description: 'Path to write the captured lcov.info file. Defaults to ./coverage/lcov.info when coverage markers are seen.' })
+    .option('coverage-html', { type: 'string', description: 'Directory to render an Istanbul-style HTML report into after the lcov is captured.' })
+    .option('coverage-src-root', { type: 'string', description: 'Root directory used to resolve relative source paths in the lcov when rendering HTML. Defaults to the current working directory.' })
     .option('package', { type: 'string', description: 'Path to a pre-built .zip to deploy. When set, the rooibos CLI skips its own build step. Assumes the package was already built with the rooibos plugin so coverage helpers are present in the bundled code.' })
     .check((argv) => {
         if (!argv.host) {
@@ -96,6 +99,7 @@ async function main() {
     const rootDirAbs = path.resolve(bsConfig.rootDir ?? './');
     let capturingCoverage = false;
     let coverageBuffer: string[] = [];
+    let htmlReportPromise: Promise<void> | undefined;
 
     function writeLcov(content: string) {
         const rewritten = content.split('\n').map(line => {
@@ -113,6 +117,8 @@ async function main() {
     }
 
     async function doExit(emitAppExit = false) {
+        // don't kill the process while the HTML report is still rendering
+        await htmlReportPromise;
         if (emitAppExit) {
             (telnet as any).beginAppExit();
         }
@@ -133,6 +139,15 @@ async function main() {
                 capturingCoverage = false;
                 try {
                     writeLcov(coverageBuffer.join('\n'));
+                    if (options['coverage-html']) {
+                        htmlReportPromise = generateHtmlReport({
+                            lcovPath: coverageOutputPath,
+                            outputDir: options['coverage-html'],
+                            sourceRoot: options['coverage-src-root']
+                        }).catch(e => {
+                            console.error('[rooibos] failed to render HTML coverage report:', e);
+                        });
+                    }
                 } catch (e) {
                     console.error('[rooibos] failed to write lcov:', e);
                 }
