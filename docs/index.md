@@ -1239,6 +1239,21 @@ e.g.
     ]
 },
 ```
+
+#### Device compiler limits
+
+Roku's compiler has undocumented per-expression and per-file limits (`&hae Internal
+limit size exceeded`, `&hb9 Error loading file`), and instrumented code is what usually
+finds them. Rooibos measures its instrumentation against those limits and reshapes it
+automatically — flattened branch wraps, extraction of very complex conditions into
+generated helper functions (no coverage lost), splitting of very long `else if` ladders,
+and a function-only fallback for files that would exceed Roku's 2MiB file cap. When
+anything is reshaped or skipped, a `[rooibos coverage]` warning is printed during the
+build. The measured limits and the safeguards are documented in
+[roku-compiler-limits.md](roku-compiler-limits.md), and three config knobs control the
+thresholds: `coverageMaxExpressionComplexity` (default 16), `coverageMaxIfChainArms`
+(default 150) and `coverageMaxFileBytes` (default 1900000).
+
 #### Statement support
 
 The following statements types are supported:
