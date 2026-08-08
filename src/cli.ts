@@ -51,7 +51,7 @@ async function main() {
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
     const rokuDeploy = new RokuDeploy();
-    const prebuiltPackage = options['package'] as string | undefined;
+    const prebuiltPackage = options.package;
     // Resolved path to the .zip we'll actually deploy. When --package points at a directory
     // we zip it into out/rooibos-prebuilt.zip first, since roku-deploy.publish only takes
     // an existing zip.

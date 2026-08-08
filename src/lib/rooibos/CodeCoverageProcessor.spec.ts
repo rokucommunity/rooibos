@@ -1007,6 +1007,145 @@ describe('RooibosPlugin', () => {
 
             expect(a).to.equal(b);
         });
+
+        // Roku raises "Internal limit size exceeded" (&hae) when a single expression holds
+        // too many logical operators / calls (measured on-device: plain or-chains die at 29
+        // operators, flat call-chains at ~22, and nested wrapper calls at just 8 terms).
+        // These tests pin the three safeguards: flat leaf wraps, helper extraction for
+        // over-budget boolean conditions, and skip-with-warning everywhere else.
+        describe('compiler limit safeguards', () => {
+            it('wraps logical chains flat - one shared block, no nested branchValue wraps', async () => {
+                program.setFile('source/code.bs', `
+                    function anyMatch(a as integer, b as integer, c as integer, d as integer) as boolean
+                        if a = 1 or b = 2 or c = 3 or d = 4
+                            return true
+                        end if
+                        return false
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // all four leaves share one block id with sequential branch ids
+                const wrapRegex = /RBS_CC_0_branchValue\((\d+), (\d+),/g;
+                const blockIds: Array<[string, string]> = [];
+                let wrapMatch = wrapRegex.exec(a);
+                while (wrapMatch) {
+                    blockIds.push([wrapMatch[1], wrapMatch[2]]);
+                    wrapMatch = wrapRegex.exec(a);
+                }
+                expect(blockIds.map(x => x[1])).to.eql(['0', '1', '2', '3']);
+                expect(new Set(blockIds.map(x => x[0])).size).to.equal(1);
+                // and no wrap is nested inside another wrap's argument
+                expect(a).to.not.match(/branchValue\(\d+, \d+, RBS_CC_0_branchValue/);
+            });
+
+            it('extracts an over-budget if-condition into a generated short-circuit ladder helper', async () => {
+                program.setFile('source/code.bs', `
+                    function chk(n as integer, limit as integer) as boolean
+                        return n > limit
+                    end function
+
+                    function hot() as boolean
+                        limit = 5
+                        if chk(1, limit) or chk(2, limit) or chk(3, limit) or chk(4, limit) or chk(5, limit) or chk(6, limit) or chk(7, limit) or chk(8, limit) or chk(9, limit) or chk(10, limit) or chk(11, limit) or chk(12, limit)
+                            return true
+                        end if
+                        return false
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // condition replaced with a call to the generated helper, locals passed through
+                expect(a).to.match(/if RBS_CC_0_reportLine\(\d+\) and \(RBS_CC_0_cx0\(limit\)\)/);
+                // helper contains the sequential ladder: one leaf per statement, guarded by
+                // `if not __rbs_r` so short-circuit order is preserved exactly
+                expect(a).to.include('function RBS_CC_0_cx0(limit)');
+                expect(a).to.match(/__rbs_r = RBS_CC_0_branchValue\(\d+, 0, chk\(1, limit\)\)/);
+                expect(a).to.match(/__rbs_r = RBS_CC_0_branchValue\(\d+, 11, chk\(12, limit\)\)/);
+                expect(a).to.include('if not __rbs_r');
+                expect(a).to.include('return __rbs_r');
+                // the original giant expression is gone from the if statement
+                expect(a).to.not.include('chk(1, limit) or chk(2, limit)');
+            });
+
+            it('skips branch wraps for over-budget expressions outside boolean context', async () => {
+                program.setFile('source/code.bs', `
+                    function chk(n as integer) as boolean
+                        return n > 5
+                    end function
+
+                    function hot() as boolean
+                        x = chk(1) or chk(2) or chk(3) or chk(4) or chk(5) or chk(6) or chk(7) or chk(8) or chk(9) or chk(10) or chk(11) or chk(12)
+                        return x
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // the assignment's line is still reported, but the expression is untouched -
+                // no wraps, no helper (value context could be bitwise, so no ladder either)
+                expect(a).to.include('x = chk(1) or chk(2) or chk(3)');
+                expect(a).to.not.match(/branchValue\(\d/);
+                expect(a).to.not.include('RBS_CC_0_cx');
+            });
+
+            it('splits long elseif chains into nested fresh chains (per-chain &hae cap)', async () => {
+                (plugin as any).codeCoverageProcessor.config.coverageMaxIfChainArms = 3;
+                let arms = '';
+                for (let i = 1; i <= 8; i++) {
+                    arms += `${i === 1 ? 'if' : 'else if'} v = ${i}\n    m.x = ${i}\n`;
+                }
+                program.setFile('source/code.bs', `
+                    sub pick(v as integer)
+                        ${arms}end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // the chain was restructured: `else if` becomes `else` + nested `if`, which
+                // starts a fresh chain for the compiler while behaving identically (the
+                // synthetic else arm picks up its own reportBranch like any else block)
+                expect(a).to.match(/else\r?\n\s*RBS_CC_0_reportBranch\(\d+, \d+\)\r?\n\s*if RBS_CC_0_reportLine/);
+                // all 8 arms are still present and instrumented
+                for (let i = 1; i <= 8; i++) {
+                    expect(a).to.include(`m.x = ${i}`);
+                }
+            });
+
+            it('falls back to function-only coverage when a file would break the 2MiB cap', async () => {
+                (plugin as any).codeCoverageProcessor.config.coverageMaxFileBytes = 10;
+                program.setFile('source/code.bs', `
+                    function classify(value as integer) as string
+                        if value > 0 then
+                            return "positive"
+                        end if
+                        return "negative"
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // functions still report so the FN: section stays meaningful...
+                expect(a).to.include('RBS_CC_0_reportFunction(0)');
+                // ...but no line/branch instrumentation is emitted (definitions of the
+                // helpers themselves still exist, so match call-shape only)
+                expect(a).to.not.match(/RBS_CC_0_reportLine\(\d/);
+                expect(a).to.not.match(/RBS_CC_0_reportBranch\(\d/);
+            });
+        });
     });
 
     // Coverage instrumentation runs first in beforeFileTranspile, then global mock rewriting

@@ -153,6 +153,13 @@ namespace rooibos.Coverage
             ' Write the per line related data
             for each line in file.lines
                 buffer += `DA:${line.lineNumber},${line.totalHit}\n`
+                ' Custom non-LCOV line marking that this statement continues through line `el`
+                ' (multi-line call args, AA literals...). The HTML renderer extends the
+                ' statement's paint range so the whole statement shows red/covered, matching
+                ' how nyc paints multi-line TS statements. Plain lcov consumers ignore it.
+                if line.el <> invalid then
+                    buffer += `RBSSPAN:${line.lineNumber},${line.el}\n`
+                end if
             end for
 
             buffer += `LF:${file.lineTotalFound}\n`

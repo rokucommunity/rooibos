@@ -38,6 +38,8 @@ const rawWithExtensions = fs.readFileSync(lcovPath, 'utf8').replace(/^FN:(\d+),\
 // When present, the renderer treats the branch as a wrap target (type !== 'if') so Istanbul's
 // annotator paints the missed arm yellow via the cbranch-no class.
 const branchColumns = new Map();
+// Maps `<file>:<startLine>` -> endLine for multi-line statements (RBSSPAN extension lines).
+const statementSpans = new Map();
 let raw = '';
 let currentSf = null;
 for (let line of rawWithExtensions.split('\n')) {
@@ -55,6 +57,14 @@ for (let line of rawWithExtensions.split('\n')) {
             startColumn: Number(startCol),
             endColumn: Number(endCol)
         });
+        continue;
+    }
+    // RBSSPAN:<startLine>,<endLine> - a multi-line simple statement (call args, AA literal...)
+    // anchored at startLine. Extends the statement's paint range so the whole statement shows
+    // red/covered, the way nyc paints multi-line TS statements.
+    const spanMatch = line.match(/^RBSSPAN:(\d+),(\d+)$/);
+    if (spanMatch && currentSf) {
+        statementSpans.set(`${currentSf}:${spanMatch[1]}`, Number(spanMatch[2]));
         continue;
     }
     raw += line + '\n';
@@ -129,9 +139,30 @@ lcovParse.source(raw, (err, data) => {
             b: {}
         };
 
-        (file.lines.details || []).forEach((line, i) => {
-            fileCoverage.statementMap[i] = lineSpan(line.line);
-            fileCoverage.s[i] = line.hit;
+        const lineDetails = file.lines.details || [];
+        const daLines = new Set(lineDetails.map((line) => line.line));
+        let statementIndex = 0;
+        lineDetails.forEach((line) => {
+            fileCoverage.statementMap[statementIndex] = lineSpan(line.line);
+            fileCoverage.s[statementIndex] = line.hit;
+            statementIndex++;
+            // Istanbul's HTML annotator only paints the FIRST line of a multi-line statement
+            // (it clamps endCol to the first line's length), and full-line red/green comes
+            // from per-line coverage classes which only exist for DA lines. So expand each
+            // RBSSPAN into synthetic single-line statements carrying the anchor's hit count -
+            // continuation lines of a multi-line statement then paint exactly like nyc paints
+            // multi-line TS statements. Lines with their own DA entry keep their own counts.
+            const spanEnd = statementSpans.get(`${file.file}:${line.line}`);
+            if (spanEnd) {
+                for (let continuation = line.line + 1; continuation <= spanEnd; continuation++) {
+                    if (daLines.has(continuation)) {
+                        continue;
+                    }
+                    fileCoverage.statementMap[statementIndex] = lineSpan(continuation);
+                    fileCoverage.s[statementIndex] = line.hit;
+                    statementIndex++;
+                }
+            }
         });
 
         (file.functions.details || []).forEach((fn, i) => {
@@ -223,7 +254,28 @@ lcovParse.source(raw, (err, data) => {
                 fixupHtml(full);
             } else if (entry.name.endsWith('.html')) {
                 const original = fs.readFileSync(full, 'utf8');
-                const fixed = original.replace(/<pre class="prettyprint lang-js">/g, '<pre>');
+                let fixed = original.replace(/<pre class="prettyprint lang-js">/g, '<pre>');
+                // Loop-body branches are a rooibos extra (nyc doesn't track loop entry at
+                // all), but they ride through Istanbul as type:'if', whose badge title is
+                // hardcoded to "if path not taken". Retitle badges that sit on loop lines so
+                // the tooltip describes what was actually missed.
+                if (fixed.includes('title="if path not taken"')) {
+                    fixed = fixed
+                        .split('\n')
+                        .map((htmlLine) => {
+                            if (!htmlLine.includes('title="if path not taken"')) {
+                                return htmlLine;
+                            }
+                            const sourceText = htmlLine
+                                .replace(/<span[^>]*title="if path not taken"[^>]*>I<\/span>/g, '')
+                                .replace(/<[^>]*>/g, '');
+                            if (/^\s*(for|while)\b/i.test(sourceText)) {
+                                return htmlLine.replace(/title="if path not taken"/g, 'title="loop body never entered"');
+                            }
+                            return htmlLine;
+                        })
+                        .join('\n');
+                }
                 if (fixed !== original) {
                     fs.writeFileSync(full, fixed);
                 }
