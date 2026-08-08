@@ -1,5 +1,7 @@
 function init()
-    m.coverageMap = "#BASE_COVERAGE_REPORT#"
+    ' The coverage map ships as a JSON asset rather than an embedded literal: a real app's
+    ' map can exceed Roku's 2MiB-per-.brs-file compile limit (&hb9) when written into code.
+    m.coverageMap = ParseJson(ReadAsciiFile("pkg:/components/rooibos/CodeCoverage.json"))
     m.port = createObject("roMessagePort")
     m.top.observeFieldScoped("entry", m.port)
     m.top.functionName = "runTaskThread"

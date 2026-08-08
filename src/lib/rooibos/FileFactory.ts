@@ -101,10 +101,11 @@ export class FileFactory {
     }
 
     public createCoverageComponent(program: Program, baseCoverageReport: CoverageMap) {
-        let template = this.coverageComponentBrsTemplate;
-        template = template.replace(/\"\#BASE_COVERAGE_REPORT\#\"/g, JSON.stringify(baseCoverageReport ?? { files: [] }));
-
-        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
+        // The report is written as a sidecar JSON asset that CodeCoverage.brs parses at
+        // runtime. Embedding it as a code literal broke real apps: the map for a large app
+        // is several MB and Roku refuses to compile any .brs file of 2MiB or more (&hb9).
+        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.json'), JSON.stringify(baseCoverageReport ?? { files: [] }));
+        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), this.coverageComponentBrsTemplate);
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
     }
 
