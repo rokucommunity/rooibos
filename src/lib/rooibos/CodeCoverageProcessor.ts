@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isMethodStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement } from 'brighterscript';
 import type { AssignmentStatement, BrsFile, CallExpression, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, Program, ProgramBuilder, Range, Statement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -247,6 +247,12 @@ export class CodeCoverageProcessor {
 
         file.ast.walk(createVisitor({
             FunctionStatement: (statement) => {
+                this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
+            },
+            // class methods dispatch as MethodStatement, not FunctionStatement - without
+            // this key, functionOnly mode (which early-returns in every other handler)
+            // records no functions at all for class-heavy files
+            MethodStatement: (statement) => {
                 this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
             },
             Block: (statement, parent, owner, key) => {
@@ -1403,7 +1409,7 @@ export class CodeCoverageProcessor {
      */
     private ensureFunctionTracked(statement: Statement, parseMode: ParseMode) {
         let originalFunc: FunctionExpression;
-        if (isFunctionStatement(statement)) {
+        if (isFunctionStatement(statement) || isMethodStatement(statement)) {
             originalFunc = statement.func;
         } else {
             originalFunc = statement.findAncestor(isFunctionExpression);

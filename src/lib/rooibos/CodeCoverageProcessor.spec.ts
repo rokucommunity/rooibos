@@ -1284,6 +1284,41 @@ describe('RooibosPlugin', () => {
                 expect(a).to.not.match(/RBS_CC_0_reportLine\(\d/);
                 expect(a).to.not.match(/RBS_CC_0_reportBranch\(\d/);
             });
+
+            it('tracks class methods in function-only mode (methods dispatch as MethodStatement)', async () => {
+                (plugin as any).codeCoverageProcessor.config.coverageMaxFileBytes = 10;
+                program.setFile('source/code.bs', `
+                    class Calculator
+                        function add(a as integer, b as integer) as integer
+                            return a + b
+                        end function
+
+                        sub reset()
+                            m.total = 0
+                        end sub
+                    end class
+
+                    function topLevel() as boolean
+                        return true
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // both class methods and the top-level function get entry reports
+                expect(a).to.include('RBS_CC_0_reportFunction(0)');
+                expect(a).to.include('RBS_CC_0_reportFunction(1)');
+                expect(a).to.include('RBS_CC_0_reportFunction(2)');
+                expect(a).to.not.match(/RBS_CC_0_reportLine\(\d/);
+
+                const report = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+                const names = report.files[0].functions.map((f) => f.name);
+                expect(names).to.include('add');
+                expect(names).to.include('reset');
+                expect(names).to.include('topLevel');
+            });
         });
     });
 
