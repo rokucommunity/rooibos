@@ -20,7 +20,8 @@ let options = yargs
     .option('coverage-output', { type: 'string', description: 'Path to write the standard lcov.info file. The canonical Istanbul coverage-final.json is written next to it. Defaults to ./coverage/lcov.info when coverage markers are seen.' })
     .option('coverage-html', { type: 'string', description: 'Directory to render an Istanbul-style HTML report into after coverage is captured.' })
     .option('coverage-src-root', { type: 'string', description: 'Repository root of the app under test: lcov SF paths are emitted relative to it and source files are resolved beneath it. Defaults to the current working directory.' })
-    .option('package', { type: 'string', description: 'Path to a pre-built .zip to deploy. When set, the rooibos CLI skips its own build step. Assumes the package was already built with the rooibos plugin so coverage helpers are present in the bundled code.' })
+    .option('staging-dir', { type: 'string', description: 'Path to the built package directory (staging output). With --no-build this is zipped and deployed as-is; otherwise it overrides where the build stages. Coverage models are read from here.' })
+    .option('build', { type: 'boolean', default: true, description: 'Pass --no-build to skip the internal bsc build and deploy an existing staging directory (from --staging-dir or the bsconfig). Assumes it was built with the rooibos plugin so coverage helpers are present.' })
     .check((argv) => {
         if (!argv.host) {
             return new Error('You must provide a host. (--host)');
@@ -55,33 +56,55 @@ async function main() {
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
     const rokuDeploy = new RokuDeploy();
-    const prebuiltPackage = options.package;
-    // Resolved path to the .zip we'll actually deploy. When --package points at a directory
-    // we zip it into out/rooibos-prebuilt.zip first, since roku-deploy.publish only takes
-    // an existing zip.
+    const skipBuild = options.build === false;
+
+    /**
+     * Ordered candidate locations for the built package contents: the --staging-dir
+     * override, then the bsconfig staging fields, then roku-deploy's default staging
+     * location (used when no staging dir is configured anywhere).
+     */
+    function stagingDirCandidates(): string[] {
+        const candidates: string[] = [];
+        if (options['staging-dir']) {
+            candidates.push(path.resolve(String(options['staging-dir'])));
+        }
+        for (const staging of [(bsConfig as any).stagingDir, bsConfig.stagingFolderPath]) {
+            if (staging) {
+                candidates.push(path.resolve(String(staging)));
+            }
+        }
+        const outDir = bsConfig.outFile ? path.dirname(String(bsConfig.outFile)) : './out';
+        candidates.push(path.resolve(outDir, '.roku-deploy-staging'));
+        return candidates;
+    }
+
+    // Resolved path to the .zip we'll actually deploy when skipping the build. The
+    // staging dir is zipped into out/rooibos-prebuilt.zip since roku-deploy.publish
+    // only takes an existing zip. A directory is required - the coverage model
+    // (components/rooibos/CodeCoverage.json) must be readable from it.
     let deployZipPath: string | undefined;
 
-    if (prebuiltPackage) {
-        const resolved = path.resolve(prebuiltPackage);
-        if (!fs.existsSync(resolved)) {
-            console.error(`[rooibos] --package path not found: ${resolved}`);
+    if (skipBuild) {
+        const stagingDir = stagingDirCandidates().find((c) => fs.existsSync(c));
+        if (!stagingDir) {
+            console.error('[rooibos] --no-build requires an existing staging directory: pass --staging-dir or set one in the bsconfig');
             process.exit(1);
         }
-        if (fs.statSync(resolved).isDirectory()) {
-            const zipped = path.resolve('out/rooibos-prebuilt.zip');
-            fs.mkdirSync(path.dirname(zipped), { recursive: true });
-            console.log(`Zipping pre-built folder ${resolved} -> ${zipped}`);
-            // Exclude source maps - they're useful in the staging dir but shouldn't ship
-            // in the package (they bloat channel size and Roku has no use for them).
-            await rokuDeploy.zipFolder(resolved, zipped, undefined, ['**/*', '!**/*.map']);
-            deployZipPath = zipped;
-        } else {
-            console.log(`Using pre-built package: ${resolved} (skipping rooibos build)`);
-            deployZipPath = resolved;
+        if (!fs.statSync(stagingDir).isDirectory()) {
+            console.error(`[rooibos] the staging dir must be a directory, not a file: ${stagingDir}`);
+            process.exit(1);
         }
+        const zipped = path.resolve('out/rooibos-prebuilt.zip');
+        fs.mkdirSync(path.dirname(zipped), { recursive: true });
+        console.log(`Zipping pre-built staging dir ${stagingDir} -> ${zipped}`);
+        // Exclude source maps - they're useful in the staging dir but shouldn't ship
+        // in the package (they bloat channel size and Roku has no use for them).
+        await rokuDeploy.zipFolder(stagingDir, zipped, undefined, ['**/*', '!**/*.map']);
+        deployZipPath = zipped;
     } else {
         const builder = new ProgramBuilder();
         builder.logger.logLevel = logLevel;
+        // --staging-dir (if given) flows into bsc as its stagingDir via the spread
         await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
     }
 
@@ -111,19 +134,8 @@ async function main() {
      * from wherever the deployed package contents live.
      */
     function findCoverageModel(): CoverageModelJson | undefined {
-        const candidates: string[] = [];
-        if (prebuiltPackage) {
-            const resolved = path.resolve(prebuiltPackage);
-            if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
-                candidates.push(path.join(resolved, 'components', 'rooibos', 'CodeCoverage.json'));
-            }
-        }
-        for (const staging of [(bsConfig as any).stagingDir, bsConfig.stagingFolderPath]) {
-            if (staging) {
-                candidates.push(path.resolve(String(staging), 'components', 'rooibos', 'CodeCoverage.json'));
-            }
-        }
-        for (const candidate of candidates) {
+        for (const dir of stagingDirCandidates()) {
+            const candidate = path.join(dir, 'components', 'rooibos', 'CodeCoverage.json');
             const model = loadCoverageModel(candidate);
             if (model) {
                 console.log(`[rooibos] using coverage model from ${candidate}`);
