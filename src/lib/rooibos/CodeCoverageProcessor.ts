@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isForEachStatement, isWhileStatement, isTryCatchStatement, isCatchStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement } from 'brighterscript';
-import type { AssignmentStatement, BrsFile, CallExpression, CatchStatement, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, Program, ProgramBuilder, Range, Statement, TryCatchStatement } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement } from 'brighterscript';
+import type { AssignmentStatement, BrsFile, CallExpression, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, Program, ProgramBuilder, Range, Statement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export enum CodeCoverageLineType {
     noCode = 0,
@@ -174,12 +176,6 @@ export class CodeCoverageProcessor {
     private pendingLineReports: Array<{ owner: any; statement: Statement; callText: string }>;
     /** Tracks the block.id and anchor line reserved for an IfStatement so its then/else branches share both. */
     private allocatedIfBlocks: Map<IfStatement, { blockId: number; line: number }>;
-    /**
-     * Tracks the block.id reserved for a TryCatchStatement so its try-branch and catch-branch
-     * pair under one block. The CatchStatement is stored separately because the Block visitor
-     * sees CatchStatement (not TryCatchStatement) as the parent when walking the catch body.
-     */
-    private allocatedTryBlocks: Map<TryCatchStatement | CatchStatement, { blockId: number; line: number }>;
     /** Tracks expressions we've already wrapped (e.g. ternary arms) so we don't double-wrap on re-visits. */
     private processedExpressions: Set<Expression>;
     /** IfStatements that are the elseBranch of another IfStatement (i.e. `else if` arms). */
@@ -232,7 +228,6 @@ export class CodeCoverageProcessor {
         this.pendingFunctionReports = [];
         this.pendingLineReports = [];
         this.allocatedIfBlocks = new Map();
-        this.allocatedTryBlocks = new Map();
         this.processedExpressions = new Set();
         this.elseIfChildren = new Set();
         this.pendingHelpers = [];
@@ -261,59 +256,39 @@ export class CodeCoverageProcessor {
                 if (isFunctionExpression(parent)) {
                     return;
                 }
-
-                const lineNumber = statement.range.start.line + 1;
-                let blockId: number;
-                let branchId: number;
+                // Only if/else arms are branch-tracked, matching istanbul's TS instrumenter
+                // (branches are: if, cond-expr, binary-expr, switch, default-arg). Loop bodies
+                // and try/catch arms are NOT branches in istanbul - a never-entered body shows
+                // up through statement coverage of its lines, exactly as it does in TS.
+                if (!isIfStatement(parent) || !this.allocatedIfBlocks.has(parent)) {
+                    return;
+                }
 
                 // Pair then/else blocks of an IfStatement under the same block.id so consumers
                 // (genhtml, istanbul-reports) can render them as one branching decision with
                 // multiple outcomes (the I/E badges in nyc-style HTML reports).
-                if (isIfStatement(parent) && this.allocatedIfBlocks.has(parent)) {
-                    const reserved = this.allocatedIfBlocks.get(parent)!;
-                    blockId = reserved.blockId;
-                    const blockEntry = this.foundBlocks.find(b => b.id === blockId)!;
-                    branchId = blockEntry.branches.length;
-                    // Both arms anchor to the if-statement's line so the I/E badge appears
-                    // next to the `if` keyword in the rendered HTML, matching nyc's TS output.
-                    blockEntry.branches.push({
-                        id: branchId,
-                        line: reserved.line,
-                        totalHit: 0
-                    });
-                } else if ((isTryCatchStatement(parent) || isCatchStatement(parent)) && this.allocatedTryBlocks.has(parent)) {
-                    const reserved = this.allocatedTryBlocks.get(parent)!;
-                    blockId = reserved.blockId;
-                    const blockEntry = this.foundBlocks.find(b => b.id === blockId)!;
-                    branchId = blockEntry.branches.length;
-                    // Both arms anchor to the try-statement's line so the I/E badge sits next
-                    // to the `try` keyword.
-                    blockEntry.branches.push({
-                        id: branchId,
-                        line: reserved.line,
-                        totalHit: 0
-                    });
-                } else {
-                    blockId = this.blockId++;
-                    branchId = 0;
-                    // For loop body blocks, anchor the branch to the loop statement's line
-                    // (e.g. `for each ...`) rather than the first body line, so the I badge
-                    // for "loop body never entered" lands on the loop keyword, matching the
-                    // anchoring style of nyc/Istanbul TS reports.
-                    let anchorLine = lineNumber;
-                    if (isForStatement(parent) || isForEachStatement(parent) || isWhileStatement(parent)) {
-                        anchorLine = parent.range.start.line + 1;
-                    }
-                    this.foundBlocks.push({
-                        id: blockId,
-                        isIfArm: false,
-                        branches: [{
-                            id: branchId,
-                            line: anchorLine,
-                            totalHit: 0
-                        }]
-                    });
-                }
+                const reserved = this.allocatedIfBlocks.get(parent)!;
+                const blockId = reserved.blockId;
+                const blockEntry = this.foundBlocks.find(b => b.id === blockId)!;
+                const branchId = blockEntry.branches.length;
+                // Inline arms (`if cond then <statement>`) get their clause's column range
+                // recorded so host tooling can synthesize an Istanbul STATEMENT for the
+                // clause - line-granular tracking can't see it (the if line itself ran),
+                // but the arm's branch hit count is exactly the clause's execution count.
+                // nyc paints the TS equivalent (`if (x) return y;`) red this way.
+                const isInlineArm = statement.range.start.line === statement.range.end.line &&
+                    statement.range.start.line + 1 === reserved.line;
+                // Both arms anchor to the if-statement's line so the I/E badge appears
+                // next to the `if` keyword in the rendered HTML, matching nyc's TS output.
+                blockEntry.branches.push({
+                    id: branchId,
+                    line: reserved.line,
+                    totalHit: 0,
+                    ...(isInlineArm ? {
+                        sc: statement.range.start.character,
+                        ec: statement.range.end.character - 1
+                    } : {})
+                });
 
                 const parsed = Parser.parse(this.getReportBranchHitFuncCallText(blockId, branchId, statement)).ast.statements[0] as ExpressionStatement;
                 this.astEditor.addToArray(statement.statements, 0, parsed);
@@ -336,25 +311,9 @@ export class CodeCoverageProcessor {
                 // owner array mid-visit causes the walker to re-read owner[key] and skip
                 // the try-statement's children.
                 tryCatch.tokens.try.text = `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, CodeCoverageLineType.code, tryCatch)}: try`;
-                // Reserve a single block.id covering the try and catch arms. Both Block visits
-                // (for tryBranch and catchBranch) will discover their reservation here and
-                // append to the same block, anchoring I/E badges at the `try` keyword line.
-                const reservedId = this.blockId++;
-                const reservation = {
-                    blockId: reservedId,
-                    line: tryCatch.range.start.line + 1
-                };
-                this.allocatedTryBlocks.set(tryCatch, reservation);
-                if (tryCatch.catchStatement) {
-                    this.allocatedTryBlocks.set(tryCatch.catchStatement, reservation);
-                }
-                this.foundBlocks.push({
-                    id: reservedId,
-                    // Treat try/catch like an if/else pair - both arms tracked, no synthetic
-                    // implicit-arm needed. isIfArm=false skips the implicit-else synthesis.
-                    isIfArm: false,
-                    branches: []
-                });
+                // try/catch arms are deliberately NOT branch-tracked - istanbul's TS
+                // instrumenter doesn't treat them as branches either; an unexercised catch
+                // shows up through statement coverage of its body lines.
             },
             IfStatement: (ifStatement, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
@@ -685,6 +644,7 @@ export class CodeCoverageProcessor {
 
         this.baseCoverageReport.files[this.fileId] = {
             sourceFile: file.pkgPath.replace('pkg:', '.').replace('\\', '/'),
+            sourcePath: this.repoRelativeSourcePath(file.srcPath),
             lines: this.foundLines.sort((a, b) => a.lineNumber - b.lineNumber),
             lineTotalFound: this.foundLines.length,
             lineTotalHit: 0,
@@ -699,6 +659,53 @@ export class CodeCoverageProcessor {
         for (const message of this.coverageWarnings) {
             console.log(`[rooibos coverage] ${file.pkgPath}: ${message}`);
         }
+    }
+
+    /** dir -> git repo root (or undefined when none found); avoids re-walking per file */
+    private gitRootCache = new Map<string, string | undefined>();
+
+    /**
+     * Repo-relative path of the original source file, recorded so host-side tooling can map
+     * pkg paths back to real repository paths (Coveralls SF rewriting, HTML source
+     * resolution). Found by walking up from the file to the nearest `.git`. Undefined when
+     * the file isn't inside a git checkout - consumers fall back to the pkg path.
+     */
+    private repoRelativeSourcePath(srcPath: string | undefined): string | undefined {
+        if (!srcPath) {
+            return undefined;
+        }
+        const root = this.findGitRoot(path.dirname(path.resolve(srcPath)));
+        if (!root) {
+            return undefined;
+        }
+        return path.relative(root, path.resolve(srcPath)).replace(/\\/g, '/');
+    }
+
+    private findGitRoot(startDir: string): string | undefined {
+        const visited: string[] = [];
+        let dir = startDir;
+        let result: string | undefined;
+        while (true) {
+            const cached = this.gitRootCache.get(dir);
+            if (cached !== undefined || this.gitRootCache.has(dir)) {
+                result = cached;
+                break;
+            }
+            visited.push(dir);
+            if (fs.existsSync(path.join(dir, '.git'))) {
+                result = dir;
+                break;
+            }
+            const parent = path.dirname(dir);
+            if (parent === dir) {
+                break;
+            }
+            dir = parent;
+        }
+        for (const d of visited) {
+            this.gitRootCache.set(d, result);
+        }
+        return result;
     }
 
     private isLogicalBinary(node: any): node is BinaryExpression {
@@ -1411,8 +1418,15 @@ export interface CoverageMap {
     files: Array<FileCoverage>;
 }
 
-interface FileCoverage {
+export interface FileCoverage {
     sourceFile: string;
+    /**
+     * Repo-relative path of the original source file (posix separators), e.g.
+     * `core/src/components/Foo.bs`. Written at build time so host-side tooling can rewrite
+     * pkg paths to real repository paths (Coveralls needs SF paths that match git).
+     * Undefined when the source file was not inside a git checkout.
+     */
+    sourcePath?: string;
     lineTotalFound: number;
     lineTotalHit: number;
     lines: Array<LineCoverage>;
@@ -1444,6 +1458,15 @@ interface BranchCoverage {
          */
         column?: number;
         endColumn?: number;
+        /**
+         * Column range (0-indexed, inclusive end) of an INLINE if/else arm's clause - e.g.
+         * `return x` in `if cond then return x`. Host tooling synthesizes an Istanbul
+         * statement from this range with the arm's branch hit count, so a never-taken
+         * inline clause paints red exactly like nyc paints the TS equivalent. Compact
+         * names: the model rides close to Roku's 2MiB per-file boundary.
+         */
+        sc?: number;
+        ec?: number;
     }>;
 }
 interface FunctionCoverage {

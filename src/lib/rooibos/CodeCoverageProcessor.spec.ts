@@ -2,6 +2,7 @@ import { Program, ProgramBuilder, util, standardizePath as s } from 'brighterscr
 import { expect } from 'chai';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
+import * as path from 'path';
 import { RooibosPlugin } from '../../plugin';
 import undent from 'undent';
 
@@ -92,7 +93,6 @@ describe('RooibosPlugin', () => {
                         RBS_CC_0_reportLine(4)
                         text = ""
                         RBS_CC_0_reportLine(5): for i = 0 to 10
-                            RBS_CC_0_reportBranch(0, 0)
                             RBS_CC_0_reportLine(6)
                             text = text + "hello"
                             RBS_CC_0_reportLine(7)
@@ -100,16 +100,16 @@ describe('RooibosPlugin', () => {
                             RBS_CC_0_reportLine(8)
                             c += 1
                             if RBS_CC_0_reportLine(9) and (c = 2)
-                                RBS_CC_0_reportBranch(1, 0)
+                                RBS_CC_0_reportBranch(0, 0)
                                 RBS_CC_0_reportLine(10)
                                 ? "is true"
                             end if
                             if RBS_CC_0_reportLine(13) and (c = 3)
-                                RBS_CC_0_reportBranch(2, 0)
+                                RBS_CC_0_reportBranch(1, 0)
                                 RBS_CC_0_reportLine(14)
                                 ? "free"
                             else
-                                RBS_CC_0_reportBranch(2, 1)
+                                RBS_CC_0_reportBranch(1, 1)
                                 RBS_CC_0_reportLine(16)
                                 ? "not free"
                             end if
@@ -215,6 +215,57 @@ describe('RooibosPlugin', () => {
                 expect(a).to.equal(b);
 
             });
+
+            it('records a repo-relative sourcePath in CodeCoverage.json', async () => {
+                program.setFile('source/code.brs', `
+                    function new()
+                        c = 0
+                    end function
+                `);
+                program.validate();
+                await builder.transpile();
+
+                const report = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+                // the nearest git root above .tmp is this repo's own root, so the recorded
+                // path is the srcPath relative to it (posix separators)
+                let gitRoot = process.cwd();
+                while (!fsExtra.existsSync(path.join(gitRoot, '.git')) && path.dirname(gitRoot) !== gitRoot) {
+                    gitRoot = path.dirname(gitRoot);
+                }
+                const expected = path.relative(gitRoot, s`${_rootDir}/source/code.brs`).replace(/\\/g, '/');
+                // sourceFile keeps its pkg-relative form (the exact prefix depends on the
+                // bsc version's pkgPath) - the device echoes it verbatim into SF lines and
+                // the CLI uses it verbatim as the path-map key, so it only has to be
+                // self-consistent. sourcePath is the new repo-relative field.
+                expect(report.files[0].sourceFile.replace(/^\.\//, '')).to.equal('source/code.brs');
+                expect(report.files[0].sourcePath).to.equal(expected);
+            });
+
+            it('records the clause column range for inline if arms', async () => {
+                const source = `
+                    function new(c)
+                        if c = 2 then return 1
+                        if c = 3
+                            return 2
+                        end if
+                        return 0
+                    end function
+                `;
+                program.setFile('source/code.brs', source);
+                program.validate();
+                await builder.transpile();
+
+                const report = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+                const blocks = report.files[0].blocks;
+                const inlineArm = blocks.flatMap(b => b.branches).find(b => b.sc !== undefined);
+                expect(inlineArm, 'expected an inline arm with a clause range').to.exist;
+                // self-validating: the recorded range must cover exactly the inline clause
+                const sourceLine = source.split('\n')[inlineArm.line - 1];
+                expect(sourceLine.substring(inlineArm.sc, inlineArm.ec + 1)).to.equal('return 1');
+                // multi-line arms don't get clause ranges
+                const blockArm = blocks.flatMap(b => b.branches).find(b => b.line !== inlineArm.line && b.sc === undefined);
+                expect(blockArm).to.exist;
+            });
         });
         describe('basic bs tests', () => {
 
@@ -251,7 +302,6 @@ describe('RooibosPlugin', () => {
                         RBS_CC_0_reportLine(4)
                         text = ""
                         RBS_CC_0_reportLine(5): for i = 0 to 10
-                            RBS_CC_0_reportBranch(0, 0)
                             RBS_CC_0_reportLine(6)
                             text = text + "hello"
                             RBS_CC_0_reportLine(7)
@@ -259,16 +309,16 @@ describe('RooibosPlugin', () => {
                             RBS_CC_0_reportLine(8)
                             c += 1
                             if RBS_CC_0_reportLine(9) and (c = 2)
-                                RBS_CC_0_reportBranch(1, 0)
+                                RBS_CC_0_reportBranch(0, 0)
                                 RBS_CC_0_reportLine(10)
                                 ? "is true"
                             end if
                             if RBS_CC_0_reportLine(13) and (c = 3)
-                                RBS_CC_0_reportBranch(2, 0)
+                                RBS_CC_0_reportBranch(1, 0)
                                 RBS_CC_0_reportLine(14)
                                 ? "free"
                             else
-                                RBS_CC_0_reportBranch(2, 1)
+                                RBS_CC_0_reportBranch(1, 1)
                                 RBS_CC_0_reportLine(16)
                                 ? "not free"
                             end if
@@ -421,7 +471,6 @@ describe('RooibosPlugin', () => {
                         RBS_CC_0_reportLine(8)
                         text = ""
                         RBS_CC_0_reportLine(9): for i = 0 to 10
-                            RBS_CC_0_reportBranch(0, 0)
                             RBS_CC_0_reportLine(10)
                             text = text + "hello"
                             RBS_CC_0_reportLine(11)
@@ -429,16 +478,16 @@ describe('RooibosPlugin', () => {
                             RBS_CC_0_reportLine(12)
                             c += 1
                             if RBS_CC_0_reportLine(13) and (c = 2)
-                                RBS_CC_0_reportBranch(1, 0)
+                                RBS_CC_0_reportBranch(0, 0)
                                 RBS_CC_0_reportLine(14)
                                 ? "is true"
                             end if
                             if RBS_CC_0_reportLine(17) and (c = 3)
-                                RBS_CC_0_reportBranch(2, 0)
+                                RBS_CC_0_reportBranch(1, 0)
                                 RBS_CC_0_reportLine(18)
                                 ? "free"
                             else
-                                RBS_CC_0_reportBranch(2, 1)
+                                RBS_CC_0_reportBranch(1, 1)
                                 RBS_CC_0_reportLine(20)
                                 ? "not free"
                             end if

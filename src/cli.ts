@@ -7,7 +7,8 @@ import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
 import * as path from 'path';
-import { generateHtmlReport } from './lib/rooibos/CoverageHtmlGenerator';
+import type { CoverageMap as CoverageModelJson } from './lib/rooibos/CodeCoverageProcessor';
+import { loadCoverageModel, writeCoverageReports, writeCoverageReportsFromCounts } from './lib/rooibos/CoverageReporter';
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -16,9 +17,9 @@ let options = yargs
     .option('host', { type: 'string', description: 'Host of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
-    .option('coverage-output', { type: 'string', description: 'Path to write the captured lcov.info file. Defaults to ./coverage/lcov.info when coverage markers are seen.' })
-    .option('coverage-html', { type: 'string', description: 'Directory to render an Istanbul-style HTML report into after the lcov is captured.' })
-    .option('coverage-src-root', { type: 'string', description: 'Root directory used to resolve relative source paths in the lcov when rendering HTML. Defaults to the current working directory.' })
+    .option('coverage-output', { type: 'string', description: 'Path to write the standard lcov.info file. The canonical Istanbul coverage-final.json is written next to it. Defaults to ./coverage/lcov.info when coverage markers are seen.' })
+    .option('coverage-html', { type: 'string', description: 'Directory to render an Istanbul-style HTML report into after coverage is captured.' })
+    .option('coverage-src-root', { type: 'string', description: 'Repository root of the app under test: lcov SF paths are emitted relative to it and source files are resolved beneath it. Defaults to the current working directory.' })
     .option('package', { type: 'string', description: 'Path to a pre-built .zip to deploy. When set, the rooibos CLI skips its own build step. Assumes the package was already built with the rooibos plugin so coverage helpers are present in the bundled code.' })
     .check((argv) => {
         if (!argv.host) {
@@ -96,29 +97,101 @@ async function main() {
     const endRegex = /\[Rooibos Shutdown\]/g;
 
     const coverageOutputPath = path.resolve(options['coverage-output'] ?? './coverage/lcov.info');
-    const rootDirAbs = path.resolve(bsConfig.rootDir ?? './');
+    // The user's rooibos config decides how coverage is reported ('lcov' | 'nyc'). When
+    // set, the device prints the condensed counts stream instead of lcov text.
+    const coverageReporter = (rawConfig as any).rooibos?.coverageReporter as string | undefined;
     let capturingCoverage = false;
+    let capturingCounts = false;
     let coverageBuffer: string[] = [];
-    let htmlReportPromise: Promise<void> | undefined;
+    let coverageReportPromise: Promise<void> | undefined;
 
-    function writeLcov(content: string) {
-        const rewritten = content.split('\n').map(line => {
-            // The framework writes SF lines as `SF:./relative/from/rootDir.bs`. Rewrite to absolute paths
-            // so genhtml can locate the original source files regardless of where it's invoked from.
-            if (line.startsWith('SF:./')) {
-                return `SF:${path.resolve(rootDirAbs, line.substring(5))}`;
+    /**
+     * The bsc plugin writes the static coverage model (line/function/branch shape plus
+     * repo-relative source paths) into components/rooibos/CodeCoverage.json; read it back
+     * from wherever the deployed package contents live.
+     */
+    function findCoverageModel(): CoverageModelJson | undefined {
+        const candidates: string[] = [];
+        if (prebuiltPackage) {
+            const resolved = path.resolve(prebuiltPackage);
+            if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+                candidates.push(path.join(resolved, 'components', 'rooibos', 'CodeCoverage.json'));
             }
-            return line;
-        }).join('\n');
+        }
+        for (const staging of [(bsConfig as any).stagingDir, bsConfig.stagingFolderPath]) {
+            if (staging) {
+                candidates.push(path.resolve(String(staging), 'components', 'rooibos', 'CodeCoverage.json'));
+            }
+        }
+        for (const candidate of candidates) {
+            const model = loadCoverageModel(candidate);
+            if (model) {
+                console.log(`[rooibos] using coverage model from ${candidate}`);
+                return model;
+            }
+        }
+        return undefined;
+    }
 
-        fs.mkdirSync(path.dirname(coverageOutputPath), { recursive: true });
-        fs.writeFileSync(coverageOutputPath, rewritten);
-        console.log(`[rooibos] wrote lcov to ${coverageOutputPath}`);
+    /** Dumps the raw device stream next to the lcov target so a capture is never lost. */
+    function saveRawCapture(raw: string, suffix: string) {
+        const rawPath = `${coverageOutputPath}.${suffix}`;
+        fs.mkdirSync(path.dirname(rawPath), { recursive: true });
+        fs.writeFileSync(rawPath, raw);
+        console.error(`[rooibos] raw coverage output saved to ${rawPath}`);
+    }
+
+    /** Legacy path: the device printed a full lcov report (printLcov flag). */
+    function writeCoverageFromLcov(rawLcov: string) {
+        const model = findCoverageModel();
+        const pathMap = new Map<string, string>();
+        for (const file of model?.files ?? []) {
+            if (file?.sourceFile && file.sourcePath) {
+                pathMap.set(file.sourceFile, file.sourcePath);
+            }
+        }
+        if (pathMap.size === 0) {
+            console.log('[rooibos] no coverage path map found; lcov SF paths fall back to pkg-relative locations');
+        }
+        coverageReportPromise = writeCoverageReports({
+            rawLcov: rawLcov,
+            lcovPath: coverageOutputPath,
+            istanbulJsonPath: path.join(path.dirname(coverageOutputPath), 'coverage-final.json'),
+            htmlDir: options['coverage-html'],
+            sourceRoot: options['coverage-src-root'],
+            pathMap: pathMap.size > 0 ? pathMap : undefined
+        }).catch(e => {
+            console.error('[rooibos] failed to write coverage reports:', e);
+            saveRawCapture(rawLcov, 'raw');
+        });
+    }
+
+    /** coverageReporter path: the device printed the condensed hit-counts stream. */
+    function writeCoverageFromCounts(rawCounts: string) {
+        const model = findCoverageModel();
+        if (!model) {
+            console.error('[rooibos] the device sent condensed coverage counts but no components/rooibos/CodeCoverage.json was found in the package or staging dir - cannot build coverage reports');
+            saveRawCapture(rawCounts, 'counts.raw');
+            return;
+        }
+        const reporter = coverageReporter === 'nyc' ? 'nyc' : 'lcov';
+        coverageReportPromise = writeCoverageReportsFromCounts({
+            rawCounts: rawCounts,
+            model: model,
+            reporter: reporter,
+            lcovPath: coverageOutputPath,
+            istanbulJsonPath: path.join(path.dirname(coverageOutputPath), 'coverage-final.json'),
+            htmlDir: options['coverage-html'],
+            sourceRoot: options['coverage-src-root']
+        }).catch(e => {
+            console.error('[rooibos] failed to write coverage reports:', e);
+            saveRawCapture(rawCounts, 'counts.raw');
+        });
     }
 
     async function doExit(emitAppExit = false) {
-        // don't kill the process while the HTML report is still rendering
-        await htmlReportPromise;
+        // don't kill the process while coverage reports are still being written
+        await coverageReportPromise;
         if (emitAppExit) {
             (telnet as any).beginAppExit();
         }
@@ -130,6 +203,16 @@ async function main() {
         console.log(output);
 
         for (const line of output.split('\n')) {
+            if (line.includes('+-=-coverage-counts:start')) {
+                capturingCounts = true;
+                coverageBuffer = [];
+                continue;
+            }
+            if (line.includes('+-=-coverage-counts:end')) {
+                capturingCounts = false;
+                writeCoverageFromCounts(coverageBuffer.join('\n'));
+                continue;
+            }
             if (line.includes('+-=-coverage:start')) {
                 capturingCoverage = true;
                 coverageBuffer = [];
@@ -137,23 +220,10 @@ async function main() {
             }
             if (line.includes('+-=-coverage:end')) {
                 capturingCoverage = false;
-                try {
-                    writeLcov(coverageBuffer.join('\n'));
-                    if (options['coverage-html']) {
-                        htmlReportPromise = generateHtmlReport({
-                            lcovPath: coverageOutputPath,
-                            outputDir: options['coverage-html'],
-                            sourceRoot: options['coverage-src-root']
-                        }).catch(e => {
-                            console.error('[rooibos] failed to render HTML coverage report:', e);
-                        });
-                    }
-                } catch (e) {
-                    console.error('[rooibos] failed to write lcov:', e);
-                }
+                writeCoverageFromLcov(coverageBuffer.join('\n'));
                 continue;
             }
-            if (capturingCoverage) {
+            if (capturingCoverage || capturingCounts) {
                 coverageBuffer.push(line);
             }
         }

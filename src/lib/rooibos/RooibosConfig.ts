@@ -39,7 +39,24 @@ export interface RooibosConfig {
     showOnlyFailures?: boolean;
     failFast?: boolean;
     printTestTimes?: boolean;
+    /**
+     * @deprecated Use `coverageReporter` instead. When true (and `coverageReporter` is
+     * not set) the device prints a plain, spec-compliant lcov report to the console at
+     * the end of the run.
+     */
     printLcov?: boolean;
+    /**
+     * How coverage should be reported when `isRecordingCodeCoverage` is on. When set,
+     * this overrides the legacy `printLcov` flag: the device prints a condensed
+     * hit-counts stream to the console and the rooibos CLI joins it with the static
+     * coverage model (components/rooibos/CodeCoverage.json) to build the reports.
+     *  - 'lcov': the CLI writes a standard lcov.info (plus coverage-final.json and the
+     *    optional HTML report).
+     *  - 'nyc': the CLI writes the Istanbul coverage-final.json and runs nyc report for
+     *    you (nyc's lcov reporter also produces an lcov.info and an lcov-report HTML
+     *    directory).
+     */
+    coverageReporter?: 'lcov' | 'nyc';
     port?: number;
     lineWidth?: number;
     includeFilters?: string[];

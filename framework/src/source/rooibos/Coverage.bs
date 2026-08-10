@@ -81,6 +81,65 @@ namespace rooibos.Coverage
         ? "+++++++++++++++++++++++++++++++++++++++++++"
     end function
 
+    ' Prints the condensed hit-counts stream consumed by the rooibos CLI when the
+    ' `coverageReporter` config is set. One JSON line per file that recorded any hits,
+    ' sparse (zero counts omitted), with every count keyed by its INDEX into the
+    ' corresponding array of components/rooibos/CodeCoverage.json - the CLI re-reads that
+    ' file from the built package and joins the two. The static model never changes order
+    ' at runtime (hits are incremented in place), so index alignment is guaranteed.
+    ' This stream is a fraction of the lcov payload, so it doesn't flood the console.
+    function printCoverageCounts(coverageResults as dynamic)
+        ?
+        ? "+-=-coverage-counts:start"
+        ? `{"v":1}`
+        fileIndex = 0
+        for each file in coverageResults.files
+            lineHits = {}
+            i = 0
+            for each line in file.lines
+                if line.totalHit > 0 then
+                    lineHits[stri(i).trim()] = line.totalHit
+                end if
+                i++
+            end for
+
+            functionHits = {}
+            i = 0
+            for each func in file.functions
+                if func.totalHit > 0 then
+                    functionHits[stri(i).trim()] = func.totalHit
+                end if
+                i++
+            end for
+
+            branchHits = {}
+            i = 0
+            for each block in file.blocks
+                armHits = []
+                anyHit = false
+                for each branch in block.branches
+                    armHits.push(branch.totalHit)
+                    if branch.totalHit > 0 then
+                        anyHit = true
+                    end if
+                end for
+                if anyHit then
+                    branchHits[stri(i).trim()] = armHits
+                end if
+                i++
+            end for
+
+            if lineHits.count() > 0 or functionHits.count() > 0 or branchHits.count() > 0 then
+                ? FormatJson({ "i": fileIndex, "l": lineHits, "f": functionHits, "b": branchHits })
+                ' Brief pause so console scrapers can drain the buffer (same reason as the
+                ' lcov printer, but the payload here is far smaller so the pause is too).
+                sleep(5)
+            end if
+            fileIndex++
+        end for
+        ? "+-=-coverage-counts:end"
+    end function
+
     function createLCovOutput(coverageResults as dynamic, logToConsole = true as boolean) as string
         ? "Generating lcov.info file..."
         fileResults = []
@@ -90,9 +149,12 @@ namespace rooibos.Coverage
             buffer += `SF:${file.sourceFile}\n`
             ' buffer += `VER:\n`
 
-            ' Add all the found functions for the file
+            ' Add all the found functions for the file. Strictly 2-arg FN rows: the 3-arg
+            ' FN:start,end,name form is lcov v2+ and older/strict parsers (Coveralls,
+            ' lcov-parse) reject or mis-read it. The end line still ships to host tooling
+            ' via components/rooibos/CodeCoverage.json.
             for each func in file.functions
-                buffer += `FN:${func.startLine},${func.endLine},${func.name}\n`
+                buffer += `FN:${func.startLine},${func.name}\n`
             end for
 
             ' Write function related data. Emit FNDA for every function (including unhit ones with 0)
@@ -118,13 +180,6 @@ namespace rooibos.Coverage
                         brh++
                     end if
                     buffer += `BRDA:${branch.line},${block.id},${branch.id},${branch.totalHit}\n`
-                    ' Custom non-LCOV line carrying start/end column info for expression-level
-                    ' branches (e.g. ternary arms). The HTML renderer uses this to wrap the arm
-                    ' in a yellow `cbranch-no` span when missed, matching nyc/Istanbul's TS
-                    ' rendering of unhit ternary arms.
-                    if branch.column <> invalid and branch.endColumn <> invalid then
-                        buffer += `RBSCOL:${block.id},${branch.id},${branch.column},${branch.endColumn}\n`
-                    end if
                 end for
                 if block.isIfArm = true and block.branches.count() = 1 then
                     ifLine = block.branches[0].line
@@ -150,16 +205,12 @@ namespace rooibos.Coverage
             buffer += `BRF:${brf}\n`
             buffer += `BRH:${brh}\n`
 
-            ' Write the per line related data
+            ' Write the per line related data. This output is deliberately plain lcov -
+            ' rich detail (statement spans, branch arm columns) lives in the static
+            ' CodeCoverage.json model and flows through the condensed-counts channel when
+            ' `coverageReporter` is set.
             for each line in file.lines
                 buffer += `DA:${line.lineNumber},${line.totalHit}\n`
-                ' Custom non-LCOV line marking that this statement continues through line `el`
-                ' (multi-line call args, AA literals...). The HTML renderer extends the
-                ' statement's paint range so the whole statement shows red/covered, matching
-                ' how nyc paints multi-line TS statements. Plain lcov consumers ignore it.
-                if line.el <> invalid then
-                    buffer += `RBSSPAN:${line.lineNumber},${line.el}\n`
-                end if
             end for
 
             buffer += `LF:${file.lineTotalFound}\n`

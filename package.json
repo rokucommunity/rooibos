@@ -17,9 +17,7 @@
         "test:nocover": "mocha",
         "audit": "npm audit || audit-ci --config ./audit-ci.jsonc",
         "cli": "ts-node src/cli.ts",
-        "coverage:run": "ts-node src/cli.ts --project coverage-sample/bsconfig.json --coverage-output coverage-sample/coverage/lcov.info",
-        "coverage:html": "node scripts/lcov-to-html.js coverage-sample/coverage/lcov.info coverage-sample/coverage/html coverage-sample/src",
-        "coverage:report": "npm run coverage:run && npm run coverage:html",
+        "coverage:run": "ts-node src/cli.ts --project coverage-sample/bsconfig.json --coverage-output coverage-sample/coverage/lcov.info --coverage-html coverage-sample/coverage/html --coverage-src-root .",
         "package": "npm run build && npm pack"
     },
     "dependencies": {
@@ -31,6 +29,7 @@
         "istanbul-reports": "^3.0.2",
         "lcov-parse": "^1.0.0",
         "minimatch": "^3.0.4",
+        "nyc": "^15.1.0",
         "roku-debug": "^0.23.11",
         "roku-deploy": "^3.17.6",
         "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
@@ -65,7 +64,6 @@
         "eslint-plugin-no-only-tests": "2.6.0",
         "jsdoc": "^4.0.5",
         "mocha": "^10.8.2",
-        "nyc": "^15.1.0",
         "ropm": "^0.11.8",
         "source-map-support": "^0.5.13",
         "ts-node": "^10.7.0",

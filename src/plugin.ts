@@ -68,6 +68,10 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.isRecordingCodeCoverage === undefined) {
             config.isRecordingCodeCoverage = false;
         }
+        if (config.coverageReporter !== undefined && !['lcov', 'nyc'].includes(config.coverageReporter)) {
+            console.warn(`[rooibos] ignoring unknown coverageReporter "${config.coverageReporter}" - expected "lcov" or "nyc"`);
+            delete config.coverageReporter;
+        }
         if (config.isGlobalMethodMockingEnabled === undefined) {
             config.isGlobalMethodMockingEnabled = false;
         }
