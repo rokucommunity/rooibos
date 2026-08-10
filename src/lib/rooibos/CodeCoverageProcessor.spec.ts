@@ -266,6 +266,50 @@ describe('RooibosPlugin', () => {
                 const blockArm = blocks.flatMap(b => b.branches).find(b => b.line !== inlineArm.line && b.sc === undefined);
                 expect(blockArm).to.exist;
             });
+
+            it('registers every runtime-reported line in the coverage model (no orphan reportLine calls)', async () => {
+                // the device consumer drops hits for lines missing from file.lines, so a
+                // reportLine call without a model entry is silently discarded coverage -
+                // the while header regressed this way once
+                program.setFile('source/code.bs', `
+                    function loops(items)
+                        i = 0
+                        while i < 10
+                            i++
+                        end while
+                        for j = 0 to 5
+                            i += j
+                        end for
+                        for each item in items
+                            i += item
+                        end for
+                        try
+                            i += 1
+                        catch e
+                            i = -1
+                        end try
+                        return i
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                const report = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+                const modelLines = new Set(report.files[0].lines.map((l) => l.lineNumber));
+                const reported = new Set<number>();
+                const reportLineRegex = /RBS_CC_0_reportLine\((\d+)\)/g;
+                let lineMatch = reportLineRegex.exec(a);
+                while (lineMatch) {
+                    reported.add(parseInt(lineMatch[1], 10));
+                    lineMatch = reportLineRegex.exec(a);
+                }
+                expect(reported.size).to.be.greaterThan(0);
+                expect([...reported].filter((n) => !modelLines.has(n))).to.eql([]);
+                // the while header (line 4 of the source above) must be a tracked line
+                expect(modelLines.has(4)).to.be.true;
+            });
         });
         describe('basic bs tests', () => {
 

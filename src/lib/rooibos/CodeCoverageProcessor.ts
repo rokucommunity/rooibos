@@ -395,6 +395,7 @@ export class CodeCoverageProcessor {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
+                this.addStatement(ds, ds.range.start.line);
                 ds.tokens.while.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds)}: while`;
             },
             ReturnStatement: (ds, parent, owner, key) => {
