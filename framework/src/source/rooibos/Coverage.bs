@@ -1,19 +1,17 @@
 namespace rooibos.Coverage
 
     function saveResults() as dynamic
-        m.global._rbs_ccn.save = true
         cc = m.global._rbs_ccn
-        if cc.coverageResults = invalid then
-            ' The results are still being formatted
-            ' Wait for them to be reported
-            port = createObject("roMessagePort")
-            cc.observeFieldScoped("coverageResults", port)
+        ' Observe before requesting the save so the one-time publish can't be missed
+        port = createObject("roMessagePort")
+        cc.observeFieldScoped("coverageResults", port)
+        cc.save = true
+        coverageResults = cc.coverageResults
+        if coverageResults = invalid then
             msg = wait(0, port)
             coverageResults = msg.getData()
-        else
-            ' Results are ready to go
-            coverageResults = cc.coverageResults
         end if
+        cc.unobserveFieldScoped("coverageResults")
 
         return coverageResults
     end function
