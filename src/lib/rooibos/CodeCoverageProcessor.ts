@@ -359,7 +359,23 @@ export class CodeCoverageProcessor {
                 const flatWrapsFit = this.instrumentedComplexity(stats, { leafWraps: true, condWrap: false }) <= this.expressionBudget;
                 const extractionPossible = !flatWrapsFit && !stats.hasFunctionExpression;
                 const condWrapCost = this.instrumentedComplexity(stats, { leafWraps: flatWrapsFit, condWrap: true });
-                if (extractionPossible || condWrapCost <= this.expressionBudget) {
+                let wrapFits = condWrapCost <= this.expressionBudget;
+                if (!wrapFits && extractionPossible) {
+                    // The wrap only fits if helper extraction first shrinks the condition
+                    // to a single call, so extract NOW rather than betting on the walker's
+                    // descent doing it - an applied wrap has no rollback path, and shipping
+                    // it after a failed extraction would exceed the &hae cap the budget
+                    // exists to guard. Hop through parens/not the same way isInBooleanContext
+                    // does to find the logical root.
+                    let extractionRoot: Expression = ifStatement.condition;
+                    while (isGroupingExpression(extractionRoot) || (isUnaryExpression(extractionRoot) && extractionRoot.operator.kind === TokenKind.Not)) {
+                        extractionRoot = isGroupingExpression(extractionRoot) ? extractionRoot.expression : extractionRoot.right;
+                    }
+                    if (isBinaryExpression(extractionRoot) && this.isLogicalBinary(extractionRoot)) {
+                        wrapFits = this.tryExtractBooleanExpression(extractionRoot);
+                    }
+                }
+                if (wrapFits) {
                     this.addStatement(ifStatement, ifStatement.range.start.line);
                     const conditionWrap = new BinaryExpression(
                         // Anchor to the if-statement's own range, NOT the condition's: other

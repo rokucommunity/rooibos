@@ -1213,6 +1213,37 @@ describe('RooibosPlugin', () => {
                 expect(a).to.not.match(/if not __rbs_r\r?\n/);
             });
 
+            it('leaves the condition untouched when the wrap depends on an extraction that fails', async () => {
+                // 18 distinct locals exceed MAX_HELPER_PARAMS (16), so extraction is
+                // impossible; the wrap must not be applied on the bet that extraction
+                // will shrink the condition - shipping wrap + original would &hae
+                let decls = '';
+                const terms = [];
+                for (let i = 1; i <= 18; i++) {
+                    decls += `v${i} = ${i}\n                        `;
+                    terms.push(`v${i} > 0`);
+                }
+                program.setFile('source/code.bs', `
+                    function hot() as boolean
+                        ${decls}if ${terms.join(' or ')}
+                            return true
+                        end if
+                        return false
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // no helper was generated, no condition wrap, no leaf wraps
+                expect(a).to.not.include('RBS_CC_0_cx');
+                expect(a).to.not.match(/if RBS_CC_0_reportLine\(\d+\) and/);
+                expect(a).to.not.match(/branchValue\(\d/);
+                // the if line is still reported via a plain statement inserted before it
+                expect(a).to.match(/RBS_CC_0_reportLine\(\d+\)\r?\n\s*if v1 > 0/);
+            });
+
             it('skips branch wraps for over-budget expressions outside boolean context', async () => {
                 program.setFile('source/code.bs', `
                     function chk(n as integer) as boolean
