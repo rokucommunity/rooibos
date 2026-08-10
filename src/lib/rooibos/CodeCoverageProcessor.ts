@@ -922,10 +922,12 @@ export class CodeCoverageProcessor {
 
     /**
      * True when the expression's value flows directly into an if/while condition (possibly
-     * through parens, `not`, or our own synthetic reportLine and-wrap). Only in that context
-     * is helper extraction safe: the surrounding statement forces a boolean result, so
-     * lowering the operators to a short-circuit if-ladder cannot change program behavior
-     * (integer bitwise and/or would have failed the enclosing if/while at runtime anyway).
+     * through parens, `not`, or our own synthetic reportLine and-wrap). Extraction is
+     * limited to that context to keep the rewrite surface small and auditable. Note that
+     * integer operands are legal here - `if 1 and 2` compiles and takes the FALSE branch
+     * (bitwise and/or, measured on-device) - which is why the generated ladder folds each
+     * operand with the native operator instead of relying on truthiness (see
+     * emitBooleanLadderRoot).
      */
     private isInBooleanContext(node: Expression): boolean {
         let child: any = node;
@@ -962,9 +964,11 @@ export class CodeCoverageProcessor {
      * Full-fidelity fallback for conditions too complex to wrap in place: move the logical
      * tree into a generated helper function where it is lowered to a ladder of trivial
      * single-leaf if-statements (statements are effectively unlimited on-device). The
-     * original expression is replaced with a plain call to the helper. Short-circuit
-     * evaluation order is preserved exactly - a leaf is only evaluated when the ladder
-     * reaches it. Locals referenced by the expression are passed as parameters; `m` flows
+     * original expression is replaced with a plain call to the helper. The ladder is
+     * semantics-exact for boolean AND integer/float (bitwise/numeric) operands: values are
+     * identical and every leaf is evaluated exactly when the device would evaluate it in
+     * the original expression (see emitBooleanLadderRoot for the measured short-circuit
+     * rule). Locals referenced by the expression are passed as parameters; `m` flows
      * through automatically because plain function calls keep the caller's `m` (the same
      * mechanism every injected RBS_CC_* helper already relies on).
      */
@@ -1141,14 +1145,21 @@ export class CodeCoverageProcessor {
 
     /**
      * Emits the helper's body: the logical tree is evaluated into a single reused result
-     * variable, one leaf per statement, with short-circuit guard ifs between operands
-     * (`if __rbs_r` continues an and-run, `if not __rbs_r` continues an or-run). Every leaf
-     * is evaluated at most once and only when the original expression would have evaluated
-     * it, so side-effect order is preserved exactly; the final value of __rbs_r equals the
-     * original expression's value.
+     * variable, one leaf per statement. Each step folds the operand in with the NATIVE
+     * operator (`__rbs_r = __rbs_r and <leaf>`), never a bare reassignment, so the value of
+     * __rbs_r is exact for booleans (logical) AND integers/floats (bitwise/numeric:
+     * `1 and 2` must stay 0, not the truthiness of the last operand). The guard ifs between
+     * operands replicate the device's own short-circuit rule, which is decided purely by
+     * the LEFT operand's type (measured on-device 2026-08-10): a boolean false/true -
+     * intrinsic Boolean or boxed roBoolean alike - short-circuits an and/or-run and the
+     * right operand is never evaluated regardless of its type, while an integer or float
+     * left operand ALWAYS evaluates the right operand, even when the result is already
+     * determined (`0 and f()` still calls f). Hence the guard
+     * `(type(__rbs_r) <> "Boolean" and type(__rbs_r) <> "roBoolean") or [not] __rbs_r`:
+     * non-boolean accumulators never skip, boolean ones skip exactly when the runtime would.
      */
     private emitBooleanLadderRoot(tree: LogicalTreeNode, leafExpressions: Expression[], lines: string[]) {
-        this.emitEval(tree, null, leafExpressions, lines, '    ');
+        this.emitEval(tree, null, leafExpressions, lines, '    ', 0);
         lines.push('    return __rbs_r');
     }
 
@@ -1156,8 +1167,10 @@ export class CodeCoverageProcessor {
      * Emits statements that leave `node`'s value in __rbs_r. `entryMark` is the (block,
      * branch) slot recording that evaluation reached this operand of the parent run - for
      * leaves the branchValue wrap itself records it, for sub-runs a bare reportBranch does.
+     * `depth` names the per-nesting-level temp (`__rbs_t<depth>`) that holds the parent
+     * run's accumulated value across a sub-run's evaluation.
      */
-    private emitEval(node: LogicalTreeNode, entryMark: { blockId: number; branchId: number } | null, leafExpressions: Expression[], lines: string[], indent: string) {
+    private emitEval(node: LogicalTreeNode, entryMark: { blockId: number; branchId: number } | null, leafExpressions: Expression[], lines: string[], indent: string, depth: number) {
         if (node.op === undefined) {
             const valueText = entryMark
                 ? this.ladderLeafCall(entryMark.blockId, entryMark.branchId, node.leaf, leafExpressions)
@@ -1174,10 +1187,27 @@ export class CodeCoverageProcessor {
         const blockEligible = !children.some(child => this.isForeignLadderNode(child));
         const blockId = blockEligible ? this.allocateLadderBlock(children) : -1;
         const markFor = (index: number) => (blockEligible ? { blockId: blockId, branchId: index } : null);
-        this.emitEval(children[0], markFor(0), leafExpressions, lines, indent);
+        this.emitEval(children[0], markFor(0), leafExpressions, lines, indent, depth);
         for (let i = 1; i < children.length; i++) {
-            lines.push(node.op === 'and' ? `${indent}if __rbs_r` : `${indent}if not __rbs_r`);
-            this.emitEval(children[i], markFor(i), leafExpressions, lines, `${indent}    `);
+            lines.push(node.op === 'and'
+                ? `${indent}if (type(__rbs_r) <> "Boolean" and type(__rbs_r) <> "roBoolean") or __rbs_r`
+                : `${indent}if (type(__rbs_r) <> "Boolean" and type(__rbs_r) <> "roBoolean") or not __rbs_r`);
+            const innerIndent = `${indent}    `;
+            const child = children[i];
+            if (child.op === undefined) {
+                const mark = markFor(i);
+                const valueText = mark
+                    ? this.ladderLeafCall(mark.blockId, mark.branchId, child.leaf, leafExpressions)
+                    : this.ladderPlainLeaf(child.leaf, leafExpressions);
+                lines.push(`${innerIndent}__rbs_r = __rbs_r ${node.op} ${valueText}`);
+            } else {
+                // Sub-run: park the accumulated value, evaluate the sub-run into __rbs_r,
+                // then fold with the native operator (temp is consumed before any sibling
+                // at this depth saves into it again, so per-depth naming is collision-free).
+                lines.push(`${innerIndent}__rbs_t${depth} = __rbs_r`);
+                this.emitEval(child, markFor(i), leafExpressions, lines, innerIndent, depth + 1);
+                lines.push(`${innerIndent}__rbs_r = __rbs_t${depth} ${node.op} __rbs_r`);
+            }
         }
         for (let i = 1; i < children.length; i++) {
             lines.push(`${indent}end if`);

@@ -1112,15 +1112,61 @@ describe('RooibosPlugin', () => {
                 const a = getContents('source/code.brs');
                 // condition replaced with a call to the generated helper, locals passed through
                 expect(a).to.match(/if RBS_CC_0_reportLine\(\d+\) and \(RBS_CC_0_cx0\(limit\)\)/);
-                // helper contains the sequential ladder: one leaf per statement, guarded by
-                // `if not __rbs_r` so short-circuit order is preserved exactly
+                // helper contains the sequential ladder: one leaf per statement, each step
+                // folding with the NATIVE operator, guarded by the device's measured
+                // short-circuit rule (only a BOOLEAN accumulator short-circuits; integer
+                // and float operands always evaluate the next operand and fold bitwise)
                 expect(a).to.include('function RBS_CC_0_cx0(limit)');
                 expect(a).to.match(/__rbs_r = RBS_CC_0_branchValue\(\d+, 0, chk\(1, limit\)\)/);
-                expect(a).to.match(/__rbs_r = RBS_CC_0_branchValue\(\d+, 11, chk\(12, limit\)\)/);
-                expect(a).to.include('if not __rbs_r');
+                expect(a).to.match(/__rbs_r = __rbs_r or RBS_CC_0_branchValue\(\d+, 11, chk\(12, limit\)\)/);
+                expect(a).to.include('if (type(__rbs_r) <> "Boolean" and type(__rbs_r) <> "roBoolean") or not __rbs_r');
                 expect(a).to.include('return __rbs_r');
+                // no step may bare-reassign a later operand into __rbs_r - that would
+                // replace the bitwise accumulation with truthiness of the last operand
+                expect(a).to.not.match(/or not __rbs_r\r?\n\s*__rbs_r = RBS_CC_0_branchValue/);
                 // the original giant expression is gone from the if statement
                 expect(a).to.not.include('chk(1, limit) or chk(2, limit)');
+            });
+
+            it('preserves integer bitwise and/or semantics in the extraction ladder', async () => {
+                // `if maskA and maskB` with integers is BITWISE on-device (1 and 2 = 0 takes
+                // the false branch), so the ladder must fold with the native operator and
+                // park the accumulator in a temp around nested runs.
+                let orTerms = '';
+                for (let i = 1; i <= 11; i++) {
+                    orTerms += ` or chk(${i}, limit)`;
+                }
+                program.setFile('source/code.bs', `
+                    function chk(n as integer, limit as integer) as boolean
+                        return n > limit
+                    end function
+
+                    function hot(maskA as integer, maskB as integer) as boolean
+                        limit = 5
+                        if chk(0, limit) or (maskA and maskB)${orTerms}
+                            return true
+                        end if
+                        return false
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                expect(a).to.include('function RBS_CC_0_cx0(');
+                // the nested and-run parks the or-run's accumulated value in a temp,
+                // evaluates with the native `and`, then folds back with the native `or`
+                expect(a).to.match(/__rbs_r = __rbs_r and RBS_CC_0_branchValue\(\d+, \d+, maskB\)/);
+                expect(a).to.match(/__rbs_t0 = __rbs_r/);
+                expect(a).to.match(/__rbs_r = __rbs_t0 or __rbs_r/);
+                // guards must be type-aware: an integer accumulator never short-circuits
+                // on-device (0 and f() still calls f), only a boolean one does - intrinsic
+                // Boolean or boxed roBoolean alike
+                expect(a).to.include('if (type(__rbs_r) <> "Boolean" and type(__rbs_r) <> "roBoolean") or __rbs_r');
+                expect(a).to.include('if (type(__rbs_r) <> "Boolean" and type(__rbs_r) <> "roBoolean") or not __rbs_r');
+                expect(a).to.not.match(/if __rbs_r\r?\n/);
+                expect(a).to.not.match(/if not __rbs_r\r?\n/);
             });
 
             it('skips branch wraps for over-budget expressions outside boolean context', async () => {
