@@ -2,6 +2,10 @@ namespace rooibos.Coverage
 
     function saveResults() as dynamic
         cc = m.global._rbs_ccn
+        if cc = invalid then
+            ? "There was no rooibos code coverage component - not generating coverage report"
+            return invalid
+        end if
         ' Observe before requesting the save so the one-time publish can't be missed
         port = createObject("roMessagePort")
         cc.observeFieldScoped("coverageResults", port)
