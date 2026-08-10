@@ -2423,6 +2423,51 @@ describe('RooibosPlugin', () => {
                 `);
             });
 
+            it('emits a bare return in as-void and sub hooks (return invalid fails device compile)', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be() as void
+                            m.assertTrue(true)
+                        end function
+
+                        @afterEach
+                        sub _ae()
+                            m.assertTrue(true)
+                        end sub
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__be', `
+                    m.currentAssertLineNumber = 8
+                    m.assertTrue(true)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
+                `);
+                expectFunctionContents(fileContents, '__ATest_method__ae', `
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(true)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
+                `);
+            });
+
             it('transpiles expectNotCalled inside afterEach', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite

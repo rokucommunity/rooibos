@@ -55,7 +55,13 @@ export class TestGroup extends TestBlock {
                     let callExpression = expressionStatement.expression as CallExpression;
                     if (isCallExpression(callExpression) && isDottedGetExpression(callExpression.callee)) {
                         let dge = callExpression.callee;
-                        let isSub = callExpression.findAncestor<FunctionExpression>(isFunctionExpression)?.functionType.kind === TokenKind.Sub;
+                        let enclosingFunc = callExpression.findAncestor<FunctionExpression>(isFunctionExpression);
+                        // void returners need a bare return - the device compiler rejects
+                        // `return invalid` in subs and `function ... as void` alike. An
+                        // explicit return type trumps the keyword (`sub x() as string` is
+                        // legal and must return a value).
+                        let returnTypeText = enclosingFunc?.returnTypeToken?.text.toLowerCase();
+                        let isVoidReturn = returnTypeText ? returnTypeText === 'void' : enclosingFunc?.functionType.kind === TokenKind.Sub;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
                         if (dge && assertRegex.test(dge.name.text)) {
                             // get the path to the call expression
@@ -79,7 +85,7 @@ export class TestGroup extends TestBlock {
                                     }
 
                                     if (!noEarlyExit) {
-                                        const trailingLine = Parser.parse(`if ${callPath}.currentResult?.isFail = true then ${callPath}.done() : return ${isSub ? '' : 'invalid'}`).ast.statements[0];
+                                        const trailingLine = Parser.parse(`if ${callPath}.currentResult?.isFail = true then ${callPath}.done() : return ${isVoidReturn ? '' : 'invalid'}`).ast.statements[0];
                                         editor.arraySplice(owner, key + 1, 0, trailingLine);
                                     }
                                     const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${callExpression.range.start.line + 1}`).ast.statements[0];
