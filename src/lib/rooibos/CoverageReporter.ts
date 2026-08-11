@@ -148,15 +148,11 @@ function pointAt(line: number, column: number): IstanbulRange {
     return { start: { line: line, column: column }, end: { line: line, column: column } };
 }
 
-/**
- * Builds one canonical Istanbul FileCoverage from an lcov record. Statements and branch
- * arms anchor by line/indent - the lcov wire carries no column or span detail (that
- * fidelity comes via the condensed-counts channel and the static model instead). Pure
- * transform (aside from source reads for badge columns) - unit-testable without
- * rendering anything.
- */
-export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, sourceCache: SourceCache): FileCoverageData {
-    const fileCoverage: FileCoverageData = {
+/** Sentinel end column for whole-line ranges - istanbul clamps it to the actual line length. */
+const END_OF_LINE_COLUMN = 1024;
+
+function emptyFileCoverage(resolvedPath: string): FileCoverageData {
+    return {
         path: resolvedPath,
         statementMap: {},
         fnMap: {},
@@ -165,26 +161,62 @@ export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, 
         f: {},
         b: {}
     };
+}
 
-    const lineDetails = record.lines.details ?? [];
-    let statementIndex = 0;
-    for (const line of lineDetails) {
-        fileCoverage.statementMap[statementIndex] = {
-            start: { line: line.line, column: 0 },
-            end: { line: line.line, column: 1024 }
-        };
-        fileCoverage.s[statementIndex] = line.hit;
-        statementIndex++;
-    }
+/** Whole-line (or line-span) statement entry. */
+function addStatementEntry(fileCoverage: FileCoverageData, index: number, startLine: number, endLine: number, hit: number) {
+    fileCoverage.statementMap[index] = {
+        start: { line: startLine, column: 0 },
+        end: { line: endLine, column: END_OF_LINE_COLUMN }
+    };
+    fileCoverage.s[index] = hit;
+}
+
+/**
+ * Declaration-line function entry: the decl starts at the function/sub keyword so the
+ * missed-function highlight wraps just the signature, not any `handler = ` prefix.
+ */
+function addFunctionEntry(fileCoverage: FileCoverageData, index: number, name: string, line: number, hit: number, resolvedPath: string, sourceCache: SourceCache) {
+    const declColumn = sourceCache.getKeywordColumn(resolvedPath, line);
+    const decl: IstanbulRange = {
+        start: { line: line, column: declColumn },
+        end: { line: line, column: END_OF_LINE_COLUMN }
+    };
+    fileCoverage.fnMap[index] = { name: name, decl: decl, loc: decl, line: line };
+    fileCoverage.f[index] = hit;
+}
+
+/**
+ * One grouped decision entry (a block's arms as a single Istanbul branch). Anchors the
+ * I/E badge to the earliest arm line at its indent column.
+ */
+function addBranchEntry(fileCoverage: FileCoverageData, index: number, type: 'if' | 'cond-expr', armLines: number[], locations: IstanbulRange[], hits: number[], resolvedPath: string, sourceCache: SourceCache) {
+    const earliestLine = Math.min(...armLines);
+    fileCoverage.branchMap[index] = {
+        type: type,
+        line: earliestLine,
+        loc: pointAt(earliestLine, sourceCache.getIndentColumn(resolvedPath, earliestLine)),
+        locations: locations
+    };
+    fileCoverage.b[index] = hits;
+}
+
+/**
+ * Builds one canonical Istanbul FileCoverage from an lcov record. Statements and branch
+ * arms anchor by line/indent - the lcov wire carries no column or span detail (that
+ * fidelity comes via the condensed-counts channel and the static model instead). Pure
+ * transform (aside from source reads for badge columns) - unit-testable without
+ * rendering anything.
+ */
+export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, sourceCache: SourceCache): FileCoverageData {
+    const fileCoverage = emptyFileCoverage(resolvedPath);
+
+    (record.lines.details ?? []).forEach((line, index) => {
+        addStatementEntry(fileCoverage, index, line.line, line.line, line.hit);
+    });
 
     (record.functions.details ?? []).forEach((fn, index) => {
-        const declColumn = sourceCache.getKeywordColumn(resolvedPath, fn.line);
-        const decl: IstanbulRange = {
-            start: { line: fn.line, column: declColumn },
-            end: { line: fn.line, column: 1024 }
-        };
-        fileCoverage.fnMap[index] = { name: fn.name, decl: decl, loc: decl, line: fn.line };
-        fileCoverage.f[index] = fn.hit ?? 0;
+        addFunctionEntry(fileCoverage, index, fn.name, fn.line, fn.hit ?? 0, resolvedPath, sourceCache);
     });
 
     // Group branches by `block` so paired then/else (and other multi-arm decisions)
@@ -200,19 +232,11 @@ export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, 
     let branchIndex = 0;
     for (const branches of branchesByBlock.values()) {
         branches.sort((a, b) => a.branch - b.branch);
-        const earliestLine = Math.min(...branches.map(b => b.line));
         // The lcov wire has no arm columns, so every decision renders as type 'if' with
         // I/E badges at line/indent anchors (the cond-expr yellow-wrap treatment needs
         // the column detail that only the counts channel carries).
         const locations = branches.map(b => pointAt(b.line, sourceCache.getIndentColumn(resolvedPath, b.line)));
-
-        fileCoverage.branchMap[branchIndex] = {
-            type: 'if',
-            line: earliestLine,
-            loc: pointAt(earliestLine, sourceCache.getIndentColumn(resolvedPath, earliestLine)),
-            locations: locations
-        };
-        fileCoverage.b[branchIndex] = branches.map(b => b.taken ?? 0);
+        addBranchEntry(fileCoverage, branchIndex, 'if', branches.map(b => b.line), locations, branches.map(b => b.taken ?? 0), resolvedPath, sourceCache);
         branchIndex++;
     }
 
@@ -279,37 +303,19 @@ export function buildCoverageDataFromModel(model: CoverageMapJson, counts: Conde
         const fileCounts = counts.get(fileIndex);
         const relativePath = file.sourcePath ?? file.sourceFile;
         const resolvedPath = path.isAbsolute(relativePath) ? relativePath : path.resolve(sourceRoot, relativePath);
-        const fileCoverage: FileCoverageData = {
-            path: resolvedPath,
-            statementMap: {},
-            fnMap: {},
-            branchMap: {},
-            s: {},
-            f: {},
-            b: {}
-        };
+        const fileCoverage = emptyFileCoverage(resolvedPath);
 
         const lineHitByNumber = new Map<number, number>();
         let statementIndex = 0;
         file.lines.forEach((line, index) => {
             const hit = Number(fileCounts?.l?.[index] ?? 0);
             lineHitByNumber.set(line.lineNumber, hit);
-            fileCoverage.statementMap[index] = {
-                start: { line: line.lineNumber, column: 0 },
-                end: { line: line.el ?? line.lineNumber, column: 1024 }
-            };
-            fileCoverage.s[index] = hit;
+            addStatementEntry(fileCoverage, index, line.lineNumber, line.el ?? line.lineNumber, hit);
             statementIndex = index + 1;
         });
 
         file.functions.forEach((fn, index) => {
-            const declColumn = sourceCache.getKeywordColumn(resolvedPath, fn.startLine);
-            const decl: IstanbulRange = {
-                start: { line: fn.startLine, column: declColumn },
-                end: { line: fn.startLine, column: 1024 }
-            };
-            fileCoverage.fnMap[index] = { name: fn.name, decl: decl, loc: decl, line: fn.startLine };
-            fileCoverage.f[index] = Number(fileCounts?.f?.[index] ?? 0);
+            addFunctionEntry(fileCoverage, index, fn.name, fn.startLine, Number(fileCounts?.f?.[index] ?? 0), resolvedPath, sourceCache);
         });
 
         file.blocks.forEach((block, blockIndex) => {
@@ -318,7 +324,6 @@ export function buildCoverageDataFromModel(model: CoverageMapJson, counts: Conde
             }
             const armHits = fileCounts?.b?.[blockIndex] ?? [];
             const hits = block.branches.map((branch, armIndex) => Number(armHits[armIndex] ?? 0));
-            const earliestLine = Math.min(...block.branches.map(b => b.line));
             const hasColumnData = block.branches.every(b => b.column !== undefined && b.endColumn !== undefined);
             const locations = block.branches.map(b => {
                 if (b.column !== undefined && b.endColumn !== undefined) {
@@ -337,13 +342,7 @@ export function buildCoverageDataFromModel(model: CoverageMapJson, counts: Conde
                 locations.push(pointAt(ifLine, sourceCache.getIndentColumn(resolvedPath, ifLine)));
             }
 
-            fileCoverage.branchMap[blockIndex] = {
-                type: hasColumnData ? 'cond-expr' : 'if',
-                line: earliestLine,
-                loc: pointAt(earliestLine, sourceCache.getIndentColumn(resolvedPath, earliestLine)),
-                locations: locations
-            };
-            fileCoverage.b[blockIndex] = hits;
+            addBranchEntry(fileCoverage, blockIndex, hasColumnData ? 'cond-expr' : 'if', block.branches.map(b => b.line), locations, hits, resolvedPath, sourceCache);
 
             // Inline if/else arms (`if cond then <statement>`) carry their clause's column
             // range (sc/ec). Synthesize a statement per clause with the arm's hit count -
