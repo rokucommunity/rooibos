@@ -249,20 +249,28 @@ export class CodeCoverageProcessor {
             this.coverageWarnings.push(`source is ${sourceBytes} bytes and would exceed Roku's 2MiB compiled-file limit once instrumented; recording function coverage only for this file`);
         }
 
-        file.ast.walk(createVisitor({
-            FunctionStatement: (statement) => {
-                this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
-            },
-            // class methods dispatch as MethodStatement, not FunctionStatement - without
-            // this key, functionOnly mode (which early-returns in every other handler)
-            // records no functions at all for class-heavy files
-            MethodStatement: (statement) => {
-                this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
-            },
+        // Function-entry tracking applies in every mode.
+        const trackFunction = (statement: FunctionStatement) => {
+            this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
+        };
+        // functionOnly mode registers ONLY the function trackers - no line/branch
+        // handler exists to fire, which replaces a mode guard in every handler below.
+        // (class methods dispatch as MethodStatement, not FunctionStatement - without
+        // that key a class-heavy file records no functions at all)
+        const functionOnlyVisitor = createVisitor({
+            FunctionStatement: trackFunction,
+            MethodStatement: trackFunction
+        });
+        // One shared body for every simple statement kind: register the line (with its
+        // span) and queue a reportLine insert before the statement.
+        const simpleStatement = (ds: Statement, parent?: Statement, owner?: any, key?: any) => {
+            this.addStatement(ds, ds.range.start.line, true);
+            this.convertStatementToCoverageStatement(ds, owner, key);
+        };
+        const fullVisitor = createVisitor({
+            FunctionStatement: trackFunction,
+            MethodStatement: trackFunction,
             Block: (statement, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
                 if (isFunctionExpression(parent)) {
                     return;
                 }
@@ -304,16 +312,10 @@ export class CodeCoverageProcessor {
                 this.astEditor.addToArray(statement.statements, 0, parsed);
             },
             ForStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
                 this.addStatement(ds, ds.range.start.line);
                 ds.forToken.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for`;
             },
             TryCatchStatement: (tryCatch, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
                 this.addStatement(tryCatch, tryCatch.range.start.line);
                 // Prefix the `try` token with a reportLine call so the try line gets counted
                 // at runtime. Done via token-text mutation (same pattern as ForStatement /
@@ -326,9 +328,6 @@ export class CodeCoverageProcessor {
                 // shows up through statement coverage of its body lines.
             },
             IfStatement: (ifStatement, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
                 // Restructure over-long elseif ladders before the walker descends into them.
                 // The compiler's &hae if-table is per-chain (~270 arms plain / ~260 once the
                 // arm bodies carry instrumentation), so `else if` becomes `else` + nested `if`
@@ -409,119 +408,38 @@ export class CodeCoverageProcessor {
                     this.coverageWarnings.push(`line ${ifStatement.range.start.line + 1}: else-if condition too complex to instrument; line hit not tracked`);
                 }
             },
-            GotoStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-
-            },
-            WhileStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
+            GotoStatement: simpleStatement,
+            ReturnStatement: simpleStatement,
+            ExitWhileStatement: simpleStatement,
+            ExitForStatement: simpleStatement,
+            ContinueStatement: simpleStatement,
+            ThrowStatement: simpleStatement,
+            PrintStatement: simpleStatement,
+            DottedSetStatement: simpleStatement,
+            IndexedSetStatement: simpleStatement,
+            IncrementStatement: simpleStatement,
+            WhileStatement: (ds) => {
                 this.addStatement(ds, ds.range.start.line);
                 ds.tokens.while.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: while`;
             },
-            ReturnStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-            },
-            ForEachStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
+            ForEachStatement: (ds) => {
                 this.addStatement(ds, ds.range.start.line);
                 ds.tokens.forEach.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for each`;
             },
-            ExitWhileStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-            },
-            ExitForStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-            },
-            ContinueStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-            },
-            ThrowStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-            },
-            PrintStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-            },
-            DottedSetStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-
-            },
-            IndexedSetStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-
-            },
-            IncrementStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
-
-            },
             AssignmentStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
+                // a for-loop's init assignment belongs to the for line, not its own
                 if (!isForStatement(parent)) {
-                    this.addStatement(ds, ds.range.start.line, true);
-                    this.convertStatementToCoverageStatement(ds, owner, key);
+                    simpleStatement(ds, parent, owner, key);
                 }
-
             },
             ExpressionStatement: (ds, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
+                // never instrument our own injected RBS_CC_ calls
                 if (isCallExpression(ds.expression) && isVariableExpression(ds.expression.callee) && ds.expression.callee.name.text.startsWith('RBS_CC_')) {
                     return;
                 }
-
-                this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, owner, key);
+                simpleStatement(ds, parent, owner, key);
             },
             BinaryExpression: (expr, parent, owner, key) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
                 // Only instrument logical-style and/or operators. BS uses these tokens for both
                 // bitwise (integer) and logical (boolean) cases - the branchValue wrap is
                 // semantically inert for bitwise (just records hits and returns the value), and
@@ -554,9 +472,6 @@ export class CodeCoverageProcessor {
                 this.coverageWarnings.push(`line ${expr.range.start.line + 1}: expression too complex to instrument for branch coverage; branch hits in it are not tracked`);
             },
             NullCoalescingExpression: (expr) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
                 if (this.processedExpressions.has(expr)) {
                     return;
                 }
@@ -595,9 +510,6 @@ export class CodeCoverageProcessor {
                 this.astEditor.setProperty(expr, 'alternate', wrappedAlternate);
             },
             TernaryExpression: (ternary) => {
-                if (this.fileMode === 'functionOnly') {
-                    return;
-                }
                 if (this.processedExpressions.has(ternary)) {
                     return;
                 }
@@ -639,7 +551,8 @@ export class CodeCoverageProcessor {
                 this.astEditor.setProperty(ternary, 'consequent', wrappedConsequent);
                 this.astEditor.setProperty(ternary, 'alternate', wrappedAlternate);
             }
-        }), { walkMode: WalkMode.visitAllRecursive });
+        });
+        file.ast.walk(this.fileMode === 'functionOnly' ? functionOnlyVisitor : fullVisitor, { walkMode: WalkMode.visitAllRecursive });
 
         // Apply queued reportFunction insertions now that the walk is finished. Doing this
         // during the walk would shift the function body's first statement and prevent the
