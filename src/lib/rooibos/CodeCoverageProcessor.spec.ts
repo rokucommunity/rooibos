@@ -4,6 +4,7 @@ import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import { RooibosPlugin } from '../../plugin';
+import { CodeCoverageLineType } from './CodeCoverageProcessor';
 import undent from 'undent';
 
 let tmpPath = s`${process.cwd()}/.tmp`;
@@ -295,6 +296,23 @@ describe('RooibosPlugin', () => {
                         expect(b.endColumn).to.be.at.least(b.column);
                     }
                 }
+            });
+
+            it('injects the wire-protocol line types into the shipped component from the TS enum', async () => {
+                program.setFile('source/code.brs', `
+                    function new()
+                        c = 0
+                    end function
+                `);
+                program.validate();
+                await builder.transpile();
+
+                const brs = fsExtra.readFileSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.brs`, 'utf8');
+                // the consumer's entry.r comparisons must carry the enum's values - the
+                // #LINE_TYPE_*# markers anchor the build-time substitution
+                expect(brs).to.include(`= ${CodeCoverageLineType.function} then ' #LINE_TYPE_FUNCTION#`);
+                expect(brs).to.include(`= ${CodeCoverageLineType.branch} then ' #LINE_TYPE_BRANCH#`);
+                expect(brs).to.include(`= ${CodeCoverageLineType.code} then ' #LINE_TYPE_CODE#`);
             });
 
             it('registers every runtime-reported line in the coverage model (no orphan reportLine calls)', async () => {

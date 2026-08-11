@@ -41,24 +41,21 @@ function runTaskThread() as void
             ? "Found" events.count() " unprocessed events..."
         end if
 
-        ' enum CodeCoverageLineType
-        '     noCode = 0
-        '     code = 1
-        '     condition = 2
-        '     branch = 3
-        '     function = 4
-        ' end enum
+        ' entry.r values below are force-substituted at build time from the TS
+        ' CodeCoverageLineType enum (FileFactory.createCoverageComponent keys on the
+        ' #LINE_TYPE_*# markers), so producer and consumer cannot drift. The literals
+        ' here only matter for parsing this template standalone.
 
         for each event in events
             entry = event.getData()
             if entry <> invalid then
                 file = m.coverageMap.files[entry.f]
-                if entry.r = 4 then ' CodeCoverageLineType.function
+                if entry.r = 4 then ' #LINE_TYPE_FUNCTION#
                     if file.functions[entry.fn].totalHit = 0 then
                         file.functionTotalHit++
                     end if
                     file.functions[entry.fn].totalHit++
-                else if entry.r = 3 then ' CodeCoverageLineType.branch
+                else if entry.r = 3 then ' #LINE_TYPE_BRANCH#
                     ' branch ids are assigned as array indexes at build time, so index directly
                     branch = file.blocks[entry.bl].branches[entry.br]
                     if branch <> invalid then
@@ -67,7 +64,7 @@ function runTaskThread() as void
                         end if
                         branch.totalHit++
                     end if
-                else if entry.r = 1 then ' CodeCoverageLineType.code
+                else if entry.r = 1 then ' #LINE_TYPE_CODE#
                     fileKey = stri(entry.f).trim()
                     lineIndex = m.lineIndexByFile[fileKey]
                     if lineIndex = invalid then

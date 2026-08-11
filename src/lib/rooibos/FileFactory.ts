@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import type { CoverageMap } from './CodeCoverageProcessor';
+import { CodeCoverageLineType } from './CodeCoverageProcessor';
 import * as fastGlob from 'fast-glob';
 import type { TestSuite } from './TestSuite';
 
@@ -108,7 +109,14 @@ export class FileFactory {
         // runtime. Embedding it as a code literal broke real apps: the map for a large app
         // is several MB and Roku refuses to compile any .brs file of 2MiB or more (&hb9).
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.json'), JSON.stringify(baseCoverageReport ?? { files: [] }));
-        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), this.coverageComponentBrsTemplate);
+        // Force-substitute the wire-protocol line-type literals from the TS enum (the
+        // template's #LINE_TYPE_*# markers anchor them) so the consumer can never drift
+        // from what the injected reporters emit.
+        const componentBrs = this.coverageComponentBrsTemplate
+            .replace(/[=] \d+ then ' #LINE_TYPE_FUNCTION#/, `= ${CodeCoverageLineType.function} then ' #LINE_TYPE_FUNCTION#`)
+            .replace(/[=] \d+ then ' #LINE_TYPE_BRANCH#/, `= ${CodeCoverageLineType.branch} then ' #LINE_TYPE_BRANCH#`)
+            .replace(/[=] \d+ then ' #LINE_TYPE_CODE#/, `= ${CodeCoverageLineType.code} then ' #LINE_TYPE_CODE#`);
+        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), componentBrs);
         this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
     }
 
