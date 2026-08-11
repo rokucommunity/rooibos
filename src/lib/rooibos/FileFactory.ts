@@ -34,6 +34,9 @@ export class FileFactory {
             '**/*.{bs,brs,xml}',
             '!**/bslib.brs',
             '!**/manifest',
+            // the component DEFINITION always ships (bsc validates the createObject in
+            // Rooibos.bs against it), but the node is only created - and the coverage
+            // model JSON only written - when coverage is enabled
             '**/CodeCoverage.{brs,xml}',
             '!**/RooibosScene.xml'
         ], {

@@ -206,6 +206,12 @@ export class CodeCoverageProcessor {
     }
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
+        // coverage-off builds ship no coverage model JSON, and Rooibos.bs skips creating
+        // the task node - the component definition itself still ships so bsc can
+        // validate the createObject call against it
+        if (!isUsingCoverage) {
+            return;
+        }
         this.fileFactory.createCoverageComponent(program, this.baseCoverageReport);
     }
 

@@ -4,6 +4,9 @@ function init()
     m.coverageMap = ParseJson(ReadAsciiFile("pkg:/components/rooibos/CodeCoverage.json"))
     m.port = createObject("roMessagePort")
     m.top.observeFieldScoped("entry", m.port)
+    ' save arrives on the same port so the task thread can block on wait() instead of
+    ' polling m.top.save (a cross-thread rendezvous) on a sleep loop
+    m.top.observeFieldScoped("save", m.port)
     m.top.functionName = "runTaskThread"
     m.top.control = "RUN"
 end function
@@ -12,19 +15,21 @@ function runTaskThread() as void
     while true
         events = []
         saving = false
-        message = getMessage(m.port)
-        if message <> invalid then
+        ' blocking wait: zero CPU and no cross-thread field reads while idle
+        message = wait(0, m.port)
+        if message.getField() = "save" then
+            saving = (message.getData() = true)
+        else
             events.push(message)
         end if
-        if m.top.save = true then
-            saving = true
+        if saving = true then
             ? "Saving unprocessed code cov events..."
-            'Get All the unprocessed messages
+            'Drain all the unprocessed messages (3ms grace per message, then done)
             while true
-                message = getMessage(m.port, 3)
+                message = wait(3, m.port)
                 if message = invalid then
                     exit while
-                else
+                else if message.getField() <> "save" then
                     events.push(message)
                 end if
             end while
@@ -82,17 +87,6 @@ function runTaskThread() as void
 
 end function
 
-
-' Gets the next message from the message port and applies a short sleep if no message was returned.
-' @param {roMessagePort} port - The active message port to get messages from.
-' @param {Integer} [sleepInterval] - How long to sleep if there was no message returned.
-' @return {Dynamic} Any resulting message from the message port.
-function getMessage(port as object, sleepInterval = 20 as integer) as dynamic
-    message = port.getMessage()
-    ' I know I will always get something from the port so no need for the uninitialized check in isInvalid
-    if message = invalid then sleep(sleepInterval)
-    return message
-end function
 
 #if false
     sub test()
