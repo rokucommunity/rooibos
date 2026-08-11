@@ -447,6 +447,10 @@ function emitLcov(coverageData: CoverageMapData, outputPath: string | undefined,
     // from statement anchor lines, SF relative to projectRoot (= repo-relative paths
     // that match git, which is what Coveralls joins on).
     reports.create('lcovonly', { file: path.basename(lcovPath), projectRoot: sourceRoot }).execute(context);
+    // On Windows the writer emits SF paths with backslashes; lcov consumers join on
+    // git's forward-slash paths, so normalize.
+    const written = fs.readFileSync(lcovPath, 'utf8');
+    fs.writeFileSync(lcovPath, written.replace(/^SF:(.+)$/gm, (_, sfPath: string) => `SF:${sfPath.replace(/\\/g, '/')}`));
     console.log(`[rooibos] wrote lcov to ${lcovPath}`);
 }
 
