@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import * as libCoverage from 'istanbul-lib-coverage';
 import * as libReport from 'istanbul-lib-report';
@@ -134,7 +135,11 @@ export function loadCoverageModel(codeCoverageJsonPath: string): CoverageMapJson
  * resolving the device's pkg-relative SF paths directly.
  */
 export function loadCoveragePathMap(codeCoverageJsonPath: string): CoveragePathMap | undefined {
-    const model = loadCoverageModel(codeCoverageJsonPath);
+    return pathMapFromModel(loadCoverageModel(codeCoverageJsonPath));
+}
+
+/** The model's pkg-relative sourceFile -> repo-relative sourcePath entries as a map. */
+export function pathMapFromModel(model: CoverageMapJson | undefined): CoveragePathMap | undefined {
     const map = new Map<string, string>();
     for (const file of model?.files ?? []) {
         if (file?.sourceFile && file.sourcePath) {
@@ -424,8 +429,7 @@ function emitIstanbulJson(coverageData: CoverageMapData, outputPath: string | un
         return;
     }
     const istanbulJsonPath = path.resolve(outputPath);
-    fs.mkdirSync(path.dirname(istanbulJsonPath), { recursive: true });
-    fs.writeFileSync(istanbulJsonPath, JSON.stringify(coverageData));
+    fsExtra.outputFileSync(istanbulJsonPath, JSON.stringify(coverageData));
     console.log(`[rooibos] wrote Istanbul coverage JSON to ${istanbulJsonPath}`);
 }
 

@@ -6,9 +6,10 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import type { CoverageMap as CoverageModelJson } from './lib/rooibos/CodeCoverageProcessor';
-import { loadCoverageModel, writeCoverageReports, writeCoverageReportsFromCounts } from './lib/rooibos/CoverageReporter';
+import { loadCoverageModel, pathMapFromModel, writeCoverageReports, writeCoverageReportsFromCounts } from './lib/rooibos/CoverageReporter';
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -148,21 +149,14 @@ async function main() {
     /** Dumps the raw device stream next to the lcov target so a capture is never lost. */
     function saveRawCapture(raw: string, suffix: string) {
         const rawPath = `${coverageOutputPath}.${suffix}`;
-        fs.mkdirSync(path.dirname(rawPath), { recursive: true });
-        fs.writeFileSync(rawPath, raw);
+        fsExtra.outputFileSync(rawPath, raw);
         console.error(`[rooibos] raw coverage output saved to ${rawPath}`);
     }
 
     /** Legacy path: the device printed a full lcov report (printLcov flag). */
     function writeCoverageFromLcov(rawLcov: string) {
-        const model = findCoverageModel();
-        const pathMap = new Map<string, string>();
-        for (const file of model?.files ?? []) {
-            if (file?.sourceFile && file.sourcePath) {
-                pathMap.set(file.sourceFile, file.sourcePath);
-            }
-        }
-        if (pathMap.size === 0) {
+        const pathMap = pathMapFromModel(findCoverageModel());
+        if (!pathMap) {
             console.log('[rooibos] no coverage path map found; lcov SF paths fall back to pkg-relative locations');
         }
         coverageReportPromise = writeCoverageReports({
@@ -171,7 +165,7 @@ async function main() {
             istanbulJsonPath: path.join(path.dirname(coverageOutputPath), 'coverage-final.json'),
             htmlDir: options['coverage-html'],
             sourceRoot: options['coverage-src-root'],
-            pathMap: pathMap.size > 0 ? pathMap : undefined
+            pathMap: pathMap
         }).catch(e => {
             console.error('[rooibos] failed to write coverage reports:', e);
             saveRawCapture(rawLcov, 'raw');
