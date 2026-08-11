@@ -267,6 +267,36 @@ describe('RooibosPlugin', () => {
                 expect(blockArm).to.exist;
             });
 
+            it('omits column ranges for multi-line branch arms (no inverted spans)', async () => {
+                // a multi-line arm's end column belongs to a later line; pinning it to the
+                // start line hands Istanbul an inverted end-before-start span
+                program.setFile('source/code.bs', `
+                    function pick(enabled)
+                        x = enabled ? [
+                            1,
+                            2
+                        ] : invalid
+                        return x
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const report = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+                const branches = report.files[0].blocks.flatMap((b) => b.branches);
+                expect(branches.length).to.be.greaterThan(0);
+                // the multi-line consequent arm anchors by line only
+                const multiLine = branches.find((b) => b.line === 3 && b.column === undefined);
+                expect(multiLine, 'expected a line-only anchor for the multi-line arm').to.exist;
+                // and no branch anywhere may carry an inverted span
+                for (const b of branches) {
+                    if (b.column !== undefined && b.endColumn !== undefined) {
+                        expect(b.endColumn).to.be.at.least(b.column);
+                    }
+                }
+            });
+
             it('registers every runtime-reported line in the coverage model (no orphan reportLine calls)', async () => {
                 // the device consumer drops hits for lines missing from file.lines, so a
                 // reportLine call without a model entry is silently discarded coverage -

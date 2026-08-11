@@ -748,6 +748,13 @@ export class CodeCoverageProcessor {
         if (statement && this.isOutsideRange(expr, statement.range)) {
             return { line: statement.range.start.line + 1 };
         }
+        // Column ranges are only meaningful for single-line expressions: a multi-line
+        // arm's end column belongs to a different line, and pinning it to the start line
+        // would hand Istanbul an inverted (end-before-start) span that garbles the HTML
+        // highlight. Multi-line arms anchor by line/indent instead, like if-arm blocks.
+        if (expr.range.start.line !== expr.range.end.line) {
+            return { line: expr.range.start.line + 1 };
+        }
         return {
             line: expr.range.start.line + 1,
             column: expr.range.start.character,
@@ -1253,6 +1260,10 @@ export class CodeCoverageProcessor {
                 const childLine = child.range.start.line;
                 if (statementRange && (childLine < statementRange.start.line || childLine > statementRange.end.line)) {
                     return { id: index, line: statementRange.start.line + 1, totalHit: 0 };
+                }
+                // multi-line runs get no column range, same rule as branchAnchor
+                if (childLine !== child.range.end.line) {
+                    return { id: index, line: childLine + 1, totalHit: 0 };
                 }
                 return {
                     id: index,
