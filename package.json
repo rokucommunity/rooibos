@@ -8,7 +8,7 @@
         "compile": "npm run clean && tsc -p .",
         "lint": "eslint \"src/**\"",
         "ropm": "ropm install",
-        "copy-framework-files": "cp -r ./framework/src ./dist/lib/framework",
+        "copy-framework-files": "node -e \"require('fs-extra').copySync('./framework/src', './dist/lib/framework')\"",
         "build": "ropm copy && npm run compile && npm run copy-framework-files",
         "build-test-project": "bsc --cwd test-project --project bsconfig.json",
         "build-coverage-sample": "bsc --cwd coverage-sample --project bsconfig.json",
