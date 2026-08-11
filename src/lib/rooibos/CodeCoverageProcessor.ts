@@ -118,7 +118,6 @@ export class CodeCoverageProcessor {
 
     constructor(builder: ProgramBuilder, fileFactory: FileFactory) {
         this.config = (builder.options as any).rooibos as RooibosConfig || {};
-        this.functionMap = [];
         this.fileId = 0;
         this.fileFactory = fileFactory;
         this.processedFunctions = new Set<FunctionExpression>();
@@ -154,7 +153,6 @@ export class CodeCoverageProcessor {
     private config: RooibosConfig;
     private fileId: number;
     private blockId: number;
-    private functionMap: Array<Array<string>>;
     private executableLines: Map<number, Statement>;
     private fileFactory: FileFactory;
     private processedStatements: Set<Statement>;
@@ -310,7 +308,7 @@ export class CodeCoverageProcessor {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line);
-                ds.forToken.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds)}: for`;
+                ds.forToken.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for`;
             },
             TryCatchStatement: (tryCatch, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
@@ -322,7 +320,7 @@ export class CodeCoverageProcessor {
                 // WhileStatement / ForEachStatement) rather than arraySplice; splicing the
                 // owner array mid-visit causes the walker to re-read owner[key] and skip
                 // the try-statement's children.
-                tryCatch.tokens.try.text = `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, CodeCoverageLineType.code, tryCatch)}: try`;
+                tryCatch.tokens.try.text = `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, tryCatch)}: try`;
                 // try/catch arms are deliberately NOT branch-tracked - istanbul's TS
                 // instrumenter doesn't treat them as branches either; an unexercised catch
                 // shows up through statement coverage of its body lines.
@@ -388,7 +386,7 @@ export class CodeCoverageProcessor {
                         // plugins (e.g. an is.* inliner) can graft replacement expressions into
                         // the condition that still carry ranges from a different source file,
                         // which would make this report a bogus line number.
-                        new RawCodeExpression(this.getReportLineHitFuncCallText(ifStatement.range.start.line, CodeCoverageLineType.condition, ifStatement)),
+                        new RawCodeExpression(this.getReportLineHitFuncCallText(ifStatement.range.start.line, ifStatement)),
                         createToken(TokenKind.And),
                         new GroupingExpression({
                             left: createToken(TokenKind.LeftParen),
@@ -404,7 +402,7 @@ export class CodeCoverageProcessor {
                     // The condition is too hot to touch but this `if` sits in a statement list,
                     // so report its line with a plain statement inserted just before it.
                     this.addStatement(ifStatement, ifStatement.range.start.line);
-                    this.convertStatementToCoverageStatement(ifStatement, CodeCoverageLineType.code, owner, key);
+                    this.convertStatementToCoverageStatement(ifStatement, owner, key);
                 } else {
                     // An `else if` arm has no statement slot to fall back to; leave its line
                     // out of the report rather than risking an &hae on the device.
@@ -416,7 +414,7 @@ export class CodeCoverageProcessor {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
 
             },
             WhileStatement: (ds, parent, owner, key) => {
@@ -424,63 +422,63 @@ export class CodeCoverageProcessor {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line);
-                ds.tokens.while.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds)}: while`;
+                ds.tokens.while.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: while`;
             },
             ReturnStatement: (ds, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
             },
             ForEachStatement: (ds, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line);
-                ds.tokens.forEach.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, CodeCoverageLineType.code, ds)}: for each`;
+                ds.tokens.forEach.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for each`;
             },
             ExitWhileStatement: (ds, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
             },
             ExitForStatement: (ds, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
             },
             ContinueStatement: (ds, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
             },
             ThrowStatement: (ds, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
             },
             PrintStatement: (ds, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
             },
             DottedSetStatement: (ds, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
 
             },
             IndexedSetStatement: (ds, parent, owner, key) => {
@@ -488,7 +486,7 @@ export class CodeCoverageProcessor {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
 
             },
             IncrementStatement: (ds, parent, owner, key) => {
@@ -496,7 +494,7 @@ export class CodeCoverageProcessor {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
 
             },
             AssignmentStatement: (ds, parent, owner, key) => {
@@ -505,7 +503,7 @@ export class CodeCoverageProcessor {
                 }
                 if (!isForStatement(parent)) {
                     this.addStatement(ds, ds.range.start.line, true);
-                    this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                    this.convertStatementToCoverageStatement(ds, owner, key);
                 }
 
             },
@@ -518,7 +516,7 @@ export class CodeCoverageProcessor {
                 }
 
                 this.addStatement(ds, ds.range.start.line, true);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                this.convertStatementToCoverageStatement(ds, owner, key);
             },
             BinaryExpression: (expr, parent, owner, key) => {
                 if (this.fileMode === 'functionOnly') {
@@ -1369,13 +1367,13 @@ export class CodeCoverageProcessor {
         return call;
     }
 
-    private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
+    private convertStatementToCoverageStatement(statement: Statement, owner: any, key: any) {
         if (this.processedStatements.has(statement) || this.addedStatements.has(statement)) {
             return;
         }
 
         const lineNumber = statement.range.start.line;
-        const callText = this.getReportLineHitFuncCallText(lineNumber, coverageType, statement);
+        const callText = this.getReportLineHitFuncCallText(lineNumber, statement);
         // Queue the splice; flushed after the walk so we don't disrupt the visitor descending
         // into this statement's children. owner is captured by reference; the statement's index
         // is recomputed at flush time since other deferred inserts may shift things.
@@ -1417,10 +1415,9 @@ export class CodeCoverageProcessor {
         }
     }
 
-    private getReportLineHitFuncCallText(lineNumber: number, lineType: CodeCoverageLineType, statement: Statement) {
+    private getReportLineHitFuncCallText(lineNumber: number, statement: Statement) {
         // Side effect: registers the containing function so its reportFunction call gets
-        // queued for insertion after the walk. owner/key are kept on the signature for symmetry
-        // with brighterscript's visitor handlers but unused here.
+        // queued for insertion after the walk.
         this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
         return `RBS_CC_${this.fileId}_reportLine(${lineNumber + 1})`;
     }
@@ -1462,16 +1459,13 @@ export class CodeCoverageProcessor {
         const name = nameParts.join('$');
 
         this.processedFunctions.add(originalFunc);
-        if (!this.functionMap[this.fileId]) {
-            this.functionMap[this.fileId] = [];
-        }
         // Defer the reportFunction insertion until after the walk completes.
         // brighterscript's walker re-reads owner[key] after the visitor returns; mutating
         // the function body's index 0 mid-visit makes it walk the inserted node and skip
         // the original child's subtree (e.g. if-statement's thenBranch/elseBranch).
         this.pendingFunctionReports.push({
             func: originalFunc,
-            callText: this.getReportFunctionHitFuncCallText(this.functionMap[this.fileId].length, statement)
+            callText: this.getReportFunctionHitFuncCallText(this.foundFunctions.length, statement)
         });
         this.foundFunctions.push({
             name: name,
@@ -1479,7 +1473,6 @@ export class CodeCoverageProcessor {
             endLine: originalFunc.range.end.line + 1,
             totalHit: 0
         });
-        this.functionMap[this.fileId].push(name);
     }
 }
 
@@ -1550,8 +1543,9 @@ interface LineCoverage {
     lineNumber: number;
     totalHit: number;
     /**
-     * End line (1-indexed, inclusive) for multi-line simple statements. Emitted as a
-     * custom `RBSSPAN:` lcov extension so the HTML renderer paints the whole statement.
+     * End line (1-indexed, inclusive) for multi-line simple statements. Flows to host
+     * tooling through the static model + condensed-counts channel so the HTML renderer
+     * paints the whole statement.
      */
     el?: number;
 }

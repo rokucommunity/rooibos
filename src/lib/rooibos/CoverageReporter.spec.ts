@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { standardizePath as s } from 'brighterscript';
-import { extractLcovExtensions, buildFileCoverage, buildCoverageDataFromModel, loadCoveragePathMap, parseCoverageCounts, writeCoverageReports, writeCoverageReportsFromCounts, SourceCache } from './CoverageReporter';
+import { normalizeLcovText, buildFileCoverage, buildCoverageDataFromModel, loadCoveragePathMap, parseCoverageCounts, writeCoverageReports, writeCoverageReportsFromCounts, SourceCache } from './CoverageReporter';
 import type { LcovFileRecord } from './CoverageReporter';
 import type { CoverageMap as CoverageModelJson } from './CodeCoverageProcessor';
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -22,43 +22,17 @@ describe('CoverageReporter', () => {
         fsExtra.removeSync(tmpPath);
     });
 
-    describe('extractLcovExtensions', () => {
-        it('extracts RBSCOL and RBSSPAN lines and strips them from the lcov text', () => {
-            const raw = [
-                'TN:',
-                'SF:source/a.bs',
-                'DA:5,2',
-                'RBSCOL:3,1,10,24',
-                'RBSSPAN:5,9',
-                'end_of_record'
-            ].join('\r\n');
-
-            const result = extractLcovExtensions(raw);
-            expect(result.branchColumns.get('source/a.bs:3:1')).to.eql({ startColumn: 10, endColumn: 24 });
-            expect(result.statementSpans.get('source/a.bs:5')).to.equal(9);
-            expect(result.cleanLcov).to.not.include('RBSCOL');
-            expect(result.cleanLcov).to.not.include('RBSSPAN');
-            expect(result.cleanLcov).to.include('DA:5,2');
-        });
-
-        it('keys extensions by the current SF so identical block ids in different files do not collide', () => {
-            const raw = [
-                'SF:source/a.bs',
-                'RBSCOL:0,0,1,2',
-                'end_of_record',
-                'SF:source/b.bs',
-                'RBSCOL:0,0,3,4',
-                'end_of_record'
-            ].join('\n');
-
-            const result = extractLcovExtensions(raw);
-            expect(result.branchColumns.get('source/a.bs:0:0')).to.eql({ startColumn: 1, endColumn: 2 });
-            expect(result.branchColumns.get('source/b.bs:0:0')).to.eql({ startColumn: 3, endColumn: 4 });
+    describe('normalizeLcovText', () => {
+        it('strips CR from console-captured CRLF output', () => {
+            const raw = ['TN:', 'SF:source/a.bs', 'DA:5,2', 'end_of_record'].join('\r\n');
+            const result = normalizeLcovText(raw);
+            expect(result).to.not.include('\r');
+            expect(result).to.include('DA:5,2');
         });
 
         it('collapses modern 3-arg FN rows to the 2-arg form lcov-parse understands', () => {
-            const result = extractLcovExtensions('SF:source/a.bs\nFN:4,20,doThing\nend_of_record');
-            expect(result.cleanLcov).to.include('FN:4,doThing');
+            const result = normalizeLcovText('SF:source/a.bs\nFN:4,20,doThing\nend_of_record');
+            expect(result).to.include('FN:4,doThing');
         });
     });
 
@@ -72,29 +46,24 @@ describe('CoverageReporter', () => {
                 ...partial
             };
         }
-        const emptyExtensions = () => extractLcovExtensions('');
-
-        it('gives multi-line statements their true RBSSPAN range', () => {
-            const extensions = extractLcovExtensions('SF:source/a.bs\nRBSSPAN:10,13\nend_of_record');
+        it('emits one single-line statement per DA row', () => {
             const record = makeRecord({
                 lines: { details: [{ line: 10, hit: 3 }, { line: 12, hit: 7 }] }
             });
 
-            const coverage = buildFileCoverage(record, '/tmp/nope/a.bs', extensions, new SourceCache());
+            const coverage = buildFileCoverage(record, '/tmp/nope/a.bs', new SourceCache());
             const statements = Object.keys(coverage.statementMap).map(key => ({
                 startLine: coverage.statementMap[key].start.line,
                 endLine: coverage.statementMap[key].end.line,
                 hit: coverage.s[key]
             }));
-            // one statement per DA line - the span becomes a real multi-line range, not
-            // synthetic per-line entries (those are an HTML-rendering concern)
             expect(statements).to.eql([
-                { startLine: 10, endLine: 13, hit: 3 },
+                { startLine: 10, endLine: 10, hit: 3 },
                 { startLine: 12, endLine: 12, hit: 7 }
             ]);
         });
 
-        it('groups branches by block and uses if-type badges when no column data exists', () => {
+        it('groups branches by block into single if-type decisions with I/E badges', () => {
             const record = makeRecord({
                 branches: { details: [
                     { line: 4, block: 0, branch: 0, taken: 5 },
@@ -102,25 +71,10 @@ describe('CoverageReporter', () => {
                 ] }
             });
 
-            const coverage = buildFileCoverage(record, '/tmp/nope/a.bs', emptyExtensions(), new SourceCache());
+            const coverage = buildFileCoverage(record, '/tmp/nope/a.bs', new SourceCache());
             expect(Object.keys(coverage.branchMap)).to.have.length(1);
             expect(coverage.branchMap[0].type).to.equal('if');
             expect(coverage.b[0]).to.eql([5, 0]);
-        });
-
-        it('uses cond-expr wraps when RBSCOL column data covers every arm', () => {
-            const extensions = extractLcovExtensions('SF:source/a.bs\nRBSCOL:2,0,4,9\nRBSCOL:2,1,12,20\nend_of_record');
-            const record = makeRecord({
-                branches: { details: [
-                    { line: 8, block: 2, branch: 0, taken: 1 },
-                    { line: 8, block: 2, branch: 1, taken: 0 }
-                ] }
-            });
-
-            const coverage = buildFileCoverage(record, '/tmp/nope/a.bs', extensions, new SourceCache());
-            expect(coverage.branchMap[0].type).to.equal('cond-expr');
-            expect(coverage.branchMap[0].locations[0].start.column).to.equal(4);
-            expect(coverage.branchMap[0].locations[1].end.column).to.equal(20);
         });
     });
 
@@ -158,14 +112,11 @@ describe('CoverageReporter', () => {
             'FNH:1',
             'BRDA:3,0,0,4',
             'BRDA:3,0,1,0',
-            'RBSCOL:0,0,10,14',
-            'RBSCOL:0,1,17,22',
             'BRF:2',
             'BRH:1',
             'DA:2,4',
             'DA:3,4',
             'DA:4,0',
-            'RBSSPAN:4,5',
             'LF:3',
             'LH:2',
             'end_of_record'
@@ -189,8 +140,6 @@ describe('CoverageReporter', () => {
             });
 
             const written = fs.readFileSync(lcovPath, 'utf8');
-            expect(written).to.not.include('RBSCOL');
-            expect(written).to.not.include('RBSSPAN');
             expect(written).to.include('SF:core/src/source/a.bs');
             expect(written).to.include('FN:2,doThing');
             expect(written).to.not.match(/^FN:\d+,\d+,/m);
@@ -205,7 +154,7 @@ describe('CoverageReporter', () => {
             expect(record.branches.hit).to.equal(1);
         });
 
-        it('writes the canonical Istanbul coverage-final.json with columns and multi-line ranges', async () => {
+        it('writes the canonical Istanbul coverage-final.json', async () => {
             const istanbulJsonPath = path.join(tmpPath, 'coverage', 'coverage-final.json');
             await writeCoverageReports({
                 rawLcov: rawLcov,
@@ -219,14 +168,13 @@ describe('CoverageReporter', () => {
             const fileCoverage = data[filePath];
             expect(fileCoverage, `expected entry for ${filePath} in ${Object.keys(data).join(', ')}`).to.exist;
             expect(fileCoverage.path).to.equal(filePath);
-            // multi-line statement keeps its true range in the canonical JSON
+            // the lcov wire carries no span detail - every DA row is a single-line statement
             const spanStatement = Object.keys(fileCoverage.statementMap)
                 .map(key => fileCoverage.statementMap[key])
                 .find(loc => loc.start.line === 4);
-            expect(spanStatement.end.line).to.equal(5);
-            // branch arm columns survive
-            expect(fileCoverage.branchMap[0].type).to.equal('cond-expr');
-            expect(fileCoverage.branchMap[0].locations[0].start.column).to.equal(10);
+            expect(spanStatement.end.line).to.equal(4);
+            // block-grouped decisions render as if-type I/E badges
+            expect(fileCoverage.branchMap[0].type).to.equal('if');
             expect(fileCoverage.b[0]).to.eql([4, 0]);
             expect(fileCoverage.f[0]).to.equal(4);
         });

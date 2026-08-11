@@ -96,33 +96,3 @@ function runTaskThread() as void
     end while
 
 end function
-
-
-#if false
-    sub test()
-        player = m.player
-
-        report = false
-        if player = invalid or (player.duration > 0 and player.state = "playing") then
-            report = true
-        end if
-
-        if report = true then
-            player.control = "stop"
-        end if
-    end sub
-
-
-    sub test()
-        player = m.player
-
-        report = false
-        if RBS_CC_0_reportCondition(109, 1, player = invalid) or RBS_CC_0_reportCondition(109, 2, (RBS_CC_0_reportCondition(109, 3, player.duration > 0) and RBS_CC_0_reportCondition(109, 4, player.state = "playing"))) then
-            report = true
-        end if
-
-        if report = true then
-            player.control = "stop"
-        end if
-    end sub
-#end if

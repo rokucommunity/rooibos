@@ -27,23 +27,11 @@ const lcovParse = require('lcov-parse');
  *    BrightScript with its JS lexer - imperfect but accepted; a lang-bs.js prettify
  *    extension is the future path to proper highlighting.)
  *
- * The wire format from the device is line-based lcov text extended with two custom line
- * types, folded into the canonical map here (and stripped before any lcov parsing):
- *  - `RBSCOL:<block>,<branch>,<startCol>,<endCol>` - column data for expression-level
- *    branches (ternary arms etc.) so missed arms get the yellow cbranch-no wrap.
- *  - `RBSSPAN:<startLine>,<endLine>` - a multi-line simple statement anchored at
- *    startLine, so the whole statement paints red/covered like nyc paints multi-line
- *    TS statements.
+ * The wire format from the device is deliberately plain lcov text - rich detail
+ * (statement spans, branch arm columns) lives in the static CodeCoverage.json model and
+ * flows through the condensed-counts channel when `coverageReporter` is set; this legacy
+ * lcov path renders with line/indent anchors only.
  */
-
-export interface LcovExtensions {
-    /** `<file>:<blockId>:<branchId>` -> arm columns (0-indexed, inclusive end) */
-    branchColumns: Map<string, { startColumn: number; endColumn: number }>;
-    /** `<file>:<startLine>` -> end line of a multi-line statement */
-    statementSpans: Map<string, number>;
-    /** the lcov text with the extension lines removed */
-    cleanLcov: string;
-}
 
 interface LcovLineDetail {
     line: number;
@@ -113,39 +101,14 @@ export class SourceCache {
 }
 
 /**
- * Splits the framework's custom extension lines out of raw lcov text. Also collapses
- * modern 3-arg `FN:start,end,name` rows to the 2-arg form lcov-parse understands, and
- * strips CR from console-captured CRLF output.
+ * Normalizes console-captured lcov text for lcov-parse: collapses modern 3-arg
+ * `FN:start,end,name` rows to the 2-arg form it understands, and strips CR from
+ * CRLF output.
  */
-export function extractLcovExtensions(rawText: string): LcovExtensions {
-    const withCollapsedFn = rawText.replace(/^FN:(\d+),\d+,(.+)$/gm, 'FN:$1,$2');
-    const branchColumns = new Map<string, { startColumn: number; endColumn: number }>();
-    const statementSpans = new Map<string, number>();
-    const cleanLines: string[] = [];
-    let currentSf: string | null = null;
-
-    for (let line of withCollapsedFn.split('\n')) {
-        line = line.replace(/\r$/, '');
-        const sfMatch = /^SF:(.+)$/.exec(line);
-        if (sfMatch) {
-            currentSf = sfMatch[1];
-        }
-        const colMatch = /^RBSCOL:(\d+),(\d+),(\d+),(\d+)$/.exec(line);
-        if (colMatch && currentSf) {
-            branchColumns.set(`${currentSf}:${colMatch[1]}:${colMatch[2]}`, {
-                startColumn: Number(colMatch[3]),
-                endColumn: Number(colMatch[4])
-            });
-            continue;
-        }
-        const spanMatch = /^RBSSPAN:(\d+),(\d+)$/.exec(line);
-        if (spanMatch && currentSf) {
-            statementSpans.set(`${currentSf}:${spanMatch[1]}`, Number(spanMatch[2]));
-            continue;
-        }
-        cleanLines.push(line);
-    }
-    return { branchColumns: branchColumns, statementSpans: statementSpans, cleanLcov: cleanLines.join('\n') };
+export function normalizeLcovText(rawText: string): string {
+    return rawText
+        .replace(/^FN:(\d+),\d+,(.+)$/gm, 'FN:$1,$2')
+        .replace(/\r/g, '');
 }
 
 /** pkg-relative `sourceFile` -> repo-relative `sourcePath`, recorded at build time. */
@@ -186,12 +149,13 @@ function pointAt(line: number, column: number): IstanbulRange {
 }
 
 /**
- * Builds one canonical Istanbul FileCoverage from an lcov record plus the extension data.
- * Statements carry their true multi-line range (RBSSPAN); branch arms carry real columns
- * (RBSCOL) when the framework recorded them. Pure transform (aside from source reads for
- * badge columns) - unit-testable without rendering anything.
+ * Builds one canonical Istanbul FileCoverage from an lcov record. Statements and branch
+ * arms anchor by line/indent - the lcov wire carries no column or span detail (that
+ * fidelity comes via the condensed-counts channel and the static model instead). Pure
+ * transform (aside from source reads for badge columns) - unit-testable without
+ * rendering anything.
  */
-export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, extensions: LcovExtensions, sourceCache: SourceCache): FileCoverageData {
+export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, sourceCache: SourceCache): FileCoverageData {
     const fileCoverage: FileCoverageData = {
         path: resolvedPath,
         statementMap: {},
@@ -205,10 +169,9 @@ export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, 
     const lineDetails = record.lines.details ?? [];
     let statementIndex = 0;
     for (const line of lineDetails) {
-        const spanEnd = extensions.statementSpans.get(`${record.file}:${line.line}`);
         fileCoverage.statementMap[statementIndex] = {
             start: { line: line.line, column: 0 },
-            end: { line: spanEnd ?? line.line, column: 1024 }
+            end: { line: line.line, column: 1024 }
         };
         fileCoverage.s[statementIndex] = line.hit;
         statementIndex++;
@@ -235,31 +198,16 @@ export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, 
     }
 
     let branchIndex = 0;
-    for (const [blockId, branches] of branchesByBlock.entries()) {
+    for (const branches of branchesByBlock.values()) {
         branches.sort((a, b) => a.branch - b.branch);
         const earliestLine = Math.min(...branches.map(b => b.line));
-        const columnKey = (branchId: number) => `${record.file}:${blockId}:${branchId}`;
-
-        // RBSCOL data means the framework recorded start/end columns for the arms
-        // (expression-level branches like ternary arms); switch to type 'cond-expr' so
-        // Istanbul's annotator wraps each missed arm with cbranch-no (yellow highlight)
-        // instead of inserting an I/E badge. Block-level branches (no column data) keep
-        // type 'if' for the badge - the wrap path's snap-to-whitespace logic mis-handles
-        // full-line wraps.
-        const hasColumnData = branches.every(b => extensions.branchColumns.has(columnKey(b.branch)));
-        const locations = branches.map(b => {
-            const columns = extensions.branchColumns.get(columnKey(b.branch));
-            if (columns) {
-                return {
-                    start: { line: b.line, column: columns.startColumn },
-                    end: { line: b.line, column: columns.endColumn }
-                };
-            }
-            return pointAt(b.line, sourceCache.getIndentColumn(resolvedPath, b.line));
-        });
+        // The lcov wire has no arm columns, so every decision renders as type 'if' with
+        // I/E badges at line/indent anchors (the cond-expr yellow-wrap treatment needs
+        // the column detail that only the counts channel carries).
+        const locations = branches.map(b => pointAt(b.line, sourceCache.getIndentColumn(resolvedPath, b.line)));
 
         fileCoverage.branchMap[branchIndex] = {
-            type: hasColumnData ? 'cond-expr' : 'if',
+            type: 'if',
             line: earliestLine,
             loc: pointAt(earliestLine, sourceCache.getIndentColumn(resolvedPath, earliestLine)),
             locations: locations
@@ -431,7 +379,7 @@ function parseLcov(text: string): Promise<LcovFileRecord[]> {
 }
 
 export interface CoverageReportOptions {
-    /** Raw coverage text captured from the device (with RBSCOL/RBSSPAN extension lines) */
+    /** Raw lcov text captured from the device console */
     rawLcov: string;
     /** Path to write the strictly-standard lcov.info. Skipped when undefined. */
     lcovPath?: string;
@@ -455,8 +403,7 @@ export interface CoverageReportOptions {
 export async function writeCoverageReports(options: CoverageReportOptions): Promise<void> {
     const sourceRoot = path.resolve(options.sourceRoot ?? process.cwd());
 
-    const extensions = extractLcovExtensions(options.rawLcov);
-    const records = await parseLcov(extensions.cleanLcov);
+    const records = await parseLcov(normalizeLcovText(options.rawLcov));
 
     const sourceCache = new SourceCache();
     const coverageData: CoverageMapData = {};
@@ -465,7 +412,7 @@ export async function writeCoverageReports(options: CoverageReportOptions): Prom
         // path (pkg-relative `./components/...`) as sourceRoot-relative.
         const relativePath = options.pathMap?.get(record.file) ?? record.file;
         const resolvedPath = path.isAbsolute(relativePath) ? relativePath : path.resolve(sourceRoot, relativePath);
-        coverageData[resolvedPath] = buildFileCoverage(record, resolvedPath, extensions, sourceCache);
+        coverageData[resolvedPath] = buildFileCoverage(record, resolvedPath, sourceCache);
     }
 
     emitIstanbulJson(coverageData, options.istanbulJsonPath);
