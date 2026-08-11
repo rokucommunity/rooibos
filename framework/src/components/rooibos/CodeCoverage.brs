@@ -12,6 +12,10 @@ function init()
 end function
 
 function runTaskThread() as void
+    ' Per-file line lookups keyed by line number, built lazily on first hit (on the task
+    ' thread, so the render thread never pays for index construction). The values are
+    ' references to the same line AAs as file.lines, so mutating them updates the model.
+    m.lineIndexByFile = {}
     while true
         events = []
         saving = false
@@ -55,27 +59,33 @@ function runTaskThread() as void
                     end if
                     file.functions[entry.fn].totalHit++
                 else if entry.r = 3 then ' CodeCoverageLineType.branch
-                    for each branch in file.blocks[entry.bl].branches
-                        if branch.id = entry.br then
-                            if branch.totalHit = 0 then
-                                file.branchTotalHit++
-                            end if
-                            branch.totalHit++
-                            exit for
+                    ' branch ids are assigned as array indexes at build time, so index directly
+                    branch = file.blocks[entry.bl].branches[entry.br]
+                    if branch <> invalid then
+                        if branch.totalHit = 0 then
+                            file.branchTotalHit++
                         end if
-                    end for
+                        branch.totalHit++
+                    end if
                 else if entry.r = 1 then ' CodeCoverageLineType.code
-                    for each line in file.lines
-                        if line.lineNumber = entry.l then
-                            if line.totalHit = 0 then
-                                file.lineTotalHit++
-                            end if
-                            line.totalHit++
-                            exit for
+                    fileKey = stri(entry.f).trim()
+                    lineIndex = m.lineIndexByFile[fileKey]
+                    if lineIndex = invalid then
+                        lineIndex = {}
+                        for each line in file.lines
+                            lineIndex[stri(line.lineNumber).trim()] = line
+                        end for
+                        m.lineIndexByFile[fileKey] = lineIndex
+                    end if
+                    line = lineIndex[stri(entry.l).trim()]
+                    if line <> invalid then
+                        if line.totalHit = 0 then
+                            file.lineTotalHit++
                         end if
-                    end for
+                        line.totalHit++
+                    end if
                 end if
-                m.coverageMap.files[entry.f] = file
+                ' no write-back needed: file and its members are references into m.coverageMap
             end if
         end for
 

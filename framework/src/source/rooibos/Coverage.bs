@@ -173,6 +173,12 @@ namespace rooibos.Coverage
             ' tracked arm), synthesize the implicit-else branch from the if-line's evaluation count
             ' minus the tracked arm hits. This lets the HTML viewer flag never-taken falsy paths
             ' even though we don't directly instrument the implicit fall-through.
+            ' One line-hit lookup pass per file - rescanning file.lines for every
+            ' single-arm if is O(blocks x lines) in interpreted code on the device.
+            hitsByLine = {}
+            for each line in file.lines
+                hitsByLine[stri(line.lineNumber).trim()] = line.totalHit
+            end for
             brf = 0
             brh = 0
             for each block in file.blocks
@@ -185,13 +191,7 @@ namespace rooibos.Coverage
                 end for
                 if block.isIfArm = true and block.branches.count() = 1 then
                     ifLine = block.branches[0].line
-                    evaluations = 0
-                    for each line in file.lines
-                        if line.lineNumber = ifLine then
-                            evaluations = line.totalHit
-                            exit for
-                        end if
-                    end for
+                    evaluations = hitsByLine[stri(ifLine).trim()] ?? 0
                     skipHits = evaluations - block.branches[0].totalHit
                     if skipHits < 0 then
                         skipHits = 0
