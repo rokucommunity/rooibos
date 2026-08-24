@@ -99,6 +99,82 @@ namespace bench
             m.assertNotInvalid(handler)
         end function
 
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("gradeOf - only the first else-if arm is exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns A for a top score")
+        function _()
+            ' Only the score >= 90 arm runs; B, C and the else arm should show as missed
+            ' branches and their return lines as missed statements.
+            m.assertEqual(bench.gradeOf(95), "A")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("signLabel - inline if arm never taken")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns non-negative for a positive value")
+        function _()
+            ' The single-line `then return "negative"` clause never runs - the renderer
+            ' should paint just that clause red via its recorded column range.
+            m.assertEqual(bench.signLabel(5), "non-negative")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("drain - while body never entered")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns 0 when there is nothing to drain")
+        function _()
+            ' The while condition is false on entry - body lines should be unhit.
+            m.assertEqual(bench.drain(0), 0)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("sumTo - for loop never iterates")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns 0 for a limit of 0")
+        function _()
+            ' `for i = 1 to 0` never runs its body - body lines should be unhit.
+            m.assertEqual(bench.sumTo(0), 0)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("configFor - multi-line AA literal in a never-taken branch")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns invalid for a normal name")
+        function _()
+            ' The "special" branch never runs - the whole multi-line AA return should
+            ' paint as one missed span.
+            m.assertInvalid(bench.configFor("normal"))
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("bothTrue - AND right side never evaluated")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns false when the left side is already false")
+        function _()
+            ' AND short-circuits on a false left side - the right operand should render
+            ' as a missed branch.
+            m.assertFalse(bench.bothTrue(false, true))
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("anyMatch - extracted ladder with one hit operand")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("matches the first candidate")
+        function _()
+            ' The condition is extracted into a generated ladder helper. Matching the very
+            ' first operand short-circuits the rest - operands 2-12 should all render as
+            ' missed branches anchored to the source if-line.
+            m.assertTrue(bench.anyMatch(1))
+        end function
+
     end class
 
 end namespace

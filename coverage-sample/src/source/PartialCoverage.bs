@@ -88,4 +88,78 @@ namespace bench
         return handler
     end function
 
+    ' Else-if ladder where the spec only ever hits the first arm. Every later arm's branch
+    ' and body should show as missed, and the badges should anchor to each `if` keyword.
+    function gradeOf(score as integer) as string
+        if score >= 90 then
+            return "A"
+        else if score >= 80 then
+            return "B"
+        else if score >= 70 then
+            return "C"
+        else
+            return "F"
+        end if
+    end function
+
+    ' Inline (single-line) if arm the spec never takes. The clause's column range is recorded
+    ' so the renderer can paint just `return "negative"` red while the if-line itself is hit.
+    function signLabel(value as integer) as string
+        if value < 0 then return "negative"
+        return "non-negative"
+    end function
+
+    ' While loop whose condition is false on entry - the body should be fully unhit while the
+    ' while-line itself is hit.
+    function drain(count as integer) as integer
+        drained = 0
+        while count > 0
+            count = count - 1
+            drained = drained + 1
+        end while
+        return drained
+    end function
+
+    ' Plain for loop that never iterates (1 to 0) - body unhit, for-line hit.
+    function sumTo(limit as integer) as integer
+        total = 0
+        for i = 1 to limit
+            total = total + i
+        end for
+        return total
+    end function
+
+    ' Never-taken branch containing a multi-line AA literal - the whole span should paint as
+    ' one missed statement (the `el` end-line in the coverage model).
+    function configFor(name as string) as object
+        if name = "special" then
+            return {
+                name: name
+                enabled: true
+                retries: 3
+            }
+        end if
+        return invalid
+    end function
+
+    ' Logical AND where the spec always passes a false left side, so the right operand
+    ' short-circuits away and should render as a missed branch.
+    function bothTrue(left as boolean, right as boolean) as boolean
+        return left and right
+    end function
+
+    ' Condition too complex to instrument in place - the plugin extracts it into a generated
+    ' short-circuit ladder helper. The spec passes 1, so only the first operand is ever
+    ' evaluated; every later operand should render as a missed branch on this line.
+    function anyMatch(v as integer) as boolean
+        if matches(v, 1) or matches(v, 2) or matches(v, 3) or matches(v, 4) or matches(v, 5) or matches(v, 6) or matches(v, 7) or matches(v, 8) or matches(v, 9) or matches(v, 10) or matches(v, 11) or matches(v, 12) then
+            return true
+        end if
+        return false
+    end function
+
+    function matches(v as integer, target as integer) as boolean
+        return v = target
+    end function
+
 end namespace
