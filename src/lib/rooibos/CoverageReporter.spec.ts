@@ -36,6 +36,24 @@ describe('CoverageReporter', () => {
         });
     });
 
+    describe('SourceCache columns', () => {
+        it('finds indent and keyword columns, with fallbacks for missing lines', () => {
+            const file = path.join(tmpPath, 'columns.brs');
+            fs.writeFileSync(file, '    handler = function(a)\n        x = 1\n    end function\n');
+            const cache = new SourceCache();
+            // indent column of a normal line
+            expect(cache.getIndentColumn(file, 2)).to.equal(8);
+            // missing line -> 0
+            expect(cache.getIndentColumn(file, 99)).to.equal(0);
+            // keyword lands on `function`, skipping the `handler = ` prefix
+            expect(cache.getKeywordColumn(file, 1)).to.equal(14);
+            // no function/sub keyword -> falls back to the indent column
+            expect(cache.getKeywordColumn(file, 2)).to.equal(8);
+            // missing line -> 0
+            expect(cache.getKeywordColumn(file, 99)).to.equal(0);
+        });
+    });
+
     describe('buildFileCoverage', () => {
         function makeRecord(partial: Partial<LcovFileRecord>): LcovFileRecord {
             return {

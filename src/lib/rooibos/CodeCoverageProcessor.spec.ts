@@ -845,6 +845,45 @@ describe('RooibosPlugin', () => {
                 `));
             });
 
+            it('wraps null-coalescing arms as a two-branch block', async () => {
+                program.setFile('source/code.bs', `
+                    function pick(a, b)
+                        return a ?? b
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // branch 0 = consequent (fires every evaluation), branch 1 = alternate
+                expect(a).to.match(/RBS_CC_0_branchValue\(0, 0, a\)/);
+                expect(a).to.match(/RBS_CC_0_branchValue\(0, 1, b\)/);
+            });
+
+            it('budget-analyzes conditions containing gets, ternaries, literals and unary ops', async () => {
+                program.setFile('source/code.bs', `
+                    function check(a, b, c, d, e) as boolean
+                        return true
+                    end function
+
+                    function evaluate(arr, flags) as integer
+                        if check([1, 2], {ok: true}, (flags.mode = 1) ? 1 : 2, (flags.deep[0] ?? 0), not flags.on) and arr.count() > 0
+                            return 1
+                        end if
+                        return 0
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // the condition fit the budget, so the and-wrap fired around both operands
+                expect(a).to.include('RBS_CC_0_branchValue(');
+                expect(a).to.match(/if RBS_CC_0_reportLine\(\d+\) and /);
+            });
+
             it('correctly transpiles some statements', async () => {
                 const source = `sub foo()
                     x = function(y)
@@ -1256,6 +1295,103 @@ describe('RooibosPlugin', () => {
                 expect(a).to.not.match(/or not __rbs_r\r?\n\s*__rbs_r = RBS_CC_0_branchValue/);
                 // the original giant expression is gone from the if statement
                 expect(a).to.not.include('chk(1, limit) or chk(2, limit)');
+            });
+
+            it('extracts an over-budget while-condition (boolean context via while)', async () => {
+                program.setFile('source/code.bs', `
+                    function chk(n as integer, limit as integer) as boolean
+                        return n > limit
+                    end function
+
+                    function hot() as boolean
+                        limit = 5
+                        while chk(1, limit) or chk(2, limit) or chk(3, limit) or chk(4, limit) or chk(5, limit) or chk(6, limit) or chk(7, limit) or chk(8, limit) or chk(9, limit) or chk(10, limit) or chk(11, limit) or chk(12, limit)
+                            return true
+                        end while
+                        return false
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                expect(a).to.include('function RBS_CC_0_cx0(limit)');
+                expect(a).to.match(/RBS_CC_0_reportLine\(\d+\): while RBS_CC_0_cx0\(limit\)/);
+            });
+
+            it('bails extraction when the condition needs more locals than the helper param cap', async () => {
+                const previousDebug = process.env.RBS_CC_DEBUG;
+                // exercise the debug traces alongside the bail path
+                process.env.RBS_CC_DEBUG = '1';
+                try {
+                    const vars = Array.from({ length: 18 }, (_, i) => `v${i}`);
+                    const assigns = vars.map(v => `${v} = 1`).join('\n                        ');
+                    const chain = vars.map(v => `chk(${v}, limit)`).join(' or ');
+                    program.setFile('source/code.bs', `
+                        function chk(n as integer, limit as integer) as boolean
+                            return n > limit
+                        end function
+
+                        function hot() as boolean
+                            limit = 5
+                            ${assigns}
+                            if ${chain}
+                                return true
+                            end if
+                            return false
+                        end function
+                    `);
+                    program.validate();
+                    expect(program.getDiagnostics()).to.be.empty;
+                    await builder.transpile();
+
+                    const a = getContents('source/code.brs');
+                    // no helper was generated; the if-line falls back to a plain reportLine
+                    // statement before it, and the original condition is untouched
+                    expect(a).to.not.include('_cx0(');
+                    expect(a).to.match(/RBS_CC_0_reportLine\(\d+\)\s*\r?\n\s*if chk\(v0, limit\) or chk\(v1, limit\)/);
+                } finally {
+                    if (previousDebug === undefined) {
+                        delete process.env.RBS_CC_DEBUG;
+                    } else {
+                        process.env.RBS_CC_DEBUG = previousDebug;
+                    }
+                }
+            });
+
+            it('collects for-each, catch and increment locals when extracting a condition', async () => {
+                program.setFile('source/code.bs', `
+                    function chk(n as integer, limit as integer) as boolean
+                        return n > limit
+                    end function
+
+                    function hot(items) as boolean
+                        limit = 5
+                        total = 0
+                        for each item in items
+                            total++
+                        end for
+                        try
+                            total = total + 1
+                        catch err
+                            total = 0
+                        end try
+                        if chk(total, limit) or chk(1, limit) or chk(2, limit) or chk(3, limit) or chk(4, limit) or chk(5, limit) or chk(6, limit) or chk(7, limit) or chk(8, limit) or chk(9, limit) or chk(10, limit) or chk(11, limit)
+                            return true
+                        end if
+                        return false
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // the condition's locals became helper params (for-each/catch/increment
+                // targets are recognized as locals so shadowing can't misroute them)
+                expect(a).to.match(/if RBS_CC_0_reportLine\(\d+\) and \(RBS_CC_0_cx0\(total, limit\)\)/);
+                expect(a).to.include('function RBS_CC_0_cx0(total, limit)');
             });
 
             it('preserves integer bitwise and/or semantics in the extraction ladder', async () => {
