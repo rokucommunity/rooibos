@@ -807,6 +807,44 @@ describe('RooibosPlugin', () => {
                 expect(a).to.include('RBS_CC_0_reportLine(12)'); // return a / b
             });
 
+            it('keeps super() first in a child-class constructor so bsc field initializers run after super', async () => {
+                program.setFile('source/code.bs', `
+                    class Animal
+                        legs = 4
+                        function new()
+                            m.legs = 2
+                        end function
+                    end class
+
+                    class Dog extends Animal
+                        breed = "unknown"
+                        function new()
+                            super()
+                            m.breed = "lab"
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // bsc splices field initializers at index 1 of a child-class constructor,
+                // assuming statement 0 is the super call - so super must still be first and
+                // the initializers must land between it and our coverage calls.
+                const dogConstructor = a.substring(a.indexOf('function __Dog_method_new()'), a.indexOf('function __Dog_builder()')).trim();
+                expect(dogConstructor).to.equal(undent(`
+                    function __Dog_method_new()
+                        m.super0_new()
+                        m.breed = "unknown"
+                        RBS_CC_0_reportLine(12)
+                        RBS_CC_0_reportFunction(1)
+                        RBS_CC_0_reportLine(13)
+                        m.breed = "lab"
+                    end function
+                `));
+            });
+
             it('correctly transpiles some statements', async () => {
                 const source = `sub foo()
                     x = function(y)

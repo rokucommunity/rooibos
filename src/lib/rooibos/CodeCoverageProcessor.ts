@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isMethodStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isMethodStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement, isExpressionStatement } from 'brighterscript';
 import type { AssignmentStatement, BrsFile, CallExpression, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, Program, ProgramBuilder, Range, Statement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -559,7 +559,12 @@ export class CodeCoverageProcessor {
         // walker from descending into that statement's children. See pendingFunctionReports above.
         for (const { func, callText } of this.pendingFunctionReports) {
             const parsed = Parser.parse(callText).ast.statements[0] as ExpressionStatement;
-            this.astEditor.addToArray(func.body.statements, 0, parsed);
+            // A child-class constructor's super() call must remain the FIRST statement:
+            // brighterscript's class transpiler splices field initializers at index 1
+            // whenever the class has a parent, assuming statement 0 is the super call.
+            // Inserting ahead of it would run the field initializers before super.
+            const index = this.isSuperCallStatement(func.body.statements[0]) ? 1 : 0;
+            this.astEditor.addToArray(func.body.statements, index, parsed);
         }
 
         // Apply queued reportLine inserts. Look up each statement's current position in its
@@ -570,7 +575,10 @@ export class CodeCoverageProcessor {
                 continue;
             }
             const parsed = Parser.parse(callText).ast.statements[0] as ExpressionStatement;
-            this.astEditor.arraySplice(owner, idx, 0, parsed);
+            // The super() call must stay at index 0 (see above), so its own line report
+            // goes after it instead of before.
+            const insertAt = idx === 0 && this.isSuperCallStatement(statement) ? 1 : idx;
+            this.astEditor.arraySplice(owner, insertAt, 0, parsed);
             this.addedStatements.add(parsed);
         }
 
@@ -1278,6 +1286,17 @@ export class CodeCoverageProcessor {
         const call = stmt.value as CallExpression;
         call.args[2] = original;
         return call;
+    }
+
+    /**
+     * True for a `super(...)` constructor-call statement. brighterscript's class transpiler
+     * assumes this is statement 0 of a child-class constructor when it splices in field
+     * initializers, so nothing may be inserted ahead of it.
+     */
+    private isSuperCallStatement(statement: Statement | undefined): boolean {
+        return isExpressionStatement(statement) && isCallExpression(statement.expression) &&
+            isVariableExpression(statement.expression.callee) &&
+            statement.expression.callee.name.text.toLowerCase() === 'super';
     }
 
     private convertStatementToCoverageStatement(statement: Statement, owner: any, key: any) {
