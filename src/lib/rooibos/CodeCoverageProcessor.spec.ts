@@ -845,6 +845,53 @@ describe('RooibosPlugin', () => {
                 `));
             });
 
+            it('re-transpiling the same program keeps file ids stable and does not double-instrument', async () => {
+                // A build pipeline may transpile the same program more than once (watch
+                // mode, retries, staged builds). Coverage state must reset per transpile:
+                // otherwise the fileId counter keeps counting, so the second pass bakes
+                // DIFFERENT ids into the .brs output while the model accumulates entries
+                // for both passes - runtime entries then resolve against the wrong file's
+                // model entry (a reported crash: a branch entry for a file with no blocks).
+                // Token-text mutations (for/while/for-each/try prefixes) must also go
+                // through the editor, or the second pass stacks a second reportLine prefix.
+                program.setFile('source/code.bs', `
+                    function loopy(items as object) as integer
+                        total = 0
+                        for i = 0 to 10
+                            total = total + i
+                        end for
+                        for each item in items
+                            total = total + item
+                        end for
+                        while total > 100
+                            total = total - 1
+                        end while
+                        try
+                            total = total + 1
+                        catch e
+                            total = 0
+                        end try
+                        if total > 50 then
+                            return total
+                        end if
+                        return 0
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+
+                await builder.transpile();
+                const first = getContents('source/code.brs');
+                const firstReport = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+
+                await builder.transpile();
+                const second = getContents('source/code.brs');
+                const secondReport = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+
+                expect(second).to.equal(first);
+                expect(secondReport.files.filter((f) => f !== null).length).to.equal(firstReport.files.filter((f) => f !== null).length);
+            });
+
             it('wraps null-coalescing arms as a two-branch block', async () => {
                 program.setFile('source/code.bs', `
                     function pick(a, b)

@@ -213,6 +213,22 @@ export class CodeCoverageProcessor {
         this.fileFactory.createCoverageComponent(program, this.baseCoverageReport);
     }
 
+    /**
+     * Resets every cross-file accumulator. bsc can transpile the same program more than
+     * once (watch mode, retries, staged builds), and file ids are transpile-order
+     * counters: carrying state across passes bakes DIFFERENT ids into the second pass's
+     * output while the model keeps entries from every pass, so runtime entries resolve
+     * against the wrong file's model entry (e.g. a branch entry for a file whose model
+     * has no blocks - a device crash).
+     */
+    public onBeforeProgramTranspile() {
+        this.fileId = 0;
+        this.processedFunctions = new Set<FunctionExpression>();
+        this.baseCoverageReport = {
+            files: []
+        };
+    }
+
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {
         if (this.config.isRecordingCodeCoverage) {
             this.blockId = 0;
@@ -313,7 +329,10 @@ export class CodeCoverageProcessor {
             },
             ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds, ds.range.start.line);
-                ds.forToken.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for`;
+                // token-text mutation must go through the editor so bsc's post-transpile
+                // rollback restores the source AST - a later transpile of the same program
+                // re-instruments from pristine tokens (same for while/for-each/try below)
+                this.astEditor.setProperty(ds.forToken, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for`);
             },
             TryCatchStatement: (tryCatch, parent, owner, key) => {
                 this.addStatement(tryCatch, tryCatch.range.start.line);
@@ -322,7 +341,7 @@ export class CodeCoverageProcessor {
                 // WhileStatement / ForEachStatement) rather than arraySplice; splicing the
                 // owner array mid-visit causes the walker to re-read owner[key] and skip
                 // the try-statement's children.
-                tryCatch.tokens.try.text = `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, tryCatch)}: try`;
+                this.astEditor.setProperty(tryCatch.tokens.try, 'text', `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, tryCatch)}: try`);
                 // try/catch arms are deliberately NOT branch-tracked - istanbul's TS
                 // instrumenter doesn't treat them as branches either; an unexercised catch
                 // shows up through statement coverage of its body lines.
@@ -396,7 +415,10 @@ export class CodeCoverageProcessor {
                     // try to wrap its operands - this And exists purely to fire reportLine before
                     // the user's condition runs, not as a real branch decision.
                     this.processedExpressions.add(conditionWrap);
-                    (ifStatement as any).condition = conditionWrap;
+                    // through the editor: a direct assignment would survive bsc's rollback
+                    // and a second transpile would wrap the wrap, keeping a stale call to
+                    // helpers that no longer exist in the new output
+                    this.astEditor.setProperty(ifStatement as any, 'condition', conditionWrap);
                 } else if (Array.isArray(owner)) {
                     // The condition is too hot to touch but this `if` sits in a statement list,
                     // so report its line with a plain statement inserted just before it.
@@ -420,11 +442,11 @@ export class CodeCoverageProcessor {
             IncrementStatement: simpleStatement,
             WhileStatement: (ds) => {
                 this.addStatement(ds, ds.range.start.line);
-                ds.tokens.while.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: while`;
+                this.astEditor.setProperty(ds.tokens.while, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: while`);
             },
             ForEachStatement: (ds) => {
                 this.addStatement(ds, ds.range.start.line);
-                ds.tokens.forEach.text = `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for each`;
+                this.astEditor.setProperty(ds.tokens.forEach, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for each`);
             },
             AssignmentStatement: (ds, parent, owner, key) => {
                 // a for-loop's init assignment belongs to the for line, not its own
@@ -661,7 +683,7 @@ export class CodeCoverageProcessor {
     }
 
     /**
-     * Line/column anchor for a branch entry. Other plugins (e.g. fubo's is.* inliner) can
+     * Line/column anchor for a branch entry. Other plugins (e.g. an expression inliner) can
      * graft replacement expressions into a statement that still carry ranges from a
      * DIFFERENT source file; using those verbatim would put branch badges on nonsense
      * lines and could collide with real lines elsewhere in this file. When an expression's
@@ -689,7 +711,7 @@ export class CodeCoverageProcessor {
 
     /**
      * True when this expression's range lies outside its containing statement - the
-     * fingerprint of code grafted in by another plugin (e.g. fubo's is.* inliner), whose
+     * fingerprint of code grafted in by another plugin (e.g. an expression inliner), whose
      * ranges point into a different source file. Branch entries for such code would render
      * as misplaced badges for logic the user cannot see in this file (nyc on TS reports
      * nothing for build-time-inlined helpers either), so branch instrumentation skips it.
