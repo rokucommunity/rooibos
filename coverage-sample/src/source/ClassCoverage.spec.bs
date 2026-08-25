@@ -1,0 +1,44 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+namespace bench
+
+    @suite
+    class ClassCoverageTests extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("Dog - child-class constructor ordering")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("runs field initializers after super()")
+        function _()
+            dog = new bench.Dog("lab")
+            ' The parent constructor sets status = "parent"; the child's field initializer
+            ' must overwrite it AFTER super() runs. If instrumentation pushes super() off
+            ' statement 0, bsc injects the initializers before super and this reads "parent".
+            m.assertEqual(dog.status, "tame")
+            m.assertEqual(dog.breed, "lab")
+            m.assertEqual(dog.legs, 4)
+        end function
+
+        @it("speaks with the sound passed through super")
+        function _()
+            dog = new bench.Dog("lab")
+            ' Only the non-husky path runs - the husky arm should show as a missed branch.
+            m.assertEqual(dog.speak(), "woof")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("Animal - parent class used directly")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("speaks the sound it was constructed with")
+        function _()
+            ' Animal.sleep() is never called, and the Cat class is never instantiated - both
+            ' should show as missed functions in the report.
+            animal = new bench.Animal("grr")
+            m.assertEqual(animal.speak(), "grr")
+        end function
+
+    end class
+
+end namespace

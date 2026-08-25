@@ -1233,12 +1233,36 @@ e.g.
 ```
 "rooibos": {
     "isRecordingCodeCoverage": true,
+    "coverageReporter": "nyc",
     "coverageExcludedFiles": [
         '**/*.spec.bs',
         '**/some-vendor-library/**.*'
     ]
 },
 ```
+
+#### Choosing a reporter: `coverageReporter`
+
+`coverageReporter` selects how coverage is reported, and takes `"lcov"` or `"nyc"`. When set, it overrides the legacy `printLcov` flag: instead of printing an lcov report, the device prints a small condensed hit-counts stream to the console, and the rooibos CLI joins it with the static coverage model that ships in the package (`components/rooibos/CodeCoverage.json`) to build full-fidelity reports on the host. This is both faster (the condensed stream is a fraction of the lcov payload, so it doesn't flood the console) and richer (statement spans and branch-arm columns come from the model rather than being squeezed through lcov).
+
+- `"lcov"` — the CLI writes a strictly standard `lcov.info` (plus `coverage-final.json`, and the HTML report when `--coverage-html` is passed).
+- `"nyc"` — the CLI writes the Istanbul `coverage-final.json` and runs `nyc report` over it for you with the `lcov` and `text-summary` reporters. nyc's lcov reporter also produces an `lcov.info` and an `lcov-report/` HTML directory, so this mode yields everything the `lcov` mode does, in nyc's standard layout.
+
+The legacy `printLcov: true` flag (with `coverageReporter` unset) still works: the device prints a plain, spec-compliant lcov report to the console at the end of the run, exactly as before — just without any rooibos-specific extension lines, so any strict lcov consumer can read it directly.
+
+#### Device compiler limits
+
+Roku's compiler has undocumented per-expression and per-file limits (`&hae Internal
+limit size exceeded`, `&hb9 Error loading file`), and instrumented code is what usually
+finds them. Rooibos measures its instrumentation against those limits and reshapes it
+automatically — flattened branch wraps, extraction of very complex conditions into
+generated helper functions (no coverage lost), splitting of very long `else if` ladders,
+and a function-only fallback for files that would exceed Roku's 2MiB file cap. When
+anything is reshaped or skipped, a `[rooibos coverage]` warning is printed during the
+build. Three config knobs control the thresholds:
+`coverageMaxExpressionComplexity` (default 16), `coverageMaxIfChainArms`
+(default 150) and `coverageMaxFileBytes` (default 1900000).
+
 #### Statement support
 
 The following statements types are supported:
@@ -1318,3 +1342,44 @@ The report is contained after the LCOV.INFO file. Given that that the console ou
 e.g.
 
 ![coverage output](images/lcov.png)
+
+### Coverage artifacts written by the rooibos CLI
+
+When the rooibos CLI runs your tests (see the CLI section above) with `--coverage-output`, it captures the device's coverage stream (the condensed counts stream when `coverageReporter` is set, or the printed lcov when the legacy `printLcov` flag is on) and writes:
+
+  - `coverage-final.json` - the canonical [Istanbul JSON](https://github.com/istanbuljs/istanbuljs) coverage map, written next to the lcov file. This is the full-fidelity format (multi-line statement ranges, branch arm columns) and is consumable by the whole istanbul/nyc ecosystem: `npx nyc report --temp-dir coverage --exclude-after-remap=false --reporter text-summary` (the flag stops nyc's post-remap filter from dropping non-JS extensions), VSCode coverage gutters, `istanbul-lib-coverage` merge tooling, etc. With `coverageReporter: "nyc"` the CLI runs nyc for you.
+  - `lcov.info` (the `--coverage-output` path) - a strictly standard lcov export of the same data, safe for any consumer (Coveralls, genhtml, lcov-parse). Rooibos-specific detail is *not* smuggled into this file; it lives in `coverage-final.json`. In nyc mode this file is produced by nyc's own lcov reporter (along with its `lcov-report/` HTML directory).
+  - an HTML report (when `--coverage-html <dir>` is passed) - stock Istanbul rendering, visually identical to what nyc produces for a TypeScript project. Use `--coverage-src-root` to point at your repository root so sources resolve.
+
+```bash
+npx rooibos --project bsconfig-tests.json --host <roku-ip> --password <pw> \
+    --coverage-output coverage/lcov.info \
+    --coverage-html coverage/html \
+    --coverage-src-root .
+```
+
+SF paths inside `lcov.info` are emitted **relative to your repository root**. The rooibos compiler plugin records each instrumented file's repo-relative path (found by walking up to the nearest `.git`) into `components/rooibos/CodeCoverage.json` at build time, and the CLI reads that map back from the deployed package or staging directory. This works even when your build merges several source trees into one pkg root. If the map is unavailable (e.g. a package built with an older rooibos), SF paths fall back to the device's pkg-relative locations resolved against `--coverage-src-root`.
+
+Vendored code that lives outside your repository (for example rooibos' own framework files under `node_modules`) can't map to a repo path - exclude it with `coverageExcludedFiles` so it doesn't pollute CI reports.
+
+### Uploading coverage to Coveralls
+
+Because `lcov.info` is standard lcov with repo-relative paths, the stock [Coveralls GitHub action](https://github.com/coverallsapp/github-action) works as-is:
+
+```yaml
+jobs:
+  test:
+    runs-on: [self-hosted, roku] # needs a runner that can reach your Roku device
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build:tests
+      - run: npx rooibos --project bsconfig-tests.json --host $ROKU_HOST --password $ROKU_PASSWORD --coverage-output coverage/lcov.info
+      - uses: coverallsapp/github-action@v2
+        with:
+          file: coverage/lcov.info
+```
+
+Notes:
+
+  - The lcov must be produced and uploaded from the same checkout/commit so Coveralls' git metadata matches the SF paths - upload in the same job that ran the tests.
+  - Any other lcov-based service (Codecov, SonarQube, `genhtml`) consumes the same file.

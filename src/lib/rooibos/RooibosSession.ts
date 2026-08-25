@@ -146,6 +146,7 @@ export class RooibosSession {
                         "printTestTimes": ${this.config.printTestTimes ? 'true' : 'false'}
                         "lineWidth": ${this.config.lineWidth ?? 60}
                         "printLcov": ${this.config.printLcov ? 'true' : 'false'}
+                        "coverageReporter": "${this.config.coverageReporter ?? ''}"
                         "port": "${this.config.port ?? 'invalid'}"
                         "catchCrashes": ${this.config.catchCrashes ? 'true' : 'false'}
                         "colorizeOutput": ${this.config.colorizeOutput ? 'true' : 'false'}

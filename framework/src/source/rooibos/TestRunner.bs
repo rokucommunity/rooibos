@@ -112,10 +112,19 @@ namespace rooibos
             m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
 
             if m.config.isRecordingCodeCoverage then
-                rooibos.Coverage.reportCodeCoverage()
+                ' saveResults returns invalid (with a console message) when the
+                ' CodeCoverage component is missing from the package
+                coverageResults = rooibos.Coverage.saveResults()
+                if coverageResults <> invalid then
+                    rooibos.Coverage.reportCodeCoverage(coverageResults)
 
-                if m.config.printLcov = true then
-                    rooibos.Coverage.printLCovInfo()
+                    ' coverageReporter overrides the legacy printLcov flag: print the condensed
+                    ' hit-counts stream and let the host CLI build lcov/nyc reports from it
+                    if m.config.coverageReporter <> invalid and m.config.coverageReporter <> "" then
+                        rooibos.Coverage.printCoverageCounts(coverageResults)
+                    else if m.config.printLcov = true then
+                        rooibos.Coverage.printLCovInfo(coverageResults)
+                    end if
                 end if
             else
                 rooibos.common.logDebug("rooibos.Coverage.reportCodeCoverage is not a function")

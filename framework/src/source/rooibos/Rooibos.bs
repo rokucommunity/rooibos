@@ -19,10 +19,18 @@ namespace rooibos
         screen.show()
 
         m.global = screen.getGlobalNode()
-        m.global.addFields({
+        globalFields = {
             "testsScene": scene
-            "_rbs_ccn": createObject("roSGNode", "CodeCoverage")
-        })
+        }
+        ' Only create the coverage task when coverage is enabled - the component ships
+        ' exclusively in coverage builds, and an idle task would otherwise poll for the
+        ' app's whole lifetime
+        runtimeConfigInstance = new rooibos.RuntimeConfig()
+        runtimeConfig = runtimeConfigInstance.getRuntimeConfig()
+        if runtimeConfig <> invalid and runtimeConfig.isRecordingCodeCoverage = true then
+            globalFields["_rbs_ccn"] = createObject("roSGNode", "CodeCoverage")
+        end if
+        m.global.addFields(globalFields)
 
         if scene.hasField("isReadyToStartTests") and scene.isReadyToStartTests = false then
             rooibos.common.logInfo("The scene is not ready yet - waiting for it to set isReadyToStartTests to true")
