@@ -1,4 +1,5 @@
-import { Program, ProgramBuilder, util, standardizePath as s } from 'brighterscript';
+import type { BrsFile, FunctionStatement, IfStatement } from 'brighterscript';
+import { Program, ProgramBuilder, util, standardizePath as s, Parser } from 'brighterscript';
 import { expect } from 'chai';
 import PluginInterface from 'brighterscript/dist/PluginInterface';
 import * as fsExtra from 'fs-extra';
@@ -843,6 +844,64 @@ describe('RooibosPlugin', () => {
                         m.breed = "lab"
                     end function
                 `));
+            });
+
+            it('skips synthetic AST that has no ranges instead of crashing the transpile', async () => {
+                // Other plugins can graft creator-built AST into a file before rooibos
+                // runs, and creator-built nodes carry no ranges. Reported from the field:
+                // "TypeError: Cannot read properties of undefined (reading 'start')" in
+                // ensureFunctionTracked on every file the other plugin had touched.
+                program.setFile('source/code.bs', `
+                    function alpha(x as integer) as integer
+                        if x > 0 and x < 10 then
+                            return x
+                        end if
+                        return 0
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+
+                const file = program.getFile<BrsFile>('source/code.bs');
+
+                // a synthetic top-level function, no ranges anywhere
+                const synthetic = Parser.parse(`function __synthetic()\n    y = 2\nend function`).ast.statements[0] as FunctionStatement;
+                // range is a getter computed from token ranges; token-less creator-built
+                // nodes make it return undefined, which defineProperty mirrors here
+                Object.defineProperty(synthetic, 'range', { value: undefined });
+                Object.defineProperty(synthetic.func, 'range', { value: undefined });
+                Object.defineProperty(synthetic.func.body.statements[0], 'range', { value: undefined });
+                file.ast.statements.push(synthetic);
+
+                const alpha = file.ast.statements[0] as FunctionStatement;
+
+                // a synthetic statement grafted into a real function
+                const grafted = Parser.parse(`m.__grafted = true`).ast.statements[0];
+                Object.defineProperty(grafted, 'range', { value: undefined });
+                alpha.func.body.statements.push(grafted);
+
+                // a synthetic operand grafted into a real condition (inliner-style)
+                const ifStatement = alpha.func.body.statements[0] as IfStatement;
+                const condition = ifStatement.condition as any;
+                const operand = Parser.parse(`__value = __isInlined()`).ast.statements[0] as any;
+                const syntheticCall = operand.value;
+                Object.defineProperty(syntheticCall, 'range', { value: undefined });
+                syntheticCall.parent = condition;
+                condition.right = syntheticCall;
+
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // the real function is still tracked
+                expect(a).to.include('RBS_CC_0_reportFunction(0)');
+                // synthetic nodes transpile untouched: no reportFunction in __synthetic,
+                // no reportLine before the grafted statement, no branch wrap on the
+                // grafted operand
+                expect(a).to.match(/function __synthetic\(\)\s*\r?\n\s*y = 2/);
+                expect(a).to.match(/\r?\n\s*m\.__grafted = true/);
+                // no branchValue CALL sites (the helper definition is always emitted)
+                expect(a).to.not.match(/branchValue\(\d/);
+                expect(a).to.include('(x > 0 and __isInlined())');
             });
 
             it('re-transpiling the same program keeps file ids stable and does not double-instrument', async () => {

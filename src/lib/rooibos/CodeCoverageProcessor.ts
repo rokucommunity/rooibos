@@ -278,8 +278,13 @@ export class CodeCoverageProcessor {
             MethodStatement: trackFunction
         });
         // One shared body for every simple statement kind: register the line (with its
-        // span) and queue a reportLine insert before the statement.
+        // span) and queue a reportLine insert before the statement. Creator-built
+        // statements grafted in by other plugins have no range - nothing to anchor a
+        // line entry to, so they transpile untouched.
         const simpleStatement = (ds: Statement, parent?: Statement, owner?: any, key?: any) => {
+            if (!ds.range) {
+                return;
+            }
             this.addStatement(ds, ds.range.start.line, true);
             this.convertStatementToCoverageStatement(ds, owner, key);
         };
@@ -328,6 +333,9 @@ export class CodeCoverageProcessor {
                 this.astEditor.addToArray(statement.statements, 0, parsed);
             },
             ForStatement: (ds, parent, owner, key) => {
+                if (!ds.range) {
+                    return;
+                }
                 this.addStatement(ds, ds.range.start.line);
                 // token-text mutation must go through the editor so bsc's post-transpile
                 // rollback restores the source AST - a later transpile of the same program
@@ -335,6 +343,9 @@ export class CodeCoverageProcessor {
                 this.astEditor.setProperty(ds.forToken, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for`);
             },
             TryCatchStatement: (tryCatch, parent, owner, key) => {
+                if (!tryCatch.range) {
+                    return;
+                }
                 this.addStatement(tryCatch, tryCatch.range.start.line);
                 // Prefix the `try` token with a reportLine call so the try line gets counted
                 // at runtime. Done via token-text mutation (same pattern as ForStatement /
@@ -347,6 +358,9 @@ export class CodeCoverageProcessor {
                 // shows up through statement coverage of its body lines.
             },
             IfStatement: (ifStatement, parent, owner, key) => {
+                if (!ifStatement.range) {
+                    return;
+                }
                 // Restructure over-long elseif ladders before the walker descends into them.
                 // The compiler's &hae if-table is per-chain (~270 arms plain / ~260 once the
                 // arm bodies carry instrumentation), so `else if` becomes `else` + nested `if`
@@ -441,10 +455,16 @@ export class CodeCoverageProcessor {
             IndexedSetStatement: simpleStatement,
             IncrementStatement: simpleStatement,
             WhileStatement: (ds) => {
+                if (!ds.range) {
+                    return;
+                }
                 this.addStatement(ds, ds.range.start.line);
                 this.astEditor.setProperty(ds.tokens.while, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: while`);
             },
             ForEachStatement: (ds) => {
+                if (!ds.range) {
+                    return;
+                }
                 this.addStatement(ds, ds.range.start.line);
                 this.astEditor.setProperty(ds.tokens.forEach, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for each`);
             },
@@ -485,13 +505,13 @@ export class CodeCoverageProcessor {
                 // into a generated helper that lowers it to a short-circuit ladder of simple
                 // statements - full branch fidelity with no expression-size ceiling.
                 if (process.env.RBS_CC_DEBUG) {
-                    console.log(`[rbs-cc-debug] line ${expr.range.start.line + 1}: hasFn=${stats.hasFunctionExpression} boolCtx=${this.isInBooleanContext(expr)}`);
+                    console.log(`[rbs-cc-debug] line ${(expr.range?.start.line ?? 0) + 1}: hasFn=${stats.hasFunctionExpression} boolCtx=${this.isInBooleanContext(expr)}`);
                 }
                 if (!stats.hasFunctionExpression && this.isInBooleanContext(expr) && this.tryExtractBooleanExpression(expr)) {
                     return;
                 }
                 this.markLogicalSubtreeProcessed(expr);
-                this.coverageWarnings.push(`line ${expr.range.start.line + 1}: expression too complex to instrument for branch coverage; branch hits in it are not tracked`);
+                this.coverageWarnings.push(`line ${(expr.range?.start.line ?? 0) + 1}: expression too complex to instrument for branch coverage; branch hits in it are not tracked`);
             },
             NullCoalescingExpression: (expr) => {
                 if (this.processedExpressions.has(expr)) {
@@ -693,7 +713,7 @@ export class CodeCoverageProcessor {
     private branchAnchor(expr: Expression): { line: number; column?: number; endColumn?: number } {
         const statement = expr.findAncestor<Statement>(isStatement);
         if (statement && this.isOutsideRange(expr, statement.range)) {
-            return { line: statement.range.start.line + 1 };
+            return { line: (statement.range?.start.line ?? 0) + 1 };
         }
         // Column ranges are only meaningful for single-line expressions: a multi-line
         // arm's end column belongs to a different line, and pinning it to the start line
@@ -721,7 +741,11 @@ export class CodeCoverageProcessor {
         return !!statement && this.isOutsideRange(expr, statement.range);
     }
 
-    private isOutsideRange(expr: Expression, range: Range): boolean {
+    private isOutsideRange(expr: Expression, range: Range | undefined): boolean {
+        // creator-built nodes carry no range at all - same treatment as a foreign range
+        if (!expr.range || !range) {
+            return true;
+        }
         const line = expr.range.start.line;
         return line < range.start.line || line > range.end.line;
     }
@@ -1242,6 +1266,9 @@ export class CodeCoverageProcessor {
         if (node.leaf) {
             return this.isForeignExpression(node.leaf);
         }
+        if (!node.range) {
+            return true;
+        }
         const statementRange = this.ladderStatementRange;
         if (!statementRange) {
             return false;
@@ -1401,6 +1428,13 @@ export class CodeCoverageProcessor {
         if (this.processedFunctions.has(originalFunc)) {
             return;
         }
+        // Creator-built functions grafted in by other plugins have no range (and often no
+        // functionStatement) - nothing to anchor an FN entry to, so they aren't tracked.
+        // Reported from the field as a per-file "reading 'start'" transpile error.
+        if (!originalFunc?.range) {
+            this.processedFunctions.add(originalFunc);
+            return;
+        }
         let func: FunctionExpression = originalFunc;
 
         let nameParts = [];
@@ -1409,7 +1443,7 @@ export class CodeCoverageProcessor {
             nameParts.unshift(`anon${index}`);
             func = func.parentFunction;
         }
-        nameParts.unshift(func.functionStatement.getName(parseMode));
+        nameParts.unshift(func.functionStatement?.getName(parseMode) ?? `anonymous`);
         const name = nameParts.join('$');
 
         this.processedFunctions.add(originalFunc);
