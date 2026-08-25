@@ -1332,6 +1332,36 @@ describe('RooibosPlugin', () => {
             expect(a).to.equal(b);
         });
 
+        it('applies the default exclusions alongside user-configured ones', async () => {
+            const source = (name: string) => `sub ${name}()
+                x = 1
+            end sub`;
+
+            // matched by the DEFAULT exclusions, which merge with (not replace) the
+            // user-configured '**/*.coverageExcluded.bs' from this suite's setup
+            program.setFile('source/code.spec.bs', source('fromSpec'));
+            program.setFile('source/main.bs', source('fromMain'));
+            // case differs from the configured glob (nocase matching)
+            program.setFile('source/other.COVERAGEEXCLUDED.bs', source('fromCased'));
+            // not excluded - proves the filters don't over-match
+            program.setFile('source/included.bs', source('fromIncluded'));
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+            await builder.transpile();
+
+            expect(getContents('source/code.spec.brs')).to.not.include('RBS_CC_');
+            expect(getContents('source/main.brs')).to.not.include('RBS_CC_');
+            expect(getContents('source/other.COVERAGEEXCLUDED.brs')).to.not.include('RBS_CC_');
+            expect(getContents('source/included.brs')).to.include('RBS_CC_0_reportFunction(0)');
+
+            // excluded files must not appear in the coverage model either - a phantom
+            // entry would render as a 0% file in lcov/HTML reports
+            const report = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+            const sources = report.files.filter((f) => f !== null).map((f) => f.sourceFile);
+            expect(sources).to.have.lengthOf(1);
+            expect(sources[0]).to.include('included.bs');
+        });
+
         // Roku raises "Internal limit size exceeded" (&hae) when a single expression holds
         // too many logical operators / calls (measured on-device: plain or-chains die at 29
         // operators, flat call-chains at ~22, and nested wrapper calls at just 8 terms).
