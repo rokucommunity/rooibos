@@ -16,6 +16,11 @@ function runTaskThread() as void
     ' thread, so the render thread never pays for index construction). The values are
     ' references to the same line AAs as file.lines, so mutating them updates the model.
     m.lineIndexByFile = {}
+    ' Entries whose ids don't resolve in the model. Any nonzero count means the package
+    ' mixes instrumentation passes (e.g. stale staged files from an earlier build whose
+    ' baked-in ids alias different files in this build's CodeCoverage.json) - skip and
+    ' tally rather than crash the task.
+    m.unmatchedEntries = 0
     while true
         events = []
         saving = false
@@ -50,19 +55,32 @@ function runTaskThread() as void
             entry = event.getData()
             if entry <> invalid then
                 file = m.coverageMap.files[entry.f]
-                if entry.r = 4 then ' #LINE_TYPE_FUNCTION#
-                    if file.functions[entry.fn].totalHit = 0 then
-                        file.functionTotalHit++
+                if file = invalid then
+                    m.unmatchedEntries++
+                else if entry.r = 4 then ' #LINE_TYPE_FUNCTION#
+                    func = file.functions[entry.fn]
+                    if func <> invalid then
+                        if func.totalHit = 0 then
+                            file.functionTotalHit++
+                        end if
+                        func.totalHit++
+                    else
+                        m.unmatchedEntries++
                     end if
-                    file.functions[entry.fn].totalHit++
                 else if entry.r = 3 then ' #LINE_TYPE_BRANCH#
                     ' branch ids are assigned as array indexes at build time, so index directly
-                    branch = file.blocks[entry.bl].branches[entry.br]
+                    block = file.blocks[entry.bl]
+                    branch = invalid
+                    if block <> invalid then
+                        branch = block.branches[entry.br]
+                    end if
                     if branch <> invalid then
                         if branch.totalHit = 0 then
                             file.branchTotalHit++
                         end if
                         branch.totalHit++
+                    else
+                        m.unmatchedEntries++
                     end if
                 else if entry.r = 1 then ' #LINE_TYPE_CODE#
                     fileKey = stri(entry.f).trim()
@@ -80,6 +98,8 @@ function runTaskThread() as void
                             file.lineTotalHit++
                         end if
                         line.totalHit++
+                    else
+                        m.unmatchedEntries++
                     end if
                 end if
                 ' no write-back needed: file and its members are references into m.coverageMap
@@ -87,6 +107,10 @@ function runTaskThread() as void
         end for
 
         if saving = true then
+            if m.unmatchedEntries > 0 then
+                ? "[rooibos coverage] WARNING: " ; stri(m.unmatchedEntries).trim() ; " coverage entries did not match the coverage model and were skipped."
+                ? "[rooibos coverage] This usually means the package mixes files from different builds - rebuild into a clean staging directory."
+            end if
             m.top.coverageResults = m.coverageMap
             return
         end if
