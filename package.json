@@ -63,7 +63,8 @@
     "overrides": {
         "serialize-javascript": "^7.0.5",
         "js-yaml@^3": "^3.15.1",
-        "js-yaml@^4": "^4.3.1"
+        "js-yaml@^4": "^4.3.1",
+        "browserslist": "^4.28.8"
     },
     "main": "dist/plugin.js",
     "bin": {
