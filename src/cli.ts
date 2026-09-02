@@ -6,6 +6,7 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
+import * as path from 'path';
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -54,10 +55,12 @@ async function main() {
 
     await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
 
+    const device = { host: host };
+
     const rokuDeploy = new RokuDeploy();
-    const deviceInfo = await rokuDeploy.getDeviceInfo({ host: host });
-    const rendezvousTracker = new RendezvousTracker({ softwareVersion: deviceInfo['software-version'] }, { host: host, remotePort: 8085 } as any);
-    const telnet = new TelnetAdapter({ host: options.host }, rendezvousTracker);
+    const deviceInfo = await rokuDeploy.getDeviceInfo({ device: device });
+    const rendezvousTracker = new RendezvousTracker({ softwareVersion: deviceInfo['software-version'] }, { device: device, remotePort: 8085 } as any);
+    const telnet = new TelnetAdapter({ device: device }, rendezvousTracker);
 
     telnet.logger.logLevel = logLevel;
     await telnet.activate();
@@ -70,7 +73,7 @@ async function main() {
         if (emitAppExit) {
             (telnet as any).beginAppExit();
         }
-        await rokuDeploy.pressHomeButton(host); // roku-deploy v4: keyPress({ host: options.host, key: 'home' });
+        await rokuDeploy.keyPress({ device: device, key: 'Home' });
         process.exit(currentErrorCode);
     }
 
@@ -116,11 +119,10 @@ async function main() {
     async function deployBuiltFiles() {
         const outFile = bsConfig.outFile;
         console.log(`Deploying ${outFile} to ${host}`);
-        await rokuDeploy.publish({ // roku-deploy v4: .sideload({...})
+        await rokuDeploy.sideload({
             password: password,
-            host: host,
-            outFile: outFile,
-            outDir: process.cwd()
+            device: device,
+            zip: path.resolve(process.cwd(), outFile)
         });
     }
 
