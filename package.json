@@ -16,6 +16,7 @@
         "test:nocover": "mocha",
         "audit": "npm audit || audit-ci --config ./audit-ci.jsonc",
         "cli": "ts-node src/cli.ts",
+        "cli:device": "ts-node src/cli.ts --project test-project/bsconfig.device.json",
         "package": "npm run build && npm pack"
     },
     "dependencies": {
