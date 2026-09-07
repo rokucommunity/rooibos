@@ -151,6 +151,7 @@ export class RooibosSession {
                         "colorizeOutput": ${this.config.colorizeOutput ? 'true' : 'false'}
                         "throwOnFailedAssertion": ${this.config.throwOnFailedAssertion ? 'true' : 'false'}
                         "keepAppOpen": ${this.config.keepAppOpen === undefined || this.config.keepAppOpen ? 'true' : 'false'}
+                        "preExitSleepTime": ${this.config.preExitSleepTime ?? 400}
                         "isRecordingCodeCoverage": ${this.config.isRecordingCodeCoverage ? 'true' : 'false'}
                     }
                 `).ast.statements[0]
