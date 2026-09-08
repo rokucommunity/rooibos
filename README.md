@@ -30,6 +30,16 @@ Rooibos is an independent open-source project maintained exclusively by voluntee
 
 You might want to help! Get in touch via the [slack group](https://join.slack.com/t/rokudevelopers/shared_invite/zt-4vw7rg6v-NH46oY7hTktpRIBM_zGvwA) or [raise issues](https://github.com/rokucommunity/rooibos/issues/new).
 
+To work on Rooibos locally:
+
+```bash
+npm install
+npx ropm copy   # copies the framework's ropm dependencies into framework/src
+npm test
+```
+
+`npx ropm copy` is required because `npm install` alone doesn't copy the ropm modules the framework depends on. `npm run build` also runs it for you, and the test/device scripts will tell you if you've forgotten it.
+
 ## Sample project
 
 https://github.com/rokucommunity/rooibos-roku-sample
