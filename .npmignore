@@ -11,6 +11,7 @@ bsconfig.json
 .github
 .eslintrc.js
 test-project
+scripts
 docs
 apiDocs
 bsfmt.json

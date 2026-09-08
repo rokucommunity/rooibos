@@ -10,13 +10,14 @@
         "ropm": "ropm install",
         "copy-framework-files": "cp -r ./framework/src ./dist/lib/framework",
         "build": "ropm copy && npm run compile && npm run copy-framework-files",
-        "build-test-project": "bsc --cwd test-project --project bsconfig.json",
+        "assert-ropm-modules": "node ./scripts/assert-ropm-modules.js",
+        "build-test-project": "npm run assert-ropm-modules && bsc --cwd test-project --project bsconfig.json",
         "docs": "jsdoc -c jsdoc.json -d .tmp/docs --verbose",
         "test": "nyc mocha",
         "test:nocover": "mocha",
         "audit": "npm audit || audit-ci --config ./audit-ci.jsonc",
-        "cli": "ts-node src/cli.ts",
-        "cli:device": "ts-node src/cli.ts --project test-project/bsconfig.device.json",
+        "cli": "npm run assert-ropm-modules && ts-node src/cli.ts",
+        "cli:device": "npm run assert-ropm-modules && ts-node src/cli.ts --project test-project/bsconfig.device.json",
         "package": "npm run build && npm pack"
     },
     "dependencies": {
@@ -117,6 +118,7 @@
         "spec": "src/**/*.spec.ts",
         "fullTrace": true,
         "require": [
+            "./scripts/assert-ropm-modules.js",
             "source-map-support/register",
             "ts-node/register"
         ],

@@ -27,27 +27,7 @@ export class FileFactory {
     public sourceFilesToAutoImport: string[] = [];
     public addedFrameworkFiles: BscFile[] = [];
 
-    /**
-     * The framework depends on ropm modules (i.e. `rooibos_promises`) that are copied into the framework
-     * source folder by `ropm copy`. That step doesn't happen during a plain `npm install`, so a fresh clone
-     * ends up with a framework that's missing files. Without this check the build silently succeeds with an
-     * incomplete file set, which surfaces as dozens of unrelated-looking test failures.
-     */
-    private assertRopmModulesInstalled() {
-        const missing = ['source', 'components']
-            .map(folder => s`${this.frameworkSourcePath}/${folder}/roku_modules`)
-            .filter(modulePath => !fs.existsSync(modulePath));
-
-        if (missing.length > 0) {
-            throw new Error(
-                `Rooibos framework is missing its ropm modules (expected at ${missing.join(', ')}).\n` +
-                `Did you forget to run \`npx ropm copy\`? (or \`npm run build\`, which includes it)`
-            );
-        }
-    }
-
     public addFrameworkFiles(program: Program) {
-        this.assertRopmModulesInstalled();
         this.addedFrameworkFiles = [];
         let globedFiles = fastGlob.sync([
             '**/*.{bs,brs,xml}',

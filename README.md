@@ -38,7 +38,7 @@ npx ropm copy   # copies the framework's ropm dependencies into framework/src
 npm test
 ```
 
-`npx ropm copy` is required because `npm install` alone doesn't copy the ropm modules the framework depends on. `npm run build` also runs it for you.
+`npx ropm copy` is required because `npm install` alone doesn't copy the ropm modules the framework depends on. `npm run build` also runs it for you, and the test/device scripts will tell you if you've forgotten it.
 
 ## Sample project
 
