@@ -34,13 +34,16 @@ You might want to help! Get in touch via the [slack group](https://join.slack.co
 
 1. Clone the project
 2. Run `npm install`
-3. Open the workspace file in VSCode: `roobois.code-workspace`
+3. Run `npx ropm copy` to copy the framework's ropm dependencies into `framework/src`
+4. Open the workspace file in VSCode: `roobois.code-workspace`
+
+`npx ropm copy` is required because `npm install` alone doesn't copy the ropm modules the framework depends on. `npm run build` also runs it for you, and the test/device scripts will tell you if you've forgotten it.
 
 ### Running Tests
 
-Rooibos Brighterscript plugin tests can be run either through VSCode's debug configuration `Run Tests (bsc-plugin)` or by running `npm run test` in the directory `rooibos/bsc-plugin`.
+Rooibos Brighterscript plugin tests can be run either through VSCode's debug configuration `Run Tests (bsc-plugin)` or by running `npm run test`.
 
-Example Rooibos framework tests will wrun on a Roku device.
+Example Rooibos framework tests will run on a Roku device.
 
 Create a `.env` in `rooibos/tests` with the following details:
 

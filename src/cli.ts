@@ -6,6 +6,33 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
+import * as path from 'path';
+
+/**
+ * Load simple `KEY=value` pairs from a .env file into process.env, without
+ * overwriting variables that are already set in the real environment.
+ */
+function loadDotEnv(envPath = '.env') {
+    if (!fs.existsSync(envPath)) {
+        return;
+    }
+    const contents = fs.readFileSync(envPath, 'utf8');
+    for (const line of contents.split(/\r?\n/)) {
+        const match = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
+        if (!match) {
+            //skip blanks and comments
+            continue;
+        }
+        let value = match[2].trim();
+        //strip matching surrounding quotes
+        if (/^"(.*)"$/.test(value) || /^'(.*)'$/.test(value)) {
+            value = value.slice(1, -1);
+        }
+        process.env[match[1]] ??= value;
+    }
+}
+
+loadDotEnv();
 
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
@@ -15,11 +42,11 @@ let options = yargs
     .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
     .check((argv) => {
-        if (!argv.host) {
-            return new Error('You must provide a host. (--host)');
+        if (!argv.host && !process.env.ROKU_HOST) {
+            return new Error('You must provide a host. (--host, or ROKU_HOST in .env)');
         }
-        if (!argv.password) {
-            return new Error('You must provide a password. (--password)');
+        if (!argv.password && !process.env.ROKU_PASSWORD) {
+            return new Error('You must provide a password. (--password, or ROKU_PASSWORD in .env)');
         }
         if (!argv.project) {
             console.log('No project file specified. Using "./bsconfig.json"');
@@ -44,8 +71,8 @@ async function main() {
     const bsConfig = util.normalizeConfig(rawConfig);
     bsConfig.outDir ??= (bsConfig as any).stagingDir ?? (bsConfig as any).stagingFolderPath;
 
-    const host = options.host ?? (bsConfig as any).host;
-    const password = options.password ?? (bsConfig as any).password;
+    const host = options.host ?? (bsConfig as any).host ?? process.env.ROKU_HOST;
+    const password = options.password ?? (bsConfig as any).password ?? process.env.ROKU_PASSWORD;
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
     const builder = new ProgramBuilder();
@@ -55,10 +82,12 @@ async function main() {
 
     await builder.run(<any>{ ...options, retainStagingDir: true });
 
+    const device = { host: host };
+
     const rokuDeploy = new RokuDeploy();
-    const deviceInfo = await rokuDeploy.getDeviceInfo({ host: host });
-    const rendezvousTracker = new RendezvousTracker({ softwareVersion: deviceInfo['software-version'] }, { host: host, remotePort: 8085 } as any);
-    const telnet = new TelnetAdapter({ host: options.host }, rendezvousTracker);
+    const deviceInfo = await rokuDeploy.getDeviceInfo({ device: device });
+    const rendezvousTracker = new RendezvousTracker({ softwareVersion: deviceInfo['software-version'] }, { device: device, remotePort: 8085 } as any);
+    const telnet = new TelnetAdapter({ device: device }, rendezvousTracker);
 
     telnet.logger.logLevel = logLevel;
     await telnet.activate();
@@ -71,7 +100,7 @@ async function main() {
         if (emitAppExit) {
             (telnet as any).beginAppExit();
         }
-        await rokuDeploy.keyPress({ host: options.host, key: 'home' });
+        await rokuDeploy.keyPress({ device: device, key: 'Home' });
         process.exit(currentErrorCode);
     }
 
@@ -115,17 +144,20 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        const outDir = bsConfig.outDir;
+        const stagingDir = bsConfig.outDir;
+        //bsc no longer exposes an `outFile`; build the zip alongside the staging dir
+        const zipPath = path.resolve(process.cwd(), stagingDir, '..', 'roku-deploy.zip');
 
         await rokuDeploy.zip({
-            outDir: outDir,
-            stagingDir: bsConfig.outDir
+            dir: stagingDir,
+            out: zipPath
         });
 
+        console.log(`Deploying ${zipPath} to ${host}`);
         await rokuDeploy.sideload({
             password: password,
-            host: host,
-            outDir: outDir
+            device: device,
+            zip: zipPath
         });
     }
 

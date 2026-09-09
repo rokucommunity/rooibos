@@ -5,6 +5,7 @@ import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
 import undent from 'undent';
 import { getFileLookups } from './lib/rooibos/Utils';
+import { expectFunctionContents } from './testHelpers.spec';
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let outDir = s`${tmpPath}/staging`;
@@ -868,6 +869,39 @@ describe('RooibosPlugin', () => {
             expect(cls.body.find((x) => {
                 return isMethodStatement(x) && x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
+        });
+
+        it('does not inject assertion tracking for namespace function calls with assertion-like names', async () => {
+            // Regression test: some.space.assertEqual(...) inside a test method should NOT have
+            // currentAssertLineNumber injected with `some.space` as the target object.
+            // The call is a namespaced function, not a method call on an object.
+            program.setFile<BrsFile>('source/someSpace.bs', `
+                namespace some.space
+                    function assertEqual(a, b)
+                    end function
+                end namespace
+            `);
+            plugin.afterProvideProgram({ program: program, builder: builder } as any);
+            program.setFile<BrsFile>('source/test.spec.bs', `
+                @suite
+                class ATest extends rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("is test1")
+                    function Test_1()
+                        some.space.assertEqual(1, 1)
+                        m.assertEqual(2, 2)
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.transpile();
+            const contents = getContents('test.spec.brs');
+            // The namespace function call must NOT produce some_space.currentAssertLineNumber
+            expect(contents).not.to.include('some_space.currentAssertLineNumber');
+            // The m.assertEqual assertion MUST still get currentAssertLineNumber injected
+            expect(contents).to.include('m.currentAssertLineNumber');
+            // The namespace call must be transpiled correctly as underscored function
+            expect(contents).to.include('some_space_assertEqual(1, 1)');
         });
 
         it('handles groups that start with numbers', async () => {
@@ -2489,6 +2523,248 @@ describe('RooibosPlugin', () => {
             });
         });
 
+        describe('transpilation in setup hooks', () => {
+            it('transpiles stubCall inside beforeEach', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be()
+                            m.stubCall(m.thing.getFunction(), "return")
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                        thing as Klass
+                    end class
+                    class Klass
+                        function getFunction(arg1 = invalid)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__be', `
+                    m._stubCall(m.thing, "getFunction", m, "m.thing", "return")
+                `);
+            });
+
+            it('transpiles expectCalled inside beforeEach with early-exit guard', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be()
+                            m.expectCalled(m.thing.getFunction("arg1"), "return")
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                        thing as Klass
+                    end class
+                    class Klass
+                        function getFunction(arg1 = invalid)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__be', `
+                    m.currentAssertLineNumber = 8
+                    m._expectCalled(m.thing, "getFunction", m, "m.thing", [
+                        "arg1"
+                    ], "return")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('transpiles expectNotCalled inside afterEach', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @afterEach
+                        function _ae()
+                            m.expectNotCalled(m.thing.getFunction())
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                        thing as Klass
+                    end class
+                    class Klass
+                        function getFunction(arg1 = invalid)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__ae', `
+                    m.currentAssertLineNumber = 8
+                    m._expectNotCalled(m.thing, "getFunction", m, "m.thing")
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return invalid
+                    end if
+                `);
+            });
+
+            it('transpiles stubCall inside setup and tearDown', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @setup
+                        function _su()
+                            m.stubCall(m.thing.suFn(), "su-return")
+                        end function
+
+                        @tearDown
+                        function _td()
+                            m.stubCall(m.thing.tdFn(), "td-return")
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                        thing as Klass
+                    end class
+                    class Klass
+                        function suFn()
+                        end function
+                        function tdFn()
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__su', `
+                    m._stubCall(m.thing, "suFn", m, "m.thing", "su-return")
+                `);
+                expectFunctionContents(fileContents, '__ATest_method__td', `
+                    m._stubCall(m.thing, "tdFn", m, "m.thing", "td-return")
+                `);
+            });
+
+            it('registers global stub functions referenced only from a beforeEach', async () => {
+                destroyProgram();
+                setupProgram({
+                    rootDir: _rootDir,
+                    stagingDir: outDir,
+                    //workaround for bsc bug where outDir does not fall back to stagingDir
+                    outDir: outDir,
+                    rooibos: {
+                        isGlobalMethodMockingEnabled: true,
+                        isGlobalMethodMockingEfficientMode: true
+                    }
+                });
+
+                program.setFile('source/code.bs', `
+                    function globalFn()
+                        return "real"
+                    end function
+                `);
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be()
+                            m.stubCall(globalFn, function()
+                                return "stubbed"
+                            end function)
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertEqual(globalFn(), "stubbed")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
+                await builder.transpile();
+                expect(plugin.session.globalStubbedMethods.has('globalfn')).to.be.true;
+            });
+
+            it('walks each hook method at most once even when reused across groups', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be()
+                            m.stubCall(m.thing.getFunction(), "return")
+                        end function
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+
+                        @describe("groupB")
+
+                        @beforeEach
+                        function _be2()
+                            m.stubCall(m.thing.getFunction(), "return")
+                        end function
+
+                        @it("test2")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                        thing as Klass
+                    end class
+                    class Klass
+                        function getFunction(arg1 = invalid)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                // Each beforeEach should have been transpiled exactly once — if it were
+                // walked twice we'd see two m._stubCall(...) lines for the same call.
+                expectFunctionContents(fileContents, '__ATest_method__be', `
+                    m._stubCall(m.thing, "getFunction", m, "m.thing", "return")
+                `);
+                expectFunctionContents(fileContents, '__ATest_method__be2', `
+                    m._stubCall(m.thing, "getFunction", m, "m.thing", "return")
+                `);
+            });
+        });
+
         describe('honours tags - simple tests', () => {
             let testSource = `
                 @tags("one", "two", "exclude")
@@ -2750,6 +3026,7 @@ describe('RooibosPlugin', () => {
                         "colorizeOutput": false
                         "throwOnFailedAssertion": false
                         "keepAppOpen": true
+                        "shutdownDelay": 400
                         "isRecordingCodeCoverage": false
                     }
                 end function
@@ -2836,6 +3113,7 @@ describe('RooibosPlugin', () => {
                         "colorizeOutput": false
                         "throwOnFailedAssertion": false
                         "keepAppOpen": true
+                        "shutdownDelay": 400
                         "isRecordingCodeCoverage": false
                     }
                 `;
@@ -2910,6 +3188,32 @@ describe('RooibosPlugin', () => {
             expect(xmlContent).to.not.be.empty;
             let brsContent = getComponentContents('rooibos/generated/ATest.brs');
             expect(brsContent).to.not.be.empty;
+
+            destroyProgram();
+        });
+
+        it('supports a custom shutdownDelay', async () => {
+            setupProgram({
+                rootDir: _rootDir,
+                stagingDir: outDir,
+                //workaround for bsc bug where outDir does not fall back to stagingDir
+                outDir: outDir,
+                rooibos: {
+                    shutdownDelay: 1500
+                }
+            });
+
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+
+            await builder.transpile();
+
+            const runtimeConfigContents = getFunctionContents(
+                getContents('rooibos/RuntimeConfig.brs'),
+                /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/
+            );
+
+            expect(runtimeConfigContents).to.include(`"shutdownDelay": 1500`);
 
             destroyProgram();
         });

@@ -1,5 +1,5 @@
 import type { BrsFile, Editor, ExpressionStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
-import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock, InternalWalkMode } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock, isExpressionStatement, isCallExpression, util, InternalWalkMode } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -159,7 +159,11 @@ export class CodeCoverageProcessor {
             },
             ExpressionStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
+                //bsc's class transpiler assumes a `super()` call sits at index 0 of the constructor body, and
+                //injects field initializers immediately after it. Inserting our coverage statement *before*
+                //`super()` would shift it off index 0, causing field initializers to be emitted before the
+                //`super()` call. So for `super()` we insert coverage *after* the call instead.
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key, this.isSuperCall(ds));
             },
             ConditionalCompileStatement: (ccStmt, parent, owner, key) => {
                 this.addStatement(ccStmt);
@@ -194,7 +198,20 @@ export class CodeCoverageProcessor {
         this.addBrsAPIText(file, astEditor);
     }
 
-    private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any) {
+    /**
+     * Is this statement a call to `super()`? (i.e. the parent-constructor call in a derived class constructor)
+     */
+    private isSuperCall(statement: Statement) {
+        return isExpressionStatement(statement) &&
+            isCallExpression(statement.expression) &&
+            util.findBeginningVariableExpression(statement.expression.callee as any)?.tokens?.name?.text?.toLowerCase() === 'super';
+    }
+
+    /**
+     * Insert a coverage-tracking statement adjacent to the given statement.
+     * When `insertAfter` is true, the coverage statement is inserted *after* the given statement rather than before it.
+     */
+    private convertStatementToCoverageStatement(statement: Statement, coverageType: CodeCoverageLineType, owner: any, key: any, insertAfter = false) {
         if (this.processedStatements.has(statement) || this.addedStatements.has(statement)) {
             return;
         }
@@ -203,8 +220,7 @@ export class CodeCoverageProcessor {
         this.coverageMap.set(lineNumber, coverageType);
         const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
         this.addedStatements.add(parsed);
-        this.astEditor.arraySplice(owner, key, 0, parsed);
-        this.addedStatements.add(parsed);
+        this.astEditor.arraySplice(owner, insertAfter ? key + 1 : key, 0, parsed);
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
     }
