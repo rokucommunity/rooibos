@@ -118,9 +118,7 @@ export class RooibosSession {
         }
         if (!mainFunction) {
             diagnosticWarnNoMainFound(files[0] as BrsFile);
-            // Register the generated entry point with the program so brighterscript
-            // emits it during its normal build lifecycle (no manual disk writes).
-            return this.addOrReuseFile(
+            return this.fileFactory.addGeneratedFile(
                 program,
                 'source/rooibosMain.brs',
                 `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`

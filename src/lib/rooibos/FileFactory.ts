@@ -99,8 +99,8 @@ export class FileFactory {
         template = template.replace(/\"\#FILE_PATH_MAP\#\"/g, JSON.stringify(filepathMap ?? {}));
 
         return [
-            this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template),
-            this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate)
+            this.addGeneratedFile(program, 'components/rooibos/CodeCoverage.brs', template),
+            this.addGeneratedFile(program, 'components/rooibos/CodeCoverage.xml', this.coverageComponentXmlTemplate)
         ].filter((f) => f !== undefined);
     }
 
@@ -134,16 +134,16 @@ export class FileFactory {
             entry = projectPathOrEntry;
         }
         try {
+            //a rebuild re-registers the same path; reuse the existing srcPath so `setFile` replaces that
+            //file instance instead of leaving two instances racing to write the same output file
+            entry.src = program.getFile(entry.dest)?.srcPath ?? entry.src;
+
             const file = program.setFile(entry, contents);
-            // Files registered after the program's prepare phase (e.g. the code
-            // coverage component, whose contents depend on prepare-phase data)
-            // won't have been assigned an editor by the build lifecycle. The
-            // build's cleanup step calls `file.editor.undoAll()` on every built
-            // file, so ensure one exists to avoid a crash.
-            if (!file.editor) {
-                file.editor = new Editor();
-            }
-            // Replace any previous instance for this path so the list doesn't grow on every rebuild
+            //files registered after the prepare phase never got an editor assigned, but the build's cleanup
+            //calls `file.editor.undoAll()` on everything it built
+            file.editor ??= new Editor();
+
+            //replace any previous instance for this path so the list doesn't grow on every rebuild
             const existingIndex = this.addedFrameworkFiles.findIndex((f) => f.pkgPath === file.pkgPath);
             if (existingIndex >= 0) {
                 this.addedFrameworkFiles[existingIndex] = file;
@@ -156,18 +156,11 @@ export class FileFactory {
         }
     }
 
-    public addFileToRootDir(program: Program, filePath: string, contents: string) {
-        // Register the file with the program so brighterscript writes it out
-        // as part of its normal build lifecycle (no manual disk writes needed).
-        const dest = filePath.replace(/\\/g, '/');
-        // A rebuild (watch mode) re-runs this for a path the program already has. Reuse that file's srcPath
-        // so `setFile` replaces the existing instance rather than leaving two instances for the same path
-        // (both would be serialized, racing to write the same output file).
-        const existingFile = program.getFile<BrsFile | XmlFile>(dest);
-        if (existingFile?.fileContents === contents) {
-            return existingFile;
-        }
-        const src = existingFile?.srcPath ?? s`${program.options.rootDir}/${dest}`;
-        return this.addFile(program, { src: src, dest: dest }, contents);
+    /**
+     * Register a rooibos-generated file with the program, so brighterscript serializes and writes it as part
+     * of the normal build lifecycle rather than rooibos writing it to disk itself.
+     */
+    public addGeneratedFile(program: Program, destPath: string, contents: string) {
+        return this.addFile(program, { src: s`${program.options.rootDir}/${destPath}`, dest: destPath }, contents);
     }
 }

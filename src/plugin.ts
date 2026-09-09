@@ -174,8 +174,7 @@ export class RooibosPlugin implements CompilerPlugin {
         const createdFiles = this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
         this.addFilesToBuild(event.files, createdFiles);
 
-        // Generate the entry point (if the project doesn't define its own `main`)
-        // here so it flows through the normal prepare/serialize/write lifecycle.
+        //generate the entry point here (rather than after the build) so it flows through prepare/serialize/write
         const launchHookFile = this.session.addLaunchHookFileIfNotPresent(event.program);
         if (launchHookFile) {
             this.addFilesToBuild(event.files, [launchHookFile]);
@@ -235,10 +234,7 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     afterPrepareProgram(event: AfterPrepareProgramEvent) {
-        // Coverage metadata depends on data gathered during `prepareFile`, so it
-        // can only be generated after all files are prepared. Register the files
-        // with the program (and add them to the build list) so brighterscript
-        // serializes and writes them itself.
+        //coverage metadata is gathered during `prepareFile`, so it isn't complete until every file is prepared
         const coverageFiles = this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, event.program);
         this.addFilesToBuild(event.files, coverageFiles);
     }
