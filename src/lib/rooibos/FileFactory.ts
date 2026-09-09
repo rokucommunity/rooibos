@@ -1,8 +1,7 @@
 import type { BrsFile, BscFile, Program, XmlFile } from 'brighterscript';
-import { standardizePath as s } from 'brighterscript';
+import { Editor, standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as fse from 'fs-extra';
 import * as fastGlob from 'fast-glob';
 import type { TestSuite } from './TestSuite';
 import { RooibosLogPrefix } from '../utils/Diagnostics';
@@ -99,8 +98,10 @@ export class FileFactory {
         template = template.replace(/\"\#EXPECTED_MAP\#\"/g, JSON.stringify(coverageMap ?? {}));
         template = template.replace(/\"\#FILE_PATH_MAP\#\"/g, JSON.stringify(filepathMap ?? {}));
 
-        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
-        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
+        return [
+            this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template),
+            this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate)
+        ].filter((f) => f !== undefined);
     }
 
     public isIgnoredFile(file: BrsFile | XmlFile): boolean {
@@ -134,7 +135,21 @@ export class FileFactory {
         }
         try {
             const file = program.setFile(entry, contents);
-            this.addedFrameworkFiles.push(file);
+            // Files registered after the program's prepare phase (e.g. the code
+            // coverage component, whose contents depend on prepare-phase data)
+            // won't have been assigned an editor by the build lifecycle. The
+            // build's cleanup step calls `file.editor.undoAll()` on every built
+            // file, so ensure one exists to avoid a crash.
+            if (!file.editor) {
+                file.editor = new Editor();
+            }
+            // Replace any previous instance for this path so the list doesn't grow on every rebuild
+            const existingIndex = this.addedFrameworkFiles.findIndex((f) => f.pkgPath === file.pkgPath);
+            if (existingIndex >= 0) {
+                this.addedFrameworkFiles[existingIndex] = file;
+            } else {
+                this.addedFrameworkFiles.push(file);
+            }
             return file;
         } catch (error) {
             program.logger.error(RooibosLogPrefix, `Error adding framework file: ${entry.dest} : ${error.message}`);
@@ -142,14 +157,17 @@ export class FileFactory {
     }
 
     public addFileToRootDir(program: Program, filePath: string, contents: string) {
-        const outDir = program.options.outDir ?? (program.options as any).stagingDir ?? (program.options as any).stagingFolderPath;
-        try {
-            fse.outputFileSync(
-                path.join(outDir ?? program.options.sourceRoot, filePath),
-                contents
-            );
-        } catch (error) {
-            program.logger.error(RooibosLogPrefix, `Error adding framework file: ${path} : ${error.message}`);
+        // Register the file with the program so brighterscript writes it out
+        // as part of its normal build lifecycle (no manual disk writes needed).
+        const dest = filePath.replace(/\\/g, '/');
+        // A rebuild (watch mode) re-runs this for a path the program already has. Reuse that file's srcPath
+        // so `setFile` replaces the existing instance rather than leaving two instances for the same path
+        // (both would be serialized, racing to write the same output file).
+        const existingFile = program.getFile<BrsFile | XmlFile>(dest);
+        if (existingFile?.fileContents === contents) {
+            return existingFile;
         }
+        const src = existingFile?.srcPath ?? s`${program.options.rootDir}/${dest}`;
+        return this.addFile(program, { src: src, dest: dest }, contents);
     }
 }
