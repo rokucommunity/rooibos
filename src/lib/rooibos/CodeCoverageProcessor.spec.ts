@@ -446,6 +446,64 @@ describe('CodeCoverageProcessor', () => {
 
         expect(a).to.equal(b);
     });
+
+    it('inserts coverage after `super()` so field initializers stay after the super call', async () => {
+        program.setFile('source/classes.bs', `
+            class BaseClass
+                sub new()
+                    print "base"
+                end sub
+            end class
+
+            class DerivedClass extends BaseClass
+                someField = "initialized"
+                sub new()
+                    super()
+                    print "derived"
+                end sub
+            end class
+        `);
+        program.validate();
+        expectZeroDiagnostics(builder);
+        await builder.transpile();
+
+        expectFunctionContents(getContents('source/classes.brs'), '__DerivedClass_method_new', undent(`
+            m.super0_new()
+            m.someField = "initialized"
+            RBS_CC_1_reportLine("10", 1)
+            RBS_CC_1_reportLine("11", 1)
+            print "derived"
+        `));
+    }).timeout(20000);
+
+    it('inserts coverage after `super()` when the super call has arguments', async () => {
+        program.setFile('source/superArgs.bs', `
+            class BaseClass
+                sub new(value)
+                    print value
+                end sub
+            end class
+
+            class DerivedClass extends BaseClass
+                someField = "initialized"
+                sub new(value)
+                    super(value)
+                    print "derived"
+                end sub
+            end class
+        `);
+        program.validate();
+        expectZeroDiagnostics(builder);
+        await builder.transpile();
+
+        expectFunctionContents(getContents('source/superArgs.brs'), '__DerivedClass_method_new', undent(`
+            m.super0_new(value)
+            m.someField = "initialized"
+            RBS_CC_1_reportLine("10", 1)
+            RBS_CC_1_reportLine("11", 1)
+            print "derived"
+        `));
+    }).timeout(20000);
 });
 
 
