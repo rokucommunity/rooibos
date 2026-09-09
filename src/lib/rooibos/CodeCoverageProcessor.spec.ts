@@ -446,6 +446,131 @@ describe('CodeCoverageProcessor', () => {
 
         expect(a).to.equal(b);
     });
+
+    it('inserts coverage after `super()` so field initializers stay after the super call', async () => {
+        program.setFile('source/classes.bs', `
+            class BaseClass
+                sub new()
+                    print "base"
+                end sub
+            end class
+
+            class DerivedClass extends BaseClass
+                someField = "initialized"
+                sub new()
+                    super()
+                    print "derived"
+                end sub
+            end class
+        `);
+        program.validate();
+        expectZeroDiagnostics(builder);
+        await builder.transpile();
+
+        expectFunctionContents(getContents('source/classes.brs'), '__DerivedClass_method_new', undent(`
+            m.super0_new()
+            m.someField = "initialized"
+            RBS_CC_1_reportLine("10", 1)
+            RBS_CC_1_reportLine("11", 1)
+            print "derived"
+        `));
+    }).timeout(20000);
+
+    it('inserts coverage after `super()` when the super call has arguments', async () => {
+        program.setFile('source/superArgs.bs', `
+            class BaseClass
+                sub new(value)
+                    print value
+                end sub
+            end class
+
+            class DerivedClass extends BaseClass
+                someField = "initialized"
+                sub new(value)
+                    super(value)
+                    print "derived"
+                end sub
+            end class
+        `);
+        program.validate();
+        expectZeroDiagnostics(builder);
+        await builder.transpile();
+
+        expectFunctionContents(getContents('source/superArgs.brs'), '__DerivedClass_method_new', undent(`
+            m.super0_new(value)
+            m.someField = "initialized"
+            RBS_CC_1_reportLine("10", 1)
+            RBS_CC_1_reportLine("11", 1)
+            print "derived"
+        `));
+    }).timeout(20000);
+
+    it('adds coverage to while, goto, for each, and indexed/dotted set statements', async () => {
+        program.setFile('source/statements.bs', `
+            sub foo(items, lookup)
+                total = 0
+                while total < 10
+                    total++
+                    if total = 5
+                        goto done
+                    end if
+                end while
+                for each item in items
+                    lookup["key"] = item
+                    lookup.prop = item
+                end for
+                done:
+            end sub
+        `);
+        program.validate();
+        expectZeroDiagnostics(builder);
+        await builder.transpile();
+
+        expectFunctionContents(getContents('source/statements.brs'), 'foo', undent(`
+            RBS_CC_1_reportLine("2", 1)
+            total = 0
+            RBS_CC_1_reportLine("3", 1): while total < 10
+                RBS_CC_1_reportLine("4", 1)
+                total++
+                if RBS_CC_1_reportLine("5", 2) and (total = 5)
+                    RBS_CC_1_reportLine("5", 3)
+                    RBS_CC_1_reportLine("6", 1)
+                    goto done
+                end if
+            end while
+            RBS_CC_1_reportLine("9", 1): for each item in items
+                RBS_CC_1_reportLine("10", 1)
+                lookup["key"] = item
+                RBS_CC_1_reportLine("11", 1)
+                lookup.prop = item
+            end for
+            done:
+        `));
+    }).timeout(20000);
+
+    it('adds coverage to return statements', async () => {
+        program.setFile('source/returns.bs', `
+            function foo(x)
+                if x > 0
+                    return "positive"
+                end if
+                return "other"
+            end function
+        `);
+        program.validate();
+        expectZeroDiagnostics(builder);
+        await builder.transpile();
+
+        expectFunctionContents(getContents('source/returns.brs'), 'foo', undent(`
+            if RBS_CC_1_reportLine("2", 2) and (x > 0)
+                RBS_CC_1_reportLine("2", 3)
+                RBS_CC_1_reportLine("3", 1)
+                return "positive"
+            end if
+            RBS_CC_1_reportLine("5", 1)
+            return "other"
+        `));
+    }).timeout(20000);
 });
 
 
