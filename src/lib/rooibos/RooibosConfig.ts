@@ -38,5 +38,5 @@ export interface RooibosConfig {
      * How long (in milliseconds) to sleep before exiting the app when `keepAppOpen` is false,
      * to give the IO/telnet connection time to finish sending all the logs. Defaults to 400.
      */
-    preExitSleepTime?: number;
+    shutdownDelay?: number;
 }

@@ -2839,7 +2839,7 @@ describe('RooibosPlugin', () => {
                     "colorizeOutput": false
                     "throwOnFailedAssertion": false
                     "keepAppOpen": true
-                    "preExitSleepTime": 400
+                    "shutdownDelay": 400
                     "isRecordingCodeCoverage": false
                 }
             `);
@@ -2899,7 +2899,7 @@ describe('RooibosPlugin', () => {
                         "colorizeOutput": false
                         "throwOnFailedAssertion": false
                         "keepAppOpen": true
-                        "preExitSleepTime": 400
+                        "shutdownDelay": 400
                         "isRecordingCodeCoverage": false
                     }
                 `;
@@ -2915,13 +2915,13 @@ describe('RooibosPlugin', () => {
             }
         });
 
-        it('supports a custom preExitSleepTime', async () => {
+        it('supports a custom shutdownDelay', async () => {
             setupProgram({
                 rootDir: _rootDir,
                 stagingFolderPath: _stagingFolderPath,
                 stagingDir: _stagingFolderPath,
                 rooibos: {
-                    preExitSleepTime: 1500
+                    shutdownDelay: 1500
                 }
             });
 
@@ -2935,7 +2935,7 @@ describe('RooibosPlugin', () => {
                 /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/
             );
 
-            expect(runtimeConfigContents).to.include(`"preExitSleepTime": 1500`);
+            expect(runtimeConfigContents).to.include(`"shutdownDelay": 1500`);
 
             destroyProgram();
         });
