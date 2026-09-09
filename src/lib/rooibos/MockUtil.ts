@@ -126,16 +126,37 @@ export class MockUtil {
 
     gatherGlobalMethodMocks(testSuite: TestSuite) {
         // console.log('gathering global method mocks for testSuite', testSuite.name);
+        const processedFuncs = new Set<string>();
         for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
+            for (const hookName of [group.setupFunctionName, group.tearDownFunctionName, group.beforeEachFunctionName, group.afterEachFunctionName]) {
+                if (hookName) {
+                    const key = hookName.toLowerCase();
+                    if (!processedFuncs.has(key)) {
+                        this.gatherMockedFunctionByName(testSuite, hookName);
+                        processedFuncs.add(key);
+                    }
+                }
+            }
             for (let testCase of [...group.testCases].filter((tc) => tc.isIncluded)) {
-                this.gatherMockedGlobalMethods(testSuite, testCase);
+                const key = testCase.funcName.toLowerCase();
+                if (!processedFuncs.has(key)) {
+                    this.gatherMockedGlobalMethods(testSuite, testCase);
+                    processedFuncs.add(key);
+                }
             }
         }
 
     }
     private gatherMockedGlobalMethods(testSuite: TestSuite, testCase: TestCase) {
+        this.gatherMockedFunctionByName(testSuite, testCase.funcName);
+    }
+
+    private gatherMockedFunctionByName(testSuite: TestSuite, funcName: string) {
         try {
-            let func = testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+            let func = testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === funcName.toLowerCase());
+            if (!func) {
+                return;
+            }
             func.walk(createVisitor({
                 ExpressionStatement: (expressionStatement, parent, owner) => {
                     let callExpression = expressionStatement.expression as CallExpression;

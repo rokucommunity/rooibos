@@ -39,7 +39,7 @@ function addDiagnosticForAnnotation(
 ) {
     let line = annotation.range.start.line;
     let col = annotation.range.start.character;
-
+    // TODO: Fix the end character to be the end of the annotation, not the start + 9999
     file.addDiagnostics([createDiagnostic(file, code, message, line, col, annotation.range.end.line, annotation.range.end.character + 9999, severity)]);
 }
 

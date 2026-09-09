@@ -42,6 +42,8 @@
         {
             "label": "build-test-project",
             "type": "shell",
+            //`build` runs `ropm copy`, which the test project's framework files depend on
+            "dependsOn": "build",
             "command": "npm run build-test-project"
         },
     ]

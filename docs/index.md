@@ -169,6 +169,7 @@ Here is the information converted into a Markdown table:
 | throwOnFailedAssertion?            | boolean         | If true, then any failure will result in a runtime crash. Very useful for inspecting the stack frames and jumping right to the first failed test.                                                  |
 | sendHomeOnFinish?                  | boolean         | If true, then the app will exit upon finish. The default is true. Useful to set to false for local test suites                                                                                     |
 | keepAppOpen?                       | boolean         | When true, the app will remain open upon test completion. The default is true. Set false to return execution to Main                                                                               |
+| shutdownDelay?                  | number          | How long (in milliseconds) to sleep before exiting the app when `keepAppOpen` is false, to give the IO/telnet connection time to finish sending all the logs. The default is 400                    |
 | testsFilePattern?                  | string          | The pattern to use to find tests. This is a glob. The default is "**/*.spec.bs"                                                                                                                    |
 | tags?                              | string[]        | The tags listed here control what is run. You can use !tagname to indicate any tests/suites that are skipped. All other tags are ANDed. This is useful for running specific subsets of your suite. |
 | testSceneName                      | string          | Test scene to use for the test run. Provide a different name here if you need custom setup in your scene. You should extend or duplicate the RooibosScene component (found in RooibosScene.xml)    |
@@ -739,6 +740,9 @@ In addition to the `isGlobalMethodMockingEnabled`, you use the following config 
  - `globalMethodMockingExcludedFiles` - files that rooibos will not modify, when adding global mocking or stubbing support.
 
 ### Known limitations:
+
+> [!WARNING]
+> The current mocking and stubbing implementation only works within the current node context. Overrides are registered and stored inside the local `m`. Since a SceneGraph node's isolated `m` is distinct from the test suite's `m`, there is no way to mock its internal methods from the test suite.
 
 #### You must include default values in your expect calls, even if your invoking code does not use them
  - if you mock or stub a global or namespaced method, you will have to expect default parameters in your expectCalled invocation, as rooibos will receive the default values.
