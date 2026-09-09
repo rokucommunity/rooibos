@@ -2742,7 +2742,8 @@ describe('RooibosPlugin', () => {
             expect(brs).to.not.include('#EXPECTED_MAP#');
             expect(brs).to.not.include('#FILE_PATH_MAP#');
             expect(brs).to.include('m.top.expectedMap = {"1"');
-            expect(brs).to.include('source\\\\code.brs');
+            //the file path map is populated (path separators differ per platform)
+            expect(brs).to.match(/m\.top\.filePathMap = \{"1":".*code\.brs"/);
         });
 
         it('includes the coverage component in the build file list exactly once', async () => {
