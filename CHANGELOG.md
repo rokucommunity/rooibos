@@ -6,6 +6,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [5.16.5](https://github.com/rokucommunity/rooibos/compare/5.16.4...v5.16.5) - 2026-09-09
+### Changed
+ - Security enhancements ([#405](https://github.com/rokucommunity/rooibos/pull/405), [#406](https://github.com/rokucommunity/rooibos/pull/406), [#407](https://github.com/rokucommunity/rooibos/pull/407), [#409](https://github.com/rokucommunity/rooibos/pull/409), [#410](https://github.com/rokucommunity/rooibos/pull/410), [#411](https://github.com/rokucommunity/rooibos/pull/411), [#412](https://github.com/rokucommunity/rooibos/pull/412), [#414](https://github.com/rokucommunity/rooibos/pull/414), [#421](https://github.com/rokucommunity/rooibos/pull/421))
+ - Make before-exit sleep duration configurable ([#418](https://github.com/rokucommunity/rooibos/pull/418))
+ - Run stubCall/expectCalled/expectNotCalled rewrites in setUp/tearDown/beforeEach/afterEach hooks ([#403](https://github.com/rokucommunity/rooibos/pull/403))
+ - upgrade to [brighterscript@0.73.3](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0733---2026-09-09). Notable changes since 0.72.5:
+     - Security enhancements ([#1733](https://github.com/rokucommunity/brighterscript/pull/1733), [#1763](https://github.com/rokucommunity/brighterscript/pull/1763), [#1764](https://github.com/rokucommunity/brighterscript/pull/1764), [#1766](https://github.com/rokucommunity/brighterscript/pull/1766), [#1773](https://github.com/rokucommunity/brighterscript/pull/1773), [#1774](https://github.com/rokucommunity/brighterscript/pull/1774), [#1775](https://github.com/rokucommunity/brighterscript/pull/1775), [#1782](https://github.com/rokucommunity/brighterscript/pull/1782), [#1796](https://github.com/rokucommunity/brighterscript/pull/1796))
+ - upgrade to [roku-debug@0.24.3](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0243---2026-09-09). Notable changes since 0.23.11:
+     - Security enhancements ([#369](https://github.com/rokucommunity/roku-debug/pull/369), [#372](https://github.com/rokucommunity/roku-debug/pull/372), [#387](https://github.com/rokucommunity/roku-debug/pull/387), [#402](https://github.com/rokucommunity/roku-debug/pull/402), [#403](https://github.com/rokucommunity/roku-debug/pull/403), [#407](https://github.com/rokucommunity/roku-debug/pull/407), [#412](https://github.com/rokucommunity/roku-debug/pull/412), [#414](https://github.com/rokucommunity/roku-debug/pull/414), [#417](https://github.com/rokucommunity/roku-debug/pull/417))
+ - upgrade to [roku-deploy@3.18.4](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3184---2026-09-02). Notable changes since 3.17.6:
+     - Security enhancements ([#293](https://github.com/rokucommunity/roku-deploy/pull/293), [#345](https://github.com/rokucommunity/roku-deploy/pull/345))
+ - upgrade to [@rokucommunity/bslint@0.8.46](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0846---2026-09-09). Notable changes since 0.8.43:
+     - Security enhancements ([#186](https://github.com/rokucommunity/bslint/pull/186), [#196](https://github.com/rokucommunity/bslint/pull/196), [#198](https://github.com/rokucommunity/bslint/pull/198), [#203](https://github.com/rokucommunity/bslint/pull/203))
+ - upgrade to [ropm@0.11.11](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#01111---2026-09-09). Notable changes since 0.11.8:
+     - Security enhancements ([#147](https://github.com/rokucommunity/ropm/pull/147), [#152](https://github.com/rokucommunity/ropm/pull/152), [#154](https://github.com/rokucommunity/ropm/pull/154), [#156](https://github.com/rokucommunity/ropm/pull/156), [#159](https://github.com/rokucommunity/ropm/pull/159))
+### Fixed
+ - Fix coverage instrumentation changing constructor execution order ([#355](https://github.com/rokucommunity/rooibos/pull/355))
+ - fix: skip assertion tracking injection for namespace function calls ([#385](https://github.com/rokucommunity/rooibos/pull/385))
+
+
+
 ## [5.16.4](https://github.com/rokucommunity/rooibos/compare/5.16.3...v5.16.4) - 2026-06-10
 ### Changed
  - Make tests less brittle - removes full transpile string checks ([#396](https://github.com/rokucommunity/rooibos/pull/396))
