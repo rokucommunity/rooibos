@@ -2839,6 +2839,7 @@ describe('RooibosPlugin', () => {
                     "colorizeOutput": false
                     "throwOnFailedAssertion": false
                     "keepAppOpen": true
+                    "shutdownDelay": 400
                     "isRecordingCodeCoverage": false
                 }
             `);
@@ -2898,6 +2899,7 @@ describe('RooibosPlugin', () => {
                         "colorizeOutput": false
                         "throwOnFailedAssertion": false
                         "keepAppOpen": true
+                        "shutdownDelay": 400
                         "isRecordingCodeCoverage": false
                     }
                 `;
@@ -2911,6 +2913,31 @@ describe('RooibosPlugin', () => {
 
                 destroyProgram();
             }
+        });
+
+        it('supports a custom shutdownDelay', async () => {
+            setupProgram({
+                rootDir: _rootDir,
+                stagingFolderPath: _stagingFolderPath,
+                stagingDir: _stagingFolderPath,
+                rooibos: {
+                    shutdownDelay: 1500
+                }
+            });
+
+            program.validate();
+            expect(program.getDiagnostics()).to.be.empty;
+
+            await builder.transpile();
+
+            const runtimeConfigContents = getFunctionContents(
+                getContents('source/rooibos/RuntimeConfig.brs'),
+                /^__rooibos_RuntimeConfig_method_getRuntimeConfig$/
+            );
+
+            expect(runtimeConfigContents).to.include(`"shutdownDelay": 1500`);
+
+            destroyProgram();
         });
     });
 
