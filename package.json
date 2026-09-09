@@ -113,17 +113,6 @@
         "functions": 5,
         "branches": 5
     },
-    "mocha": {
-        "spec": "src/**/*.spec.ts",
-        "fullTrace": true,
-        "require": [
-            "source-map-support/register",
-            "ts-node/register"
-        ],
-        "watchExtensions": [
-            "ts"
-        ]
-    },
     "ropm": {
         "rootDir": "./framework/src"
     }
