@@ -145,19 +145,12 @@ async function main() {
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
         const stagingDir = bsConfig.outDir;
-        //bsc no longer exposes an `outFile`; build the zip alongside the staging dir
-        const zipPath = path.resolve(process.cwd(), stagingDir, '..', 'roku-deploy.zip');
 
-        await rokuDeploy.zip({
-            dir: stagingDir,
-            out: zipPath
-        });
-
-        console.log(`Deploying ${zipPath} to ${host}`);
+        console.log(`Deploying ${stagingDir} to ${host}`);
         await rokuDeploy.sideload({
             password: password,
             device: device,
-            zip: zipPath
+            dir: stagingDir
         });
     }
 
