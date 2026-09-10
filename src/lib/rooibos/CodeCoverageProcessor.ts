@@ -57,8 +57,8 @@ export class CodeCoverageProcessor {
     private addedStatements: Set<Statement>;
     private astEditor: Editor;
 
-    public generateMetadata(isUsingCoverage: boolean, program: Program) {
-        this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap);
+    public generateMetadata(program: Program) {
+        return this.fileFactory.createCoverageComponent(program, this.expectedCoverageMap, this.filePathMap);
     }
 
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {

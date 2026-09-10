@@ -477,6 +477,23 @@ describe('CodeCoverageProcessor', () => {
         expect(a).to.equal(b);
     });
 
+    it('does not instrument the generated rooibosMain entry point', async () => {
+        //the generated entry point is rooibos scaffolding. Instrumenting it would also consume a coverage
+        //file id, shifting the ids of every real source file
+        program.setFile('source/code.bs', `
+            sub foo()
+                print "hello"
+            end sub
+        `);
+        program.validate();
+        expect(program.getDiagnostics()).to.be.empty;
+        await builder.build();
+
+        expect(getContents('source/rooibosMain.brs')).to.not.include('RBS_CC_');
+        //the project's own file still gets the first id
+        expect(getContents('source/code.brs')).to.include('RBS_CC_1_reportLine');
+    });
+
     it('inserts coverage after `super()` so field initializers stay after the super call', async () => {
         program.setFile('source/classes.bs', `
             class BaseClass

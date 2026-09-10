@@ -2931,6 +2931,166 @@ describe('RooibosPlugin', () => {
         });
     });
 
+    describe('generated files use the program build lifecycle', () => {
+        it('emits the generated launch hook without an outDir set', async () => {
+            //`outDir` used to be mandatory purely because rooibos wrote this file to disk itself
+            setupProgram({
+                rootDir: _rootDir,
+                stagingDir: outDir,
+                rooibos: {}
+            });
+
+            program.setFile('source/test.spec.bs', `
+                @suite
+                class ATest extends Rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        m.assertEqual(1, 1)
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.build();
+
+            expect(builder.getDiagnostics().map(x => x.message)).to.not.include(
+                'The bsconfig must define the outDir option'
+            );
+            expect(
+                getContents('rooibosMain.brs')
+            ).to.eql(undent`
+                function main()
+                    Rooibos_init("RooibosScene")
+                end function
+            `);
+        });
+
+        it('registers the generated launch hook with the program', async () => {
+            program.setFile('source/test.spec.bs', `
+                @suite
+                class ATest extends Rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        m.assertEqual(1, 1)
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.build();
+
+            //the file is a real program file, not something written directly to disk behind bsc's back
+            expect(program.getFile('source/rooibosMain.brs')).to.exist;
+        });
+
+        it('writes the code coverage component through the build', async () => {
+            setupProgram({
+                rootDir: _rootDir,
+                stagingDir: outDir,
+                outDir: outDir,
+                rooibos: {
+                    isRecordingCodeCoverage: true
+                }
+            });
+
+            program.setFile('source/code.bs', `
+                function getValue()
+                    return 1
+                end function
+            `);
+            program.setFile('source/test.spec.bs', `
+                @suite
+                class ATest extends Rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        m.assertEqual(getValue(), 1)
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.build();
+
+            //both halves of the coverage component reach the staging dir
+            expect(getComponentContents('rooibos/CodeCoverage.xml')).to.include('CodeCoverage');
+            const brs = getComponentContents('rooibos/CodeCoverage.brs');
+            //the placeholders are substituted with the coverage data gathered during prepare
+            expect(brs).to.not.include('#EXPECTED_MAP#');
+            expect(brs).to.not.include('#FILE_PATH_MAP#');
+            expect(brs).to.include('m.top.expectedMap = {"1"');
+            //the file path map is populated (path separators differ per platform)
+            expect(brs).to.match(/m\.top\.filePathMap = \{"1":".*code\.brs"/);
+        });
+
+        it('includes the coverage component in the build file list exactly once', async () => {
+            setupProgram({
+                rootDir: _rootDir,
+                stagingDir: outDir,
+                outDir: outDir,
+                rooibos: {
+                    isRecordingCodeCoverage: true
+                }
+            });
+
+            let buildFilePaths: string[];
+            program.plugins.add({
+                name: 'build-file-collector',
+                afterPrepareProgram: (event) => {
+                    buildFilePaths = event.files.map(x => x.destPath);
+                }
+            } as any);
+
+            program.setFile('source/test.spec.bs', `
+                @suite
+                class ATest extends Rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        m.assertEqual(1, 1)
+                    end function
+                end class
+            `);
+            program.validate();
+            await builder.build();
+
+            expect(buildFilePaths.filter(x => x.endsWith('CodeCoverage.brs'))).to.have.lengthOf(1);
+            expect(buildFilePaths.filter(x => x.endsWith('CodeCoverage.xml'))).to.have.lengthOf(1);
+        });
+
+        it('does not emit duplicate generated files across repeated builds', async () => {
+            program.setFile('source/test.spec.bs', `
+                @suite
+                class ATest extends Rooibos.BaseTestSuite
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        m.assertEqual(1, 1)
+                    end function
+                end class
+            `);
+
+            let buildFilePaths: string[];
+            program.plugins.add({
+                name: 'build-file-collector',
+                afterPrepareProgram: (event) => {
+                    buildFilePaths = event.files.map(x => x.destPath);
+                }
+            } as any);
+
+            program.validate();
+            await builder.build();
+            //a second build (as happens in watch mode) must not stack up duplicate file instances
+            await builder.build();
+
+            const duplicates = buildFilePaths.filter((x, i) => buildFilePaths.indexOf(x) !== i);
+            expect(duplicates).to.eql([]);
+            //and the program itself holds only one instance per generated path
+            expect(
+                Object.values(program.files).filter((x: any) => x.destPath?.endsWith('CodeCoverage.brs'))
+            ).to.have.lengthOf(1);
+        });
+    });
+
     describe('addTestRunnerMetadata', () => {
         it('does not permanently modify the AST', async () => {
             program.setFile('source/test.spec.bs', `
