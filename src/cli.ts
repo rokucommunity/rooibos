@@ -6,7 +6,6 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
-import * as path from 'path';
 
 /**
  * Load simple `KEY=value` pairs from a .env file into process.env, without
