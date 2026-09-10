@@ -1,0 +1,131 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+' Regression coverage for the bug where a namespaced function call whose name matches
+' rooibos' assertion regex (/fail|assert*|expect*|stubCall/i) had assertion tracking
+' injected using the *namespace prefix* as the target object. e.g.
+'
+'     nsAssert.helpers.assertEqual(1, 1)
+'
+' used to transpile to:
+'
+'     nsAssert_helpers.currentAssertLineNumber = 12
+'     nsAssert_helpers_assertEqual(1, 1)
+'     if nsAssert_helpers_currentResult_isFail = true then
+'         nsAssert_helpers_done()
+'         return invalid
+'     end if
+'
+' `nsAssert_helpers` is a namespace, not a runtime object, so those references resolve to
+' invalid at runtime and the test crashes. These tests only pass if rooibos leaves
+' namespaced calls alone.
+
+namespace nsAssert.helpers
+
+    ' Name matches the `assert*` branch of the assertion regex
+    function assertEqual(a, b) as boolean
+        return a = b
+    end function
+
+    ' Name matches the `expect*` branch of the assertion regex
+    function expectValue(value) as dynamic
+        return value
+    end function
+
+    ' Name matches the bare `fail` branch of the assertion regex
+    function fail(message as string) as string
+        return "handled:" + message
+    end function
+
+    ' Name matches the `stubCall` branch of the assertion regex
+    function stubCall(value) as dynamic
+        return value
+    end function
+end namespace
+
+' A single-part namespace, to cover the `callPath.split(".")[0]` guard when the
+' namespace is only one level deep.
+namespace nsAssertFlat
+    function assertSomething(value) as dynamic
+        return value
+    end function
+end namespace
+
+namespace tests
+
+    @suite
+    class NamespacedAssertLikeCalls extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("namespaced calls with assertion-like names")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("calls a multi-part namespaced function named assertEqual")
+        function _()
+            ' Called as a bare expression statement — this is the exact shape that
+            ' triggered the bad injection (ExpressionStatement + DottedGet callee).
+            nsAssert.helpers.assertEqual(1, 1)
+
+            ' If tracking had been injected, the lines above would have thrown before
+            ' reaching here. Also verify the function itself still works.
+            m.assertTrue(nsAssert.helpers.assertEqual(1, 1))
+            m.assertFalse(nsAssert.helpers.assertEqual(1, 2))
+        end function
+
+        @it("calls a multi-part namespaced function named expectValue")
+        function _()
+            nsAssert.helpers.expectValue("hello")
+
+            m.assertEqual(nsAssert.helpers.expectValue("hello"), "hello")
+        end function
+
+        @it("calls a multi-part namespaced function named fail")
+        function _()
+            nsAssert.helpers.fail("boom")
+
+            m.assertEqual(nsAssert.helpers.fail("boom"), "handled:boom")
+        end function
+
+        @it("calls a multi-part namespaced function named stubCall")
+        function _()
+            nsAssert.helpers.stubCall("value")
+
+            m.assertEqual(nsAssert.helpers.stubCall("value"), "value")
+        end function
+
+        @it("calls a single-part namespaced function with an assertion-like name")
+        function _()
+            nsAssertFlat.assertSomething("ok")
+
+            m.assertEqual(nsAssertFlat.assertSomething("ok"), "ok")
+        end function
+
+        @it("still tracks real m.* assertions in a test that also calls namespaced helpers")
+        function _()
+            ' Interleave namespaced calls with real assertions to prove the guard is
+            ' scoped to the namespaced calls and does not disable tracking wholesale.
+            nsAssert.helpers.assertEqual(1, 1)
+            m.assertEqual(1, 1)
+            nsAssert.helpers.expectValue("x")
+            m.assertEqual("a", "a")
+
+            ' currentAssertLineNumber is what the injection maintains. If real assertion
+            ' tracking were broken by the guard, this would not have been updated.
+            m.assertTrue(m.currentAssertLineNumber > 0)
+        end function
+
+        @it("records the correct assert line number after a namespaced call")
+        function _()
+            ' The namespaced call must not disturb line-number tracking for the real
+            ' assertion that follows it. If tracking had been injected on the namespace,
+            ' currentAssertLineNumber would have been written against a namespace prefix
+            ' rather than `m`, and this comparison would not hold.
+            nsAssert.helpers.assertEqual(1, 1)
+
+            lineBefore = m.currentAssertLineNumber
+            m.assertEqual(1, 1)
+
+            ' Each real assertion advances the tracked line number.
+            m.assertTrue(m.currentAssertLineNumber > lineBefore)
+        end function
+    end class
+end namespace

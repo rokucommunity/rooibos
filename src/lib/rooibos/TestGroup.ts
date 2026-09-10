@@ -29,12 +29,27 @@ export class TestGroup extends TestBlock {
     }
 
     public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+        let func = this.testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+        this.modifyAssertionsInFunction(func, noEarlyExit, editor, namespaceLookup, scope);
+    }
+
+    public modifyAssertionsForHook(hookFuncName: string, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+        if (!hookFuncName) {
+            return;
+        }
+        let func = this.testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === hookFuncName.toLowerCase());
+        if (!func) {
+            return;
+        }
+        this.modifyAssertionsInFunction(func, noEarlyExit, editor, namespaceLookup, scope);
+    }
+
+    private modifyAssertionsInFunction(func: any, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         //for each method
         //if assertion
         //wrap with if is not fail
         //add line number as last param
         try {
-            let func = this.testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === testCase.funcName.toLowerCase());
             func.walk(createVisitor({
                 ExpressionStatement: (expressionStatement, parent, owner, key) => {
                     let callExpression = expressionStatement.expression as CallExpression;
@@ -50,6 +65,15 @@ export class TestGroup extends TestBlock {
                             const callPath = util.getAllDottedGetParts(callExpression.callee.obj)?.map((part) => part.text).join('.');
 
                             if (callPath) {
+                                // Skip if callPath starts with a namespace name — this is a namespace
+                                // function call (e.g. some.space.assertEqual()), not a method call on
+                                // an object like m. Injecting assertion tracking on a namespace prefix
+                                // produces invalid output (e.g. some_space.currentAssertLineNumber).
+                                const callPathFirstPart = callPath.split('.')[0].toLowerCase();
+                                if (namespaceLookup.has(callPathFirstPart) || scope?.namespaceLookup?.has(callPathFirstPart)) {
+                                    return;
+                                }
+
                                 if (dge.tokens.name.text === 'stubCall') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                     return expressionStatement;
