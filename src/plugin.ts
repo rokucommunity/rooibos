@@ -245,7 +245,7 @@ export class RooibosPlugin implements CompilerPlugin {
 
     afterPrepareProgram(event: AfterPrepareProgramEvent) {
         //coverage metadata is gathered during `prepareFile`, so it isn't complete until every file is prepared
-        const coverageFiles = this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, event.program);
+        const coverageFiles = this.codeCoverageProcessor.generateMetadata(event.program);
         this.addFilesToBuild(event.files, coverageFiles);
     }
 
