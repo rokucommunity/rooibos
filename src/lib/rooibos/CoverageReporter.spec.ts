@@ -150,11 +150,13 @@ describe('CoverageReporter', () => {
             process.chdir(clientDir);
             try {
                 const result = resolveSourceRoot(undefined, ['client/src/foo.bs']);
-                expect(result).to.equal(s`${monorepoRoot}`);
+                expect(s`${result}`).to.equal(s`${monorepoRoot}`);
                 expect(errorCalls).to.eql([]);
                 expect(logCalls).to.have.length(1);
                 expect(logCalls[0]).to.include('[rooibos]');
-                expect(logCalls[0]).to.include(monorepoRoot);
+                // lowercased: standardizePath lowercases the drive letter on Windows but the
+                // resolved root keeps whatever casing the OS reported.
+                expect(logCalls[0].toLowerCase()).to.include(monorepoRoot.toLowerCase());
             } finally {
                 process.chdir(originalCwd);
             }
@@ -168,7 +170,7 @@ describe('CoverageReporter', () => {
             process.chdir(tmpPath);
             try {
                 const result = resolveSourceRoot(undefined, ['source/a.bs']);
-                expect(result).to.equal(s`${tmpPath}`);
+                expect(s`${result}`).to.equal(s`${tmpPath}`);
                 expect(logCalls).to.eql([]);
                 expect(errorCalls).to.eql([]);
             } finally {
@@ -179,7 +181,7 @@ describe('CoverageReporter', () => {
         it('lets an explicit root win even when it does not resolve, and warns', () => {
             const explicitRoot = path.join(tmpPath, 'does-not-have-the-files');
             const result = resolveSourceRoot(explicitRoot, ['source/a.bs']);
-            expect(result).to.equal(s`${explicitRoot}`);
+            expect(s`${result}`).to.equal(s`${explicitRoot}`);
             expect(logCalls).to.eql([]);
             expect(errorCalls).to.have.length.greaterThan(0);
             expect(errorCalls.join('\n')).to.include('--coverage-src-root');
@@ -191,13 +193,13 @@ describe('CoverageReporter', () => {
                 'nonexistent-rooibos-fixture-a/two.bs',
                 'nonexistent-rooibos-fixture-a/three.bs'
             ]);
-            expect(result).to.equal(s`${process.cwd()}`);
+            expect(s`${result}`).to.equal(s`${process.cwd()}`);
             expect(errorCalls.filter(line => line.includes('--coverage-src-root'))).to.have.length(1);
         });
 
         it('falls back to cwd without crashing for empty or all-absolute candidate lists', () => {
-            expect(resolveSourceRoot(undefined, [])).to.equal(s`${process.cwd()}`);
-            expect(resolveSourceRoot(undefined, [path.resolve(tmpPath, 'source/a.bs')])).to.equal(s`${process.cwd()}`);
+            expect(s`${resolveSourceRoot(undefined, [])}`).to.equal(s`${process.cwd()}`);
+            expect(s`${resolveSourceRoot(undefined, [path.resolve(tmpPath, 'source/a.bs')])}`).to.equal(s`${process.cwd()}`);
             expect(logCalls).to.eql([]);
             expect(errorCalls).to.eql([]);
         });
