@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "6.0.0-alpha.52",
+    "version": "6.0.0-alpha.53",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "scripts": {
         "preversion": "npm run build && npm run lint && npm run test",
@@ -16,15 +16,16 @@
         "test:nocover": "mocha",
         "audit": "npm audit || audit-ci --config ./audit-ci.jsonc",
         "cli": "ts-node src/cli.ts",
+        "cli:device": "ts-node src/cli.ts --project test-project/bsconfig.device.json",
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "^1.0.0-alpha.52",
+        "brighterscript": "^1.0.0-alpha.53",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
         "minimatch": "^3.0.4",
-        "roku-debug": "^0.23.10",
-        "roku-deploy": "^4.0.0-alpha.2",
+        "roku-debug": "^0.24.3",
+        "roku-deploy": "^4.0.0-alpha.6",
         "rooibos_promises": "npm:@rokucommunity/promises@^0.7.0",
         "source-map": "^0.7.3",
         "undent": "^1.0.1",
@@ -33,7 +34,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^1.0.0-alpha.52",
+        "@rokucommunity/bslint": "^1.0.0-alpha.53",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
@@ -55,7 +56,7 @@
         "jsdoc": "^4.0.5",
         "mocha": "^10.8.2",
         "nyc": "^15.1.0",
-        "ropm": "^0.11.8",
+        "ropm": "^0.11.11",
         "source-map-support": "^0.5.13",
         "ts-node": "^10.7.0",
         "typescript": "^4.7.2"
@@ -118,18 +119,6 @@
         "statements": 5,
         "functions": 5,
         "branches": 5
-    },
-    "mocha": {
-        "spec": "src/**/*.spec.ts",
-        "fullTrace": true,
-        "require": [
-            "source-map-support/register",
-            "ts-node/register"
-        ],
-        "timeout": "10000",
-        "watchExtensions": [
-            "ts"
-        ]
     },
     "ropm": {
         "rootDir": "./framework/src"

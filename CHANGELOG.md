@@ -6,6 +6,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.53](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.52...v6.0.0-alpha.53) - 2026-09-10
+### Changed
+ - Upgrade/brighterscriptv1.0.0 alpha.53 ([#427](https://github.com/rokucommunity/rooibos/pull/427))
+ - Merge master into v6 ([#424](https://github.com/rokucommunity/rooibos/pull/424))
+ - Security enhancements ([#413](https://github.com/rokucommunity/rooibos/pull/413))
+ - upgrade to [roku-deploy@4.0.0-alpha.6](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#400-alpha6---2026-09-08). Notable changes since 4.0.0-alpha.2:
+     - Migrate RCE routes to /api/v0/input and the 8060 port proxy ([#396](https://github.com/rokucommunity/roku-deploy/pull/396))
+     - Support top-level patterns to external dirs using globstar ([#394](https://github.com/rokucommunity/roku-deploy/pull/394))
+     - Rename getFilePaths to resolveFilesArray ([#393](https://github.com/rokucommunity/roku-deploy/pull/393))
+     - Add rce startDevice/stopDevice CLI commands ([#372](https://github.com/rokucommunity/roku-deploy/pull/372))
+     - Replace postman-request shims and fetch ([#390](https://github.com/rokucommunity/roku-deploy/pull/390))
+     - Align on camelCase convention ([#369](https://github.com/rokucommunity/roku-deploy/pull/369))
+     - Validate device configs specify exactly one targeting identifier ([#388](https://github.com/rokucommunity/roku-deploy/pull/388))
+     - Remove all @deprecated items ([#389](https://github.com/rokucommunity/roku-deploy/pull/389))
+     - Refine comments ([#371](https://github.com/rokucommunity/roku-deploy/pull/371))
+     - Rename query* ECP methods to get* ([#385](https://github.com/rokucommunity/roku-deploy/pull/385))
+     - Add format property to CaptureScreenshotResult ([#386](https://github.com/rokucommunity/roku-deploy/pull/386))
+     - Fix pkg download corruption on RCE devices ([#382](https://github.com/rokucommunity/roku-deploy/pull/382))
+     - Tag RCE 502 upgrade rejections as ECONNREFUSED ([#376](https://github.com/rokucommunity/roku-deploy/pull/376))
+     - Encode remote keys when building ECP URLs ([#375](https://github.com/rokucommunity/roku-deploy/pull/375))
+     - Include response headers in EcpResult ([#373](https://github.com/rokucommunity/roku-deploy/pull/373))
+     - Support a raw POST body on sendEcpRequest ([#368](https://github.com/rokucommunity/roku-deploy/pull/368))
+     - Stop returning json from sendEcpRequest ([#367](https://github.com/rokucommunity/roku-deploy/pull/367))
+     - RokuDeploy method ordering ([#358](https://github.com/rokucommunity/roku-deploy/pull/358))
+     - Move constructor to the top of all classes ([83fc8f3](https://github.com/rokucommunity/roku-deploy/commit/83fc8f3))
+     - Merge master into v4 ([#283](https://github.com/rokucommunity/roku-deploy/pull/283), [#317](https://github.com/rokucommunity/roku-deploy/pull/317), [#355](https://github.com/rokucommunity/roku-deploy/pull/355))
+     - Roku Cloud Emulator support ([#331](https://github.com/rokucommunity/roku-deploy/pull/331))
+     - Fix getDestPath dropping absolute src entries ([#347](https://github.com/rokucommunity/roku-deploy/pull/347))
+     - Add 1s breathing room between device tests ([#348](https://github.com/rokucommunity/roku-deploy/pull/348))
+     - Close code coverage gaps to hit 100% ([#343](https://github.com/rokucommunity/roku-deploy/pull/343))
+     - chore: Fix brace-expansion high-severity DoS advisory ([#344](https://github.com/rokucommunity/roku-deploy/pull/344))
+     - Fix mocha/ts-node breaking on Node 22+ ([#341](https://github.com/rokucommunity/roku-deploy/pull/341))
+     - Full test coverage ([#325](https://github.com/rokucommunity/roku-deploy/pull/325))
+     - Add cause to all thrown errors ([#329](https://github.com/rokucommunity/roku-deploy/pull/329))
+     - Unified device option ([#323](https://github.com/rokucommunity/roku-deploy/pull/323))
+     - Security enhancements ([#322](https://github.com/rokucommunity/roku-deploy/pull/322))
+     - Merge master into v4 (2026-07-16) ([#321](https://github.com/rokucommunity/roku-deploy/pull/321))
+     - Error handling rewrite ([#302](https://github.com/rokucommunity/roku-deploy/pull/302))
+     - Add named options for all functions ([#314](https://github.com/rokucommunity/roku-deploy/pull/314))
+     - Add validation helper functions and validate all parameters for commands ([#320](https://github.com/rokucommunity/roku-deploy/pull/320))
+     - Ensure all functions return objects ([#316](https://github.com/rokucommunity/roku-deploy/pull/316))
+     - Allow setting options when creating the Roku-Deploy object ([#291](https://github.com/rokucommunity/roku-deploy/pull/291))
+     - Add option to get screenshot as a buffer ([#304](https://github.com/rokucommunity/roku-deploy/pull/304))
+     - Return the out path when zipping ([#296](https://github.com/rokucommunity/roku-deploy/pull/296))
+     - Add a files option to the zip command ([#290](https://github.com/rokucommunity/roku-deploy/pull/290))
+     - Fix sercurity audit issues ([#289](https://github.com/rokucommunity/roku-deploy/pull/289))
+     - Remove getOptions ([#284](https://github.com/rokucommunity/roku-deploy/pull/284))
+     - Standardize Parameter Names Between Node API and CLI ([#233](https://github.com/rokucommunity/roku-deploy/pull/233))
+     - Download actual signed package from device on newer firmware ([#244](https://github.com/rokucommunity/roku-deploy/pull/244))
+     - Merge master 2 ([#231](https://github.com/rokucommunity/roku-deploy/pull/231))
+     - V4 merge master ([#228](https://github.com/rokucommunity/roku-deploy/pull/228))
+     - New args for commands ([#202](https://github.com/rokucommunity/roku-deploy/pull/202))
+     - master into v4 - merge 3 ([#199](https://github.com/rokucommunity/roku-deploy/pull/199))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.53](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#100-alpha53---2026-09-09). Notable changes since 1.0.0-alpha.52:
+     - Upgraded to Brighterscript v1.0.0-alpha.53 ([#207](https://github.com/rokucommunity/bslint/pull/207))
+     - Merge/master to v1 sep 2026 ([#205](https://github.com/rokucommunity/bslint/pull/205))
+     - Security enhancements ([#200](https://github.com/rokucommunity/bslint/pull/200))
+     - Changes Diagnostics to use human-readable codes ([#194](https://github.com/rokucommunity/bslint/pull/194))
+### Fixed
+ - Fix duplicate node-test file instances corrupting build output ([#408](https://github.com/rokucommunity/rooibos/pull/408))
+
+
+
 ## [6.0.0-alpha.52](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.51...v6.0.0-alpha.52) - 2026-06-02
 ### Changed
  - Updated to Brighterscript-v1.0.0a-alpha.52 ([#401](https://github.com/rokucommunity/rooibos/pull/401))
