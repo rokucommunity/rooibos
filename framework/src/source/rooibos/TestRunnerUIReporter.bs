@@ -1,0 +1,102 @@
+import "pkg:/source/rooibos/BaseTestReporter.bs"
+
+namespace rooibos
+    ' @ignore
+    ' Reporter that mirrors live test progress into the on-device test runner UI.
+    ' Owns references to status/count/progress nodes and the running totals.
+    class TestRunnerUIReporter extends rooibos.BaseTestReporter
+
+        public totalTests = 0
+        public testsStarted = 0
+        public testsCompleted = 0
+        public testsPassed = 0
+        public testsFailed = 0
+        public currentSuiteName = ""
+
+        public statusNode = invalid
+        public statusCountsNode = invalid
+        public progressNode = invalid
+
+        private progressBarWidth = 500.0
+
+        function new(runner as dynamic, totalTests as integer)
+            super(runner)
+            m.totalTests = totalTests
+        end function
+
+        ' Resolve the scene-graph nodes this reporter writes to.
+        ' Called once UI nodes are attached to the scene.
+        public function bindNodes(scene as object) as void
+            if scene = invalid then return
+            m.statusNode = scene.findNode("statusLabel")
+            m.statusCountsNode = scene.findNode("statusCounts")
+            m.progressNode = scene.findNode("progressFill")
+        end function
+
+        public function setCurrentSuite(name as string) as void
+            m.currentSuiteName = name
+            m.updateStatus()
+        end function
+
+        ' Compensation path for node/async test suites whose per-test callbacks fire
+        ' on the child node's reporter list rather than ours.
+        public function recordSuiteStats(stats as object) as void
+            if stats = invalid then return
+            m.testsStarted += stats.ranCount
+            m.testsCompleted += stats.ranCount
+            m.testsPassed += stats.passedCount
+            m.testsFailed += stats.failedCount + stats.crashedCount
+            m.updateStatus()
+            m.updateProgress()
+        end function
+
+        ' Cross-thread bridge: a node-test child writes to a field on the render
+        ' thread; the main thread's wait loop forwards the field name here so the
+        ' UI updates in real time during node-test suite execution.
+        public function applyNodeProgressEvent(field as string) as void
+            if field = "rooibosTestsRunSoFar" then
+                m.testsStarted++
+                m.testsCompleted++
+                m.updateProgress()
+            else if field = "rooibosTestsPassed" then
+                m.testsPassed++
+            else if field = "rooibosTestsFailed" then
+                m.testsFailed++
+            end if
+            m.updateStatus()
+        end function
+
+        override function onTestBegin(_event as rooibos.TestReporterOnTestBeginEvent)
+            m.testsStarted++
+            m.updateStatus()
+        end function
+
+        override function onTestComplete(event as rooibos.TestReporterOnTestCompleteEvent)
+            m.testsCompleted++
+            if event <> invalid and event.test <> invalid and event.test.result <> invalid then
+                result = event.test.result
+                if result.isCrash or result.isFail then
+                    m.testsFailed++
+                else if not result.isSkipped then
+                    m.testsPassed++
+                end if
+            end if
+            m.updateStatus()
+            m.updateProgress()
+        end function
+
+        private function updateStatus() as void
+            if m.statusNode <> invalid then m.statusNode.text = m.currentSuiteName
+            if m.statusCountsNode <> invalid then
+                m.statusCountsNode.text = m.testsStarted.toStr().trim() + "/" + m.totalTests.toStr().trim() + " · ✓ " + m.testsPassed.toStr().trim() + " · ✗ " + m.testsFailed.toStr().trim()
+            end if
+        end function
+
+        private function updateProgress() as void
+            if m.progressNode <> invalid and m.totalTests > 0 then
+                m.progressNode.width = m.progressBarWidth * m.testsCompleted / m.totalTests
+            end if
+        end function
+
+    end class
+end namespace
