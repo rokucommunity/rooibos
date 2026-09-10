@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { standardizePath as s } from 'brighterscript';
-import { normalizeLcovText, buildFileCoverage, buildCoverageDataFromModel, loadCoveragePathMap, parseCoverageCounts, writeCoverageReports, writeCoverageReportsFromCounts, SourceCache } from './CoverageReporter';
+import { normalizeLcovText, buildFileCoverage, buildCoverageDataFromModel, loadCoveragePathMap, parseCoverageCounts, writeCoverageReports, writeCoverageReportsFromCounts, resolveSourceRoot, SourceCache } from './CoverageReporter';
 import type { LcovFileRecord } from './CoverageReporter';
 import type { CoverageMap as CoverageModelJson } from './CodeCoverageProcessor';
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -117,6 +117,89 @@ describe('CoverageReporter', () => {
             const jsonPath = path.join(tmpPath, 'CodeCoverage.json');
             fs.writeFileSync(jsonPath, JSON.stringify({ files: [{ sourceFile: './source/b.brs' }] }));
             expect(loadCoveragePathMap(jsonPath)).to.be.undefined;
+        });
+    });
+
+    describe('resolveSourceRoot', () => {
+        let originalLog: typeof console.log;
+        let originalError: typeof console.error;
+        let logCalls: string[];
+        let errorCalls: string[];
+
+        beforeEach(() => {
+            originalLog = console.log;
+            originalError = console.error;
+            logCalls = [];
+            errorCalls = [];
+            console.log = (...args: any[]) => logCalls.push(args.join(' '));
+            console.error = (...args: any[]) => errorCalls.push(args.join(' '));
+        });
+
+        afterEach(() => {
+            console.log = originalLog;
+            console.error = originalError;
+        });
+
+        it('probes upward and finds the root one level above cwd', () => {
+            const monorepoRoot = path.join(tmpPath, 'monorepo');
+            const clientDir = path.join(monorepoRoot, 'client');
+            fsExtra.ensureDirSync(path.join(clientDir, 'src'));
+            fs.writeFileSync(path.join(clientDir, 'src', 'foo.bs'), '');
+
+            const originalCwd = process.cwd();
+            process.chdir(clientDir);
+            try {
+                const result = resolveSourceRoot(undefined, ['client/src/foo.bs']);
+                expect(result).to.equal(s`${monorepoRoot}`);
+                expect(errorCalls).to.eql([]);
+                expect(logCalls).to.have.length(1);
+                expect(logCalls[0]).to.include('[rooibos]');
+                expect(logCalls[0]).to.include(monorepoRoot);
+            } finally {
+                process.chdir(originalCwd);
+            }
+        });
+
+        it('uses cwd silently when a candidate resolves there', () => {
+            fsExtra.ensureDirSync(path.join(tmpPath, 'source'));
+            fs.writeFileSync(path.join(tmpPath, 'source', 'a.bs'), '');
+
+            const originalCwd = process.cwd();
+            process.chdir(tmpPath);
+            try {
+                const result = resolveSourceRoot(undefined, ['source/a.bs']);
+                expect(result).to.equal(s`${tmpPath}`);
+                expect(logCalls).to.eql([]);
+                expect(errorCalls).to.eql([]);
+            } finally {
+                process.chdir(originalCwd);
+            }
+        });
+
+        it('lets an explicit root win even when it does not resolve, and warns', () => {
+            const explicitRoot = path.join(tmpPath, 'does-not-have-the-files');
+            const result = resolveSourceRoot(explicitRoot, ['source/a.bs']);
+            expect(result).to.equal(s`${explicitRoot}`);
+            expect(logCalls).to.eql([]);
+            expect(errorCalls).to.have.length.greaterThan(0);
+            expect(errorCalls.join('\n')).to.include('--coverage-src-root');
+        });
+
+        it('emits the warning once, not per file, when nothing resolves anywhere', () => {
+            const result = resolveSourceRoot(undefined, [
+                'nonexistent-rooibos-fixture-a/one.bs',
+                'nonexistent-rooibos-fixture-a/two.bs',
+                'nonexistent-rooibos-fixture-a/three.bs'
+            ]);
+            expect(result).to.equal(s`${process.cwd()}`);
+            expect(errorCalls.filter(line => line.includes('--coverage-src-root'))).to.have.length(1);
+        });
+
+        it('falls back to cwd without crashing for empty or all-absolute candidate lists', () => {
+            expect(resolveSourceRoot(undefined, [])).to.equal(s`${process.cwd()}`);
+            expect(resolveSourceRoot(undefined, [path.resolve(tmpPath, 'source/a.bs')])).to.equal(s`${process.cwd()}`);
+            expect(logCalls).to.eql([]);
+            expect(errorCalls).to.eql([]);
         });
     });
 
