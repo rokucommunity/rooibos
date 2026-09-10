@@ -276,6 +276,9 @@ export class RooibosPlugin implements CompilerPlugin {
     shouldAddCodeCoverageToFile(file: BscFile) {
         if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
             return false;
+            //rooibos' own generated files (the framework, and the generated entry point) are never instrumented
+        } else if (this.fileFactory.isIgnoredFile(file)) {
+            return false;
         } else if (!this.config.coverageExcludedFiles) {
             return true;
         } else {
