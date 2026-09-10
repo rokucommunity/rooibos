@@ -846,6 +846,110 @@ describe('RooibosPlugin', () => {
                 `));
             });
 
+            it('keeps super() first in a child-class constructor when the super call has arguments', async () => {
+                program.setFile('source/code.bs', `
+                    class Animal
+                        legs = 4
+                        function new(legs)
+                            m.legs = legs
+                        end function
+                    end class
+
+                    class Dog extends Animal
+                        breed = "unknown"
+                        function new(legs)
+                            super(legs)
+                            m.breed = "lab"
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                const dogConstructor = a.substring(a.indexOf('function __Dog_method_new(legs)'), a.indexOf('function __Dog_builder()')).trim();
+                expect(dogConstructor).to.equal(undent(`
+                    function __Dog_method_new(legs)
+                        m.super0_new(legs)
+                        m.breed = "unknown"
+                        RBS_CC_0_reportLine(12)
+                        RBS_CC_0_reportFunction(1)
+                        RBS_CC_0_reportLine(13)
+                        m.breed = "lab"
+                    end function
+                `));
+            });
+
+            it('keeps a leading super.method() call first so bsc field initializers still run after it', async () => {
+                // bsc's transpiler treats the dotted form as a super call when it decides not to
+                // inject a synthetic `super()`, but still splices field initializers at index 1.
+                // So this form has to be protected exactly like `super()`, even though bsc's
+                // *validator* flags it (diagnostic 1100) as a missing super() call.
+                program.setFile('source/code.bs', `
+                    class Animal
+                        legs = 4
+                        function new()
+                            m.legs = 2
+                        end function
+                        function speak()
+                            print "..."
+                        end function
+                    end class
+
+                    class Dog extends Animal
+                        breed = "unknown"
+                        function new()
+                            super.speak()
+                            m.breed = "lab"
+                        end function
+                    end class
+                `);
+                program.validate();
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                const dogConstructor = a.substring(a.indexOf('function __Dog_method_new()'), a.indexOf('function __Dog_builder()')).trim();
+                const superIndex = dogConstructor.indexOf('m.super0_speak()');
+                const fieldIndex = dogConstructor.indexOf('m.breed = "unknown"');
+                expect(superIndex).to.be.greaterThan(-1);
+                expect(fieldIndex).to.be.greaterThan(-1);
+                // The parent call must still precede the field initializer bsc spliced in at index 1.
+                expect(superIndex).to.be.lessThan(fieldIndex);
+            });
+
+            it('instruments goto, exit while, and indexed/dotted set statements', async () => {
+                program.setFile('source/code.bs', `
+                    sub foo(items, lookup)
+                        total = 0
+                        while total < 10
+                            total++
+                            if total = 5
+                                exit while
+                            end if
+                        end while
+                        for each item in items
+                            lookup["key"] = item
+                            lookup.prop = item
+                        end for
+                        goto done
+                        done:
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // Each of these statement kinds must still get its own line report; the branch
+                // rewrite kept dedicated visitor handlers for all of them.
+                expect(a).to.include('RBS_CC_0_reportLine(5)'); // total++
+                expect(a).to.include('RBS_CC_0_reportLine(7)'); // exit while
+                expect(a).to.include('RBS_CC_0_reportLine(11)'); // lookup["key"] = item
+                expect(a).to.include('RBS_CC_0_reportLine(12)'); // lookup.prop = item
+                expect(a).to.include('RBS_CC_0_reportLine(14)'); // goto done
+            });
+
             it('skips synthetic AST that has no ranges instead of crashing the transpile', async () => {
                 // Other plugins can graft creator-built AST into a file before rooibos
                 // runs, and creator-built nodes carry no ranges. Reported from the field:

@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "5.16.4",
+    "version": "5.16.5",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "scripts": {
         "preversion": "npm run build && npm run lint && npm run test",
@@ -18,10 +18,11 @@
         "audit": "npm audit || audit-ci --config ./audit-ci.jsonc",
         "cli": "ts-node src/cli.ts",
         "coverage:run": "ts-node src/cli.ts --project coverage-sample/bsconfig.json --coverage-output coverage-sample/coverage/lcov.info --coverage-html coverage-sample/coverage/html --coverage-src-root .",
+        "cli:device": "ts-node src/cli.ts --project test-project/bsconfig.device.json",
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "^0.72.5",
+        "brighterscript": "^0.73.3",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
         "istanbul-lib-coverage": "^3.2.2",
@@ -30,8 +31,8 @@
         "lcov-parse": "^1.0.0",
         "minimatch": "^3.0.4",
         "nyc": "^15.1.0",
-        "roku-debug": "^0.23.11",
-        "roku-deploy": "^3.17.6",
+        "roku-debug": "^0.24.3",
+        "roku-deploy": "^4.0.0-alpha.5",
         "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
         "source-map": "^0.7.3",
         "undent": "^1.0.1",
@@ -40,7 +41,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^0.8.43",
+        "@rokucommunity/bslint": "^0.8.46",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
@@ -64,15 +65,18 @@
         "eslint-plugin-no-only-tests": "2.6.0",
         "jsdoc": "^4.0.5",
         "mocha": "^10.8.2",
-        "ropm": "^0.11.8",
+        "ropm": "^0.11.11",
         "source-map-support": "^0.5.13",
         "ts-node": "^10.7.0",
         "typescript": "^4.7.2"
     },
     "overrides": {
-        "serialize-javascript": "^7.0.5",
-        "js-yaml@^3": "^3.15.1",
-        "js-yaml@^4": "^4.3.1"
+        "serialize-javascript": "^7",
+        "js-yaml@^3": "^3.15.2",
+        "js-yaml@^4": "^4",
+        "browserslist": "^4.28.8",
+        "istanbul-lib-processinfo": "^3.0.1",
+        "uuid": "^11.1.1"
     },
     "main": "dist/plugin.js",
     "bin": {
@@ -119,17 +123,6 @@
         "statements": 5,
         "functions": 5,
         "branches": 5
-    },
-    "mocha": {
-        "spec": "src/**/*.spec.ts",
-        "fullTrace": true,
-        "require": [
-            "source-map-support/register",
-            "ts-node/register"
-        ],
-        "watchExtensions": [
-            "ts"
-        ]
     },
     "ropm": {
         "rootDir": "./framework/src"

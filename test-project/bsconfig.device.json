@@ -1,0 +1,20 @@
+{
+    "//": "Config for running the rooibos CLI against a real Roku device. See 'npm run cli:device'.",
+    "extends": "./bsconfig.json",
+    "createPackage": true,
+    "outFile": "out/rooibos-device-test.zip",
+    "rooibos": {
+        "showOnlyFailures": true,
+        "catchCrashes": true,
+        "colorizeOutput": true,
+        "lineWidth": 70,
+        "failFast": false,
+        "sendHomeOnFinish": false,
+        "keepAppOpen": false,
+        "isGlobalMethodMockingEnabled": true,
+        "isRecordingCodeCoverage": false,
+        "reporters": [
+            "mocha"
+        ]
+    }
+}

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isMethodStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement, isExpressionStatement } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isMethodStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement, isExpressionStatement, util } from 'brighterscript';
 import type { AssignmentStatement, BrsFile, CallExpression, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, Program, ProgramBuilder, Range, Statement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeExpression } from './RawCodeExpression';
@@ -1341,11 +1341,16 @@ export class CodeCoverageProcessor {
      * True for a `super(...)` constructor-call statement. brighterscript's class transpiler
      * assumes this is statement 0 of a child-class constructor when it splices in field
      * initializers, so nothing may be inserted ahead of it.
+     *
+     * This deliberately mirrors the predicate bsc itself uses in `ensureSuperConstructorCall`
+     * (brighterscript/dist/parser/Statement.js) to decide whether a body already contains a
+     * super call: `findBeginningVariableExpression` walks down a dotted-get chain, so the
+     * `super.someMethod()` form counts too. Keeping the two predicates identical means we can
+     * never disagree with bsc about which statement it is protecting at index 0.
      */
     private isSuperCallStatement(statement: Statement | undefined): boolean {
         return isExpressionStatement(statement) && isCallExpression(statement.expression) &&
-            isVariableExpression(statement.expression.callee) &&
-            statement.expression.callee.name.text.toLowerCase() === 'super';
+            util.findBeginningVariableExpression(statement.expression.callee as any)?.name?.text?.toLowerCase() === 'super';
     }
 
     private convertStatementToCoverageStatement(statement: Statement, owner: any, key: any) {
