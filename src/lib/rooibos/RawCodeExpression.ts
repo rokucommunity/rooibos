@@ -7,22 +7,21 @@ import { SourceNode } from 'source-map';
 export class RawCodeExpression extends Expression {
     constructor(
         public source: string,
-        public sourceFile?: BscFile,
-        public range: Range = Range.create(1, 1, 1, 99999)
+        public sourceFile?: BscFile
     ) {
         super();
     }
-
+    private fakeRange = Range.create(1, 1, 1, 99999);
     readonly kind = 'RawCodeExpression' as AstNodeKind;
 
     get location() {
-        return util.createLocationFromFileRange(this.sourceFile, this.range);
+        return util.createLocationFromFileRange(this.sourceFile, this.fakeRange);
     }
 
     public transpile(state: BrsTranspileState) {
         return [new SourceNode(
-            this.range.start.line + 1,
-            this.range.start.character,
+            this.fakeRange.start.line + 1,
+            this.fakeRange.start.character,
             this.sourceFile ? this.sourceFile.srcPath : state.srcPath,
             this.source
         )];
@@ -32,6 +31,6 @@ export class RawCodeExpression extends Expression {
     }
 
     public clone() {
-        return new RawCodeExpression(this.source, this.sourceFile, util.cloneLocation({ range: this.range } as any).range);
+        return new RawCodeExpression(this.source, this.sourceFile);
     }
 }
