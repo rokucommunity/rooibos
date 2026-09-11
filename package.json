@@ -20,7 +20,7 @@
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "^1.0.0-alpha.53",
+        "brighterscript": "^1.0.0-alpha.54",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
         "minimatch": "^3.0.4",
@@ -34,7 +34,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^1.0.0-alpha.53",
+        "@rokucommunity/bslint": "^1.0.0-alpha.54",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
@@ -72,7 +72,10 @@
         "js-yaml@^4": "^4.3.2",
         "linkify-it": "^6.1.0",
         "markdown-it": "^14.3.1",
-        "ws": "^8.21.3"
+        "ws": "^8.21.3",
+        "istanbul-lib-processinfo": "^3.0.1",
+        "uuid": "^11.1.1",
+        "@babel/core": "^7.29.7"
     },
     "main": "dist/plugin.js",
     "bin": {
