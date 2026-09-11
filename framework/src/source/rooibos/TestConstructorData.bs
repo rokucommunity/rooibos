@@ -1,0 +1,82 @@
+namespace rooibos
+
+    interface TestSuiteData
+        name as string
+        isSolo as boolean
+        noCatch as boolean
+        isIgnored as boolean
+        pkgPath as string
+        destPath as string
+        filePath as string
+        lineNumber as integer
+        valid as boolean
+        hasFailures as boolean
+        hasSoloTests as boolean
+        hasIgnoredTests as boolean
+        hasSoloGroups as boolean
+        setupFunctionName as string
+        tearDownFunctionName as string
+        beforeEachFunctionName as string
+        afterEachFunctionName as string
+        isNodeTest as boolean
+        isAsync as boolean
+        asyncTimeout as integer
+        nodeName as string
+        generatedNodeName as string
+        testGroups as TestGroupData[]
+    end interface
+
+    interface TestGroupData
+        name as string
+        isSolo as boolean
+        isIgnored as boolean
+        isAsync as boolean
+        asyncTimeout as integer
+        valid as boolean
+        fileName as string
+        lineNumber as integer
+        setupFunctionName as string
+        tearDownFunctionName as string
+        beforeEachFunctionName as string
+        afterEachFunctionName as string
+        testCases as TestCaseData[]
+    end interface
+
+    interface TestCaseData
+        isSolo as boolean
+        noCatch as boolean
+        funcName as string
+        isIgnored as boolean
+        isAsync as boolean
+        asyncTimeout as integer
+        slow as integer
+        isParamTest as boolean
+        name as string
+        lineNumber as integer
+        paramLineNumber as integer
+        assertIndex as integer
+        assertLineNumberMap as roAssociativeArray
+        rawParams as roAssociativeArray
+        paramTestIndex as integer
+        expectedNumberOfParams as integer
+        isParamsValid as boolean
+    end interface
+
+
+    interface RuntimeConfigData
+        reporters as string[]
+        failFast as boolean
+        sendHomeOnFinish as boolean
+        logLevel as integer
+        showOnlyFailures as boolean
+        printTestTimes as boolean
+        lineWidth as integer
+        printLcov as boolean
+        port as dynamic
+        catchCrashes as boolean
+        throwOnFailedAssertion as boolean
+        keepAppOpen as boolean
+        isRecordingCodeCoverage as boolean
+    end interface
+
+end namespace

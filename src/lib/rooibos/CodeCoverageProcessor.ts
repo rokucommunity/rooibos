@@ -1,15 +1,17 @@
 import type { BrsFile, Editor, ExpressionStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
-import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock, isExpressionStatement, isCallExpression, util } from 'brighterscript';
+import { Parser, WalkMode, createVisitor, BinaryExpression, createToken, TokenKind, GroupingExpression, isForStatement, isBlock, isExpressionStatement, isCallExpression, util, InternalWalkMode } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeStatement } from './RawCodeStatement';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
+import { RooibosLogPrefix } from '../utils/Diagnostics';
 
 export enum CodeCoverageLineType {
     noCode = 0,
     code = 1,
     condition = 2,
-    branch = 3
+    branch = 3,
+    conditionalCompile = 4
 }
 
 export class CodeCoverageProcessor {
@@ -40,7 +42,7 @@ export class CodeCoverageProcessor {
         this.fileFactory = fileFactory;
         try {
         } catch (e) {
-            console.log('Error:', (e as Error).stack);
+            builder.logger.error(RooibosLogPrefix, 'Error:', (e as Error).stack);
         }
     }
 
@@ -72,33 +74,40 @@ export class CodeCoverageProcessor {
         this.processedStatements = new Set<Statement>();
         this.addedStatements = new Set<Statement>();
         this.astEditor = astEditor;
+        file.program.logger.info(RooibosLogPrefix, 'Processing file for code coverage:', this.fileId, file.pkgPath);
 
         file.ast.walk(createVisitor({
             ForStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                ds.forToken.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: for`;
+                ds.tokens.for.text = `${this.getFuncCallText(ds.location.range.start.line, CodeCoverageLineType.code)}: for`;
             },
             IfStatement: (ifStatement, parent, owner, key) => {
                 this.addStatement(ifStatement);
-                (ifStatement as any).condition = new BinaryExpression(
-                    new RawCodeExpression(this.getFuncCallText(ifStatement.condition.range.start.line, CodeCoverageLineType.condition)),
-                    createToken(TokenKind.And),
-                    new GroupingExpression({
-                        left: createToken(TokenKind.LeftParen),
-                        right: createToken(TokenKind.RightParen)
-                    }, ifStatement.condition)
-                );
+                (ifStatement as any).condition = new BinaryExpression({
+                    left: new RawCodeExpression(this.getFuncCallText(ifStatement.condition.location.range.start.line, CodeCoverageLineType.condition)),
+                    operator: createToken(TokenKind.And),
+                    right: new GroupingExpression({
+                        leftParen: createToken(TokenKind.LeftParen),
+                        rightParen: createToken(TokenKind.RightParen),
+                        expression: ifStatement.condition
+                    })
+                });
 
                 let blockStatements = ifStatement?.thenBranch?.statements;
                 if (blockStatements) {
-                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(ifStatement.range.start.line, CodeCoverageLineType.branch));
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(ifStatement.location.range.start.line, CodeCoverageLineType.branch));
                     blockStatements.splice(0, 0, coverageStatement);
                 }
 
                 // Handle the else blocks
                 let elseBlock = ifStatement.elseBranch;
                 if (isBlock(elseBlock) && elseBlock.statements) {
-                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(elseBlock.range.start.line - 1, CodeCoverageLineType.branch));
+                    let startRangeLine = elseBlock.location.range.start.line;
+                    if (elseBlock.statements.length > 0) {
+                        // if the else block has statements, then the coverage statement should be inserted before the first statement
+                        startRangeLine -= 1;
+                    }
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(startRangeLine, CodeCoverageLineType.branch));
                     elseBlock.statements.splice(0, 0, coverageStatement);
                 }
 
@@ -109,7 +118,7 @@ export class CodeCoverageProcessor {
 
             },
             WhileStatement: (ds, parent, owner, key) => {
-                ds.tokens.while.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: while`;
+                ds.tokens.while.text = `${this.getFuncCallText(ds.location.range.start.line, CodeCoverageLineType.code)}: while`;
             },
             ReturnStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
@@ -117,10 +126,7 @@ export class CodeCoverageProcessor {
             },
             ForEachStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
-                ds.tokens.forEach.text = `${this.getFuncCallText(ds.range.start.line, CodeCoverageLineType.code)}: for each`;
-            },
-            ExitWhileStatement: (ds, parent, owner, key) => {
-
+                ds.tokens.forEach.text = `${this.getFuncCallText(ds.location.range.start.line, CodeCoverageLineType.code)}: for each`;
             },
             PrintStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
@@ -146,7 +152,10 @@ export class CodeCoverageProcessor {
                     this.addStatement(ds);
                     this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
                 }
-
+            },
+            AugmentedAssignmentStatement: (ds, parent, owner, key) => {
+                this.addStatement(ds);
+                this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key);
             },
             ExpressionStatement: (ds, parent, owner, key) => {
                 this.addStatement(ds);
@@ -155,8 +164,30 @@ export class CodeCoverageProcessor {
                 //`super()` would shift it off index 0, causing field initializers to be emitted before the
                 //`super()` call. So for `super()` we insert coverage *after* the call instead.
                 this.convertStatementToCoverageStatement(ds, CodeCoverageLineType.code, owner, key, this.isSuperCall(ds));
+            },
+            ConditionalCompileStatement: (ccStmt, parent, owner, key) => {
+                this.addStatement(ccStmt);
+
+                let blockStatements = ccStmt.thenBranch?.statements;
+                if (blockStatements) {
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(ccStmt.location.range.start.line, CodeCoverageLineType.conditionalCompile));
+                    blockStatements.splice(0, 0, coverageStatement);
+                }
+
+                // Handle the else blocks
+                let elseBlock = ccStmt.elseBranch;
+                if (isBlock(elseBlock) && elseBlock.statements) {
+                    let startRangeLine = elseBlock.location.range.start.line;
+                    if (elseBlock.statements.length > 0) {
+                        // if the else block has statements, then the coverage statement should be inserted before the first statement
+                        startRangeLine -= 1;
+                    }
+                    let coverageStatement = new RawCodeStatement(this.getFuncCallText(startRangeLine, CodeCoverageLineType.conditionalCompile));
+                    elseBlock.statements.splice(0, 0, coverageStatement);
+                }
             }
-        }), { walkMode: WalkMode.visitAllRecursive });
+            // eslint-disable-next-line no-bitwise
+        }), { walkMode: WalkMode.visitAllRecursive | InternalWalkMode.visitFalseConditionalCompilationBlocks });
 
         const coverageMapObject = {};
         for (let key of this.coverageMap.keys()) {
@@ -173,7 +204,7 @@ export class CodeCoverageProcessor {
     private isSuperCall(statement: Statement) {
         return isExpressionStatement(statement) &&
             isCallExpression(statement.expression) &&
-            util.findBeginningVariableExpression(statement.expression.callee as any)?.name?.text?.toLowerCase() === 'super';
+            util.findBeginningVariableExpression(statement.expression.callee as any)?.tokens?.name?.text?.toLowerCase() === 'super';
     }
 
     /**
@@ -185,11 +216,11 @@ export class CodeCoverageProcessor {
             return;
         }
 
-        const lineNumber = statement.range.start.line;
+        const lineNumber = statement.location.range.start.line;
         this.coverageMap.set(lineNumber, coverageType);
         const parsed = Parser.parse(this.getFuncCallText(lineNumber, coverageType)).ast.statements[0] as ExpressionStatement;
-        this.astEditor.arraySplice(owner, insertAfter ? key + 1 : key, 0, parsed);
         this.addedStatements.add(parsed);
+        this.astEditor.arraySplice(owner, insertAfter ? key + 1 : key, 0, parsed);
         // store the statement in a set to avoid handling again after inserting statement above
         this.processedStatements.add(statement);
     }
