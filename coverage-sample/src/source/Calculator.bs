@@ -1,0 +1,99 @@
+namespace bench
+
+    class Calculator
+        function new()
+            m.history = []
+        end function
+
+        function add(a as integer, b as integer) as integer
+            result = a + b
+            m.history.push(result)
+            return result
+        end function
+
+        function divide(a as integer, b as integer) as integer
+            if b = 0 then
+                return 0
+            else
+                return a / b
+            end if
+        end function
+
+        function classify(value as integer) as string
+            if value > 0 then
+                return "positive"
+            end if
+            if value = 0 then
+                return "zero"
+            end if
+            return "negative"
+        end function
+
+        ' Both arms exercised by the spec: one call divides cleanly, the other passes a divisor
+        ' of zero so the catch arm fires.
+        function safeDivide(a as integer, b as integer) as integer
+            try
+                if b = 0 then
+                    throw "divide by zero"
+                end if
+                return a / b
+            catch e
+                return -1
+            end try
+        end function
+
+        ' Ternary expression - both arms exercised by the spec to confirm the renderer
+        ' shows fully-covered ternary as no badge.
+        function abs(value as integer) as integer
+            return value >= 0 ? value : -value
+        end function
+
+        ' Null-coalescing where both arms are exercised by the spec.
+        function withDefault(value as dynamic) as integer
+            return value ?? 0
+        end function
+
+        ' Logical AND with both short-circuit and full-eval paths exercised.
+        function isInRange(value as integer, low as integer, high as integer) as boolean
+            return value >= low and value <= high
+        end function
+
+        ' Anonymous function expression with an if/else inside - the spec exercises both arms.
+        function classifySign(value as integer) as string
+            classify = function(v as integer) as string
+                if v >= 0 then
+                    return "non-negative"
+                else
+                    return "negative"
+                end if
+            end function
+            return classify(value)
+        end function
+    end class
+
+    function sumRange(low as integer, high as integer) as integer
+        total = 0
+        for i = low to high
+            total = total + i
+        end for
+        return total
+    end function
+
+    function countDown(start as integer) as integer
+        count = 0
+        while start > 0
+            start = start - 1
+            count = count + 1
+        end while
+        return count
+    end function
+
+    function joinKeys(aa as object) as string
+        result = ""
+        for each key in aa
+            result = result + key
+        end for
+        return result
+    end function
+
+end namespace

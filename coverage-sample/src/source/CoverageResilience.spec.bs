@@ -1,0 +1,39 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+namespace bench
+
+    @suite
+    class CoverageResilienceTests extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("mismatched coverage entries - a mixed-build package must not crash the task")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("survives entries referencing blocks, functions and files missing from the model")
+        function _()
+            cc = m.global._rbs_ccn
+            if cc = invalid then
+                ' coverage is off in this run - nothing to exercise
+                m.assertTrue(true)
+            else
+                ' Replicates a reported crash: a package that mixes files from two builds can
+                ' stamp entries whose baked-in ids resolve to a DIFFERENT file's model entry,
+                ' e.g. a branch entry for a file whose model has no blocks. The coverage task
+                ' must skip these, not crash with "'Dot' Operator attempted with invalid...".
+                cc.entry = { "f": 0, "bl": 9999, "br": 0, "r": 3 }
+                ' branch arm index beyond the block's arms
+                cc.entry = { "f": 0, "bl": 0, "br": 9999, "r": 3 }
+                ' function index beyond the model's functions
+                cc.entry = { "f": 0, "fn": 9999, "r": 4 }
+                ' file index beyond the model entirely, once per entry kind
+                cc.entry = { "f": 999999, "fn": 0, "r": 4 }
+                cc.entry = { "f": 999999, "l": 1, "r": 1 }
+                cc.entry = { "f": 999999, "bl": 0, "br": 0, "r": 3 }
+                ' if the task survives processing those, the run completes and coverage saves
+                m.assertTrue(true)
+            end if
+        end function
+
+    end class
+
+end namespace

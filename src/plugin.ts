@@ -68,6 +68,10 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.isRecordingCodeCoverage === undefined) {
             config.isRecordingCodeCoverage = false;
         }
+        if (config.coverageReporter !== undefined && !['lcov', 'nyc'].includes(config.coverageReporter)) {
+            console.warn(`[rooibos] ignoring unknown coverageReporter "${config.coverageReporter}" - expected "lcov" or "nyc"`);
+            delete config.coverageReporter;
+        }
         if (config.isGlobalMethodMockingEnabled === undefined) {
             config.isGlobalMethodMockingEnabled = false;
         }
@@ -92,7 +96,8 @@ export class RooibosPlugin implements CompilerPlugin {
             '**/*.spec.bs',
             '**/roku_modules/**/*',
             '**/source/main.bs',
-            '**/source/rooibos/**/*'
+            '**/source/rooibos/**/*',
+            '**/components/rooibos/**/*'
         ];
 
         // Set default coverage exclusions, or merge with defaults if available.
@@ -155,6 +160,9 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        // coverage ids are transpile-order counters; a program can transpile more than
+        // once, so all cross-file coverage state resets per pass
+        this.codeCoverageProcessor.onBeforeProgramTranspile();
         this.session.prepareForTranspile(editor, program, this.mockUtil);
     }
 
@@ -238,7 +246,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.coverageExcludedFiles) {
-                if (minimatch(file.pkgPath, filter, { dot: true })) {
+                if (minimatch(file.pkgPath, filter, { dot: true, nocase: true })) {
                     return false;
                 }
             }
@@ -253,7 +261,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.globalMethodMockingExcludedFiles) {
-                if (minimatch(file.pkgPath, filter, { dot: true })) {
+                if (minimatch(file.pkgPath, filter, { dot: true, nocase: true })) {
                     // console.log('±±±skipping file', file.pkgPath);
                     return false;
                 }
