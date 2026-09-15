@@ -1,0 +1,151 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+namespace bench
+
+    @suite
+    class CalculatorTests extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("Calculator class")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("add records and returns sum")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.add(2, 3), 5)
+            m.assertEqual(calc.history.count(), 1)
+        end function
+
+        @it("divide returns 0 when divisor is zero")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.divide(10, 0), 0)
+        end function
+
+        @it("divide returns quotient for non-zero divisor")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.divide(10, 2), 5)
+        end function
+
+        @it("classify returns positive for value > 0")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classify(5), "positive")
+        end function
+
+        @it("classify returns zero for value = 0")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classify(0), "zero")
+        end function
+
+        @it("classify returns negative for value < 0")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classify(-3), "negative")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("namespace functions")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("sumRange sums inclusive integer range")
+        function _()
+            m.assertEqual(bench.sumRange(1, 4), 10)
+        end function
+
+        @it("countDown counts iterations to reach zero")
+        function _()
+            m.assertEqual(bench.countDown(3), 3)
+        end function
+
+        @it("joinKeys concatenates aa keys")
+        function _()
+            result = bench.joinKeys({ a: 1, b: 2 })
+            m.assertEqual(result.len(), 2)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("try/catch - both arms exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("safeDivide returns quotient when divisor is non-zero")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.safeDivide(10, 2), 5)
+        end function
+
+        @it("safeDivide returns -1 when the catch arm fires")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.safeDivide(10, 0), -1)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("ternary expression - both arms exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("abs returns positive value unchanged")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.abs(5), 5)
+        end function
+
+        @it("abs negates a negative value")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.abs(-3), 3)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("null-coalescing - both arms exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("withDefault returns the value when non-null")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.withDefault(7), 7)
+        end function
+
+        @it("withDefault falls through to 0 when value is invalid")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.withDefault(invalid), 0)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("logical AND - both short-circuit and full-eval paths exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("isInRange returns true when within range (full eval)")
+        function _()
+            calc = new Calculator()
+            m.assertTrue(calc.isInRange(5, 1, 10))
+        end function
+
+        @it("isInRange returns false when below range (short-circuits AND)")
+        function _()
+            calc = new Calculator()
+            m.assertFalse(calc.isInRange(0, 1, 10))
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("anonymous function expression - both arms exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("classifySign returns non-negative for zero")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classifySign(0), "non-negative")
+        end function
+
+        @it("classifySign returns negative for a negative value")
+        function _()
+            calc = new Calculator()
+            m.assertEqual(calc.classifySign(-2), "negative")
+        end function
+
+    end class
+
+end namespace

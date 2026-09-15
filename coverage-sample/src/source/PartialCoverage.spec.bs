@@ -1,0 +1,180 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+namespace bench
+
+    @suite
+    class PartialCoverageTests extends rooibos.BaseTestSuite
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("isPositive - one-sided branch coverage")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns true for a positive value")
+        function _()
+            ' Intentionally not testing the value <= 0 path - the else branch should show as missed
+            m.assertTrue(bench.isPositive(5))
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("describe - early return leaves tail unhit")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns zero for value = 0")
+        function _()
+            ' Only the if-then path runs; the tail "non-zero" return should show as missed
+            m.assertEqual(bench.describe(0), "zero")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("joinAll - empty input never enters loop body")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns empty string for empty array")
+        function _()
+            ' Body of the for each never runs - those lines should show as missed
+            m.assertEqual(bench.joinAll([]), "")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("parseSafe - try succeeds, catch never fires")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns the parsed integer for a numeric string")
+        function _()
+            ' Only the try arm runs - the catch should show as a missed branch
+            m.assertEqual(bench.parseSafe("42"), 42)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("asLabel - ternary truthy arm only")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns the truthy label for a true value")
+        function _()
+            ' Only the truthy arm runs; the falsy arm of the ternary should show as missed
+            m.assertEqual(bench.asLabel(true), "on")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("nameOrDefault - null-coalescing alternate never fires")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns the value when it's non-null")
+        function _()
+            ' Only the consequent runs; the `?? "anonymous"` alternate should show as missed
+            m.assertEqual(bench.nameOrDefault("alice"), "alice")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("isTrue - logical OR right side never evaluated")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns true when the left flag is already true")
+        function _()
+            ' Only the left side evaluates; OR short-circuits, so `fallback` should render
+            ' as a missed branch.
+            m.assertTrue(bench.isTrue(true, false))
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("anonymous function expression - falsy arm never exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("describeFlag returns 'on' for a truthy flag")
+        function _()
+            ' Only the truthy branch of the inner anon function runs; the else arm should
+            ' show as missed.
+            m.assertEqual(bench.describeFlag(true), "on")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("unusedHandler - anon function returned but never invoked")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns the handler without invoking it")
+        function _()
+            ' The outer function runs and returns the inner anon, but the anon is never
+            ' called - its body lines and FNDA should all be 0.
+            handler = bench.unusedHandler()
+            m.assertNotInvalid(handler)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("gradeOf - only the first else-if arm is exercised")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns A for a top score")
+        function _()
+            ' Only the score >= 90 arm runs; B, C and the else arm should show as missed
+            ' branches and their return lines as missed statements.
+            m.assertEqual(bench.gradeOf(95), "A")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("signLabel - inline if arm never taken")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns non-negative for a positive value")
+        function _()
+            ' The single-line `then return "negative"` clause never runs - the renderer
+            ' should paint just that clause red via its recorded column range.
+            m.assertEqual(bench.signLabel(5), "non-negative")
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("drain - while body never entered")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns 0 when there is nothing to drain")
+        function _()
+            ' The while condition is false on entry - body lines should be unhit.
+            m.assertEqual(bench.drain(0), 0)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("sumTo - for loop never iterates")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns 0 for a limit of 0")
+        function _()
+            ' `for i = 1 to 0` never runs its body - body lines should be unhit.
+            m.assertEqual(bench.sumTo(0), 0)
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("configFor - multi-line AA literal in a never-taken branch")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns invalid for a normal name")
+        function _()
+            ' The "special" branch never runs - the whole multi-line AA return should
+            ' paint as one missed span.
+            m.assertInvalid(bench.configFor("normal"))
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("bothTrue - AND right side never evaluated")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("returns false when the left side is already false")
+        function _()
+            ' AND short-circuits on a false left side - the right operand should render
+            ' as a missed branch.
+            m.assertFalse(bench.bothTrue(false, true))
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("anyMatch - extracted ladder with one hit operand")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("matches the first candidate")
+        function _()
+            ' The condition is extracted into a generated ladder helper. Matching the very
+            ' first operand short-circuits the rest - operands 2-12 should all render as
+            ' missed branches anchored to the source if-line.
+            m.assertTrue(bench.anyMatch(1))
+        end function
+
+    end class
+
+end namespace
