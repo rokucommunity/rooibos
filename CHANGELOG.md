@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.54](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.53...v6.0.0-alpha.54) - 2026-09-11
+### Changed
+ - Merge master into v6, upgrade brighterscript to alpha.54 ([#431](https://github.com/rokucommunity/rooibos/pull/431))
+
+
+
 ## [6.0.0-alpha.53](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.52...v6.0.0-alpha.53) - 2026-09-10
 ### Changed
  - Upgrade/brighterscriptv1.0.0 alpha.53 ([#427](https://github.com/rokucommunity/rooibos/pull/427))
