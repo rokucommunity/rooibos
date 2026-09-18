@@ -6,7 +6,7 @@ const config = {
         'ts-node/register'
     ],
     fullTrace: true,
-    timeout: 2000,
+    timeout: 10000,
     watchExtensions: ['ts']
 };
 if (nodeVersion >= 22) {

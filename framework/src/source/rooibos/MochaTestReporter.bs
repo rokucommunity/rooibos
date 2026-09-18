@@ -244,7 +244,7 @@ namespace rooibos
         '      -0 (Integer)
         '      +true (Boolean)
         function unifiedDiff(actual as string, expected as string) as string
-            cleanUp = function(line as string, m as rooibos.MochaTestReporter) as string or dynamic
+            cleanUp = function(line as string, m as rooibos.MochaTestReporter) as string or dynamic  'bs:disable-line: LINT1006
                 indent = "      "
                 if line.left(1) = "+" then
                     return indent + m.colorLines(rooibos.reporters.mocha.colors.diffAdded, line)
@@ -325,7 +325,7 @@ namespace rooibos
         end function
 
         ' Creates a patch file string based on the the differences of the two supplied strings
-        function createPatch(fileName as string, oldStr as string, newStr as string) as string
+        function createPatch(fileName as string, oldStr as string, newStr as string) as string or dynamic
             result = m.structuredPatch(fileName, fileName, oldStr, newStr, invalid, invalid, {
                 context: 4
                 newlineIsToken: false
@@ -352,7 +352,7 @@ namespace rooibos
         end function
 
         ' Diff two sets of strings, comparing them line by line
-        function diffLines(oldStr as string, newStr as string, callback as dynamic) as roAssociativeArray
+        function diffLines(oldStr as string, newStr as string, callback as dynamic) as roArray  'bs:disable-line: LINT1006
             lineDiff = rooibos.reporters.mocha.new_lineDiff()
 
             return lineDiff.diff(oldStr, newStr, {
@@ -378,7 +378,7 @@ namespace rooibos
             hunks = []
             oldRangeStart = 0
             newRangeStart = 0
-            curRange = []
+            curRange as string[] = []
             oldLine = 1
             newLine = 1
             for i = 0 to diff.count() - 1
@@ -389,20 +389,20 @@ namespace rooibos
                     lines = m.splitLines(current.value)
                 end if
                 current.lines = lines
-
+                print curRange
                 if current.added = true or current.removed = true then
                     ' If we have previous context, start with that
                     if not (oldRangeStart) = true then
                         prev = diff[i - 1]
                         oldRangeStart = oldLine
                         newRangeStart = newLine
-
                         if prev <> invalid then
                             if options.context > 0 then
                                 curRange = m.contextLines(prev.lines.slice(-options.context))
                             else
-                                curRange = []
+                                curRange as string[] = []
                             end if
+                            print curRange
                             oldRangeStart -= curRange.count()
                             newRangeStart -= curRange.count()
                         end if
@@ -411,9 +411,9 @@ namespace rooibos
                     ' Output our changes
                     for each entry in lines
                         if current.added then
-                            curRange.push("+" + entry)
+                            (curRange as string[]).push("+" + entry)
                         else
-                            curRange.push("-" + entry)
+                            (curRange as string[]).push("-" + entry)
                         end if
                     end for
 
@@ -808,7 +808,7 @@ namespace rooibos
                         end if
                     end function
 
-                    removeEmpty: function(array as string[]) as roArray
+                    removeEmpty: function(array as string[]) as string[]
                         ret = []
                         for i = 0 to array.count() - 1
                             if array[i] <> "" then
@@ -818,7 +818,7 @@ namespace rooibos
                         return ret
                     end function
 
-                    tokenize: function(value as string, options as roAssociativeArray) as string[]
+                    tokenize: function(value as string, options as roAssociativeArray) as string[]  'bs:disable-line: LINT1006
                         return value.split("")
                     end function
 
@@ -826,7 +826,7 @@ namespace rooibos
                         return chars.join("")
                     end function
 
-                    postProcess: function(changeObjects as dynamic, options as roAssociativeArray) as dynamic
+                    postProcess: function(changeObjects as dynamic, options as roAssociativeArray) as dynamic  'bs:disable-line: LINT1006
                         return changeObjects
                     end function
 

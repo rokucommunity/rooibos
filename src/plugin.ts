@@ -1,15 +1,22 @@
 import type {
     BscFile,
     CompilerPlugin,
-    Program,
     ProgramBuilder,
-    TranspileObj,
-    AstEditor,
-    BeforeFileTranspileEvent,
-    XmlFile
+    XmlFile,
+    OnPrepareFileEvent,
+    BeforeBuildProgramEvent,
+    AfterProvideFileEvent,
+    BeforeProvideProgramEvent,
+    AfterRemoveFileEvent,
+    AfterProvideProgramEvent,
+    AfterValidateProgramEvent,
+    AfterPrepareProgramEvent
 } from 'brighterscript';
 import {
-    isBrsFile
+    isBrsFile,
+    isXmlFile,
+    util,
+    standardizePath
 } from 'brighterscript';
 import { RooibosSession } from './lib/rooibos/RooibosSession';
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
@@ -19,6 +26,7 @@ import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { MockUtil } from './lib/rooibos/MockUtil';
 import { getScopeForSuite } from './lib/rooibos/Utils';
+import { RooibosLogPrefix } from './lib/utils/Diagnostics';
 
 export class RooibosPlugin implements CompilerPlugin {
 
@@ -30,7 +38,8 @@ export class RooibosPlugin implements CompilerPlugin {
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
 
-    beforeProgramCreate(builder: ProgramBuilder): void {
+    beforeProvideProgram(event: BeforeProvideProgramEvent): void {
+        const builder = event.builder;
         this._builder = builder;
 
         this.config = this.getConfig((builder.options as any).rooibos || {});
@@ -92,7 +101,8 @@ export class RooibosPlugin implements CompilerPlugin {
             '**/*.spec.bs',
             '**/roku_modules/**/*',
             '**/source/main.bs',
-            '**/source/rooibos/**/*'
+            '**/source/rooibos/**/*',
+            '**/components/rooibos/**/*'
         ];
 
         // Set default coverage exclusions, or merge with defaults if available.
@@ -105,7 +115,8 @@ export class RooibosPlugin implements CompilerPlugin {
         const defaultGlobalMethodMockingExcluded = [
             '**/*.spec.bs',
             '**/source/main.bs',
-            '**/source/rooibos/**/*'
+            '**/source/rooibos/**/*',
+            '**/components/rooibos/**/*'
         ];
         if (config.globalMethodMockingExcludedFiles === undefined) {
             config.globalMethodMockingExcludedFiles = defaultGlobalMethodMockingExcluded;
@@ -114,62 +125,88 @@ export class RooibosPlugin implements CompilerPlugin {
         return config;
     }
 
-    afterProgramCreate(program: Program) {
-        this.fileFactory.addFrameworkFiles(program);
+    afterProvideProgram(event: AfterProvideProgramEvent) {
+        this.fileFactory.addFrameworkFiles(event.program);
     }
 
-    afterFileDispose(file: BscFile) {
+    afterRemoveFile(event: AfterRemoveFileEvent) {
         // eslint-disable-next-line @typescript-eslint/dot-notation
-        const xmlFile = file['rooibosXmlFile'] as XmlFile;
+        const xmlFile = event.file['rooibosXmlFile'] as XmlFile;
         if (xmlFile) {
             // Remove the old generated xml files
             this._builder.program.removeFile(xmlFile.srcPath);
         }
     }
 
-    afterFileParse(file: BscFile): void {
-        // console.log('afp', file.pkgPath);
-        if (file.pathAbsolute.includes('/rooibos/bsc-plugin/dist/framework')) {
-            // eslint-disable-next-line @typescript-eslint/dot-notation
-            file['diagnostics'] = [];
-            return;
-        }
-        if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
-            return;
-        }
-        // console.log('processing ', file.pkgPath);
+    afterProvideFile(event: AfterProvideFileEvent): void {
+        for (const file of event.files) {
 
-        if (isBrsFile(file)) {
-            // Add the node test component so brighter script can validate the test files
-            let suites = this.session.processFile(file);
-            let nodeSuites = suites.filter((ts) => ts.isNodeTest);
-            for (const suite of nodeSuites) {
-                const xmlFile = this._builder.program.setFile({
-                    src: path.resolve(suite.xmlPkgPath),
-                    dest: suite.xmlPkgPath
-                }, this.session.getNodeTestXmlText(suite));
+            if (!(isBrsFile(file) || isXmlFile(file)) || this.shouldSkipFile(file)) {
+                continue;
+            }
+            if (util.pathToUri(file.srcPath).includes('/rooibos/bsc-plugin/dist/framework')) {
                 // eslint-disable-next-line @typescript-eslint/dot-notation
-                file['rooibosXmlFile'] = xmlFile;
+                return;
+            }
+            if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
+                return;
+            }
+            event.program.logger.log(RooibosLogPrefix, 'Processing test file', file.pkgPath);
+
+            if (isBrsFile(file)) {
+                // Add the node test component so brighter script can validate the test files
+                let suites = this.session.processFile(file);
+                let nodeSuites = suites.filter((ts) => ts.isNodeTest);
+                for (const suite of nodeSuites) {
+                    const xmlFile = this._builder.program.setFile({
+                        src: path.resolve(suite.xmlPkgPath),
+                        dest: suite.xmlPkgPath
+                    }, this.session.getNodeTestXmlText(suite));
+                    // eslint-disable-next-line @typescript-eslint/dot-notation
+                    file['rooibosXmlFile'] = xmlFile;
+                    event.files.push(xmlFile);
+                }
             }
         }
     }
 
-    beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.prepareForTranspile(editor, program, this.mockUtil);
+    beforeBuildProgram(event: BeforeBuildProgramEvent) {
+        const createdFiles = this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
+        this.addFilesToBuild(event.files, createdFiles);
+
+        //generate the entry point here (rather than after the build) so it flows through prepare/serialize/write
+        const launchHookFile = this.session.addLaunchHookFileIfNotPresent(event.program);
+        if (launchHookFile) {
+            this.addFilesToBuild(event.files, [launchHookFile]);
+        }
     }
 
-    afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
-        this.session.addLaunchHookFileIfNotPresent();
-        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
+    /**
+     * Add the given files to a build's file list. If the build already includes a (now stale) file instance
+     * for a path, replace it rather than adding a duplicate. Two instances for the same path would both be
+     * serialized, racing to write the same output file (which intermittently produces corrupt output).
+     */
+    private addFilesToBuild(buildFiles: BscFile[], filesToAdd: BscFile[]) {
+        for (const file of filesToAdd) {
+            const existingIndex = buildFiles.findIndex(x => x.destPath === file.destPath);
+            if (existingIndex >= 0) {
+                buildFiles[existingIndex] = file;
+            } else {
+                buildFiles.push(file);
+            }
+        }
     }
 
-    beforeFileTranspile(event: BeforeFileTranspileEvent) {
+    prepareFile(event: OnPrepareFileEvent) {
+        if (this.shouldSkipFile(event.file)) {
+            return;
+        }
         let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
         if (testSuite) {
             const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
-                console.warn(`WARNING: testSuite "${testSuite.name}" is marked as noEarlyExit`);
+                event.program.logger.warn(RooibosLogPrefix, `TestSuite "${testSuite.name}" is marked as noEarlyExit`);
             }
 
             const modifiedTestCases = new Set();
@@ -206,15 +243,21 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    afterProgramValidate(program: Program) {
-        // console.log('bpv');
+    afterPrepareProgram(event: AfterPrepareProgramEvent) {
+        //coverage metadata is gathered during `prepareFile`, so it isn't complete until every file is prepared
+        const coverageFiles = this.codeCoverageProcessor.generateMetadata(event.program);
+        this.addFilesToBuild(event.files, coverageFiles);
+    }
+
+    afterValidateProgram(event: AfterValidateProgramEvent) {
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
             testSuite.validate();
         }
         for (let file of this.fileFactory.addedFrameworkFiles) {
             // eslint-disable-next-line @typescript-eslint/dot-notation
-            file['diagnostics'] = [];
+            // file['diagnostics'] = [];
+            event.program.diagnostics.clearForFile(file.srcPath);
         }
     }
 
@@ -223,22 +266,24 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.includeFilters) {
-                if (!minimatch(file.pathAbsolute, filter, { dot: true })) {
+                if (!minimatch(file.srcPath, filter, { dot: true })) {
                     return false;
                 }
             }
         }
-        // console.log('including ', file.pkgPath);
         return true;
     }
     shouldAddCodeCoverageToFile(file: BscFile) {
         if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
             return false;
+            //rooibos' own generated files (the framework, and the generated entry point) are never instrumented
+        } else if (this.fileFactory.isIgnoredFile(file)) {
+            return false;
         } else if (!this.config.coverageExcludedFiles) {
             return true;
         } else {
             for (let filter of this.config.coverageExcludedFiles) {
-                if (minimatch(file.pkgPath, filter, { dot: true })) {
+                if (minimatch(file.destPath, filter, { dot: true })) {
                     return false;
                 }
             }
@@ -253,7 +298,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.globalMethodMockingExcludedFiles) {
-                if (minimatch(file.pkgPath, filter, { dot: true })) {
+                if (minimatch(file.destPath, filter, { dot: true })) {
                     // console.log('±±±skipping file', file.pkgPath);
                     return false;
                 }
@@ -262,6 +307,9 @@ export class RooibosPlugin implements CompilerPlugin {
         return true;
     }
 
+    private shouldSkipFile(file: BscFile) {
+        return file.pkgPath.toLowerCase().includes(standardizePath('source/bslib.brs'));
+    }
 }
 
 export default () => {

@@ -51,7 +51,7 @@
             ],
             "args": [
                 "src/cli.ts",
-                "--project=../tests/bsconfig.json",
+                "--project=./test-project/bsconfig.json",
                 "--host=${input:roku_host}",
                 "--password=${input:roku_password}"
             ],

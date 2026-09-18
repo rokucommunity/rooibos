@@ -2,7 +2,7 @@ import * as chai from 'chai';
 const expect = chai.expect;
 import type { TestCase } from './lib/rooibos/TestCase';
 import { FunctionStatement, Parser, standardizePath as s } from 'brighterscript';
-import type { BscFile, BsDiagnostic, CodeDescription, DiagnosticRelatedInformation, DiagnosticSeverity, DiagnosticTag, ParseOptions } from 'brighterscript';
+import type { BsDiagnostic, CodeDescription, DiagnosticRelatedInformation, DiagnosticSeverity, DiagnosticTag, ParseOptions } from 'brighterscript';
 import type { Range } from 'vscode-languageserver';
 import * as fsExtra from 'fs-extra';
 import undent from 'undent';
@@ -30,7 +30,7 @@ export interface PartialDiagnostic {
     tags?: Partial<DiagnosticTag>[];
     relatedInformation?: Partial<DiagnosticRelatedInformation>[];
     data?: unknown;
-    file?: Partial<BscFile>;
+    uri?: string;
 }
 
 export function expectDiagnostics(diagnostics: DiagnosticCollection, expected: Array<PartialDiagnostic>) {
@@ -39,19 +39,19 @@ export function expectDiagnostics(diagnostics: DiagnosticCollection, expected: A
     expect(actualDiagnostics).to.have.length(expected.length);
     expected.forEach((expectedDiagnostic, index) => {
         const actualDiagnostic = actualDiagnostics[index];
-        if (expectedDiagnostic.file) {
-            expect(actualDiagnostic.file).to.exist;
-            expect(actualDiagnostic.file.pkgPath).to.equal(expectedDiagnostic.file.pkgPath);
+        if (expectedDiagnostic.uri) {
+            expect(actualDiagnostic.location?.uri).to.equal(expectedDiagnostic.uri);
         }
         if (expectedDiagnostic.code) {
             expect(actualDiagnostic.code).to.equal(expectedDiagnostic.code);
         }
         if (expectedDiagnostic.range) {
-            expect(actualDiagnostic.range).to.exist;
-            expect(actualDiagnostic.range.start.line).to.equal(expectedDiagnostic.range.start.line);
-            expect(actualDiagnostic.range.start.character).to.equal(expectedDiagnostic.range.start.character);
-            expect(actualDiagnostic.range.end.line).to.equal(expectedDiagnostic.range.end.line);
-            expect(actualDiagnostic.range.end.character).to.equal(expectedDiagnostic.range.end.character);
+            const actualRange = actualDiagnostic.location?.range;
+            expect(actualRange).to.exist;
+            expect(actualRange.start.line).to.equal(expectedDiagnostic.range.start.line);
+            expect(actualRange.start.character).to.equal(expectedDiagnostic.range.start.character);
+            expect(actualRange.end.line).to.equal(expectedDiagnostic.range.end.line);
+            expect(actualRange.end.character).to.equal(expectedDiagnostic.range.end.character);
         }
         if (expectedDiagnostic.message) {
             expect(actualDiagnostic.message).to.equal(expectedDiagnostic.message);
@@ -74,8 +74,8 @@ function getSortedActualDiagnostics(diagnostics: DiagnosticCollection): Array<Bs
     return diags.sort((a, b) => {
         return a.code.toString().localeCompare(b.code.toString()) ||
             a.message.localeCompare(b.message) ||
-            a.range.start.line - b.range.start.line ||
-            a.range.start.character - b.range.start.character;
+            a.location.range.start.line - b.location.range.start.line ||
+            a.location.range.start.character - b.location.range.start.character;
     });
 }
 
@@ -154,10 +154,10 @@ export function expectTestFunctionContents(expectedContents: string, options?: T
 export function getFunctionContents(rawCode: string, functionName: RegExp | string) {
     const ast = getAstFromFileContents(rawCode);
     const funcStmt = ast.statements.find((stmt) => {
-        return stmt instanceof FunctionStatement && (typeof functionName === 'string' ? stmt.name.text === functionName : functionName.test(stmt.name.text));
+        return stmt instanceof FunctionStatement && (typeof functionName === 'string' ? stmt.tokens.name.text === functionName : functionName.test(stmt.tokens.name.text));
     }) as FunctionStatement | undefined;
 
-    const bodyRange = funcStmt?.func.body.range;
+    const bodyRange = funcStmt?.func.body.location?.range;
     if (bodyRange) {
         const lines = rawCode.split(/\r?\n/);
         const extractedLines = lines.slice(bodyRange.start.line, bodyRange.end.line + 1);
@@ -175,6 +175,6 @@ export function normalizeGeneratedMockFunctionNames(text: string) {
 export function getFunctionAstNode(rawCode: string, functionName: RegExp | string) {
     const ast = getAstFromFileContents(rawCode);
     return ast.statements.find((stmt) => {
-        return stmt instanceof FunctionStatement && (typeof functionName === 'string' ? stmt.name.text === functionName : functionName.test(stmt.name.text));
+        return stmt instanceof FunctionStatement && (typeof functionName === 'string' ? stmt.tokens.name.text === functionName : functionName.test(stmt.tokens.name.text));
     }) as FunctionStatement | undefined;
 }

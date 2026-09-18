@@ -9,7 +9,7 @@ namespace rooibos
         public expected = invalid
         public message = ""
         public lineNumber = -1
-        public test = invalid
+        public test as rooibos.Test = invalid
         public time = -1
         public error = invalid
         public throwOnFailedAssertion = false
@@ -18,7 +18,7 @@ namespace rooibos
             m.test = test
         end function
 
-        function merge(other as rooibos.Test)
+        function merge(other as rooibos.TestResult)
             m.isFail = other.isFail
             m.isCrash = other.isCrash
             m.actual = other.actual
