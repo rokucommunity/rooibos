@@ -266,14 +266,6 @@ export function diagnosticCorruptTestProduced(file: BrsFile, annotation: Annotat
     );
 }
 
-export function diagnosticNoOutDir(file: BrsFile) {
-    addDiagnostic(
-        file,
-        2221,
-        `The bsconfig must define the outDir option`, 1, 1, 1, 1, DiagnosticSeverity.Error
-    );
-}
-
 export function diagnosticSlowAnnotationRequiresNumber(file: BrsFile, annotation: AnnotationExpression) {
     addDiagnosticForAnnotation(
         file,

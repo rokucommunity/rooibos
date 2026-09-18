@@ -9,7 +9,8 @@ import type {
     BeforeProvideProgramEvent,
     AfterRemoveFileEvent,
     AfterProvideProgramEvent,
-    AfterValidateProgramEvent
+    AfterValidateProgramEvent,
+    AfterPrepareProgramEvent
 } from 'brighterscript';
 import {
     isBrsFile,
@@ -171,15 +172,27 @@ export class RooibosPlugin implements CompilerPlugin {
 
     beforeBuildProgram(event: BeforeBuildProgramEvent) {
         const createdFiles = this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
-        for (const file of createdFiles) {
-            //if the build already includes a (now stale) file instance for this path, replace it rather than
-            //adding a duplicate. Two instances for the same path would both be serialized, racing to write the
-            //same output file (which intermittently produces corrupt output)
-            const existingIndex = event.files.findIndex(x => x.destPath === file.destPath);
+        this.addFilesToBuild(event.files, createdFiles);
+
+        //generate the entry point here (rather than after the build) so it flows through prepare/serialize/write
+        const launchHookFile = this.session.addLaunchHookFileIfNotPresent(event.program);
+        if (launchHookFile) {
+            this.addFilesToBuild(event.files, [launchHookFile]);
+        }
+    }
+
+    /**
+     * Add the given files to a build's file list. If the build already includes a (now stale) file instance
+     * for a path, replace it rather than adding a duplicate. Two instances for the same path would both be
+     * serialized, racing to write the same output file (which intermittently produces corrupt output).
+     */
+    private addFilesToBuild(buildFiles: BscFile[], filesToAdd: BscFile[]) {
+        for (const file of filesToAdd) {
+            const existingIndex = buildFiles.findIndex(x => x.destPath === file.destPath);
             if (existingIndex >= 0) {
-                event.files[existingIndex] = file;
+                buildFiles[existingIndex] = file;
             } else {
-                event.files.push(file);
+                buildFiles.push(file);
             }
         }
     }
@@ -230,9 +243,10 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
-    afterBuildProgram(event: BeforeBuildProgramEvent) {
-        this.session.addLaunchHookFileIfNotPresent();
-        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, event.program);
+    afterPrepareProgram(event: AfterPrepareProgramEvent) {
+        //coverage metadata is gathered during `prepareFile`, so it isn't complete until every file is prepared
+        const coverageFiles = this.codeCoverageProcessor.generateMetadata(event.program);
+        this.addFilesToBuild(event.files, coverageFiles);
     }
 
     afterValidateProgram(event: AfterValidateProgramEvent) {
@@ -261,6 +275,9 @@ export class RooibosPlugin implements CompilerPlugin {
     }
     shouldAddCodeCoverageToFile(file: BscFile) {
         if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
+            return false;
+            //rooibos' own generated files (the framework, and the generated entry point) are never instrumented
+        } else if (this.fileFactory.isIgnoredFile(file)) {
             return false;
         } else if (!this.config.coverageExcludedFiles) {
             return true;
