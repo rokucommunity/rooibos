@@ -20,7 +20,7 @@
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "^1.0.0-alpha.54",
+        "brighterscript": "^1.0.0-alpha.55",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
         "minimatch": "^3.0.4",
@@ -34,7 +34,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^1.0.0-alpha.54",
+        "@rokucommunity/bslint": "^1.0.0-alpha.55",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
