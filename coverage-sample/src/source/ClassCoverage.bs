@@ -1,0 +1,60 @@
+namespace bench
+
+    class Animal
+        legs = 4
+        status = "wild"
+        sound = "..."
+
+        function new(sound as string)
+            m.sound = sound
+            m.status = "parent"
+        end function
+
+        function speak() as string
+            return m.sound
+        end function
+
+        ' Never called on any instance - the method should show FNDA 0 and unhit body lines.
+        function sleep() as string
+            return "zzz"
+        end function
+    end class
+
+    ' Child class with field initializers AND an explicit super() call. The instrumented
+    ' constructor must keep super() as its first statement (bsc splices the field
+    ' initializers at index 1) - the spec asserts status = "tame", which only holds when the
+    ' child's initializers run AFTER the parent constructor. Regression demo for the
+    ' super-ordering fix.
+    class Dog extends Animal
+        breed = "unknown"
+        status = "tame"
+
+        function new(breed as string)
+            super("woof")
+            m.breed = breed
+        end function
+
+        ' Only the non-husky path is exercised; the husky arm should show as a missed branch.
+        override function speak() as string
+            if m.breed = "husky" then
+                return "awoo"
+            end if
+            return m.sound
+        end function
+    end class
+
+    ' Never instantiated - the constructor and both methods should all be unhit, and the
+    ' class should drag the file's function coverage down. (Field initializer lines are not
+    ' line-tracked in any class: bsc generates those assignments inside the constructor at
+    ' transpile time, so their execution shows only through the constructor's function hit.)
+    class Cat extends Animal
+        function new()
+            super("meow")
+        end function
+
+        override function speak() as string
+            return "meow meow"
+        end function
+    end class
+
+end namespace

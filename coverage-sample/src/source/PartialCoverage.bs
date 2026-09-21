@@ -1,0 +1,165 @@
+namespace bench
+
+    ' Both branches reachable; the spec only exercises the `then` branch so the `else` should show
+    ' as a missed branch and `return false` as a missed line.
+    function isPositive(value as integer) as boolean
+        if value > 0 then
+            return true
+        else
+            return false
+        end if
+    end function
+
+    ' Tail return is reachable but the spec returns from the if before getting there. Tail line
+    ' should appear unhit; the if-then branch should appear fully hit.
+    function describe(value as integer) as string
+        if value = 0 then
+            return "zero"
+        end if
+        return "non-zero"
+    end function
+
+    ' Spec only passes an empty array, so the for-each body never executes. Loop entry line is
+    ' hit (the for-each token itself); body lines should be unhit.
+    function joinAll(items as object) as string
+        result = ""
+        for each item in items
+            result = result + item
+        end for
+        return result
+    end function
+
+    ' Never called by the spec at all. The function declaration line is found via FN: but should
+    ' have zero function hits, and every body line should be unhit.
+    function neverCalled() as integer
+        x = 1
+        return x + 41
+    end function
+
+    ' Try/catch where the spec only exercises the happy path. The catch arm should show as a
+    ' missed branch (E badge on the `try` line) and its body should appear unhit.
+    function parseSafe(input as string) as integer
+        try
+            return input.toInt()
+        catch e
+            return -1
+        end try
+    end function
+
+    ' Ternary where the spec only passes truthy values. The falsy arm (after `:`) should show
+    ' as a missed branch.
+    function asLabel(active as boolean) as string
+        return active ? "on" : "off"
+    end function
+
+    ' Null-coalescing where the spec only passes non-null values. The alternate (after `??`)
+    ' should show as a missed branch.
+    function nameOrDefault(name as dynamic) as string
+        return name ?? "anonymous"
+    end function
+
+    ' Logical OR where the spec only passes truthy left values. The right side never evaluates
+    ' (short-circuit), so it should render as a missed branch.
+    function isTrue(flag as boolean, fallback as boolean) as boolean
+        return flag or fallback
+    end function
+
+    ' Anonymous function expression where the spec only triggers the truthy branch. The else
+    ' arm of the inner anon function should render as a missed branch (E badge), and the
+    ' falsy `return "off"` line as a missed statement.
+    function describeFlag(flag as boolean) as string
+        labelOf = function(f as boolean) as string
+            if f then
+                return "on"
+            else
+                return "off"
+            end if
+        end function
+        return labelOf(flag)
+    end function
+
+    ' Anonymous function stored in a local but never invoked. The anon function declaration
+    ' line is found via FN: but every body line should be unhit and FNDA should be 0.
+    function unusedHandler() as object
+        handler = function(value as dynamic) as dynamic
+            adjusted = value + 1
+            return adjusted
+        end function
+        return handler
+    end function
+
+    ' Else-if ladder where the spec only ever hits the first arm. Every later arm's branch
+    ' and body should show as missed, and the badges should anchor to each `if` keyword.
+    function gradeOf(score as integer) as string
+        if score >= 90 then
+            return "A"
+        else if score >= 80 then
+            return "B"
+        else if score >= 70 then
+            return "C"
+        else
+            return "F"
+        end if
+    end function
+
+    ' Inline (single-line) if arm the spec never takes. The clause's column range is recorded
+    ' so the renderer can paint just `return "negative"` red while the if-line itself is hit.
+    function signLabel(value as integer) as string
+        if value < 0 then return "negative"
+        return "non-negative"
+    end function
+
+    ' While loop whose condition is false on entry - the body should be fully unhit while the
+    ' while-line itself is hit.
+    function drain(count as integer) as integer
+        drained = 0
+        while count > 0
+            count = count - 1
+            drained = drained + 1
+        end while
+        return drained
+    end function
+
+    ' Plain for loop that never iterates (1 to 0) - body unhit, for-line hit.
+    function sumTo(limit as integer) as integer
+        total = 0
+        for i = 1 to limit
+            total = total + i
+        end for
+        return total
+    end function
+
+    ' Never-taken branch containing a multi-line AA literal - the whole span should paint as
+    ' one missed statement (the `el` end-line in the coverage model).
+    function configFor(name as string) as object
+        if name = "special" then
+            return {
+                name: name
+                enabled: true
+                retries: 3
+            }
+        end if
+        return invalid
+    end function
+
+    ' Logical AND where the spec always passes a false left side, so the right operand
+    ' short-circuits away and should render as a missed branch.
+    function bothTrue(left as boolean, right as boolean) as boolean
+        return left and right
+    end function
+
+    ' Condition too complex to instrument in place - the plugin extracts it into a generated
+    ' short-circuit ladder helper. The spec passes 1, so only the first operand is ever
+    ' evaluated; every later operand should render as a missed branch on this line.
+    function anyMatch(v as integer) as boolean
+        if matches(v, 1) or matches(v, 2) or matches(v, 3) or matches(v, 4) or matches(v, 5) or matches(v, 6) or matches(v, 7) or matches(v, 8) or matches(v, 9) or matches(v, 10) or matches(v, 11) or matches(v, 12) then
+            return true
+        end if
+        return false
+    end function
+
+    function matches(v as integer, target as integer) as boolean
+        return v = target
+    end function
+
+end namespace
