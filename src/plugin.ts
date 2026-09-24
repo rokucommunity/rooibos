@@ -161,6 +161,7 @@ export class RooibosPlugin implements CompilerPlugin {
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addLaunchHookFileIfNotPresent();
         this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
+        this.fileFactory.copyImageAssets(program);
     }
 
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
