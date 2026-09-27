@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.55](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.54...v6.0.0-alpha.55) - 2026-09-18
+### Changed
+ - Upgrade brighterscript and bslint to alpha.55 ([#433](https://github.com/rokucommunity/rooibos/pull/433))
+ - Use brighterscript lifecycle hooks for generated files ([#425](https://github.com/rokucommunity/rooibos/pull/425))
+ - upgrade to [roku-debug@0.24.4](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0244---2026-09-18). Notable changes since 0.24.3:
+     - Route perfetto tracing through roku-deploy's ECP websocket ([#423](https://github.com/rokucommunity/roku-debug/pull/423))
+     - chore: Fix mocha ts-node shim on Node 22+ ([#420](https://github.com/rokucommunity/roku-debug/pull/420))
+     - chore: Replace three single-use deps with internal helpers ([#422](https://github.com/rokucommunity/roku-debug/pull/422))
+     - chore: Remove unused eol dependency ([#421](https://github.com/rokucommunity/roku-debug/pull/421))
+     - Security enhancements ([#419](https://github.com/rokucommunity/roku-debug/pull/419))
+ - upgrade to [roku-deploy@4.0.0-alpha.8](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#400-alpha8---2026-09-18). Notable changes since 4.0.0-alpha.6:
+     - Restore public API exports needed by downstream consumers ([#424](https://github.com/rokucommunity/roku-deploy/pull/424))
+     - Security enhancements ([#422](https://github.com/rokucommunity/roku-deploy/pull/422))
+     - Add ECP websocket support and perfetto tracing wrappers ([#419](https://github.com/rokucommunity/roku-deploy/pull/419))
+     - Add sectioned rokudeploy.json config support ([#392](https://github.com/rokucommunity/roku-deploy/pull/392))
+     - Reduce Public Api Surface ([#360](https://github.com/rokucommunity/roku-deploy/pull/360))
+     - Remove dead RokuDeployOptions fields stagingDir and autoLaunch ([#412](https://github.com/rokucommunity/roku-deploy/pull/412))
+     - sendEcpRequest: take a single options object ([#413](https://github.com/rokucommunity/roku-deploy/pull/413))
+     - Delete dead v3 type GetInstalledPackagesOptions ([#411](https://github.com/rokucommunity/roku-deploy/pull/411))
+     - chore: Fix device tests by increasing timeouts and detecting device reboots ([#400](https://github.com/rokucommunity/roku-deploy/pull/400))
+
+
+
 ## [6.0.0-alpha.54](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.53...v6.0.0-alpha.54) - 2026-09-11
 ### Changed
  - Merge master into v6, upgrade brighterscript to alpha.54 ([#431](https://github.com/rokucommunity/rooibos/pull/431))
