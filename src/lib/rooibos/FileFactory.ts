@@ -1,14 +1,14 @@
 import type { BrsFile, BscFile, Program, XmlFile } from 'brighterscript';
-import { standardizePath as s } from 'brighterscript';
+import { Editor, standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as fse from 'fs-extra';
 import * as fastGlob from 'fast-glob';
 import type { TestSuite } from './TestSuite';
+import { RooibosLogPrefix } from '../utils/Diagnostics';
 
 export class FileFactory {
-    private coverageComponentXmlTemplate;
-    private coverageComponentBrsTemplate;
+    private coverageComponentXmlTemplate: string;
+    private coverageComponentBrsTemplate: string;
     private frameworkSourcePath: string;
 
     constructor() {
@@ -34,7 +34,7 @@ export class FileFactory {
             '!**/bslib.brs',
             '!**/manifest',
             '**/CodeCoverage.{brs,xml}',
-            '!**/RooibosScene.xml'
+            '**/RooibosScene.xml'
         ], {
             cwd: this.frameworkSourcePath,
             absolute: false,
@@ -56,13 +56,7 @@ export class FileFactory {
             );
         }
 
-        let entry = {
-            src: s`${this.frameworkSourcePath}/components/RooibosScene.xml`,
-            dest: s`components/rooibos/RooibosScene.xml`
-        };
-        this.addedFrameworkFiles.push(
-            program.setFile(entry, this.createTestXML('RooibosScene', 'Scene'))
-        );
+        return this.addedFrameworkFiles;
     }
 
     public createTestXML(name: string, baseName: string, suite?: TestSuite): string {
@@ -73,7 +67,7 @@ export class FileFactory {
 
         // Add the test spec file rather then relying on auto imports
         if (suite) {
-            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.pkgPath.replace(/\\/g, '/')}" />`);
+            scriptImports.push(`<script type="text/brighterscript" uri="pkg:/${suite.file.destPath.replace(/\\/g, '/')}" />`);
         }
 
         let contents = `<?xml version="1.0" encoding="UTF-8" ?>
@@ -104,8 +98,10 @@ export class FileFactory {
         template = template.replace(/\"\#EXPECTED_MAP\#\"/g, JSON.stringify(coverageMap ?? {}));
         template = template.replace(/\"\#FILE_PATH_MAP\#\"/g, JSON.stringify(filepathMap ?? {}));
 
-        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.brs'), template);
-        this.addFileToRootDir(program, path.join('components/rooibos', 'CodeCoverage.xml'), this.coverageComponentXmlTemplate);
+        return [
+            this.addGeneratedFile(program, 'components/rooibos/CodeCoverage.brs', template),
+            this.addGeneratedFile(program, 'components/rooibos/CodeCoverage.xml', this.coverageComponentXmlTemplate)
+        ].filter((f) => f !== undefined);
     }
 
     public isIgnoredFile(file: BrsFile | XmlFile): boolean {
@@ -127,27 +123,44 @@ export class FileFactory {
         return false;
     }
 
-    public addFile(program, projectPath: string, contents: string) {
+    public addFile(program: Program, projectPathOrEntry: string | { src: string; dest: string }, contents: string) {
+        let entry: { src: string; dest: string };
+        if (typeof projectPathOrEntry === 'string') {
+            entry = {
+                src: path.resolve(projectPathOrEntry),
+                dest: projectPathOrEntry
+            };
+        } else {
+            entry = projectPathOrEntry;
+        }
         try {
-            const file = program.setFile({
-                src: path.resolve(projectPath),
-                dest: projectPath
-            }, contents);
-            this.addedFrameworkFiles.push(file);
+            //a rebuild re-registers the same path; reuse the existing srcPath so `setFile` replaces that
+            //file instance instead of leaving two instances racing to write the same output file
+            entry.src = program.getFile(entry.dest)?.srcPath ?? entry.src;
+
+            const file = program.setFile(entry, contents);
+            //files registered after the prepare phase never got an editor assigned, but the build's cleanup
+            //calls `file.editor.undoAll()` on everything it built
+            file.editor ??= new Editor();
+
+            //replace any previous instance for this path so the list doesn't grow on every rebuild
+            const existingIndex = this.addedFrameworkFiles.findIndex((f) => f.pkgPath === file.pkgPath);
+            if (existingIndex >= 0) {
+                this.addedFrameworkFiles[existingIndex] = file;
+            } else {
+                this.addedFrameworkFiles.push(file);
+            }
             return file;
         } catch (error) {
-            console.error(`Error adding framework file: ${projectPath} : ${error.message}`);
+            program.logger.error(RooibosLogPrefix, `Error adding framework file: ${entry.dest} : ${error.message}`);
         }
     }
 
-    public addFileToRootDir(program: Program, filePath: string, contents: string) {
-        try {
-            fse.outputFileSync(
-                path.join(program.options.stagingFolderPath ?? program.options.stagingDir ?? program.options.sourceRoot, filePath),
-                contents
-            );
-        } catch (error) {
-            console.error(`Error adding framework file: ${path} : ${error.message}`);
-        }
+    /**
+     * Register a rooibos-generated file with the program, so brighterscript serializes and writes it as part
+     * of the normal build lifecycle rather than rooibos writing it to disk itself.
+     */
+    public addGeneratedFile(program: Program, destPath: string, contents: string) {
+        return this.addFile(program, { src: s`${program.options.rootDir}/${destPath}`, dest: destPath }, contents);
     }
 }

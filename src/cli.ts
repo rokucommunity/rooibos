@@ -6,7 +6,6 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
-import * as path from 'path';
 
 /**
  * Load simple `KEY=value` pairs from a .env file into process.env, without
@@ -69,9 +68,10 @@ async function main() {
 
     const rawConfig: BsConfig = util.loadConfigFile(bsconfigPath);
     const bsConfig = util.normalizeConfig(rawConfig);
+    bsConfig.outDir ??= (bsConfig as any).stagingDir ?? (bsConfig as any).stagingFolderPath;
 
-    const host = options.host ?? bsConfig.host ?? process.env.ROKU_HOST;
-    const password = options.password ?? bsConfig.password ?? process.env.ROKU_PASSWORD;
+    const host = options.host ?? (bsConfig as any).host ?? process.env.ROKU_HOST;
+    const password = options.password ?? (bsConfig as any).password ?? process.env.ROKU_PASSWORD;
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
     const builder = new ProgramBuilder();
@@ -79,7 +79,7 @@ async function main() {
     builder.logger.logLevel = logLevel;
 
 
-    await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
+    await builder.run(<any>{ ...options, retainStagingDir: true });
 
     const device = { host: host };
 
@@ -143,12 +143,13 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        const outFile = bsConfig.outFile;
-        console.log(`Deploying ${outFile} to ${host}`);
+        const stagingDir = bsConfig.outDir;
+
+        console.log(`Deploying ${stagingDir} to ${host}`);
         await rokuDeploy.sideload({
             password: password,
             device: device,
-            zip: path.resolve(process.cwd(), outFile)
+            dir: stagingDir
         });
     }
 

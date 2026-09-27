@@ -164,7 +164,7 @@ export class SessionInfo {
 
         for (let testSuite of [...this.testSuites.values()]) {
             if (testSuite.isValid && !this.isExcludedByTag(testSuite, false)) {
-                this.shouldRunSolo = this.shouldRunSolo || testSuite.isSolo || testSuite.hasSoloGroups || testSuite.hasSoloTests;
+                this.shouldRunSolo ||= testSuite.isSolo || testSuite.hasSoloGroups || testSuite.hasSoloTests;
             }
         }
         this.suitesCount = this.testSuites.size;

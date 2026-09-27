@@ -30,15 +30,29 @@ Rooibos is an independent open-source project maintained exclusively by voluntee
 
 You might want to help! Get in touch via the [slack group](https://join.slack.com/t/rokudevelopers/shared_invite/zt-4vw7rg6v-NH46oY7hTktpRIBM_zGvwA) or [raise issues](https://github.com/rokucommunity/rooibos/issues/new).
 
-To work on Rooibos locally:
+### Project Setup
 
-```bash
-npm install
-npx ropm copy   # copies the framework's ropm dependencies into framework/src
-npm test
-```
+1. Clone the project
+2. Run `npm install`
+3. Run `npx ropm copy` to copy the framework's ropm dependencies into `framework/src`
+4. Open the workspace file in VSCode: `roobois.code-workspace`
 
 `npx ropm copy` is required because `npm install` alone doesn't copy the ropm modules the framework depends on. `npm run build` also runs it for you, and the test/device scripts will tell you if you've forgotten it.
+
+### Running Tests
+
+Rooibos Brighterscript plugin tests can be run either through VSCode's debug configuration `Run Tests (bsc-plugin)` or by running `npm run test`.
+
+Example Rooibos framework tests will run on a Roku device.
+
+Create a `.env` in `rooibos/tests` with the following details:
+
+```
+ROKU_HOST=<ip of Roku device>
+ROKU_PASSWORD=<development password of Roku device>
+```
+
+Run tests either from a VSCode debugger, or through `npm run test`.
 
 ## Sample project
 
