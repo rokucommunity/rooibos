@@ -174,7 +174,7 @@ export class RooibosPlugin implements CompilerPlugin {
 
             const modifiedTestCases = new Set();
             const modifiedHookFunctions = new Set();
-            testSuite.addDataFunctions(event.editor as any);
+            testSuite.addDataFunctions(event.editor as any, scope);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (const hookName of [group.setupFunctionName, group.tearDownFunctionName, group.beforeEachFunctionName, group.afterEachFunctionName]) {
                     if (hookName) {

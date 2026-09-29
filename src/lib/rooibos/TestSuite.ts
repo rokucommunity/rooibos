@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { AstEditor, BrsFile, ClassStatement } from 'brighterscript';
+import type { AstEditor, BrsFile, ClassStatement, Scope } from 'brighterscript';
 import { nodes } from 'brighterscript/dist/roku-types';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
@@ -105,8 +105,13 @@ export class TestSuite extends TestBlock {
         this.isValid = true;
     }
 
-    public addDataFunctions(editor: AstEditor) {
+    public addDataFunctions(editor: AstEditor, scope?: Scope) {
         if (this.isIncluded) {
+            for (const testGroup of this.testGroups.values()) {
+                for (const testCase of testGroup.testCases) {
+                    testCase.resolveParams(scope);
+                }
+            }
             addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`, editor);
         }
     }

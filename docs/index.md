@@ -522,6 +522,23 @@ end function
 
 Parameterized tests accept any valid json. However, the number of top level items in the params array must match the amount of arguments for your test method. If they don't the test will fail.
 
+Params can also reference BrighterScript enums and constants (including namespaced ones, and ones nested inside arrays or associative arrays). They are replaced with their values at build time:
+
+```
+enum Types
+    TYPE_1 = "type1"
+    TYPE_2 = "type2"
+end enum
+
+const DEFAULT_NAME = "bob"
+
+@it("handles each type")
+@params(Types.TYPE_1, DEFAULT_NAME)
+@params(Types.TYPE_2, DEFAULT_NAME)
+function _(typeStr as string, name as string)
+...
+```
+
 #### Advanced parameter directives
 
 ##### #RBSNode

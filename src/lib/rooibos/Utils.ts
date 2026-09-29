@@ -1,5 +1,5 @@
-import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement, MethodStatement } from 'brighterscript';
-import { ParseMode, Parser, TokenKind, createStringLiteral, isCallExpression, isCallfuncExpression, isDottedGetExpression, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isXmlScope } from 'brighterscript';
+import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement, LiteralExpression, MethodStatement, NamespaceStatement, Scope, Statement } from 'brighterscript';
+import { ParseMode, Parser, TokenKind, WalkMode, createStringLiteral, isAAMemberExpression, isAALiteralExpression, isArrayLiteralExpression, isCallExpression, isCallfuncExpression, isCommentStatement, isDottedGetExpression, isIndexedGetExpression, isIntegerType, isLiteralBoolean, isLiteralExpression, isLiteralInvalid, isLiteralNumber, isLiteralString, isLongIntegerType, isNamespaceStatement, isTemplateStringExpression, isUnaryExpression, isVariableExpression, isXmlScope, util, walkArray } from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
 
@@ -127,6 +127,106 @@ export function getPathValuePartAsString(expr: Expression) {
             return `${expr.index.name.text}`;
         }
     }
+}
+
+/**
+ * bsc does not link annotations into the AST, so the expressions in their arguments have no parent (and therefore no symbol table or namespace).
+ * That makes the bsc validator flag references like `@params(SomeEnum.value)` as unknown names. Link the annotation (and its arguments) to
+ * the statement it decorates so those references are validated and resolved like any other expression in that statement's scope.
+ */
+export function linkAnnotationToStatement(annotation: AnnotationExpression, statement: Statement) {
+    if (!annotation?.call) {
+        return;
+    }
+    walkArray(annotation.call.args, () => { }, { walkMode: WalkMode.visitAllRecursive }, annotation.call);
+    annotation.call.parent = annotation;
+    annotation.parent = statement;
+}
+
+/**
+ * Convert an annotation argument into a plain value. Literals, arrays and associative arrays are supported (matching bsc's `AnnotationExpression.getArguments()`).
+ * When a scope is provided, enum members and constants (including ones nested in arrays/AAs or referencing each other) are resolved to their values.
+ * Anything that can't be resolved becomes `null` (i.e. `invalid`)
+ */
+export function annotationArgumentToValue(expr: Expression, scope?: Scope, visited = new Set<Statement>()): any {
+    if (!expr) {
+        return null;
+    }
+    if (isUnaryExpression(expr) && isLiteralNumber(expr.right)) {
+        return numberLiteralToValue(expr.right, expr.operator.text);
+    }
+    if (isLiteralString(expr)) {
+        return expr.token.text.replace(/^"/, '').replace(/"$/, '');
+    }
+    if (isLiteralNumber(expr)) {
+        return numberLiteralToValue(expr);
+    }
+    if (isLiteralBoolean(expr)) {
+        return expr.token.text.toLowerCase() === 'true';
+    }
+    if (isLiteralInvalid(expr)) {
+        return null;
+    }
+    if (isArrayLiteralExpression(expr)) {
+        return expr.elements
+            .filter(e => !isCommentStatement(e))
+            .map(e => annotationArgumentToValue(e, scope, visited));
+    }
+    if (isAALiteralExpression(expr)) {
+        return expr.elements.reduce((acc, e) => {
+            if (isAAMemberExpression(e)) {
+                acc[e.keyToken.text] = annotationArgumentToValue(e.value, scope, visited);
+            }
+            return acc;
+        }, {});
+    }
+    if (isTemplateStringExpression(expr) && expr.quasis?.length === 1 && expr.expressions.length === 0) {
+        return expr.quasis[0].expressions.map(x => x.token.text).join('');
+    }
+    if (scope && (isVariableExpression(expr) || isDottedGetExpression(expr))) {
+        return resolveEnumOrConstValue(expr, scope, visited);
+    }
+    return null;
+}
+
+function numberLiteralToValue(expr: LiteralExpression, operator = '') {
+    const text = expr.token.text;
+    if (/^&h/i.test(text)) {
+        return parseInt(operator + text.replace(/^&h/i, ''), 16);
+    }
+    if (isIntegerType(expr.type) || isLongIntegerType(expr.type)) {
+        return parseInt(operator + text);
+    }
+    return parseFloat(operator + text);
+}
+
+function resolveEnumOrConstValue(expr: Expression, scope: Scope, visited: Set<Statement>) {
+    const name = util.getAllDottedGetParts(expr)?.map(x => x.text).join('.');
+    if (!name) {
+        return null;
+    }
+    const containingNamespace = expr.findAncestor<NamespaceStatement>(isNamespaceStatement)?.getName(ParseMode.BrighterScript);
+
+    const constStatement = scope.getConstFileLink(name, containingNamespace)?.item;
+    if (constStatement) {
+        if (visited.has(constStatement)) {
+            return null;
+        }
+        return annotationArgumentToValue(constStatement.value, scope, new Set([...visited, constStatement]));
+    }
+
+    const enumMember = scope.getEnumMemberFileLink(name, containingNamespace)?.item;
+    if (enumMember) {
+        if (visited.has(enumMember)) {
+            return null;
+        }
+        if (enumMember.value) {
+            return annotationArgumentToValue(enumMember.value, scope, new Set([...visited, enumMember]));
+        }
+        //members without a value are auto-incremented integers
+        return parseInt(enumMember.getValue());
+    }
+    return null;
 }
 
 export function getScopeForSuite(testSuite: TestSuite) {
