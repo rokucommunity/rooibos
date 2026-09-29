@@ -1,9 +1,13 @@
-import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement, LiteralExpression, MethodStatement, NamespaceStatement, Scope, Statement } from 'brighterscript';
-import { ParseMode, Parser, TokenKind, WalkMode, createStringLiteral, isAAMemberExpression, isAALiteralExpression, isArrayLiteralExpression, isCallExpression, isCallfuncExpression, isCommentStatement, isDottedGetExpression, isIndexedGetExpression, isIntegerType, isLiteralBoolean, isLiteralExpression, isLiteralInvalid, isLiteralNumber, isLiteralString, isLongIntegerType, isNamespaceStatement, isTemplateStringExpression, isUnaryExpression, isVariableExpression, isXmlScope, util, walkArray } from 'brighterscript';
+import type { AnnotationExpression, ArrayLiteralExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement, MethodStatement, Statement } from 'brighterscript';
+import { ParseMode, Parser, TokenKind, WalkMode, createStringLiteral, isAAMemberExpression, isAALiteralExpression, isArrayLiteralExpression, isCallExpression, isCallfuncExpression, isCommentStatement, isDottedGetExpression, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isXmlScope, walkArray } from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
 
-export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
+/**
+ * Add a generated method to the class.
+ * @returns the added method, or undefined if the source could not be parsed
+ */
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): MethodStatement | undefined {
     let { method, diagnostics, text } = createMethod(file, name, source);
 
     if (method.func.body.statements.length > 0) {
@@ -11,11 +15,12 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
         //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
         (target as any).ensureConstructorFunctionExists?.();
         editor.addToArray(target.body, target.body.length, method);
-        return true;
+        method.parent = target;
+        return method;
     }
     const error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
     diagnosticCorruptTestProduced(file, annotation, error, text);
-    return false;
+    return undefined;
 }
 
 /**
@@ -144,89 +149,58 @@ export function linkAnnotationToStatement(annotation: AnnotationExpression, stat
 }
 
 /**
- * Convert an annotation argument into a plain value. Literals, arrays and associative arrays are supported (matching bsc's `AnnotationExpression.getArguments()`).
- * When a scope is provided, enum members and constants (including ones nested in arrays/AAs or referencing each other) are resolved to their values.
- * Anything that can't be resolved becomes `null` (i.e. `invalid`)
+ * Fill the `rawParams: []` placeholders in a generated `getTestSuiteData` method with clones of each test case's actual `@params` argument expressions.
+ * The clones are registered in the file's references, so bsc's own pre-transpile processing (i.e. inlining enums and constants) applies to them
+ * exactly like it does for handwritten code. This must run before bsc's `beforeFileTranspile` (i.e. during `beforeProgramTranspile`).
+ * @param file the file containing the test suite
+ * @param method the generated `getTestSuiteData` method
+ * @param paramExpressionsList the `@params` argument expressions for each placeholder, in the order they appear in the method
+ * @param editor the editor used to make (and later undo) the changes
  */
-export function annotationArgumentToValue(expr: Expression, scope?: Scope, visited = new Set<Statement>()): any {
-    if (!expr) {
-        return null;
-    }
-    if (isUnaryExpression(expr) && isLiteralNumber(expr.right)) {
-        return numberLiteralToValue(expr.right, expr.operator.text);
-    }
-    if (isLiteralString(expr)) {
-        return expr.token.text.replace(/^"/, '').replace(/"$/, '');
-    }
-    if (isLiteralNumber(expr)) {
-        return numberLiteralToValue(expr);
-    }
-    if (isLiteralBoolean(expr)) {
-        return expr.token.text.toLowerCase() === 'true';
-    }
-    if (isLiteralInvalid(expr)) {
-        return null;
-    }
-    if (isArrayLiteralExpression(expr)) {
-        return expr.elements
-            .filter(e => !isCommentStatement(e))
-            .map(e => annotationArgumentToValue(e, scope, visited));
-    }
-    if (isAALiteralExpression(expr)) {
-        return expr.elements.reduce((acc, e) => {
-            if (isAAMemberExpression(e)) {
-                acc[e.keyToken.text] = annotationArgumentToValue(e.value, scope, visited);
+export function addParamsToTestSuiteData(file: BrsFile, method: MethodStatement, paramExpressionsList: Expression[][], editor: AstEditor) {
+    const placeholders: ArrayLiteralExpression[] = [];
+    method.walk((node) => {
+        if (isAAMemberExpression(node) && node.keyToken.text === 'rawParams' && isArrayLiteralExpression(node.value)) {
+            placeholders.push(node.value);
+        }
+    }, { walkMode: WalkMode.visitExpressionsRecursive });
+
+    const references = new Set<Expression>();
+    const addReferences = (expression: Expression) => {
+        references.add(expression);
+        if (isArrayLiteralExpression(expression)) {
+            for (const element of expression.elements) {
+                if (!isCommentStatement(element)) {
+                    addReferences(element);
+                }
             }
-            return acc;
-        }, {});
-    }
-    if (isTemplateStringExpression(expr) && expr.quasis?.length === 1 && expr.expressions.length === 0) {
-        return expr.quasis[0].expressions.map(x => x.token.text).join('');
-    }
-    if (scope && (isVariableExpression(expr) || isDottedGetExpression(expr))) {
-        return resolveEnumOrConstValue(expr, scope, visited);
-    }
-    return null;
-}
-
-function numberLiteralToValue(expr: LiteralExpression, operator = '') {
-    const text = expr.token.text;
-    if (/^&h/i.test(text)) {
-        return parseInt(operator + text.replace(/^&h/i, ''), 16);
-    }
-    if (isIntegerType(expr.type) || isLongIntegerType(expr.type)) {
-        return parseInt(operator + text);
-    }
-    return parseFloat(operator + text);
-}
-
-function resolveEnumOrConstValue(expr: Expression, scope: Scope, visited: Set<Statement>) {
-    const name = util.getAllDottedGetParts(expr)?.map(x => x.text).join('.');
-    if (!name) {
-        return null;
-    }
-    const containingNamespace = expr.findAncestor<NamespaceStatement>(isNamespaceStatement)?.getName(ParseMode.BrighterScript);
-
-    const constStatement = scope.getConstFileLink(name, containingNamespace)?.item;
-    if (constStatement) {
-        if (visited.has(constStatement)) {
-            return null;
+        } else if (isAALiteralExpression(expression)) {
+            for (const member of expression.elements) {
+                if (isAAMemberExpression(member)) {
+                    addReferences(member.value);
+                }
+            }
         }
-        return annotationArgumentToValue(constStatement.value, scope, new Set([...visited, constStatement]));
+    };
+
+    for (let i = 0; i < placeholders.length && i < paramExpressionsList.length; i++) {
+        const clones = paramExpressionsList[i].map(x => x.clone());
+        editor.arrayPush(placeholders[i].elements, ...clones);
+        //link the clones into the AST
+        walkArray(placeholders[i].elements, () => { }, { walkMode: WalkMode.visitAllRecursive }, placeholders[i]);
+        clones.forEach(addReferences);
     }
 
-    const enumMember = scope.getEnumMemberFileLink(name, containingNamespace)?.item;
-    if (enumMember) {
-        if (visited.has(enumMember)) {
-            return null;
+    const fileReferences = file.parser.references.expressions;
+    editor.edit(() => {
+        for (const expression of references) {
+            fileReferences.add(expression);
         }
-        if (enumMember.value) {
-            return annotationArgumentToValue(enumMember.value, scope, new Set([...visited, enumMember]));
+    }, () => {
+        for (const expression of references) {
+            fileReferences.delete(expression);
         }
-        //members without a value are auto-incremented integers
-        return parseInt(enumMember.getValue());
-    }
-    return null;
+    });
 }
 
 export function getScopeForSuite(testSuite: TestSuite) {

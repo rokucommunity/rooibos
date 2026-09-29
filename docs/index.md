@@ -522,7 +522,7 @@ end function
 
 Parameterized tests accept any valid json. However, the number of top level items in the params array must match the amount of arguments for your test method. If they don't the test will fail.
 
-Params can also reference BrighterScript enums and constants (including namespaced ones, and ones nested inside arrays or associative arrays). They are replaced with their values at build time:
+Params are transpiled like any other BrighterScript code, so they can also reference enums and constants (including namespaced ones, and ones nested inside arrays or associative arrays):
 
 ```
 enum Types

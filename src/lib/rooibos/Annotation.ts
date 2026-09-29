@@ -1,6 +1,6 @@
-import type { AnnotationExpression, BrsFile, Statement } from 'brighterscript';
-import { diagnosticIllegalParams, diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined, diagnosticSlowAnnotationRequiresNumber } from '../utils/Diagnostics';
-import { annotationArgumentToValue, linkAnnotationToStatement } from './Utils';
+import type { AnnotationExpression, BrsFile, Expression, Statement } from 'brighterscript';
+import { diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined, diagnosticSlowAnnotationRequiresNumber } from '../utils/Diagnostics';
+import { linkAnnotationToStatement } from './Utils';
 
 export enum AnnotationType {
     None = 'none',
@@ -56,9 +56,11 @@ export class AnnotationParams {
 
     constructor(
         public annotation: AnnotationExpression,
-        public text: string,
         public lineNumber: number,
-        public params: any[],
+        /**
+         * The argument expressions of the annotation. These are cloned into the generated test suite data so they get transpiled like any other code
+         */
+        public params: Expression[],
         public isIgnore = false,
         public isSolo = false,
         public noCatch = false,
@@ -220,23 +222,12 @@ export class RooibosAnnotation {
     }
 
     public parseParams(file: BrsFile, annotation: AnnotationExpression, annotationType: AnnotationType, noCatch: boolean) {
-        //enums and constants can't be resolved yet (there's no scope during parsing), so they're `null` here and get resolved at transpile time
-        const params = (annotation.call?.args ?? []).map(x => annotationArgumentToValue(x));
-        let rawParams = JSON.stringify(params);
         let isSolo = annotationType === AnnotationType.SoloParams;
         let isIgnore = annotationType === AnnotationType.IgnoreParams;
         if (isSolo) {
             this.hasSoloParams = true;
         }
-        try {
-            if (rawParams) {
-                this.params.push(new AnnotationParams(annotation, rawParams, annotation.range.start.line, params, isIgnore, isSolo, noCatch));
-            } else {
-                diagnosticIllegalParams(file, annotation);
-            }
-        } catch (e) {
-            diagnosticIllegalParams(file, annotation);
-        }
+        this.params.push(new AnnotationParams(annotation, annotation.range.start.line, annotation.call?.args ?? [], isIgnore, isSolo, noCatch));
     }
 
 }

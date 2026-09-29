@@ -204,7 +204,7 @@ export class TestSuiteBuilder {
                     let isSolo = annotation.hasSoloParams ? param.isSolo : annotation.isSolo;
                     let isIgnore = annotation.isIgnore ? true : param.isIgnore;
                     this.currentGroup.addTestCase(
-                        new TestCase(annotation, annotation.name, statement.name.text, isSolo, isIgnore, lineNumber, param.params, index, param.lineNumber, numberOfArgs, param.annotation)
+                        new TestCase(annotation, annotation.name, statement.name.text, isSolo, isIgnore, lineNumber, param.params, index, param.lineNumber, numberOfArgs)
                     );
                 } else {
                     diagnosticWrongTestParameterCount(this.file, param.annotation, param.params.length, numberOfArgs);

@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { AstEditor, BrsFile, ClassStatement, Scope } from 'brighterscript';
+import type { AstEditor, BrsFile, ClassStatement } from 'brighterscript';
 import { nodes } from 'brighterscript/dist/roku-types';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
@@ -7,7 +7,7 @@ import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '.
 import type { RooibosAnnotation } from './Annotation';
 
 import type { TestGroup } from './TestGroup';
-import { addOverriddenMethod, sanitizeBsJsonString } from './Utils';
+import { addOverriddenMethod, addParamsToTestSuiteData, sanitizeBsJsonString } from './Utils';
 import type { RooibosSession } from './RooibosSession';
 
 const nativeNodeNames = Object.keys(nodes);
@@ -105,14 +105,19 @@ export class TestSuite extends TestBlock {
         this.isValid = true;
     }
 
-    public addDataFunctions(editor: AstEditor, scope?: Scope) {
+    public addDataFunctions(editor: AstEditor) {
         if (this.isIncluded) {
-            for (const testGroup of this.testGroups.values()) {
-                for (const testCase of testGroup.testCases) {
-                    testCase.resolveParams(scope);
+            const method = addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`, editor);
+            if (method) {
+                //same order as the `rawParams` placeholders in `asText()`
+                const paramExpressionsList = [];
+                for (const testGroup of [...this.testGroups.values()].filter((tg) => tg.isIncluded)) {
+                    for (const testCase of [...testGroup.testCases].filter((tc) => tc.isIncluded && tc.rawParams)) {
+                        paramExpressionsList.push(testCase.rawParams);
+                    }
                 }
+                addParamsToTestSuiteData(this.file, method, paramExpressionsList, editor);
             }
-            addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`, editor);
         }
     }
 

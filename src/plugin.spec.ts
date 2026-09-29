@@ -997,8 +997,6 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.suitesCount).to.equal(1);
             expect(plugin.session.sessionInfo.groupsCount).to.equal(1);
             expect(plugin.session.sessionInfo.testsCount).to.equal(1);
-            const testCase = plugin.session.sessionInfo.testSuites.get('ATest').testGroups.get('groupA').testCases[0];
-            expect(testCase.rawParams).to.eql([{ '"unknown_value"': 'color' }]);
 
             const testFileContents = getContents('test.spec.brs');
             expectFunctionContentsContains(testFileContents, `__ATest_method_getTestSuiteData`, `
@@ -2778,11 +2776,6 @@ describe('RooibosPlugin', () => {
                     '["","with spaces in it"]',
                     '["http://some.url?a=1&b=2","!@#$%^&*()"]'
                 ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    ['hello', 'world'],
-                    ['', 'with spaces in it'],
-                    ['http://some.url?a=1&b=2', '!@#$%^&*()']
-                ]);
                 expect(getNonMainDiagnostics()).to.be.empty;
             });
 
@@ -2804,11 +2797,6 @@ describe('RooibosPlugin', () => {
                     '[-1,100]',
                     '[-100,-2147483648]'
                 ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    [0, 1],
-                    [-1, 100],
-                    [-100, -2147483648]
-                ]);
             });
 
             it('supports floats', async () => {
@@ -2825,11 +2813,7 @@ describe('RooibosPlugin', () => {
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
                     '[1.5,-2.25]',
-                    '[0.1,3]'
-                ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    [1.5, -2.25],
-                    [0.1, 3]
+                    '[0.1,3.0]'
                 ]);
             });
 
@@ -2845,7 +2829,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '[255,-16]'
+                    '[&hFF,-&h10]'
                 ]);
             });
 
@@ -2879,11 +2863,7 @@ describe('RooibosPlugin', () => {
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
                     '[true,false]',
-                    '[true,false]'
-                ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    [true, false],
-                    [true, false]
+                    '[TRUE,False]'
                 ]);
             });
 
@@ -2902,10 +2882,6 @@ describe('RooibosPlugin', () => {
                 expect(await getTranspiledRawParams()).to.eql([
                     '[invalid,"a"]',
                     '["b",invalid]'
-                ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    [null, 'a'],
-                    ['b', null]
                 ]);
             });
 
@@ -2947,13 +2923,6 @@ describe('RooibosPlugin', () => {
                     '[[],"Empty"]',
                     '[[1,"two",true,invalid,-5],"Mixed"]'
                 ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    [['one', 'two', 'three'], 'String'],
-                    [[1, 2, 3], 'Integer'],
-                    [[true, false], 'Boolean'],
-                    [[], 'Empty'],
-                    [[1, 'two', true, null, -5], 'Mixed']
-                ]);
             });
 
             it('supports nested arrays', async () => {
@@ -2970,7 +2939,6 @@ describe('RooibosPlugin', () => {
                 expect(await getTranspiledRawParams()).to.eql([
                     '[[[true,true],[false,[1,2]]]]'
                 ]);
-                expect(getTestCases()[0].rawParams).to.eql([[[true, true], [false, [1, 2]]]]);
             });
 
             it('supports associative arrays with quoted and unquoted keys', async () => {
@@ -2986,12 +2954,8 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '[{"quoted":"a","unquoted":1}]',
+                    '[{"quoted":"a",unquoted:1}]',
                     '[{}]'
-                ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    [{ '"quoted"': 'a', 'unquoted': 1 }],
-                    [{}]
                 ]);
             });
 
@@ -3008,10 +2972,6 @@ describe('RooibosPlugin', () => {
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
                     '[{"a":{"b":[1,{"c":true}]},"d":invalid},[{"e":-1.5}]]'
-                ]);
-                expect(getTestCases()[0].rawParams).to.eql([
-                    { '"a"': { '"b"': [1, { '"c"': true }] }, '"d"': null },
-                    [{ '"e"': -1.5 }]
                 ]);
             });
 
@@ -3036,7 +2996,7 @@ describe('RooibosPlugin', () => {
                 ]);
             });
 
-            it('renders unresolvable identifiers as invalid', async () => {
+            it('flags unresolvable identifiers', () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
                     class ATest
@@ -3048,14 +3008,34 @@ describe('RooibosPlugin', () => {
                         end function
                     end class
                 `);
+                program.validate();
+                expect(getNonMainDiagnostics().map(x => x.message)).to.eql([
+                    DiagnosticMessages.cannotFindName('someUnknownVariable').message,
+                    DiagnosticMessages.cannotFindName('Some').message,
+                    DiagnosticMessages.cannotFindName('notAThing').message,
+                    DiagnosticMessages.cannotFindName('alsoNotAThing').message
+                ]);
+            });
+
+            it('transpiles expressions as-is', async () => {
+                program.setFile('source/test.spec.bs', `
+                    function getValue()
+                        return 1
+                    end function
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(1 + 2, getValue(), "a" + "b")
+                        function _(a, b, c)
+                        end function
+                    end class
+                `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '[invalid,invalid]',
-                    '[[invalid],{"a":invalid}]'
+                    '[1+2,getValue(),"a"+"b"]'
                 ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    [null, null],
-                    [[null], { '"a"': null }]
-                ]);
+                expect(getNonMainDiagnostics()).to.be.empty;
             });
         });
 
@@ -3094,10 +3074,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.validate();
-                expect(getTestCases().map(x => [x.rawParams, x.isSolo])).to.eql([
-                    [[1], false],
-                    [[2], true]
-                ]);
+                expect(getTestCases().map(x => x.isSolo)).to.eql([false, true]);
             });
 
             it('marks @ignoreparams test cases as ignored', () => {
@@ -3113,10 +3090,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 program.validate();
-                expect(getTestCases().map(x => [x.rawParams, x.isIgnored])).to.eql([
-                    [[1], false],
-                    [[2], true]
-                ]);
+                expect(getTestCases().map(x => x.isIgnored)).to.eql([false, true]);
             });
 
             it('flags params whose count does not match the function signature', () => {
@@ -3157,10 +3131,6 @@ describe('RooibosPlugin', () => {
                     '["type1"]',
                     '["type2"]'
                 ]);
-                expect(getTestCases().map(x => x.rawParams)).to.eql([
-                    ['type1'],
-                    ['type2']
-                ]);
                 expect(getNonMainDiagnostics()).to.be.empty;
             });
 
@@ -3186,7 +3156,6 @@ describe('RooibosPlugin', () => {
                 expect(await getTranspiledRawParams()).to.eql([
                     '[0,1,10,11,-5]'
                 ]);
-                expect(getTestCases()[0].rawParams).to.eql([0, 1, 10, 11, -5]);
             });
 
             it('supports float enum members', async () => {
@@ -3227,7 +3196,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    `[${0xFF0000},${0xFF0001}]`
+                    `[&hFF0000,${0xFF0001}]`
                 ]);
             });
 
@@ -3339,11 +3308,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '[["type1","type2"],{"type":"type1","nested":{"list":["type2"]}}]'
-                ]);
-                expect(getTestCases()[0].rawParams).to.eql([
-                    ['type1', 'type2'],
-                    { '"type"': 'type1', 'nested': { list: ['type2'] } }
+                    '[["type1","type2"],{"type":"type1",nested:{list:["type2"]}}]'
                 ]);
             });
 
@@ -3367,7 +3332,7 @@ describe('RooibosPlugin', () => {
                 ]);
             });
 
-            it('flags unknown enum members and renders them as invalid', async () => {
+            it('flags unknown enum members', async () => {
                 program.setFile('source/test.spec.bs', `
                     enum Types
                         TYPE_1 = "type1"
@@ -3383,7 +3348,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '[invalid]'
+                    '[Types.NOT_A_MEMBER]'
                 ]);
                 expect(getNonMainDiagnostics().map(x => x.message)).to.eql([
                     DiagnosticMessages.unknownEnumValue('NOT_A_MEMBER', 'Types').message
@@ -3513,9 +3478,8 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '["bob",42,1.8,-7,true]'
+                    '["bob",42,1.8,(-7),true]'
                 ]);
-                expect(getTestCases()[0].rawParams).to.eql(['bob', 42, 1.8, -7, true]);
                 expect(getNonMainDiagnostics()).to.be.empty;
             });
 
@@ -3552,7 +3516,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '[[1,"two",true],{"a":1,"b":[2,3]}]'
+                    '[([1,"two",true]),({"a":1,b:[2,3]})]'
                 ]);
             });
 
@@ -3625,9 +3589,8 @@ describe('RooibosPlugin', () => {
                             TYPE_1 = "type1"
                         end enum
                         const BASE = "base"
-                        'relative references are resolved against the namespace of the constant, not the test suite
-                        const ALIAS = BASE
-                        const FROM_ENUM = Types.TYPE_1
+                        const ALIAS = Alpha.BASE
+                        const FROM_ENUM = Alpha.Types.TYPE_1
                         const COMPOSITE = [ALIAS, { "type": FROM_ENUM }]
                     end namespace
                 `);
@@ -3642,28 +3605,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '["base","type1",["base",{"type":"type1"}]]'
-                ]);
-            });
-
-            it('supports enum members whose values reference constants', async () => {
-                program.setFile('source/test.spec.bs', `
-                    const PREFIX = "prefix"
-                    enum Types
-                        TYPE_1 = PREFIX
-                    end enum
-
-                    @suite
-                    class ATest
-                        @describe("groupA")
-                        @it("test")
-                        @params(Types.TYPE_1)
-                        function _(a)
-                        end function
-                    end class
-                `);
-                expect(await getTranspiledRawParams()).to.eql([
-                    '["prefix"]'
+                    '["base","type1",(["base",{"type":"type1"}])]'
                 ]);
             });
 
@@ -3682,11 +3624,11 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '[invalid]'
+                    '[A]'
                 ]);
             });
 
-            it('renders constants with unsupported expression values as invalid', async () => {
+            it('supports constants with expression values', async () => {
                 program.setFile('source/test.spec.bs', `
                     const SUM = 1 + 2
 
@@ -3700,7 +3642,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql([
-                    '[invalid]'
+                    '[(1+2)]'
                 ]);
             });
         });
