@@ -156,6 +156,11 @@ export class RooibosPlugin implements CompilerPlugin {
 
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.prepareForTranspile(editor, program, this.mockUtil);
+
+        //this must happen before bsc's `beforeFileTranspile` (which runs before ours), so bsc will inline any enums/constants used in the `@params`
+        for (const testSuite of this.session.sessionInfo.testSuitesToRun) {
+            testSuite.addDataFunctions(editor);
+        }
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
@@ -174,7 +179,6 @@ export class RooibosPlugin implements CompilerPlugin {
 
             const modifiedTestCases = new Set();
             const modifiedHookFunctions = new Set();
-            testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (const hookName of [group.setupFunctionName, group.tearDownFunctionName, group.beforeEachFunctionName, group.afterEachFunctionName]) {
                     if (hookName) {
