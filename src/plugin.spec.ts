@@ -875,6 +875,269 @@ describe('RooibosPlugin', () => {
             expect(contents).to.include('some_space_assertEqual(1, 1)');
         });
 
+        describe('multiple suites in one file', () => {
+            function getSuiteMethodContents(className: string, methodName: string) {
+                return getFunctionContents(getContents('test.spec.brs'), `__${className}_method_${methodName}`);
+            }
+
+            function expectSuiteProcessed(className: string) {
+                expect(getContents('test.spec.brs'), `${className} has no test suite data`).to.include(`function __${className}_method_getTestSuiteData()`);
+                expect(getTestFunctionContents({ className: className }), `${className} assertions were not rewritten`).to.include('m.currentAssertLineNumber');
+            }
+
+            it('adds test suite data and rewrites assertions in every suite', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+
+                    @suite("third suite")
+                    class ThirdTest extends rooibos.BaseTestSuite
+                        @describe("groupC")
+                        @it("is test3")
+                        function _()
+                            m.assertEqual(3, 3)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('FirstTest');
+                expectSuiteProcessed('SecondTest');
+                expectSuiteProcessed('ThirdTest');
+            });
+
+            it('rewrites hook assertions in every suite', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @beforeEach
+                        function groupBeforeEach()
+                            m.assertTrue(true)
+                        end function
+
+                        @it("is test1")
+                        function _()
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+
+                        @beforeEach
+                        function groupBeforeEach()
+                            m.assertTrue(true)
+                        end function
+
+                        @it("is test2")
+                        function _()
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expect(getSuiteMethodContents('FirstTest', 'groupBeforeEach')).to.include('m.currentAssertLineNumber');
+                expect(getSuiteMethodContents('SecondTest', 'groupBeforeEach')).to.include('m.currentAssertLineNumber');
+            });
+
+            it('rewrites expectCalled in every suite', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            obj = {}
+                            m.expectCalled(obj.foo())
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            obj = {}
+                            m.expectCalled(obj.foo())
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expect(getTestFunctionContents({ className: 'FirstTest' })).to.include('m._expectCalled(');
+                expect(getTestFunctionContents({ className: 'SecondTest' })).to.include('m._expectCalled(');
+            });
+
+            it('keeps suites with identical group and test names separate', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("group")
+                        @it("is a test")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("group")
+                        @it("is a test")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('FirstTest');
+                expectSuiteProcessed('SecondTest');
+                //each assertion is rewritten exactly once
+                expect(getTestFunctionContents({ className: 'FirstTest' }).match(/m\.currentAssertLineNumber/g)).to.have.lengthOf(1);
+                expect(getTestFunctionContents({ className: 'SecondTest' }).match(/m\.currentAssertLineNumber/g)).to.have.lengthOf(1);
+            });
+
+            it('supports several node suites for the same component', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @SGNode("Group")
+                    @suite("first node suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @SGNode("Group")
+                    @suite("second node suite - with special characters")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('FirstTest');
+                expectSuiteProcessed('SecondTest');
+                const firstXml = getContents('components/rooibos/generated/first_node_suite.xml');
+                const secondXml = getContents('components/rooibos/generated/second_node_suite___with_special_characters.xml');
+                expect(firstXml).to.include('<component name="first_node_suite" extends="Group">');
+                expect(secondXml).to.include('<component name="second_node_suite___with_special_characters" extends="Group">');
+                expect(firstXml).to.include('uri="pkg:/source/test.spec.brs"');
+                expect(secondXml).to.include('uri="pkg:/source/test.spec.brs"');
+            });
+
+            it('supports mixing node and non-node suites', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("plain suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @SGNode("Group")
+                    @suite("node suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('FirstTest');
+                expectSuiteProcessed('SecondTest');
+            });
+
+            it('only processes the @only suite when another suite in the file is not included', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @only
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+                `);
+                program.validate();
+                await builder.transpile();
+                expect(plugin.session.sessionInfo.testSuitesToRun.map(x => x.name)).to.eql(['second suite']);
+                expect(getContents('test.spec.brs')).not.to.include('function __FirstTest_method_getTestSuiteData()');
+                expect(getTestFunctionContents({ className: 'FirstTest' })).not.to.include('m.currentAssertLineNumber');
+                expectSuiteProcessed('SecondTest');
+            });
+
+            it('still processes later suites when an earlier suite in the file is ignored', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @ignore
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('SecondTest');
+            });
+        });
+
         it('handles groups that start with numbers', async () => {
             plugin.afterProgramCreate(program);
             // program.validate();

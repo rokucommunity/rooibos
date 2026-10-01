@@ -169,8 +169,8 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
-        let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
-        if (testSuite) {
+        const testSuites = this.session.sessionInfo.testSuitesToRun.filter((ts) => ts.file.pkgPath === event.file.pkgPath);
+        for (const testSuite of testSuites) {
             const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
