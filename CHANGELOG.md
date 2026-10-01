@@ -6,6 +6,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [5.16.6](https://github.com/rokucommunity/rooibos/compare/5.16.5...v5.16.6) - 2026-10-01
+### Changed
+ - Process every test suite in a file, not just the first ([#441](https://github.com/rokucommunity/rooibos/pull/441))
+ - Support enums and constants in @params annotations ([#438](https://github.com/rokucommunity/rooibos/pull/438))
+ - Security enhancements ([#426](https://github.com/rokucommunity/rooibos/pull/426), [#429](https://github.com/rokucommunity/rooibos/pull/429), [#439](https://github.com/rokucommunity/rooibos/pull/439))
+ - upgrade to [brighterscript@0.73.5](https://github.com/rokucommunity/brighterscript/blob/v0.73.5/CHANGELOG.md#0735---2026-09-15). Notable changes since 0.73.3:
+     - Fix crash stripping sourceMappingURL comment from non-transpiled files ([#1821](https://github.com/rokucommunity/brighterscript/pull/1821))
+     - Tolerate older BrsTranspileState in continue back-transpile ([#1812](https://github.com/rokucommunity/brighterscript/pull/1812))
+     - Security enhancements ([#1804](https://github.com/rokucommunity/brighterscript/pull/1804), [#1805](https://github.com/rokucommunity/brighterscript/pull/1805))
+     - Locate the super() call when injecting field initializers ([#1803](https://github.com/rokucommunity/brighterscript/pull/1803))
+ - upgrade to [roku-debug@0.24.6](https://github.com/rokucommunity/roku-debug/blob/v0.24.6/CHANGELOG.md#0246---2026-10-01). Notable changes since 0.24.3:
+     - Send ChannelSideloadedEvent as soon as sideload succeeds ([#428](https://github.com/rokucommunity/roku-debug/pull/428))
+     - Security enhancements ([#419](https://github.com/rokucommunity/roku-debug/pull/419), [#427](https://github.com/rokucommunity/roku-debug/pull/427))
+     - Crash when perfetto connectOnStart was true but tracing enabled was false ([#425](https://github.com/rokucommunity/roku-debug/pull/425))
+     - Route perfetto tracing through roku-deploy's ECP websocket ([#423](https://github.com/rokucommunity/roku-debug/pull/423))
+ - upgrade to [roku-deploy@4.0.0-alpha.9](https://github.com/rokucommunity/roku-deploy/blob/v4.0.0-alpha.9/CHANGELOG.md#400-alpha9---2026-09-28). Notable changes since 4.0.0-alpha.5:
+     - Absorb the abort error when terminating a rejected ECP websocket ([#428](https://github.com/rokucommunity/roku-deploy/pull/428))
+     - Restore public API exports needed by downstream consumers ([#424](https://github.com/rokucommunity/roku-deploy/pull/424))
+     - Add ECP websocket support and perfetto tracing wrappers ([#419](https://github.com/rokucommunity/roku-deploy/pull/419))
+     - Add sectioned rokudeploy.json config support ([#392](https://github.com/rokucommunity/roku-deploy/pull/392))
+     - Security enhancements ([#422](https://github.com/rokucommunity/roku-deploy/pull/422))
+     - Reduce Public Api Surface ([#360](https://github.com/rokucommunity/roku-deploy/pull/360))
+     - sendEcpRequest: take a single options object ([#413](https://github.com/rokucommunity/roku-deploy/pull/413))
+     - Remove dead RokuDeployOptions fields stagingDir and autoLaunch ([#412](https://github.com/rokucommunity/roku-deploy/pull/412))
+     - Delete dead v3 type GetInstalledPackagesOptions ([#411](https://github.com/rokucommunity/roku-deploy/pull/411))
+     - Add rce startDevice/stopDevice CLI commands ([#372](https://github.com/rokucommunity/roku-deploy/pull/372))
+     - Add `format` property to CaptureScreenshotResult ([#386](https://github.com/rokucommunity/roku-deploy/pull/386))
+     - Support top-level patterns to external dirs using globstar ([#394](https://github.com/rokucommunity/roku-deploy/pull/394))
+     - Migrate RCE routes to `/api/v0/input` and the 8060 port proxy ([#396](https://github.com/rokucommunity/roku-deploy/pull/396))
+     - Rename `getFilePaths` to `resolveFilesArray` ([#393](https://github.com/rokucommunity/roku-deploy/pull/393))
+     - Replace `postman-request` shims and `fetch` ([#390](https://github.com/rokucommunity/roku-deploy/pull/390))
+     - Align on camelCase convention ([#369](https://github.com/rokucommunity/roku-deploy/pull/369))
+     - Validate device configs specify exactly one targeting identifier ([#388](https://github.com/rokucommunity/roku-deploy/pull/388))
+     - Refine comments ([#371](https://github.com/rokucommunity/roku-deploy/pull/371))
+     - Rename query* ECP methods to get* ([#385](https://github.com/rokucommunity/roku-deploy/pull/385))
+     - upgrade to [@rokucommunity/logger@0.4.2](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#042---2026-09-02). Notable changes since 0.4.1:
+         - Security enhancements ([#38](https://github.com/rokucommunity/logger/pull/38), [#39](https://github.com/rokucommunity/logger/pull/39))
+     - Remove all @deprecated items ([#389](https://github.com/rokucommunity/roku-deploy/pull/389))
+### Fixed
+ - Fixed ignored tests count reporting in the summary output ([#435](https://github.com/rokucommunity/rooibos/pull/435))
+
+
+
 ## [5.16.5](https://github.com/rokucommunity/rooibos/compare/5.16.4...v5.16.5) - 2026-09-09
 ### Changed
  - Security enhancements ([#405](https://github.com/rokucommunity/rooibos/pull/405), [#406](https://github.com/rokucommunity/rooibos/pull/406), [#407](https://github.com/rokucommunity/rooibos/pull/407), [#409](https://github.com/rokucommunity/rooibos/pull/409), [#410](https://github.com/rokucommunity/rooibos/pull/410), [#411](https://github.com/rokucommunity/rooibos/pull/411), [#412](https://github.com/rokucommunity/rooibos/pull/412), [#414](https://github.com/rokucommunity/rooibos/pull/414), [#421](https://github.com/rokucommunity/rooibos/pull/421))
