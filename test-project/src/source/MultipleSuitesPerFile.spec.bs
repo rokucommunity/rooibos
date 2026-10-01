@@ -1,0 +1,139 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/components/NodeExample.bs"
+
+' Every suite in this file must be processed by the plugin, not just the first one.
+' - `currentAssertLineNumber` is only ever set by the plugin's assertion rewriting, so it stays
+'   at -1 in a suite the plugin skipped.
+' - `stubCall`/`expectCalled` only work once the plugin rewrites them, so they fail in a skipped
+'   suite or hook.
+namespace tests
+    @suite("multiple suites per file - first")
+    class MultipleSuitesPerFileFirstTests extends rooibos.BaseTestSuite
+
+        private subject
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("first suite in the file")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @beforeEach
+        function firstBeforeEach()
+            m.subject = { id: "subject" }
+            m.stubCall(m.subject.getSuiteName, "first")
+        end function
+
+        @it("has its test assertions rewritten")
+        function _()
+            m.assertNotEqual(m.currentAssertLineNumber, -1)
+        end function
+
+        @it("has its own beforeEach rewritten")
+        function _()
+            m.assertEqual(m.subject.getSuiteName(), "first")
+        end function
+
+        @it("has its expectCalled rewritten")
+        function _()
+            obj = { foo: function() : return invalid : end function }
+            m.expectCalled(obj.foo())
+            obj.foo()
+        end function
+    end class
+
+    @suite("multiple suites per file - second")
+    class MultipleSuitesPerFileSecondTests extends rooibos.BaseTestSuite
+
+        private subject
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("second suite in the file")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @beforeEach
+        function secondBeforeEach()
+            m.subject = { id: "subject" }
+            m.stubCall(m.subject.getSuiteName, "second")
+        end function
+
+        @it("has its test assertions rewritten")
+        function _()
+            m.assertNotEqual(m.currentAssertLineNumber, -1)
+        end function
+
+        @it("has its own beforeEach rewritten")
+        function _()
+            m.assertEqual(m.subject.getSuiteName(), "second")
+        end function
+
+        @it("has its expectCalled rewritten")
+        function _()
+            obj = { foo: function() : return invalid : end function }
+            m.expectCalled(obj.foo())
+            obj.foo()
+        end function
+    end class
+
+    @SGNode("NodeExample")
+    @suite("multiple suites per file - first node")
+    class MultipleSuitesPerFileFirstNodeTests extends rooibos.BaseTestSuite
+
+        private subject
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("first node suite in the file")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @beforeEach
+        function firstNodeBeforeEach()
+            m.subject = { id: "subject" }
+            m.stubCall(m.subject.getSuiteName, "first node")
+        end function
+
+        @it("has its test assertions rewritten")
+        function _()
+            m.assertNotEqual(m.currentAssertLineNumber, -1)
+        end function
+
+        @it("has its own beforeEach rewritten")
+        function _()
+            m.assertEqual(m.subject.getSuiteName(), "first node")
+        end function
+
+        @it("runs inside the node")
+        function _()
+            m.assertEqual(HelloFromNode("first", 1), "HELLO first age:" + strI(1))
+        end function
+    end class
+
+    @SGNode("NodeExample")
+    @suite("multiple suites per file - second node")
+    class MultipleSuitesPerFileSecondNodeTests extends rooibos.BaseTestSuite
+
+        private subject
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("second node suite in the file")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @beforeEach
+        function secondNodeBeforeEach()
+            m.subject = { id: "subject" }
+            m.stubCall(m.subject.getSuiteName, "second node")
+        end function
+
+        @it("has its test assertions rewritten")
+        function _()
+            m.assertNotEqual(m.currentAssertLineNumber, -1)
+        end function
+
+        @it("has its own beforeEach rewritten")
+        function _()
+            m.assertEqual(m.subject.getSuiteName(), "second node")
+        end function
+
+        @it("runs inside the node")
+        function _()
+            m.assertEqual(HelloFromNode("second", 2), "HELLO second age:" + strI(2))
+        end function
+    end class
+end namespace
