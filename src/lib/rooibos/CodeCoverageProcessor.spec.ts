@@ -365,6 +365,67 @@ describe('RooibosPlugin', () => {
                 // the while header (line 4 of the source above) must be a tracked line
                 expect(modelLines.has(4)).to.be.true;
             });
+
+            it('reports an inline if line once, not once more for its inline clauses', async () => {
+                program.setFile('source/code.bs', `
+                    function inline(flag as boolean) as integer
+                        if flag then return 1
+                        if flag then print "a" else print "b"
+                        if flag then
+                            print "c"
+                        else if not flag then return 2 else return 3
+                        return 0
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                for (const lineNumber of [3, 4, 7]) {
+                    const occurrences = a.match(new RegExp(`RBS_CC_0_reportLine\\(${lineNumber}\\)`, 'g')) ?? [];
+                    expect(occurrences, `reportLine(${lineNumber}) count`).to.have.length(1);
+                }
+            });
+
+            it('reports a nested or else-if inline if line once', async () => {
+                program.setFile('source/code.bs', `
+                    function nested(x, y)
+                        if x then if y then print "a"
+                        if x then print "b" else if y then print "c"
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                for (const lineNumber of [3, 4]) {
+                    const occurrences = a.match(new RegExp(`RBS_CC_0_reportLine\\(${lineNumber}\\)`, 'g')) ?? [];
+                    expect(occurrences, `reportLine(${lineNumber}) count`).to.have.length(1);
+                }
+            });
+
+            it('still tracks function expressions declared on an inline if line', async () => {
+                program.setFile('source/code.bs', `
+                    function outer(x)
+                        if x then m.cb = function() : print "inner" : end function
+                        if x.filter(function(v) : return v > 1 : end function) then print "a"
+                        if x.filter(function(v) : return v > 2 : end function) then
+                            print "b"
+                        end if
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const report = fsExtra.readJsonSync(s`${_stagingFolderPath}/components/rooibos/CodeCoverage.json`);
+                const functionNames = report.files[0].functions.map((f) => f.name);
+                expect(functionNames).to.include.members(['outer$anon0', 'outer$anon1', 'outer$anon2']);
+                const a = getContents('source/code.brs');
+                expect(a.match(/(?<!function )RBS_CC_0_reportFunction\(/g)).to.have.length(4);
+            });
         });
         describe('basic bs tests', () => {
 

@@ -170,6 +170,8 @@ export class CodeCoverageProcessor {
     private foundFunctions: Array<FunctionCoverage>;
     private foundBlocks: Array<BranchCoverage>;
     private pendingFunctionReports: Array<{ func: FunctionExpression; callText: string }>;
+    /** Per enclosing function (undefined for top level), the 0-indexed lines already reported by an `if`. */
+    private ifReportedLines: Map<FunctionExpression | undefined, Set<number>>;
     /**
      * Queued reportLine insertions, applied after the walk completes. Inserting mid-visit via
      * arraySplice on the owner array breaks brighterscript's walker - after a splice it
@@ -265,6 +267,7 @@ export class CodeCoverageProcessor {
         this.addedStatements = new Set<Statement>();
         this.pendingFunctionReports = [];
         this.pendingLineReports = [];
+        this.ifReportedLines = new Map();
         this.allocatedIfBlocks = new Map();
         this.processedExpressions = new Set();
         this.elseIfChildren = new Set();
@@ -304,6 +307,12 @@ export class CodeCoverageProcessor {
                 return;
             }
             this.addStatement(ds, ds.range.start.line, true);
+            // An inline clause (`if c then return 1`) shares its line with an if whose own
+            // report already fired; a second report would double the line's hit count.
+            if (this.isLineReportedByIf(ds)) {
+                this.ensureFunctionTracked(ds, ParseMode.BrighterScript);
+                return;
+            }
             this.convertStatementToCoverageStatement(ds, owner, key);
         };
         const fullVisitor = createVisitor({
@@ -411,7 +420,10 @@ export class CodeCoverageProcessor {
                 // expression-complexity cap first.
                 const stats = this.analyzeExpression(ifStatement.condition);
                 const flatWrapsFit = this.instrumentedComplexity(stats, { leafWraps: true, condWrap: false }) <= this.expressionBudget;
-                const extractionPossible = !flatWrapsFit && !stats.hasFunctionExpression;
+                // A nested or else-if `if` on a line its function already reported must not
+                // report again. Its arms are still branch-tracked; only the line hit is skipped.
+                const lineAlreadyReported = this.isLineReportedByIf(ifStatement);
+                const extractionPossible = !lineAlreadyReported && !flatWrapsFit && !stats.hasFunctionExpression;
                 const condWrapCost = this.instrumentedComplexity(stats, { leafWraps: flatWrapsFit, condWrap: true });
                 let wrapFits = condWrapCost <= this.expressionBudget;
                 if (!wrapFits && extractionPossible) {
@@ -429,8 +441,11 @@ export class CodeCoverageProcessor {
                         wrapFits = this.tryExtractBooleanExpression(extractionRoot);
                     }
                 }
-                if (wrapFits) {
+                if (lineAlreadyReported) {
                     this.addStatement(ifStatement, ifStatement.range.start.line);
+                } else if (wrapFits) {
+                    this.addStatement(ifStatement, ifStatement.range.start.line);
+                    this.markLineReportedByIf(ifStatement);
                     const conditionWrap = new BinaryExpression(
                         // Anchor to the if-statement's own range, NOT the condition's: other
                         // plugins (e.g. an is.* inliner) can graft replacement expressions into
@@ -455,6 +470,7 @@ export class CodeCoverageProcessor {
                     // The condition is too hot to touch but this `if` sits in a statement list,
                     // so report its line with a plain statement inserted just before it.
                     this.addStatement(ifStatement, ifStatement.range.start.line);
+                    this.markLineReportedByIf(ifStatement);
                     this.convertStatementToCoverageStatement(ifStatement, owner, key);
                 } else {
                     // An `else if` arm has no statement slot to fall back to; leave its line
@@ -651,7 +667,7 @@ export class CodeCoverageProcessor {
         this.addBrsAPIText(file, astEditor);
 
         this.baseCoverageReport.files[this.fileId] = {
-            sourceFile: file.pkgPath.replace('pkg:', '.').replace('\\', '/'),
+            sourceFile: file.pkgPath.replace('pkg:', '.').replace(/\\/g, '/'),
             sourcePath: this.repoRelativeSourcePath(file.srcPath),
             lines: this.foundLines.sort((a, b) => a.lineNumber - b.lineNumber),
             lineTotalFound: this.foundLines.length,
@@ -1362,6 +1378,19 @@ export class CodeCoverageProcessor {
     private isSuperCallStatement(statement: Statement | undefined): boolean {
         return isExpressionStatement(statement) && isCallExpression(statement.expression) &&
             util.findBeginningVariableExpression(statement.expression.callee as any)?.name?.text?.toLowerCase() === 'super';
+    }
+
+    private isLineReportedByIf(statement: Statement): boolean {
+        const func = statement.findAncestor<FunctionExpression>(isFunctionExpression);
+        return this.ifReportedLines.get(func)?.has(statement.range.start.line) ?? false;
+    }
+
+    private markLineReportedByIf(statement: Statement) {
+        const func = statement.findAncestor<FunctionExpression>(isFunctionExpression);
+        if (!this.ifReportedLines.has(func)) {
+            this.ifReportedLines.set(func, new Set());
+        }
+        this.ifReportedLines.get(func).add(statement.range.start.line);
     }
 
     private convertStatementToCoverageStatement(statement: Statement, owner: any, key: any) {
