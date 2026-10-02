@@ -28,6 +28,13 @@ namespace bench
             m.assertEqual(bench.nestedInlineAlwaysTrue(true, true), 1)
         end function
 
+        @it("inline for clause with outer always true")
+        function _()
+            m.assertEqual(bench.inlineForAlwaysTrue(true), 1)
+            m.assertEqual(bench.inlineForAlwaysTrue(true), 1)
+            m.assertEqual(bench.inlineForAlwaysTrue(true), 1)
+        end function
+
     end class
 
 end namespace

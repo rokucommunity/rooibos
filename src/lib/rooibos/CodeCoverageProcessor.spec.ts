@@ -406,6 +406,30 @@ describe('RooibosPlugin', () => {
                 }
             });
 
+            it('reports an inline if line once when its clause is a loop or try', async () => {
+                program.setFile('source/code.bs', `
+                    function loops(x, items)
+                        if x then for i = 0 to 1 : print i : end for
+                        if x then for each item in items : print item : end for
+                        if x then while x : x = false : end while
+                        if x then try : print 1 : catch e : print 2 : end try
+                        if x then
+                            for i = 0 to 1
+                                print i
+                            end for
+                        end if
+                    end function
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                const counts = [3, 4, 5, 6].map(lineNumber => (a.match(new RegExp(`RBS_CC_0_reportLine\\(${lineNumber}\\)`, 'g')) ?? []).length);
+                expect(counts).to.eql([1, 1, 1, 1]);
+                expect(a).to.match(/RBS_CC_0_reportLine\(9\)/);
+            });
+
             it('still tracks function expressions declared on an inline if line', async () => {
                 program.setFile('source/code.bs', `
                     function outer(x)

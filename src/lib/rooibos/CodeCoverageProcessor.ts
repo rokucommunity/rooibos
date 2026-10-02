@@ -367,7 +367,7 @@ export class CodeCoverageProcessor {
                 // token-text mutation must go through the editor so bsc's post-transpile
                 // rollback restores the source AST - a later transpile of the same program
                 // re-instruments from pristine tokens (same for while/for-each/try below)
-                this.astEditor.setProperty(ds.forToken, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for`);
+                this.prefixKeywordWithLineReport(ds, ds.forToken, 'for');
             },
             TryCatchStatement: (tryCatch, parent, owner, key) => {
                 if (!tryCatch.range) {
@@ -379,7 +379,7 @@ export class CodeCoverageProcessor {
                 // WhileStatement / ForEachStatement) rather than arraySplice; splicing the
                 // owner array mid-visit causes the walker to re-read owner[key] and skip
                 // the try-statement's children.
-                this.astEditor.setProperty(tryCatch.tokens.try, 'text', `${this.getReportLineHitFuncCallText(tryCatch.range.start.line, tryCatch)}: try`);
+                this.prefixKeywordWithLineReport(tryCatch, tryCatch.tokens.try, 'try');
                 // try/catch arms are deliberately NOT branch-tracked - istanbul's TS
                 // instrumenter doesn't treat them as branches either; an unexercised catch
                 // shows up through statement coverage of its body lines.
@@ -493,14 +493,14 @@ export class CodeCoverageProcessor {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line);
-                this.astEditor.setProperty(ds.tokens.while, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: while`);
+                this.prefixKeywordWithLineReport(ds, ds.tokens.while, 'while');
             },
             ForEachStatement: (ds) => {
                 if (!ds.range) {
                     return;
                 }
                 this.addStatement(ds, ds.range.start.line);
-                this.astEditor.setProperty(ds.tokens.forEach, 'text', `${this.getReportLineHitFuncCallText(ds.range.start.line, ds)}: for each`);
+                this.prefixKeywordWithLineReport(ds, ds.tokens.forEach, 'for each');
             },
             AssignmentStatement: (ds, parent, owner, key) => {
                 // a for-loop's init assignment belongs to the for line, not its own
@@ -1378,6 +1378,18 @@ export class CodeCoverageProcessor {
     private isSuperCallStatement(statement: Statement | undefined): boolean {
         return isExpressionStatement(statement) && isCallExpression(statement.expression) &&
             util.findBeginningVariableExpression(statement.expression.callee as any)?.name?.text?.toLowerCase() === 'super';
+    }
+
+    /**
+     * Prefixes a loop/try keyword token with a reportLine call, unless an enclosing inline
+     * `if` already reported this line in the same function.
+     */
+    private prefixKeywordWithLineReport(statement: Statement, keywordToken: { text: string }, keyword: string) {
+        if (this.isLineReportedByIf(statement)) {
+            this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
+            return;
+        }
+        this.astEditor.setProperty(keywordToken, 'text', `${this.getReportLineHitFuncCallText(statement.range.start.line, statement)}: ${keyword}`);
     }
 
     private isLineReportedByIf(statement: Statement): boolean {
