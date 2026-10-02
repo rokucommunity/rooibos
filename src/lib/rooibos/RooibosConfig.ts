@@ -18,10 +18,10 @@ export interface RooibosConfig {
     printTestTimes?: boolean;
     /**
      * When true, the device also prints a plain, spec-compliant lcov report to the
-     * console at the end of the run (human-readable extra). The rooibos CLI builds its
-     * reports from the condensed counts stream, which is always emitted when
-     * `isRecordingCodeCoverage` is on, so this flag is not needed for CLI-generated
-     * reports.
+     * console at the end of the run.
+     * @deprecated will be removed in a future major version. Use the rooibos CLI
+     * instead, which always writes `lcov.info`, `coverage-final.json`, and an HTML
+     * report into `--coverage-dir` from the condensed counts stream.
      */
     printLcov?: boolean;
     port?: number;
