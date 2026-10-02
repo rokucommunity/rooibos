@@ -3,11 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { standardizePath as s } from 'brighterscript';
-import { normalizeLcovText, buildFileCoverage, buildCoverageDataFromModel, loadCoveragePathMap, parseCoverageCounts, writeCoverageReports, writeCoverageReportsFromCounts, resolveSourceRoot, SourceCache } from './CoverageReporter';
-import type { LcovFileRecord } from './CoverageReporter';
+import { buildCoverageDataFromModel, parseCoverageCounts, writeCoverageReportsFromCounts, SourceCache } from './CoverageReporter';
 import type { CoverageMap as CoverageModelJson } from './CodeCoverageProcessor';
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-const lcovParse = require('lcov-parse');
 
 let tmpPath = s`${process.cwd()}/.tmp/coverageReporter`;
 
@@ -20,20 +17,6 @@ describe('CoverageReporter', () => {
 
     afterEach(() => {
         fsExtra.removeSync(tmpPath);
-    });
-
-    describe('normalizeLcovText', () => {
-        it('strips CR from console-captured CRLF output', () => {
-            const raw = ['TN:', 'SF:source/a.bs', 'DA:5,2', 'end_of_record'].join('\r\n');
-            const result = normalizeLcovText(raw);
-            expect(result).to.not.include('\r');
-            expect(result).to.include('DA:5,2');
-        });
-
-        it('collapses modern 3-arg FN rows to the 2-arg form lcov-parse understands', () => {
-            const result = normalizeLcovText('SF:source/a.bs\nFN:4,20,doThing\nend_of_record');
-            expect(result).to.include('FN:4,doThing');
-        });
     });
 
     describe('SourceCache columns', () => {
@@ -51,247 +34,6 @@ describe('CoverageReporter', () => {
             expect(cache.getKeywordColumn(file, 2)).to.equal(8);
             // missing line -> 0
             expect(cache.getKeywordColumn(file, 99)).to.equal(0);
-        });
-    });
-
-    describe('buildFileCoverage', () => {
-        function makeRecord(partial: Partial<LcovFileRecord>): LcovFileRecord {
-            return {
-                file: 'source/a.bs',
-                lines: { details: [] },
-                functions: { details: [] },
-                branches: { details: [] },
-                ...partial
-            };
-        }
-        it('emits one single-line statement per DA row', () => {
-            const record = makeRecord({
-                lines: { details: [{ line: 10, hit: 3 }, { line: 12, hit: 7 }] }
-            });
-
-            const coverage = buildFileCoverage(record, '/tmp/nope/a.bs', new SourceCache());
-            const statements = Object.keys(coverage.statementMap).map(key => ({
-                startLine: coverage.statementMap[key].start.line,
-                endLine: coverage.statementMap[key].end.line,
-                hit: coverage.s[key]
-            }));
-            expect(statements).to.eql([
-                { startLine: 10, endLine: 10, hit: 3 },
-                { startLine: 12, endLine: 12, hit: 7 }
-            ]);
-        });
-
-        it('groups branches by block into single if-type decisions with I/E badges', () => {
-            const record = makeRecord({
-                branches: { details: [
-                    { line: 4, block: 0, branch: 0, taken: 5 },
-                    { line: 4, block: 0, branch: 1, taken: 0 }
-                ] }
-            });
-
-            const coverage = buildFileCoverage(record, '/tmp/nope/a.bs', new SourceCache());
-            expect(Object.keys(coverage.branchMap)).to.have.length(1);
-            expect(coverage.branchMap[0].type).to.equal('if');
-            expect(coverage.b[0]).to.eql([5, 0]);
-        });
-    });
-
-    describe('loadCoveragePathMap', () => {
-        it('maps pkg-relative sourceFile to repo-relative sourcePath', () => {
-            const jsonPath = path.join(tmpPath, 'CodeCoverage.json');
-            fs.writeFileSync(jsonPath, JSON.stringify({
-                files: [
-                    { sourceFile: './components/a.brs', sourcePath: 'core/src/components/a.brs' },
-                    { sourceFile: './source/b.brs' }
-                ]
-            }));
-
-            const map = loadCoveragePathMap(jsonPath)!;
-            expect(map.get('./components/a.brs')).to.equal('core/src/components/a.brs');
-            expect(map.has('./source/b.brs')).to.be.false;
-        });
-
-        it('returns undefined for missing files and maps without sourcePath data', () => {
-            expect(loadCoveragePathMap(path.join(tmpPath, 'nope.json'))).to.be.undefined;
-
-            const jsonPath = path.join(tmpPath, 'CodeCoverage.json');
-            fs.writeFileSync(jsonPath, JSON.stringify({ files: [{ sourceFile: './source/b.brs' }] }));
-            expect(loadCoveragePathMap(jsonPath)).to.be.undefined;
-        });
-    });
-
-    describe('resolveSourceRoot', () => {
-        let originalLog: typeof console.log;
-        let originalError: typeof console.error;
-        let logCalls: string[];
-        let errorCalls: string[];
-
-        beforeEach(() => {
-            originalLog = console.log;
-            originalError = console.error;
-            logCalls = [];
-            errorCalls = [];
-            console.log = (...args: any[]) => logCalls.push(args.join(' '));
-            console.error = (...args: any[]) => errorCalls.push(args.join(' '));
-        });
-
-        afterEach(() => {
-            console.log = originalLog;
-            console.error = originalError;
-        });
-
-        it('probes upward and finds the root one level above cwd', () => {
-            const monorepoRoot = path.join(tmpPath, 'monorepo');
-            const clientDir = path.join(monorepoRoot, 'client');
-            fsExtra.ensureDirSync(path.join(clientDir, 'src'));
-            fs.writeFileSync(path.join(clientDir, 'src', 'foo.bs'), '');
-
-            const originalCwd = process.cwd();
-            process.chdir(clientDir);
-            try {
-                const result = resolveSourceRoot(undefined, ['client/src/foo.bs']);
-                expect(s`${result}`).to.equal(s`${monorepoRoot}`);
-                expect(errorCalls).to.eql([]);
-                expect(logCalls).to.have.length(1);
-                expect(logCalls[0]).to.include('[rooibos]');
-                // lowercased: standardizePath lowercases the drive letter on Windows but the
-                // resolved root keeps whatever casing the OS reported.
-                expect(logCalls[0].toLowerCase()).to.include(monorepoRoot.toLowerCase());
-            } finally {
-                process.chdir(originalCwd);
-            }
-        });
-
-        it('uses cwd silently when a candidate resolves there', () => {
-            fsExtra.ensureDirSync(path.join(tmpPath, 'source'));
-            fs.writeFileSync(path.join(tmpPath, 'source', 'a.bs'), '');
-
-            const originalCwd = process.cwd();
-            process.chdir(tmpPath);
-            try {
-                const result = resolveSourceRoot(undefined, ['source/a.bs']);
-                expect(s`${result}`).to.equal(s`${tmpPath}`);
-                expect(logCalls).to.eql([]);
-                expect(errorCalls).to.eql([]);
-            } finally {
-                process.chdir(originalCwd);
-            }
-        });
-
-        it('lets an explicit root win even when it does not resolve, and warns', () => {
-            const explicitRoot = path.join(tmpPath, 'does-not-have-the-files');
-            const result = resolveSourceRoot(explicitRoot, ['source/a.bs']);
-            expect(s`${result}`).to.equal(s`${explicitRoot}`);
-            expect(logCalls).to.eql([]);
-            expect(errorCalls).to.have.length.greaterThan(0);
-            expect(errorCalls.join('\n')).to.include('--coverage-src-root');
-        });
-
-        it('emits the warning once, not per file, when nothing resolves anywhere', () => {
-            const result = resolveSourceRoot(undefined, [
-                'nonexistent-rooibos-fixture-a/one.bs',
-                'nonexistent-rooibos-fixture-a/two.bs',
-                'nonexistent-rooibos-fixture-a/three.bs'
-            ]);
-            expect(s`${result}`).to.equal(s`${process.cwd()}`);
-            expect(errorCalls.filter(line => line.includes('--coverage-src-root'))).to.have.length(1);
-        });
-
-        it('falls back to cwd without crashing for empty or all-absolute candidate lists', () => {
-            expect(s`${resolveSourceRoot(undefined, [])}`).to.equal(s`${process.cwd()}`);
-            expect(s`${resolveSourceRoot(undefined, [path.resolve(tmpPath, 'source/a.bs')])}`).to.equal(s`${process.cwd()}`);
-            expect(logCalls).to.eql([]);
-            expect(errorCalls).to.eql([]);
-        });
-    });
-
-    describe('writeCoverageReports', () => {
-        const rawLcov = [
-            'TN:',
-            'SF:./source/a.bs',
-            'FN:2,6,doThing',
-            'FNDA:4,doThing',
-            'FNF:1',
-            'FNH:1',
-            'BRDA:3,0,0,4',
-            'BRDA:3,0,1,0',
-            'BRF:2',
-            'BRH:1',
-            'DA:2,4',
-            'DA:3,4',
-            'DA:4,0',
-            'LF:3',
-            'LH:2',
-            'end_of_record'
-        ].join('\n');
-
-        function parse(lcovText: string): Promise<any[]> {
-            return new Promise((resolve, reject) => {
-                lcovParse.source(lcovText, (err: Error | null, data: any[]) => {
-                    return err ? reject(err instanceof Error ? err : new Error(String(err))) : resolve(data);
-                });
-            });
-        }
-
-        it('writes a strictly standard lcov.info with repo-relative SF paths from the path map', async () => {
-            const lcovPath = path.join(tmpPath, 'coverage', 'lcov.info');
-            await writeCoverageReports({
-                rawLcov: rawLcov,
-                lcovPath: lcovPath,
-                sourceRoot: tmpPath,
-                pathMap: new Map([['./source/a.bs', 'core/src/source/a.bs']])
-            });
-
-            const written = fs.readFileSync(lcovPath, 'utf8');
-            expect(written).to.include('SF:core/src/source/a.bs');
-            expect(written).to.include('FN:2,doThing');
-            expect(written).to.not.match(/^FN:\d+,\d+,/m);
-
-            // survives a strict lcov parse with the data intact
-            const [record] = await parse(written);
-            expect(record.file).to.equal('core/src/source/a.bs');
-            expect(record.lines.found).to.equal(3);
-            expect(record.lines.hit).to.equal(2);
-            expect(record.functions.found).to.equal(1);
-            expect(record.branches.found).to.equal(2);
-            expect(record.branches.hit).to.equal(1);
-        });
-
-        it('writes the canonical Istanbul coverage-final.json', async () => {
-            const istanbulJsonPath = path.join(tmpPath, 'coverage', 'coverage-final.json');
-            await writeCoverageReports({
-                rawLcov: rawLcov,
-                istanbulJsonPath: istanbulJsonPath,
-                sourceRoot: tmpPath,
-                pathMap: new Map([['./source/a.bs', 'core/src/source/a.bs']])
-            });
-
-            const data = JSON.parse(fs.readFileSync(istanbulJsonPath, 'utf8'));
-            const filePath = path.join(tmpPath, 'core', 'src', 'source', 'a.bs');
-            const fileCoverage = data[filePath];
-            expect(fileCoverage, `expected entry for ${filePath} in ${Object.keys(data).join(', ')}`).to.exist;
-            expect(fileCoverage.path).to.equal(filePath);
-            // the lcov wire carries no span detail - every DA row is a single-line statement
-            const spanStatement = Object.keys(fileCoverage.statementMap)
-                .map(key => fileCoverage.statementMap[key])
-                .find(loc => loc.start.line === 4);
-            expect(spanStatement.end.line).to.equal(4);
-            // block-grouped decisions render as if-type I/E badges
-            expect(fileCoverage.branchMap[0].type).to.equal('if');
-            expect(fileCoverage.b[0]).to.eql([4, 0]);
-            expect(fileCoverage.f[0]).to.equal(4);
-        });
-
-        it('falls back to sourceRoot-relative SF paths when there is no path map', async () => {
-            const lcovPath = path.join(tmpPath, 'coverage', 'lcov.info');
-            await writeCoverageReports({
-                rawLcov: rawLcov,
-                lcovPath: lcovPath,
-                sourceRoot: tmpPath
-            });
-
-            const written = fs.readFileSync(lcovPath, 'utf8');
-            expect(written).to.include('SF:source/a.bs');
         });
     });
 
@@ -413,8 +155,9 @@ describe('CoverageReporter', () => {
     });
 
     describe('writeCoverageReportsFromCounts', () => {
-        function makeModel(): CoverageModelJson {
+        function makeModel(sourceRoot?: string): CoverageModelJson {
             return {
+                sourceRoot: sourceRoot,
                 files: [{
                     sourceFile: 'source/a.bs',
                     sourcePath: 'core/source/a.bs',
@@ -432,42 +175,58 @@ describe('CoverageReporter', () => {
         }
         const rawCounts = '{"v":1}\n{"i":0,"l":{"0":7},"f":{"0":7},"b":{}}';
 
-        it('lcov mode writes the strict lcov and Istanbul JSON', async () => {
-            const lcovPath = path.join(tmpPath, 'coverage', 'lcov.info');
+        it('writes lcov.info, coverage-final.json and html/index.html into outputDir', async () => {
+            const outputDir = path.join(tmpPath, 'coverage');
             await writeCoverageReportsFromCounts({
                 rawCounts: rawCounts,
-                model: makeModel(),
-                reporter: 'lcov',
-                lcovPath: lcovPath,
-                istanbulJsonPath: path.join(tmpPath, 'coverage', 'coverage-final.json'),
-                sourceRoot: tmpPath
+                model: makeModel(tmpPath),
+                outputDir: outputDir
             });
 
-            const written = fs.readFileSync(lcovPath, 'utf8');
+            const written = fs.readFileSync(path.join(outputDir, 'lcov.info'), 'utf8');
             expect(written).to.include('SF:core/source/a.bs');
             expect(written).to.include('DA:2,7');
             expect(written).to.include('DA:3,0');
             expect(written).to.include('FN:1,doThing');
-            const json = JSON.parse(fs.readFileSync(path.join(tmpPath, 'coverage', 'coverage-final.json'), 'utf8'));
+
+            const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'coverage-final.json'), 'utf8'));
             expect(json[path.join(tmpPath, 'core', 'source', 'a.bs')].f[0]).to.equal(7);
+
+            expect(fs.existsSync(path.join(outputDir, 'html', 'index.html'))).to.be.true;
         });
 
-        it('nyc mode runs nyc report, producing lcov.info and the lcov-report HTML dir', async function test() {
-            this.timeout(20000);
-            const coverageDir = path.join(tmpPath, 'coverage');
+        it('resolves source root from model.sourceRoot', async () => {
+            const outputDir = path.join(tmpPath, 'coverage');
+            await writeCoverageReportsFromCounts({
+                rawCounts: rawCounts,
+                model: makeModel(tmpPath),
+                outputDir: outputDir
+            });
+
+            const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'coverage-final.json'), 'utf8'));
+            const keys = Object.keys(json);
+            expect(keys).to.have.length(1);
+            expect(keys[0]).to.equal(path.join(tmpPath, 'core', 'source', 'a.bs'));
+            expect(json[keys[0]].path).to.equal(path.join(tmpPath, 'core', 'source', 'a.bs'));
+
+            const written = fs.readFileSync(path.join(outputDir, 'lcov.info'), 'utf8');
+            expect(written).to.include('SF:core/source/a.bs');
+            expect(fs.existsSync(path.join(outputDir, 'html', 'index.html'))).to.be.true;
+        });
+
+        it('falls back to process.cwd() when model.sourceRoot is absent', async () => {
+            const outputDir = path.join(tmpPath, 'coverage');
             await writeCoverageReportsFromCounts({
                 rawCounts: rawCounts,
                 model: makeModel(),
-                reporter: 'nyc',
-                lcovPath: path.join(coverageDir, 'lcov.info'),
-                istanbulJsonPath: path.join(coverageDir, 'coverage-final.json'),
-                sourceRoot: tmpPath
+                outputDir: outputDir
             });
 
-            const written = fs.readFileSync(path.join(coverageDir, 'lcov.info'), 'utf8');
-            expect(written).to.include('DA:2,7');
-            expect(written).to.include('FN:1,doThing');
-            expect(fs.existsSync(path.join(coverageDir, 'lcov-report', 'index.html'))).to.be.true;
+            const json = JSON.parse(fs.readFileSync(path.join(outputDir, 'coverage-final.json'), 'utf8'));
+            const keys = Object.keys(json);
+            expect(keys).to.have.length(1);
+            expect(keys[0]).to.equal(path.resolve(process.cwd(), 'core', 'source', 'a.bs'));
+            expect(fs.existsSync(path.join(outputDir, 'html', 'index.html'))).to.be.true;
         });
     });
 

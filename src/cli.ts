@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import type { CoverageMap as CoverageModelJson } from './lib/rooibos/CodeCoverageProcessor';
-import { loadCoverageModel, pathMapFromModel, writeCoverageReports, writeCoverageReportsFromCounts } from './lib/rooibos/CoverageReporter';
+import { loadCoverageModel, writeCoverageReportsFromCounts } from './lib/rooibos/CoverageReporter';
 
 /**
  * Load simple `KEY=value` pairs from a .env file into process.env, without
@@ -44,9 +44,7 @@ let options = yargs
     .option('host', { type: 'string', description: 'Host of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
-    .option('coverage-output', { type: 'string', description: 'Path to write the standard lcov.info file. The canonical Istanbul coverage-final.json is written next to it. Defaults to ./coverage/lcov.info when coverage markers are seen.' })
-    .option('coverage-html', { type: 'string', description: 'Directory to render an Istanbul-style HTML report into after coverage is captured.' })
-    .option('coverage-src-root', { type: 'string', description: 'Repository root of the app under test: lcov SF paths are emitted relative to it and source files are resolved beneath it. Defaults to the current working directory.' })
+    .option('coverage-dir', { type: 'string', default: './coverage', description: 'Directory to write coverage reports into when isRecordingCodeCoverage is on: lcov.info, coverage-final.json and an html/ report.' })
     .option('staging-dir', { type: 'string', description: 'Path to the built package directory (staging output). With --no-build this is zipped and deployed as-is; otherwise it overrides where the build stages. Coverage models are read from here.' })
     .option('build', { type: 'boolean', default: true, description: 'Pass --no-build to skip the internal bsc build and deploy an existing staging directory (from --staging-dir or the bsconfig). Assumes it was built with the rooibos plugin so coverage helpers are present.' })
     .check((argv) => {
@@ -152,11 +150,7 @@ async function main() {
     const failRegex = /\[Rooibos Result\]: (FAIL|PASS)/g;
     const endRegex = /\[Rooibos Shutdown\]/g;
 
-    const coverageOutputPath = path.resolve(options['coverage-output'] ?? './coverage/lcov.info');
-    // The user's rooibos config decides how coverage is reported ('lcov' | 'nyc'). When
-    // set, the device prints the condensed counts stream instead of lcov text.
-    const coverageReporter = (rawConfig as any).rooibos?.coverageReporter as string | undefined;
-    let capturingCoverage = false;
+    const outputDir = path.resolve(options['coverage-dir']);
     let capturingCounts = false;
     let coverageBuffer: string[] = [];
     let coverageReportPromise: Promise<void> | undefined;
@@ -178,52 +172,28 @@ async function main() {
         return undefined;
     }
 
-    /** Dumps the raw device stream next to the lcov target so a capture is never lost. */
-    function saveRawCapture(raw: string, suffix: string) {
-        const rawPath = `${coverageOutputPath}.${suffix}`;
+    /** Dumps the raw device stream into the output dir so a capture is never lost. */
+    function saveRawCapture(raw: string) {
+        const rawPath = path.join(outputDir, 'coverage-counts.raw');
         fsExtra.outputFileSync(rawPath, raw);
         console.error(`[rooibos] raw coverage output saved to ${rawPath}`);
     }
 
-    /** Legacy path: the device printed a full lcov report (printLcov flag). */
-    function writeCoverageFromLcov(rawLcov: string) {
-        const pathMap = pathMapFromModel(findCoverageModel());
-        if (!pathMap) {
-            console.log('[rooibos] no coverage path map found; lcov SF paths fall back to pkg-relative locations');
-        }
-        coverageReportPromise = writeCoverageReports({
-            rawLcov: rawLcov,
-            lcovPath: coverageOutputPath,
-            istanbulJsonPath: path.join(path.dirname(coverageOutputPath), 'coverage-final.json'),
-            htmlDir: options['coverage-html'],
-            sourceRoot: options['coverage-src-root'],
-            pathMap: pathMap
-        }).catch(e => {
-            console.error('[rooibos] failed to write coverage reports:', e);
-            saveRawCapture(rawLcov, 'raw');
-        });
-    }
-
-    /** coverageReporter path: the device printed the condensed hit-counts stream. */
+    /** The device printed the condensed hit-counts stream. */
     function writeCoverageFromCounts(rawCounts: string) {
         const model = findCoverageModel();
         if (!model) {
             console.error('[rooibos] the device sent condensed coverage counts but no components/rooibos/CodeCoverage.json was found in the package or staging dir - cannot build coverage reports');
-            saveRawCapture(rawCounts, 'counts.raw');
+            saveRawCapture(rawCounts);
             return;
         }
-        const reporter = coverageReporter === 'nyc' ? 'nyc' : 'lcov';
         coverageReportPromise = writeCoverageReportsFromCounts({
             rawCounts: rawCounts,
             model: model,
-            reporter: reporter,
-            lcovPath: coverageOutputPath,
-            istanbulJsonPath: path.join(path.dirname(coverageOutputPath), 'coverage-final.json'),
-            htmlDir: options['coverage-html'],
-            sourceRoot: options['coverage-src-root']
+            outputDir: outputDir
         }).catch(e => {
             console.error('[rooibos] failed to write coverage reports:', e);
-            saveRawCapture(rawCounts, 'counts.raw');
+            saveRawCapture(rawCounts);
         });
     }
 
@@ -251,17 +221,7 @@ async function main() {
                 writeCoverageFromCounts(coverageBuffer.join('\n'));
                 continue;
             }
-            if (line.includes('+-=-coverage:start')) {
-                capturingCoverage = true;
-                coverageBuffer = [];
-                continue;
-            }
-            if (line.includes('+-=-coverage:end')) {
-                capturingCoverage = false;
-                writeCoverageFromLcov(coverageBuffer.join('\n'));
-                continue;
-            }
-            if (capturingCoverage || capturingCounts) {
+            if (capturingCounts) {
                 coverageBuffer.push(line);
             }
         }

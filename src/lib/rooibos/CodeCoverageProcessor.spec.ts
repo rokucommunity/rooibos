@@ -241,6 +241,12 @@ describe('RooibosPlugin', () => {
                 // self-consistent. sourcePath is the new repo-relative field.
                 expect(report.files[0].sourceFile.replace(/^\.\//, '')).to.equal('source/code.brs');
                 expect(report.files[0].sourcePath).to.equal(expected);
+                // sourceRoot is recorded once per program: the git root above rootDir, or
+                // rootDir itself when there is no git checkout. Compare through
+                // standardizePath on both sides - Windows drive-letter casing otherwise
+                // makes a raw string comparison flaky in CI (see commit 4de47d16).
+                expect(s`${report.sourceRoot}`).to.equal(s`${gitRoot}`);
+                expect(s`${path.resolve(report.sourceRoot, report.files[0].sourcePath)}`).to.equal(s`${_rootDir}/source/code.brs`);
             });
 
             it('records the clause column range for inline if arms', async () => {
@@ -1730,7 +1736,7 @@ describe('RooibosPlugin', () => {
             });
 
             it('splits long elseif chains into nested fresh chains (per-chain &hae cap)', async () => {
-                (plugin as any).codeCoverageProcessor.config.coverageMaxIfChainArms = 3;
+                (plugin as any).codeCoverageProcessor.limits.maxChainArms = 3;
                 let arms = '';
                 for (let i = 1; i <= 8; i++) {
                     arms += `${i === 1 ? 'if' : 'else if'} v = ${i}\n    m.x = ${i}\n`;
@@ -1756,7 +1762,7 @@ describe('RooibosPlugin', () => {
             });
 
             it('falls back to function-only coverage when a file would break the 2MiB cap', async () => {
-                (plugin as any).codeCoverageProcessor.config.coverageMaxFileBytes = 10;
+                (plugin as any).codeCoverageProcessor.limits.maxFileBytes = 10;
                 program.setFile('source/code.bs', `
                     function classify(value as integer) as string
                         if value > 0 then
@@ -1779,7 +1785,7 @@ describe('RooibosPlugin', () => {
             });
 
             it('tracks class methods in function-only mode (methods dispatch as MethodStatement)', async () => {
-                (plugin as any).codeCoverageProcessor.config.coverageMaxFileBytes = 10;
+                (plugin as any).codeCoverageProcessor.limits.maxFileBytes = 10;
                 program.setFile('source/code.bs', `
                     class Calculator
                         function add(a as integer, b as integer) as integer

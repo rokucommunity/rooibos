@@ -68,10 +68,6 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.isRecordingCodeCoverage === undefined) {
             config.isRecordingCodeCoverage = false;
         }
-        if (config.coverageReporter !== undefined && !['lcov', 'nyc'].includes(config.coverageReporter)) {
-            console.warn(`[rooibos] ignoring unknown coverageReporter "${config.coverageReporter}" - expected "lcov" or "nyc"`);
-            delete config.coverageReporter;
-        }
         if (config.isGlobalMethodMockingEnabled === undefined) {
             config.isGlobalMethodMockingEnabled = false;
         }
@@ -162,7 +158,7 @@ export class RooibosPlugin implements CompilerPlugin {
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         // coverage ids are transpile-order counters; a program can transpile more than
         // once, so all cross-file coverage state resets per pass
-        this.codeCoverageProcessor.onBeforeProgramTranspile();
+        this.codeCoverageProcessor.onBeforeProgramTranspile(program);
         this.session.prepareForTranspile(editor, program, this.mockUtil);
     }
 

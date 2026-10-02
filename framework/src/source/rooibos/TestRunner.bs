@@ -118,11 +118,11 @@ namespace rooibos
                 if coverageResults <> invalid then
                     rooibos.Coverage.reportCodeCoverage(coverageResults)
 
-                    ' coverageReporter overrides the legacy printLcov flag: print the condensed
-                    ' hit-counts stream and let the host CLI build lcov/nyc reports from it
-                    if m.config.coverageReporter <> invalid and m.config.coverageReporter <> "" then
-                        rooibos.Coverage.printCoverageCounts(coverageResults)
-                    else if m.config.printLcov = true then
+                    ' Always print the condensed hit-counts stream; the host rooibos CLI
+                    ' builds its lcov/coverage-final.json/html reports from it. printLcov is
+                    ' an additional, human-readable lcov report printed to the console.
+                    rooibos.Coverage.printCoverageCounts(coverageResults)
+                    if m.config.printLcov = true then
                         rooibos.Coverage.printLCovInfo(coverageResults)
                     end if
                 end if

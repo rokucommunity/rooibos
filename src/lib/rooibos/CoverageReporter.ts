@@ -4,57 +4,29 @@ import * as path from 'path';
 import * as libCoverage from 'istanbul-lib-coverage';
 import * as libReport from 'istanbul-lib-report';
 import * as reports from 'istanbul-reports';
-import { spawnSync } from 'child_process';
 import type { CoverageMapData, FileCoverageData, Range as IstanbulRange } from 'istanbul-lib-coverage';
 import type { CoverageMap as CoverageMapJson } from './CodeCoverageProcessor';
-// lcov-parse ships no type declarations
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-const lcovParse = require('lcov-parse');
 
 /**
- * Turns the raw coverage text captured from the rooibos framework into host-side report
- * artifacts. Mirrors nyc's architecture: the canonical rich format is an Istanbul coverage
- * map (ranges with columns), everything else is an export of it.
+ * Turns the condensed hit-counts stream captured from the rooibos framework into host-side
+ * report artifacts. The canonical rich format is an Istanbul coverage map (ranges with
+ * columns), everything else is an export of it.
  *
  *  - `coverage-final.json` - the canonical Istanbul JSON, full fidelity (multi-line
  *    statement ranges, branch arm columns). Consumable by the whole istanbul ecosystem
  *    (nyc report, VSCode gutters, merge tooling).
  *  - `lcov.info` - strictly-standard lossy export written by istanbul's own `lcovonly`
  *    reporter (2-arg FN rows, no vendor extensions). Safe for Coveralls, genhtml, or any
- *    strict lcov parser. SF paths are repo-relative when the build-time path map is
- *    available.
+ *    strict lcov parser.
  *  - HTML report - stock istanbul rendering of the canonical map, zero post-processing;
  *    the pages are exactly what nyc produces for a TS project. (Prettify highlights the
  *    BrightScript with its JS lexer - imperfect but accepted; a lang-bs.js prettify
  *    extension is the future path to proper highlighting.)
  *
- * The wire format from the device is deliberately plain lcov text - rich detail
- * (statement spans, branch arm columns) lives in the static CodeCoverage.json model and
- * flows through the condensed-counts channel when `coverageReporter` is set; this legacy
- * lcov path renders with line/indent anchors only.
+ * Rich detail (statement spans, branch arm columns) lives in the static
+ * CodeCoverage.json model and flows through the condensed-counts channel, which is always
+ * emitted when `isRecordingCodeCoverage` is on.
  */
-
-interface LcovLineDetail {
-    line: number;
-    hit: number;
-}
-interface LcovFunctionDetail {
-    line: number;
-    hit?: number;
-    name: string;
-}
-interface LcovBranchDetail {
-    line: number;
-    block: number;
-    branch: number;
-    taken?: number;
-}
-export interface LcovFileRecord {
-    file: string;
-    lines: { details?: LcovLineDetail[] };
-    functions: { details?: LcovFunctionDetail[] };
-    branches: { details?: LcovBranchDetail[] };
-}
 
 /** Reads a source file's lines lazily; shared so column lookups don't re-read files. */
 export class SourceCache {
@@ -102,20 +74,6 @@ export class SourceCache {
 }
 
 /**
- * Normalizes console-captured lcov text for lcov-parse: collapses modern 3-arg
- * `FN:start,end,name` rows to the 2-arg form it understands, and strips CR from
- * CRLF output.
- */
-export function normalizeLcovText(rawText: string): string {
-    return rawText
-        .replace(/^FN:(\d+),\d+,(.+)$/gm, 'FN:$1,$2')
-        .replace(/\r/g, '');
-}
-
-/** pkg-relative `sourceFile` -> repo-relative `sourcePath`, recorded at build time. */
-export type CoveragePathMap = Map<string, string>;
-
-/**
  * Loads the static coverage model the bsc plugin wrote into
  * `components/rooibos/CodeCoverage.json` (the same file the device parses at runtime).
  * Returns undefined when the file is missing or unparseable.
@@ -127,26 +85,6 @@ export function loadCoverageModel(codeCoverageJsonPath: string): CoverageMapJson
     } catch {
         return undefined;
     }
-}
-
-/**
- * Derives the pkg-path -> repo-path map from the coverage model. Returns undefined when
- * the model is absent or predates the `sourcePath` field - consumers then fall back to
- * resolving the device's pkg-relative SF paths directly.
- */
-export function loadCoveragePathMap(codeCoverageJsonPath: string): CoveragePathMap | undefined {
-    return pathMapFromModel(loadCoverageModel(codeCoverageJsonPath));
-}
-
-/** The model's pkg-relative sourceFile -> repo-relative sourcePath entries as a map. */
-export function pathMapFromModel(model: CoverageMapJson | undefined): CoveragePathMap | undefined {
-    const map = new Map<string, string>();
-    for (const file of model?.files ?? []) {
-        if (file?.sourceFile && file.sourcePath) {
-            map.set(file.sourceFile, file.sourcePath);
-        }
-    }
-    return map.size > 0 ? map : undefined;
 }
 
 function pointAt(line: number, column: number): IstanbulRange {
@@ -204,48 +142,6 @@ function addBranchEntry(fileCoverage: FileCoverageData, index: number, type: 'if
         locations: locations
     };
     fileCoverage.b[index] = hits;
-}
-
-/**
- * Builds one canonical Istanbul FileCoverage from an lcov record. Statements and branch
- * arms anchor by line/indent - the lcov wire carries no column or span detail (that
- * fidelity comes via the condensed-counts channel and the static model instead). Pure
- * transform (aside from source reads for badge columns) - unit-testable without
- * rendering anything.
- */
-export function buildFileCoverage(record: LcovFileRecord, resolvedPath: string, sourceCache: SourceCache): FileCoverageData {
-    const fileCoverage = emptyFileCoverage(resolvedPath);
-
-    (record.lines.details ?? []).forEach((line, index) => {
-        addStatementEntry(fileCoverage, index, line.line, line.line, line.hit);
-    });
-
-    (record.functions.details ?? []).forEach((fn, index) => {
-        addFunctionEntry(fileCoverage, index, fn.name, fn.line, fn.hit ?? 0, resolvedPath, sourceCache);
-    });
-
-    // Group branches by `block` so paired then/else (and other multi-arm decisions)
-    // become a single Istanbul branch entry with multiple locations - this is what
-    // produces the I/E badges in the HTML report when one outcome is missed.
-    const branchesByBlock = new Map<number, LcovBranchDetail[]>();
-    for (const branch of record.branches.details ?? []) {
-        const list = branchesByBlock.get(branch.block) ?? [];
-        list.push(branch);
-        branchesByBlock.set(branch.block, list);
-    }
-
-    let branchIndex = 0;
-    for (const branches of branchesByBlock.values()) {
-        branches.sort((a, b) => a.branch - b.branch);
-        // The lcov wire has no arm columns, so every decision renders as type 'if' with
-        // I/E badges at line/indent anchors (the cond-expr yellow-wrap treatment needs
-        // the column detail that only the counts channel carries).
-        const locations = branches.map(b => pointAt(b.line, sourceCache.getIndentColumn(resolvedPath, b.line)));
-        addBranchEntry(fileCoverage, branchIndex, 'if', branches.map(b => b.line), locations, branches.map(b => b.taken ?? 0), resolvedPath, sourceCache);
-        branchIndex++;
-    }
-
-    return fileCoverage;
 }
 
 /**
@@ -370,129 +266,6 @@ export function buildCoverageDataFromModel(model: CoverageMapJson, counts: Conde
     return data;
 }
 
-function parseLcov(text: string): Promise<LcovFileRecord[]> {
-    return new Promise((resolve, reject) => {
-        lcovParse.source(text, (err: Error | null, data: LcovFileRecord[]) => {
-            if (err) {
-                reject(err instanceof Error ? err : new Error(String(err)));
-            } else {
-                resolve(data);
-            }
-        });
-    });
-}
-
-/** Most candidate paths we bother testing when probing for the source root. */
-const MAX_ROOT_PROBE_CANDIDATES = 25;
-/** How far above the cwd we're willing to walk looking for the source root. */
-const MAX_ROOT_PROBE_DEPTH = 20;
-
-/** True when at least one of the candidate relative paths exists beneath `dir`. */
-function anyCandidateExistsUnder(dir: string, candidates: string[]): boolean {
-    return candidates.some((candidate) => fs.existsSync(path.resolve(dir, candidate)));
-}
-
-/**
- * One actionable message instead of a per-file wall of istanbul ENOENT stack traces
- * rendered as source code in the HTML report.
- */
-function warnUnresolvedSourceRoot(sourceRoot: string, candidates: string[]) {
-    const tried = candidates.length > 0 ? path.resolve(sourceRoot, candidates[0]) : '(no source paths in the coverage model)';
-    console.error(`[rooibos] none of the coverage model's source files were found under ${sourceRoot}`);
-    console.error(`[rooibos]   tried: ${tried}`);
-    console.error('[rooibos]   the report will be written but source lookups will fail; pass --coverage-src-root <repo root> to fix it');
-}
-
-/**
- * Works out which directory the coverage model's relative source paths hang off.
- *
- * The model stores paths relative to the git root found at *build* time, but reports are
- * generated by a separate CLI invocation whose cwd need not be that root - `--no-build`
- * against a monorepo makes them differ easily. Rather than trust either one blindly, we
- * pick the root that actually has the files on disk.
- *
- * Precedence: an explicit root always wins (we only validate it and warn), then the cwd,
- * then the nearest ancestor of the cwd that resolves, and finally the cwd with a warning.
- */
-export function resolveSourceRoot(explicitRoot: string | undefined, relativePaths: string[]): string {
-    // pkg-relative fallbacks like `./components/...` never exist on disk, so test every
-    // candidate against each directory rather than letting the first one decide.
-    const candidates = relativePaths
-        .filter((p) => !!p && !path.isAbsolute(p))
-        .slice(0, MAX_ROOT_PROBE_CANDIDATES);
-
-    if (explicitRoot) {
-        const resolved = path.resolve(explicitRoot);
-        if (candidates.length > 0 && !anyCandidateExistsUnder(resolved, candidates)) {
-            warnUnresolvedSourceRoot(resolved, candidates);
-        }
-        return resolved;
-    }
-
-    const cwd = path.resolve(process.cwd());
-    if (candidates.length === 0 || anyCandidateExistsUnder(cwd, candidates)) {
-        return cwd;
-    }
-
-    let dir = cwd;
-    for (let depth = 0; depth < MAX_ROOT_PROBE_DEPTH; depth++) {
-        const parent = path.dirname(dir);
-        if (parent === dir) {
-            break;
-        }
-        dir = parent;
-        if (anyCandidateExistsUnder(dir, candidates)) {
-            console.log(`[rooibos] detected coverage source root ${dir} (pass --coverage-src-root to override)`);
-            return dir;
-        }
-    }
-
-    warnUnresolvedSourceRoot(cwd, candidates);
-    return cwd;
-}
-
-export interface CoverageReportOptions {
-    /** Raw lcov text captured from the device console */
-    rawLcov: string;
-    /** Path to write the strictly-standard lcov.info. Skipped when undefined. */
-    lcovPath?: string;
-    /** Path to write the canonical Istanbul coverage-final.json. Skipped when undefined. */
-    istanbulJsonPath?: string;
-    /** Directory to render the HTML report into. Skipped when undefined. */
-    htmlDir?: string;
-    /**
-     * Repository root of the app under test (default: an auto-detected root - see
-     * {@link resolveSourceRoot}). lcov SF paths are emitted relative to it and source
-     * files are resolved beneath it.
-     */
-    sourceRoot?: string;
-    /** Build-time pkg-path -> repo-path map (see {@link loadCoveragePathMap}) */
-    pathMap?: CoveragePathMap;
-}
-
-/**
- * Parses the captured device output once into a canonical Istanbul coverage map, then
- * writes whichever artifacts were requested (see the module doc for what each one is).
- */
-export async function writeCoverageReports(options: CoverageReportOptions): Promise<void> {
-    const records = await parseLcov(normalizeLcovText(options.rawLcov));
-    const sourceRoot = resolveSourceRoot(options.sourceRoot, records.map(record => options.pathMap?.get(record.file) ?? record.file));
-
-    const sourceCache = new SourceCache();
-    const coverageData: CoverageMapData = {};
-    for (const record of records) {
-        // Prefer the build-time repo-relative path; fall back to treating the device's SF
-        // path (pkg-relative `./components/...`) as sourceRoot-relative.
-        const relativePath = options.pathMap?.get(record.file) ?? record.file;
-        const resolvedPath = path.isAbsolute(relativePath) ? relativePath : path.resolve(sourceRoot, relativePath);
-        coverageData[resolvedPath] = buildFileCoverage(record, resolvedPath, sourceCache);
-    }
-
-    emitIstanbulJson(coverageData, options.istanbulJsonPath);
-    emitLcov(coverageData, options.lcovPath, sourceRoot);
-    emitHtml(coverageData, options.htmlDir);
-}
-
 function emitIstanbulJson(coverageData: CoverageMapData, outputPath: string | undefined) {
     if (!outputPath) {
         return;
@@ -546,88 +319,24 @@ export interface CountsReportOptions {
     rawCounts: string;
     /** The static coverage model from components/rooibos/CodeCoverage.json */
     model: CoverageMapJson;
-    /** Which reporter the user configured (rooibos config `coverageReporter`) */
-    reporter: 'lcov' | 'nyc';
-    /** Path for the lcov.info (basename respected in both modes) */
-    lcovPath?: string;
-    /** Path for the canonical Istanbul coverage-final.json */
-    istanbulJsonPath?: string;
-    /** Directory for the rooibos-rendered HTML report (optional in both modes) */
-    htmlDir?: string;
-    /** Repository root of the app under test (default: an auto-detected root - see {@link resolveSourceRoot}) */
-    sourceRoot?: string;
+    /** Directory that receives lcov.info, coverage-final.json and html/. */
+    outputDir: string;
 }
 
 /**
- * Builds the canonical Istanbul map from the static model + condensed device counts,
- * then reports per the user's `coverageReporter` setting:
- *  - 'lcov': same artifacts as the lcov capture path (strict lcov.info,
- *    coverage-final.json, optional HTML).
- *  - 'nyc': writes coverage-final.json and runs `nyc report` over it with the lcov and
- *    text-summary reporters - nyc's lcov reporter also produces an lcov.info and an
- *    lcov-report/ HTML directory as part of its output.
+ * Builds the canonical Istanbul map from the static model + condensed device counts, then
+ * unconditionally writes lcov.info, coverage-final.json and an html/ report into
+ * `options.outputDir`.
  */
 export async function writeCoverageReportsFromCounts(options: CountsReportOptions): Promise<void> {
-    const sourceRoot = resolveSourceRoot(options.sourceRoot, options.model.files.map(file => file?.sourcePath ?? file?.sourceFile));
+    const sourceRoot = path.resolve(options.model.sourceRoot ?? process.cwd());
     const counts = parseCoverageCounts(options.rawCounts);
     const coverageData = buildCoverageDataFromModel(options.model, counts, sourceRoot);
+    const outputDir = path.resolve(options.outputDir);
 
-    emitIstanbulJson(coverageData, options.istanbulJsonPath);
-
-    if (options.reporter === 'nyc') {
-        runNycReport(options, coverageData, sourceRoot);
-    } else {
-        emitLcov(coverageData, options.lcovPath, sourceRoot);
-    }
-    emitHtml(coverageData, options.htmlDir);
+    emitIstanbulJson(coverageData, path.join(outputDir, 'coverage-final.json'));
+    emitLcov(coverageData, path.join(outputDir, 'lcov.info'), sourceRoot);
+    emitHtml(coverageData, path.join(outputDir, 'html'));
     return Promise.resolve();
-}
-
-/**
- * Runs `nyc report` over the emitted coverage-final.json. nyc's temp dir is the folder
- * holding the JSON; its report dir is the lcov target's folder. `--exclude-after-remap`
- * must be off or nyc's post-remap filter silently drops non-JS extensions (.bs/.brs).
- */
-function runNycReport(options: CountsReportOptions, coverageData: CoverageMapData, sourceRoot: string) {
-    const istanbulJsonPath = path.resolve(options.istanbulJsonPath ?? 'coverage/coverage-final.json');
-    const reportDir = path.dirname(path.resolve(options.lcovPath ?? istanbulJsonPath));
-    let nycBin: string;
-    try {
-        nycBin = require.resolve('nyc/bin/nyc.js');
-    } catch {
-        console.error('[rooibos] nyc is not installed; falling back to the built-in lcov writer');
-        emitLcov(coverageData, options.lcovPath, sourceRoot);
-        return;
-    }
-    const args = [
-        nycBin, 'report',
-        '--temp-dir', path.dirname(istanbulJsonPath),
-        '--report-dir', reportDir,
-        '--reporter=lcov',
-        '--reporter=text-summary',
-        '--exclude-after-remap=false',
-        '--cwd', sourceRoot
-    ];
-    console.log(`[rooibos] running nyc report (reporters: lcov, text-summary) into ${reportDir}`);
-    const result = spawnSync(process.execPath, args, { stdio: 'inherit' });
-    if (result.status !== 0) {
-        console.error(`[rooibos] nyc report exited with ${result.status}; falling back to the built-in lcov writer`);
-        emitLcov(coverageData, options.lcovPath, sourceRoot);
-        return;
-    }
-    // nyc hardcodes the file name lcov.info inside its report dir; honor a custom
-    // --coverage-output basename by renaming.
-    if (options.lcovPath) {
-        const requested = path.resolve(options.lcovPath);
-        const nycLcov = path.join(reportDir, 'lcov.info');
-        if (requested !== nycLcov && fs.existsSync(nycLcov)) {
-            fs.renameSync(nycLcov, requested);
-        }
-        console.log(`[rooibos] wrote lcov to ${fs.existsSync(requested) ? requested : nycLcov}`);
-    }
-    const lcovReportDir = path.join(reportDir, 'lcov-report');
-    if (fs.existsSync(lcovReportDir)) {
-        console.log(`[rooibos] nyc HTML report written to ${lcovReportDir}`);
-    }
 }
 

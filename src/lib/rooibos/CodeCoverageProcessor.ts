@@ -121,8 +121,12 @@ export class CodeCoverageProcessor {
         this.fileId = 0;
         this.fileFactory = fileFactory;
         this.processedFunctions = new Set<FunctionExpression>();
+        if (builder.program) {
+            this.projectRoot = this.resolveProjectRoot(builder.program);
+        }
         this.baseCoverageReport = {
-            files: []
+            files: [],
+            sourceRoot: this.projectRoot
         };
     }
 
@@ -150,6 +154,8 @@ export class CodeCoverageProcessor {
     private static readonly MAX_HELPER_PARAMS = 16;
 
     private baseCoverageReport: CoverageMap;
+    /** Absolute project root every `FileCoverage.sourcePath` is recorded relative to. Resolved once per program. */
+    private projectRoot: string;
     private config: RooibosConfig;
     private fileId: number;
     private blockId: number;
@@ -190,17 +196,27 @@ export class CodeCoverageProcessor {
      * files whose projected post-instrumentation size would break Roku's 2MiB file cap.
      */
     private fileMode: 'full' | 'functionOnly';
+    /**
+     * Internal instrumentation thresholds. These are deliberately not part of the public
+     * rooibos config surface - the instrumentation reshapes itself automatically against
+     * Roku's limits, and these exist so tests can force the reshaping paths.
+     */
+    private limits = {
+        expressionBudget: CodeCoverageProcessor.DEFAULT_EXPRESSION_BUDGET,
+        maxChainArms: CodeCoverageProcessor.DEFAULT_MAX_CHAIN_ARMS,
+        maxFileBytes: CodeCoverageProcessor.DEFAULT_MAX_FILE_BYTES
+    };
 
     private get expressionBudget(): number {
-        return this.config.coverageMaxExpressionComplexity ?? CodeCoverageProcessor.DEFAULT_EXPRESSION_BUDGET;
+        return this.limits.expressionBudget;
     }
 
     private get maxChainArms(): number {
-        return this.config.coverageMaxIfChainArms ?? CodeCoverageProcessor.DEFAULT_MAX_CHAIN_ARMS;
+        return this.limits.maxChainArms;
     }
 
     private get maxFileBytes(): number {
-        return this.config.coverageMaxFileBytes ?? CodeCoverageProcessor.DEFAULT_MAX_FILE_BYTES;
+        return this.limits.maxFileBytes;
     }
 
     public generateMetadata(isUsingCoverage: boolean, program: Program) {
@@ -221,11 +237,13 @@ export class CodeCoverageProcessor {
      * against the wrong file's model entry (e.g. a branch entry for a file whose model
      * has no blocks - a device crash).
      */
-    public onBeforeProgramTranspile() {
+    public onBeforeProgramTranspile(program: Program) {
         this.fileId = 0;
         this.processedFunctions = new Set<FunctionExpression>();
+        this.projectRoot = this.resolveProjectRoot(program);
         this.baseCoverageReport = {
-            files: []
+            files: [],
+            sourceRoot: this.projectRoot
         };
     }
 
@@ -651,51 +669,44 @@ export class CodeCoverageProcessor {
         }
     }
 
-    /** dir -> git repo root (or undefined when none found); avoids re-walking per file */
-    private gitRootCache = new Map<string, string | undefined>();
+    /**
+     * Resolves the single project root every `FileCoverage.sourcePath` is recorded relative
+     * to: the git root above the program's `rootDir`, or `rootDir` itself when there is no
+     * git checkout. Called once per program rather than per file - build and test run are
+     * now expected to happen on the same machine, so this root is recorded into the model
+     * for the CLI to read back instead of being re-derived (or guessed) at report time.
+     */
+    private resolveProjectRoot(program: Program): string {
+        const rootDir = path.resolve(program.options.rootDir ?? process.cwd());
+        return this.findGitRoot(rootDir) ?? rootDir;
+    }
 
     /**
-     * Repo-relative path of the original source file, recorded so host-side tooling can map
-     * pkg paths back to real repository paths (Coveralls SF rewriting, HTML source
-     * resolution). Found by walking up from the file to the nearest `.git`. Undefined when
-     * the file isn't inside a git checkout - consumers fall back to the pkg path.
+     * Path of the original source file relative to `this.projectRoot` (posix separators),
+     * recorded so host-side tooling can map pkg paths back to real repository paths
+     * (Coveralls SF rewriting, HTML source resolution). Files outside the project root
+     * resolve to a `../`-prefixed path, which still resolves correctly on disk. Undefined
+     * only when `srcPath` itself is undefined.
      */
     private repoRelativeSourcePath(srcPath: string | undefined): string | undefined {
         if (!srcPath) {
             return undefined;
         }
-        const root = this.findGitRoot(path.dirname(path.resolve(srcPath)));
-        if (!root) {
-            return undefined;
-        }
-        return path.relative(root, path.resolve(srcPath)).replace(/\\/g, '/');
+        return path.relative(this.projectRoot, path.resolve(srcPath)).replace(/\\/g, '/');
     }
 
     private findGitRoot(startDir: string): string | undefined {
-        const visited: string[] = [];
         let dir = startDir;
-        let result: string | undefined;
         while (true) {
-            const cached = this.gitRootCache.get(dir);
-            if (cached !== undefined || this.gitRootCache.has(dir)) {
-                result = cached;
-                break;
-            }
-            visited.push(dir);
             if (fs.existsSync(path.join(dir, '.git'))) {
-                result = dir;
-                break;
+                return dir;
             }
             const parent = path.dirname(dir);
             if (parent === dir) {
-                break;
+                return undefined;
             }
             dir = parent;
         }
-        for (const d of visited) {
-            this.gitRootCache.set(d, result);
-        }
-        return result;
     }
 
     private isLogicalBinary(node: any): node is BinaryExpression {
@@ -1472,15 +1483,21 @@ export class CodeCoverageProcessor {
 
 export interface CoverageMap {
     files: Array<FileCoverage>;
+    /**
+     * Absolute path of the project root every `FileCoverage.sourcePath` is relative to:
+     * the git root above the bsconfig `rootDir`, or `rootDir` itself when there is no git
+     * checkout. Recorded at build time so the CLI can read source files for the HTML
+     * report without guessing - build and test run are expected on the same machine.
+     */
+    sourceRoot?: string;
 }
 
 export interface FileCoverage {
     sourceFile: string;
     /**
-     * Repo-relative path of the original source file (posix separators), e.g.
-     * `core/src/components/Foo.bs`. Written at build time so host-side tooling can rewrite
+     * Path of the original source file (posix separators) relative to `CoverageMap.sourceRoot`,
+     * e.g. `core/src/components/Foo.bs`. Written at build time so host-side tooling can rewrite
      * pkg paths to real repository paths (Coveralls needs SF paths that match git).
-     * Undefined when the source file was not inside a git checkout.
      */
     sourcePath?: string;
     lineTotalFound: number;

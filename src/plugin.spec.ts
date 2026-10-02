@@ -2879,7 +2879,6 @@ describe('RooibosPlugin', () => {
                     "printTestTimes": true
                     "lineWidth": 60
                     "printLcov": false
-                    "coverageReporter": ""
                     "port": "invalid"
                     "catchCrashes": true
                     "colorizeOutput": false
@@ -2940,7 +2939,6 @@ describe('RooibosPlugin', () => {
                         "printTestTimes": true
                         "lineWidth": 60
                         "printLcov": false
-                        "coverageReporter": ""
                         "port": "invalid"
                         "catchCrashes": true
                         "colorizeOutput": false

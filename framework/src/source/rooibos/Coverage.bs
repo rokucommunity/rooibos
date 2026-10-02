@@ -83,8 +83,8 @@ namespace rooibos.Coverage
         ? "+++++++++++++++++++++++++++++++++++++++++++"
     end function
 
-    ' Prints the condensed hit-counts stream consumed by the rooibos CLI when the
-    ' `coverageReporter` config is set. One JSON line per file that recorded any hits,
+    ' Prints the condensed hit-counts stream consumed by the rooibos CLI whenever code
+    ' coverage is recorded. One JSON line per file that recorded any hits,
     ' sparse (zero counts omitted), with every count keyed by its INDEX into the
     ' corresponding array of components/rooibos/CodeCoverage.json - the CLI re-reads that
     ' file from the built package and joins the two. The static model never changes order
@@ -209,8 +209,8 @@ namespace rooibos.Coverage
 
             ' Write the per line related data. This output is deliberately plain lcov -
             ' rich detail (statement spans, branch arm columns) lives in the static
-            ' CodeCoverage.json model and flows through the condensed-counts channel when
-            ' `coverageReporter` is set.
+            ' CodeCoverage.json model and flows through the condensed-counts channel that
+            ' is always printed alongside this report.
             for each line in file.lines
                 buffer += `DA:${line.lineNumber},${line.totalHit}\n`
             end for
