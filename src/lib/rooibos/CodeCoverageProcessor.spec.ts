@@ -30,7 +30,7 @@ describe('RooibosPlugin', () => {
                 rootDir: _rootDir,
                 stagingFolderPath: _stagingFolderPath,
                 rooibos: {
-                    isRecordingCodeCoverage: true,
+                    codeCoverage: true,
                     coverageExcludedFiles: [
                         '**/*.coverageExcluded.bs'
                     ]
@@ -1918,7 +1918,7 @@ describe('RooibosPlugin', () => {
                 rootDir: _rootDir,
                 stagingFolderPath: _stagingFolderPath,
                 rooibos: {
-                    isRecordingCodeCoverage: true,
+                    codeCoverage: true,
                     isGlobalMethodMockingEnabled: true,
                     isGlobalMethodMockingEfficientMode: false
                 },

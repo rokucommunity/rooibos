@@ -111,7 +111,7 @@ namespace rooibos
             }
             m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
 
-            if m.config.isRecordingCodeCoverage then
+            if m.config.codeCoverage then
                 ' saveResults returns invalid (with a console message) when the
                 ' CodeCoverage component is missing from the package
                 coverageResults = rooibos.Coverage.saveResults()

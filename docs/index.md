@@ -144,7 +144,7 @@ e.g.
 
 ```
   "rooibos": {
-    "isRecordingCodeCoverage": false,
+    "codeCoverage": false,
     "printTestTimes": true,
     "testsFilePattern": null,
     "tags": ["!integration", "!deprecated", "!fixme"],
@@ -178,6 +178,8 @@ Here is the information converted into a Markdown table:
 | globalMethodMockingExcludedFiles   | string[]        | Files that rooibos will not modify when adding global function or namespace function mocking support                                                                                               |
 | reporter? @deprecated <sup>1</sup> | string          | The built-in reporter to use. Defaults to empty. Possible values are `console`, `junit`, and `mocha`.                                                                                              |
 | reporters? <sup>2</sup>            | string[]        | An array of factory functions/classes which implement `rooibos.BaseTestReporter`. Built-in reporters include `console`, `junit`, and `mocha`. Defaults to `["console"]`.                           |
+| codeCoverage?                      | boolean         | If true, the build is instrumented to record code coverage. Default is false. See [Generate code coverage](#generate-code-coverage).                                                               |
+| coverageExcludedFiles?             | string[]        | Files (globs) that are not measured for code coverage, such as spec files and vendored libraries. See [Generate code coverage](#generate-code-coverage).                                           |
 | printLcov? @deprecated <sup>3</sup> | boolean         | If true, prints a full lcov report to the device console at the end of the run.                                                                                                                    |
 
 **<sup>1</sup>** This parameter is deprecated, use `reporters` instead. When specified, the reporter will be appended to the list of `reporters`.
@@ -978,7 +980,8 @@ The test runner CLI will:
 
 Other options:
 
-  - `--coverage-dir` - directory to write coverage reports into when `isRecordingCodeCoverage` is on: `lcov.info`, `coverage-final.json` and an `html/` report. Defaults to `./coverage`.
+  - `--coverage-dir` - directory to write coverage reports into when code coverage is on: `lcov.info`, `coverage-final.json` and an `html/` report. Defaults to `./coverage`.
+  - `--code-coverage` - turn code coverage on (or off with `--no-code-coverage`) for the CLI's build, overriding the `codeCoverage` setting in your bsconfig. Has no effect with `--no-build`, since the package is already built.
   - `--staging-dir` - path to the built package directory (staging output). With `--no-build` this is zipped and deployed as-is; otherwise it overrides where the build stages.
   - `--no-build` - skip the internal build and deploy an existing staging directory (from `--staging-dir` or the bsconfig). It must have been built with the rooibos plugin.
 
@@ -1238,13 +1241,15 @@ Turn coverage on in the `rooibos` block of your `bsconfig.json`, and exclude any
 
 ```
 "rooibos": {
-    "isRecordingCodeCoverage": true,
+    "codeCoverage": true,
     "coverageExcludedFiles": [
         '**/*.spec.bs',
         '**/some-vendor-library/**.*'
     ]
 },
 ```
+
+Alternatively, leave `codeCoverage` off in your bsconfig and pass `--code-coverage` to the CLI to turn coverage on for a single run.
 
 Then run your tests through the rooibos CLI:
 
@@ -1254,7 +1259,7 @@ npx rooibos --project bsconfig.json --host <roku-ip> --password <password>
 
 That's it. The CLI builds your app, deploys it, runs the tests and writes the coverage reports when the run finishes.
 
-If your own build pipeline already produces the package, pass `--no-build` to skip the CLI's build step. The CLI then deploys your existing staging directory as-is - the one from your bsconfig, or the one you point it at with `--staging-dir`. That build must have run with the rooibos plugin and `isRecordingCodeCoverage` on, otherwise there is nothing to measure:
+If your own build pipeline already produces the package, pass `--no-build` to skip the CLI's build step. The CLI then deploys your existing staging directory as-is - the one from your bsconfig, or the one you point it at with `--staging-dir`. That build must have run with the rooibos plugin and `codeCoverage` on, otherwise there is nothing to measure:
 
 ```bash
 npx rooibos --project bsconfig.json --host <roku-ip> --password <password> --no-build --staging-dir dist
@@ -1334,3 +1339,7 @@ You may see `[rooibos coverage]` warnings during the build for very large or com
 #### Deprecated: printLcov
 
 `printLcov` is deprecated and will be removed in a future major version. It printed an lcov report to the console; the CLI now writes `coverage/lcov.info` for you. Remove `printLcov` from your config, run your tests with the CLI as above, and point anything that read the console output at `coverage/lcov.info` instead.
+
+#### Deprecated: isRecordingCodeCoverage
+
+`isRecordingCodeCoverage` is deprecated in favour of `codeCoverage`. The old key is still read as a fallback and logs a deprecation warning, but will be removed in a future major version. Rename it in your `rooibos` config block. If both are set, `codeCoverage` wins.

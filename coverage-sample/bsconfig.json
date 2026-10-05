@@ -38,7 +38,7 @@
         "sendHomeOnFinish": false,
         "keepAppOpen": true,
         "isGlobalMethodMockingEnabled": true,
-        "isRecordingCodeCoverage": true,
+        "codeCoverage": true,
         "reporters": [
             "mocha"
         ]

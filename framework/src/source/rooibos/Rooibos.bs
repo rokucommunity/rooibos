@@ -27,7 +27,7 @@ namespace rooibos
         ' app's whole lifetime
         runtimeConfigInstance = new rooibos.RuntimeConfig()
         runtimeConfig = runtimeConfigInstance.getRuntimeConfig()
-        if runtimeConfig <> invalid and runtimeConfig.isRecordingCodeCoverage = true then
+        if runtimeConfig <> invalid and runtimeConfig.codeCoverage = true then
             globalFields["_rbs_ccn"] = createObject("roSGNode", "CodeCoverage")
         end if
         m.global.addFields(globalFields)

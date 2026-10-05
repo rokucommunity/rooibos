@@ -152,7 +152,7 @@ export class RooibosSession {
                         "throwOnFailedAssertion": ${this.config.throwOnFailedAssertion ? 'true' : 'false'}
                         "keepAppOpen": ${this.config.keepAppOpen === undefined || this.config.keepAppOpen ? 'true' : 'false'}
                         "shutdownDelay": ${this.config.shutdownDelay ?? 400}
-                        "isRecordingCodeCoverage": ${this.config.isRecordingCodeCoverage ? 'true' : 'false'}
+                        "codeCoverage": ${this.config.codeCoverage ? 'true' : 'false'}
                     }
                 `).ast.statements[0]
             );

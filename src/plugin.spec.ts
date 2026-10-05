@@ -2885,7 +2885,7 @@ describe('RooibosPlugin', () => {
                     "throwOnFailedAssertion": false
                     "keepAppOpen": true
                     "shutdownDelay": 400
-                    "isRecordingCodeCoverage": false
+                    "codeCoverage": false
                 }
             `);
 
@@ -2945,7 +2945,7 @@ describe('RooibosPlugin', () => {
                         "throwOnFailedAssertion": false
                         "keepAppOpen": true
                         "shutdownDelay": 400
-                        "isRecordingCodeCoverage": false
+                        "codeCoverage": false
                     }
                 `;
 

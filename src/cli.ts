@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import type { CoverageMap as CoverageModelJson } from './lib/rooibos/CodeCoverageProcessor';
+import { resolveCliRooibosConfig } from './lib/rooibos/RooibosConfig';
 import { loadCoverageModel, writeCoverageReportsFromCounts } from './lib/rooibos/CoverageReporter';
 
 /**
@@ -44,7 +45,8 @@ let options = yargs
     .option('host', { type: 'string', description: 'Host of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
-    .option('coverage-dir', { type: 'string', default: './coverage', description: 'Directory to write coverage reports into when isRecordingCodeCoverage is on: lcov.info, coverage-final.json and an html/ report.' })
+    .option('coverage-dir', { type: 'string', default: './coverage', description: 'Directory to write coverage reports into when codeCoverage is on: lcov.info, coverage-final.json and an html/ report.' })
+    .option('code-coverage', { type: 'boolean', description: 'Turn code coverage on (or off with --no-code-coverage) for the CLI\'s build, overriding the rooibos block of the bsconfig. Has no effect with --no-build.' })
     .option('staging-dir', { type: 'string', description: 'Path to the built package directory (staging output). With --no-build this is zipped and deployed as-is; otherwise it overrides where the build stages. Coverage models are read from here.' })
     .option('build', { type: 'boolean', default: true, description: 'Pass --no-build to skip the internal bsc build and deploy an existing staging directory (from --staging-dir or the bsconfig). Assumes it was built with the rooibos plugin so coverage helpers are present.' })
     .check((argv) => {
@@ -75,6 +77,11 @@ async function main() {
 
     const rawConfig: BsConfig = util.loadConfigFile(bsconfigPath);
     const bsConfig = util.normalizeConfig(rawConfig);
+
+    const rooibosConfig = resolveCliRooibosConfig((rawConfig as any).rooibos, { codeCoverage: options['code-coverage'] });
+    if (options['code-coverage'] !== undefined && options.build === false) {
+        console.warn('[rooibos] --code-coverage/--no-code-coverage has no effect with --no-build: the existing package was already built, so its coverage setting is whatever it was built with');
+    }
 
     const host = options.host ?? bsConfig.host ?? process.env.ROKU_HOST;
     const password = options.password ?? bsConfig.password ?? process.env.ROKU_PASSWORD;
@@ -136,7 +143,12 @@ async function main() {
         const builder = new ProgramBuilder();
         builder.logger.logLevel = logLevel;
         // --staging-dir (if given) flows into bsc as its stagingDir via the spread
-        await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
+        await builder.run(<any>{
+            ...options,
+            ...(rooibosConfig ? { rooibos: rooibosConfig } : {}),
+            retainStagingDir: true,
+            createPackage: true
+        });
     }
 
     const deviceInfo = await rokuDeploy.getDeviceInfo({ device: device });

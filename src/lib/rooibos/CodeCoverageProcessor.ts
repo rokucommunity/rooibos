@@ -250,7 +250,7 @@ export class CodeCoverageProcessor {
     }
 
     public addCodeCoverage(file: BrsFile, astEditor: Editor) {
-        if (this.config.isRecordingCodeCoverage) {
+        if (this.config.codeCoverage) {
             this.blockId = 0;
             this._processFile(file, astEditor);
             this.fileId++;

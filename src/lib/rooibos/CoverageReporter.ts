@@ -25,7 +25,7 @@ import type { CoverageMap as CoverageMapJson } from './CodeCoverageProcessor';
  *
  * Rich detail (statement spans, branch arm columns) lives in the static
  * CodeCoverage.json model and flows through the condensed-counts channel, which is always
- * emitted when `isRecordingCodeCoverage` is on.
+ * emitted when `codeCoverage` is on.
  */
 
 /** Reads a source file's lines lazily; shared so column lookups don't re-read files. */
