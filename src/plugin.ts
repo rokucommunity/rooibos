@@ -159,6 +159,11 @@ export class RooibosPlugin implements CompilerPlugin {
         // once, so all cross-file coverage state resets per pass
         this.codeCoverageProcessor.onBeforeProgramTranspile(program);
         this.session.prepareForTranspile(editor, program, this.mockUtil);
+
+        //this must happen before bsc's `beforeFileTranspile` (which runs before ours), so bsc will inline any enums/constants used in the `@params`
+        for (const testSuite of this.session.sessionInfo.testSuitesToRun) {
+            testSuite.addDataFunctions(editor);
+        }
     }
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
@@ -167,8 +172,8 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
-        let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
-        if (testSuite) {
+        const testSuites = this.session.sessionInfo.testSuitesToRun.filter((ts) => ts.file.pkgPath === event.file.pkgPath);
+        for (const testSuite of testSuites) {
             const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
@@ -177,7 +182,6 @@ export class RooibosPlugin implements CompilerPlugin {
 
             const modifiedTestCases = new Set();
             const modifiedHookFunctions = new Set();
-            testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (const hookName of [group.setupFunctionName, group.tearDownFunctionName, group.beforeEachFunctionName, group.afterEachFunctionName]) {
                     if (hookName) {

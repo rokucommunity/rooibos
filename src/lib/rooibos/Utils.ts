@@ -1,9 +1,13 @@
-import type { AnnotationExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement, MethodStatement } from 'brighterscript';
-import { ParseMode, Parser, TokenKind, createStringLiteral, isCallExpression, isCallfuncExpression, isDottedGetExpression, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isXmlScope } from 'brighterscript';
+import type { AnnotationExpression, ArrayLiteralExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement, MethodStatement, Statement } from 'brighterscript';
+import { ParseMode, Parser, TokenKind, WalkMode, createStringLiteral, isAAMemberExpression, isAALiteralExpression, isArrayLiteralExpression, isCallExpression, isCallfuncExpression, isCommentStatement, isDottedGetExpression, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isXmlScope, walkArray } from 'brighterscript';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
 
-export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): boolean {
+/**
+ * Add a generated method to the class.
+ * @returns the added method, or undefined if the source could not be parsed
+ */
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): MethodStatement | undefined {
     let { method, diagnostics, text } = createMethod(file, name, source);
 
     if (method.func.body.statements.length > 0) {
@@ -11,11 +15,12 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
         //trigger that functionality BEFORE performing AstEditor operations. TODO remove this whenever bsc stops doing this.
         (target as any).ensureConstructorFunctionExists?.();
         editor.addToArray(target.body, target.body.length, method);
-        return true;
+        method.parent = target;
+        return method;
     }
     const error = diagnostics?.length > 0 ? diagnostics[0].message : 'unknown error';
     diagnosticCorruptTestProduced(file, annotation, error, text);
-    return false;
+    return undefined;
 }
 
 /**
@@ -127,6 +132,75 @@ export function getPathValuePartAsString(expr: Expression) {
             return `${expr.index.name.text}`;
         }
     }
+}
+
+/**
+ * bsc does not link annotations into the AST, so the expressions in their arguments have no parent (and therefore no symbol table or namespace).
+ * That makes the bsc validator flag references like `@params(SomeEnum.value)` as unknown names. Link the annotation (and its arguments) to
+ * the statement it decorates so those references are validated and resolved like any other expression in that statement's scope.
+ */
+export function linkAnnotationToStatement(annotation: AnnotationExpression, statement: Statement) {
+    if (!annotation?.call) {
+        return;
+    }
+    walkArray(annotation.call.args, () => { }, { walkMode: WalkMode.visitAllRecursive }, annotation.call);
+    annotation.call.parent = annotation;
+    annotation.parent = statement;
+}
+
+/**
+ * Fill the `rawParams: []` placeholders in a generated `getTestSuiteData` method with clones of each test case's actual `@params` argument expressions.
+ * The clones are registered in the file's references, so bsc's own pre-transpile processing (i.e. inlining enums and constants) applies to them
+ * exactly like it does for handwritten code. This must run before bsc's `beforeFileTranspile` (i.e. during `beforeProgramTranspile`).
+ * @param file the file containing the test suite
+ * @param method the generated `getTestSuiteData` method
+ * @param paramExpressionsList the `@params` argument expressions for each placeholder, in the order they appear in the method
+ * @param editor the editor used to make (and later undo) the changes
+ */
+export function addParamsToTestSuiteData(file: BrsFile, method: MethodStatement, paramExpressionsList: Expression[][], editor: AstEditor) {
+    const placeholders: ArrayLiteralExpression[] = [];
+    method.walk((node) => {
+        if (isAAMemberExpression(node) && node.keyToken.text === 'rawParams' && isArrayLiteralExpression(node.value)) {
+            placeholders.push(node.value);
+        }
+    }, { walkMode: WalkMode.visitExpressionsRecursive });
+
+    const references = new Set<Expression>();
+    const addReferences = (expression: Expression) => {
+        references.add(expression);
+        if (isArrayLiteralExpression(expression)) {
+            for (const element of expression.elements) {
+                if (!isCommentStatement(element)) {
+                    addReferences(element);
+                }
+            }
+        } else if (isAALiteralExpression(expression)) {
+            for (const member of expression.elements) {
+                if (isAAMemberExpression(member)) {
+                    addReferences(member.value);
+                }
+            }
+        }
+    };
+
+    for (let i = 0; i < placeholders.length && i < paramExpressionsList.length; i++) {
+        const clones = paramExpressionsList[i].map(x => x.clone());
+        editor.arrayPush(placeholders[i].elements, ...clones);
+        //link the clones into the AST
+        walkArray(placeholders[i].elements, () => { }, { walkMode: WalkMode.visitAllRecursive }, placeholders[i]);
+        clones.forEach(addReferences);
+    }
+
+    const fileReferences = file.parser.references.expressions;
+    editor.edit(() => {
+        for (const expression of references) {
+            fileReferences.add(expression);
+        }
+    }, () => {
+        for (const expression of references) {
+            fileReferences.delete(expression);
+        }
+    });
 }
 
 export function getScopeForSuite(testSuite: TestSuite) {
