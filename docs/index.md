@@ -144,7 +144,7 @@ e.g.
 
 ```
   "rooibos": {
-    "isRecordingCodeCoverage": false,
+    "codeCoverage": false,
     "printTestTimes": true,
     "testsFilePattern": null,
     "tags": ["!integration", "!deprecated", "!fixme"],
@@ -178,9 +178,13 @@ Here is the information converted into a Markdown table:
 | globalMethodMockingExcludedFiles   | string[]        | Files that rooibos will not modify when adding global function or namespace function mocking support                                                                                               |
 | reporter? @deprecated <sup>1</sup> | string          | The built-in reporter to use. Defaults to empty. Possible values are `console`, `junit`, and `mocha`.                                                                                              |
 | reporters? <sup>2</sup>            | string[]        | An array of factory functions/classes which implement `rooibos.BaseTestReporter`. Built-in reporters include `console`, `junit`, and `mocha`. Defaults to `["console"]`.                           |
+| codeCoverage?                      | boolean         | If true, the build is instrumented to record code coverage. Default is false. See [Generate code coverage](#generate-code-coverage).                                                               |
+| coverageExcludedFiles?             | string[]        | Files (globs) that are not measured for code coverage, such as spec files and vendored libraries. See [Generate code coverage](#generate-code-coverage).                                           |
+| printLcov? @deprecated <sup>3</sup> | boolean         | If true, prints a full lcov report to the device console at the end of the run.                                                                                                                    |
 
 **<sup>1</sup>** This parameter is deprecated, use `reporters` instead. When specified, the reporter will be appended to the list of `reporters`.
 **<sup>2</sup>** Custom reporters are not currently supported on [node-based tests](#testing-nodes), because rooibos does not know which files it should include in the generated test components. This will be addressed in a future Rooibos version (see issue [#266](https://github.com/rokucommunity/rooibos/issues/266)).
+**<sup>3</sup>** `printLcov` is deprecated and will be removed in a future major version. Use the [rooibos CLI](#deprecated-printlcov) instead, which always writes `lcov.info`, `coverage-final.json`, and an HTML report for you.
 
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
@@ -991,6 +995,13 @@ The test runner CLI will:
 3. send the Roku's console output to `stdout`
 4. exit with status `0` on success, or `1` on failure.
 
+Other options:
+
+  - `--coverage-dir` - directory to write coverage reports into when code coverage is on: `lcov.info`, `coverage-final.json` and an `html/` report. Defaults to `./coverage`.
+  - `--code-coverage` - turn code coverage on (or off with `--no-code-coverage`) for the CLI's build, overriding the `codeCoverage` setting in your bsconfig. Has no effect with `--no-build`, since the package is already built.
+  - `--staging-dir` - path to the built package directory (staging output). With `--no-build` this is zipped and deployed as-is; otherwise it overrides where the build stages.
+  - `--no-build` - skip the internal build and deploy an existing staging directory (from `--staging-dir` or the bsconfig). It must have been built with the rooibos plugin.
+
 
 ## Integrating with your CI
 <a name="easily-integrate-into-any-ci-system"></a>
@@ -1235,48 +1246,53 @@ Rooibos is NOT backward compatible with pre version 4 versions of rooibos; and n
 
 ## Generate code coverage
 
-Rooibos can measure and report the test coverage your unit tests are producing. The output is shown in the ide, when your test execution has finished.
+Rooibos can measure how much of your code your unit tests actually exercise - by line, function and branch - and give you an HTML report to browse plus an `lcov.info` you can upload to services like Coveralls or Codecov.
 
 #### WARNING - Running code coverage is slower and may crash your device
 
-Running a code coverage report is a lot slower than a standard test, due to continual probing of your source. Only run coverage when needed. Also - be aware it will crash very tight loops, like inside of a while waiting on a port, which will probably crash and hard reset your device.
+Running with coverage on is a lot slower than a normal test run, so only turn it on when you need it. Very tight loops (for example a `while` loop spinning on a message port) can crash and hard-reset your device. It is advisable that your app has `run_as_process=1` in the manifest.
 
-It is advisable that your app has `run_as_process=1` in the manifest
+### Setting it up
 
-### Recording coverage
-To record coverage, set the `isRecordingCodeCoverage` to true, in your rooibos config (in your bsconfig.json file).
-Indicate which files to exclude, using the `coverageExcludedFiles`: [], array in the rooibos config.
-e.g.
+Turn coverage on in the `rooibos` block of your `bsconfig.json`, and exclude anything you don't want measured, such as your spec files and vendored libraries:
 
 ```
 "rooibos": {
-    "isRecordingCodeCoverage": true,
+    "codeCoverage": true,
     "coverageExcludedFiles": [
         '**/*.spec.bs',
         '**/some-vendor-library/**.*'
     ]
 },
 ```
-#### Statement support
 
-The following statements types are supported:
+Alternatively, leave `codeCoverage` off in your bsconfig and pass `--code-coverage` to the CLI to turn coverage on for a single run.
 
-  - variable assignments
-  - method calls
-  - nested function definitions (i.e. functions inside of arrays, variable assignments, method call args, or associative arrays)
-  - if statement conditions
-  - blocks of code in if, else if, and else statements
-  - for and while loops
-  - print statements
+Then run your tests through the rooibos CLI:
 
-The following statements are _not_ supported
+```bash
+npx rooibos --project bsconfig.json --host <roku-ip> --password <password>
+```
 
-  - goto
-  - named lines (e.g. `myGotoLine:`)
+That's it. The CLI builds your app, deploys it, runs the tests and writes the coverage reports when the run finishes.
 
-### Coverage report
+If your own build pipeline already produces the package, pass `--no-build` to skip the CLI's build step. The CLI then deploys your existing staging directory as-is - the one from your bsconfig, or the one you point it at with `--staging-dir`. That build must have run with the rooibos plugin and `codeCoverage` on, otherwise there is nothing to measure:
 
-When your coverage test run finishes rooibos will print out:
+```bash
+npx rooibos --project bsconfig.json --host <roku-ip> --password <password> --no-build --staging-dir dist
+```
+
+### What you get
+
+Reports are written to `./coverage` (change it with `--coverage-dir <dir>`):
+
+  - `coverage/html/index.html` - open it in a browser. Every file is listed with its coverage, and each source view shows hit counts per line, highlights the lines that never ran, and marks any `if` or `try` whose other branch was never taken.
+  - `coverage/lcov.info` - upload this to Coveralls, Codecov, SonarQube or any other lcov-based service (see the example below).
+  - `coverage/coverage-final.json` - the same data in Istanbul's JSON format, for editor coverage extensions and other tooling.
+
+![HTML coverage report](images/coverage-html.png)
+
+The device also prints a summary to the console at the end of the run:
 
 ```
 +++++++++++++++++++++++++++++++++++++++++++
@@ -1290,49 +1306,57 @@ HIT FILES
 ---------
 pkg:/components/ContentRetriever/ContentRetriever.brs: 2.461539% (8/325)
 pkg:/components/Analytics/AnalyticsManager.brs: 3.125% (6/192)
-pkg:/components/Service/AuthenticationService.brs: 3.532609% (13/368)
-pkg:/components/Container/UserContainer/UserContainer.brs: 3.703704% (1/27)
-pkg:/components/MaintenanceCheckTask/AppConfigurationTask.brs: 7.407407% (2/27)
-pkg:/components/Storage/PersistentStorage.brs: 15.27778% (11/72)
-pkg:/source/Analytics/AnalyticsVideoMixin.brs: 16.92308% (22/130)
-pkg:/components/DeveloperService/DeveloperService.brs: 33.33334% (2/6)
-pkg:/components/Log/Log.brs: 45% (9/20)
-pkg:/source/Modules/BaseModule.brs: 55.55556% (5/9)
-pkg:/source/Log.brs: 65% (13/20)
-pkg:/source/Modules/DeepLinkingModule.brs: 76.92308% (50/65)
-pkg:/components/GlobalInitializer/GlobalInitializer.brs: 79.64601% (90/113)
 pkg:/source/Modules/RecommendationModule.brs: 84.9315% (186/219)
-pkg:/source/Mixins/ParsingMixin.brs: 86.47343% (179/207)
-pkg:/source/Mixins/SMCErrors.brs: 92.30769% (12/13)
-pkg:/source/Analytics/AnalyticsConstants.brs: 100% (1/1)
 
 MISSED FILES
 ------------
-pkg:/components/CustomRowListItem/CustomItemGenres/CustomItemGenres.brs: MISS!
 pkg:/components/StringUtils.brs: MISS!
-pkg:/components/Core/Components/TabComponent/TabComponent.brs: MISS!
-pkg:/components/Core/Components/NoKeyPressRowList.brs: MISS!
-pkg:/components/Model/TabComponentContent.brs: MISS!
 ```
-
-e.g.
 
 ![coverage output](images/coverage.png)
 
+### Uploading to Coveralls
 
-  - Total coverage - % (num of hit lines/ num of trackable lines)
-  - Files: num of hit files / total num of trackable files
+The stock [Coveralls GitHub action](https://github.com/coverallsapp/github-action) works as-is. Upload from the same job that ran the tests:
 
-Following is a list of all the hit files, and their coverage % and (hit lines/total lines)
+```yaml
+jobs:
+  test:
+    runs-on: [self-hosted, roku] # needs a runner that can reach your Roku device
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build:tests
+      - run: npx rooibos --project bsconfig-tests.json --host $ROKU_HOST --password $ROKU_PASSWORD
+      - uses: coverallsapp/github-action@v2
+        with:
+          file: coverage/lcov.info
+```
 
-Lastly the files that were not hit at all, during test execution.
+### What gets tracked
 
-The current implementation is capable of tracking lcov style statistics; to do this, run rooibos-cli with the arg `--printLcov` or add `"printLcov": true` to your gulp build.
+Lines, functions and branches. Branches include `if`/`else if`/`else`, ternaries, `and`/`or` short-circuits, null-coalescing and `try`/`catch`.
 
-In this case the lcov report is printed to the end of the console output. Thanks very much to @Ronen on the slack channel for this contribution!
+The following statement types are supported:
 
-The report is contained after the LCOV.INFO file. Given that that the console output could be saved, it should be trivial to watch the log output file, and update your lcov file after running your tests.
+  - variable assignments
+  - method calls
+  - nested function definitions (i.e. functions inside of arrays, variable assignments, method call args, or associative arrays)
+  - if statement conditions
+  - blocks of code in if, else if, and else statements
+  - for and while loops
+  - print statements
 
-e.g.
+The following are _not_ supported:
 
-![coverage output](images/lcov.png)
+  - goto
+  - named lines (e.g. `myGotoLine:`)
+
+You may see `[rooibos coverage]` warnings during the build for very large or complex files. They are informational; nothing needs changing.
+
+#### Deprecated: printLcov
+
+`printLcov` is deprecated and will be removed in a future major version. It printed an lcov report to the console; the CLI now writes `coverage/lcov.info` for you. Remove `printLcov` from your config, run your tests with the CLI as above, and point anything that read the console output at `coverage/lcov.info` instead.
+
+#### Deprecated: isRecordingCodeCoverage
+
+`isRecordingCodeCoverage` is deprecated in favour of `codeCoverage`. The old key is still read as a fallback and logs a deprecation warning, but will be removed in a future major version. Rename it in your `rooibos` config block. If both are set, `codeCoverage` wins.

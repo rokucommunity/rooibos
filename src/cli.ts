@@ -6,7 +6,11 @@ import { LogLevel, util, ProgramBuilder } from 'brighterscript';
 import * as yargs from 'yargs';
 import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
+import * as fsExtra from 'fs-extra';
 import * as path from 'path';
+import type { CoverageMap as CoverageModelJson } from './lib/rooibos/CodeCoverageProcessor';
+import { resolveCliRooibosConfig } from './lib/rooibos/RooibosConfig';
+import { loadCoverageModel, writeCoverageReportsFromCounts } from './lib/rooibos/CoverageReporter';
 
 /**
  * Load simple `KEY=value` pairs from a .env file into process.env, without
@@ -41,6 +45,10 @@ let options = yargs
     .option('host', { type: 'string', description: 'Host of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
+    .option('coverage-dir', { type: 'string', default: './coverage', description: 'Directory to write coverage reports into when codeCoverage is on: lcov.info, coverage-final.json and an html/ report.' })
+    .option('code-coverage', { type: 'boolean', description: 'Turn code coverage on (or off with --no-code-coverage) for the CLI\'s build, overriding the rooibos block of the bsconfig. Has no effect with --no-build.' })
+    .option('staging-dir', { type: 'string', description: 'Path to the built package directory (staging output). With --no-build this is zipped and deployed as-is; otherwise it overrides where the build stages. Coverage models are read from here.' })
+    .option('build', { type: 'boolean', default: true, description: 'Pass --no-build to skip the internal bsc build and deploy an existing staging directory (from --staging-dir or the bsconfig). Assumes it was built with the rooibos plugin so coverage helpers are present.' })
     .check((argv) => {
         if (!argv.host && !process.env.ROKU_HOST) {
             return new Error('You must provide a host. (--host, or ROKU_HOST in .env)');
@@ -70,20 +78,79 @@ async function main() {
     const rawConfig: BsConfig = util.loadConfigFile(bsconfigPath);
     const bsConfig = util.normalizeConfig(rawConfig);
 
+    const rooibosConfig = resolveCliRooibosConfig((rawConfig as any).rooibos, { codeCoverage: options['code-coverage'] });
+    if (options['code-coverage'] !== undefined && options.build === false) {
+        console.warn('[rooibos] --code-coverage/--no-code-coverage has no effect with --no-build: the existing package was already built, so its coverage setting is whatever it was built with');
+    }
+
     const host = options.host ?? bsConfig.host ?? process.env.ROKU_HOST;
     const password = options.password ?? bsConfig.password ?? process.env.ROKU_PASSWORD;
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
-    const builder = new ProgramBuilder();
-
-    builder.logger.logLevel = logLevel;
-
-
-    await builder.run(<any>{ ...options, retainStagingDir: true, createPackage: true });
-
+    // roku-deploy v4 and roku-debug 0.24 address the target via a device config rather than
+    // a bare `host` string.
     const device = { host: host };
-
     const rokuDeploy = new RokuDeploy();
+    const skipBuild = options.build === false;
+
+    /**
+     * Ordered candidate locations for the built package contents: the --staging-dir
+     * override, then the bsconfig staging fields, then roku-deploy's default staging
+     * location (used when no staging dir is configured anywhere).
+     */
+    function stagingDirCandidates(): string[] {
+        const candidates: string[] = [];
+        if (options['staging-dir']) {
+            candidates.push(path.resolve(String(options['staging-dir'])));
+        }
+        for (const staging of [(bsConfig as any).stagingDir, bsConfig.stagingFolderPath]) {
+            if (staging) {
+                candidates.push(path.resolve(String(staging)));
+            }
+        }
+        const outDir = bsConfig.outFile ? path.dirname(String(bsConfig.outFile)) : './out';
+        candidates.push(path.resolve(outDir, '.roku-deploy-staging'));
+        return candidates;
+    }
+
+    // Resolved path to the .zip we'll actually deploy when skipping the build. We zip the
+    // staging dir into out/rooibos-prebuilt.zip ourselves rather than handing the directory
+    // straight to sideload({ dir }), because that path does not forward file patterns and
+    // would drop the source-map exclusion below. A directory is required either way - the
+    // coverage model (components/rooibos/CodeCoverage.json) must be readable from it.
+    let deployZipPath: string | undefined;
+
+    if (skipBuild) {
+        const stagingDir = stagingDirCandidates().find((c) => fs.existsSync(c));
+        if (!stagingDir) {
+            console.error('[rooibos] --no-build requires an existing staging directory: pass --staging-dir or set one in the bsconfig');
+            process.exit(1);
+        }
+        if (!fs.statSync(stagingDir).isDirectory()) {
+            console.error(`[rooibos] the staging dir must be a directory, not a file: ${stagingDir}`);
+            process.exit(1);
+        }
+        const zipped = path.resolve('out/rooibos-prebuilt.zip');
+        fs.mkdirSync(path.dirname(zipped), { recursive: true });
+        console.log(`Zipping pre-built staging dir ${stagingDir} -> ${zipped}`);
+        // Exclude source maps - they're useful in the staging dir but shouldn't ship
+        // in the package (they bloat channel size and Roku has no use for them).
+        // roku-deploy v4 replaced zipFolder(src, out, logger, files) with zip({...});
+        // the file patterns still resolve relative to `dir`.
+        await rokuDeploy.zip({ dir: stagingDir, out: zipped, files: ['**/*', '!**/*.map'] });
+        deployZipPath = zipped;
+    } else {
+        const builder = new ProgramBuilder();
+        builder.logger.logLevel = logLevel;
+        // --staging-dir (if given) flows into bsc as its stagingDir via the spread
+        await builder.run(<any>{
+            ...options,
+            ...(rooibosConfig ? { rooibos: rooibosConfig } : {}),
+            retainStagingDir: true,
+            createPackage: true
+        });
+    }
+
     const deviceInfo = await rokuDeploy.getDeviceInfo({ device: device });
     const rendezvousTracker = new RendezvousTracker({ softwareVersion: deviceInfo['software-version'] }, { device: device, remotePort: 8085 } as any);
     const telnet = new TelnetAdapter({ device: device }, rendezvousTracker);
@@ -95,7 +162,56 @@ async function main() {
     const failRegex = /\[Rooibos Result\]: (FAIL|PASS)/g;
     const endRegex = /\[Rooibos Shutdown\]/g;
 
+    const outputDir = path.resolve(options['coverage-dir']);
+    let capturingCounts = false;
+    let coverageBuffer: string[] = [];
+    let coverageReportPromise: Promise<void> | undefined;
+
+    /**
+     * The bsc plugin writes the static coverage model (line/function/branch shape plus
+     * repo-relative source paths) into components/rooibos/CodeCoverage.json; read it back
+     * from wherever the deployed package contents live.
+     */
+    function findCoverageModel(): CoverageModelJson | undefined {
+        for (const dir of stagingDirCandidates()) {
+            const candidate = path.join(dir, 'components', 'rooibos', 'CodeCoverage.json');
+            const model = loadCoverageModel(candidate);
+            if (model) {
+                console.log(`[rooibos] using coverage model from ${candidate}`);
+                return model;
+            }
+        }
+        return undefined;
+    }
+
+    /** Dumps the raw device stream into the output dir so a capture is never lost. */
+    function saveRawCapture(raw: string) {
+        const rawPath = path.join(outputDir, 'coverage-counts.raw');
+        fsExtra.outputFileSync(rawPath, raw);
+        console.error(`[rooibos] raw coverage output saved to ${rawPath}`);
+    }
+
+    /** The device printed the condensed hit-counts stream. */
+    function writeCoverageFromCounts(rawCounts: string) {
+        const model = findCoverageModel();
+        if (!model) {
+            console.error('[rooibos] the device sent condensed coverage counts but no components/rooibos/CodeCoverage.json was found in the package or staging dir - cannot build coverage reports');
+            saveRawCapture(rawCounts);
+            return;
+        }
+        coverageReportPromise = writeCoverageReportsFromCounts({
+            rawCounts: rawCounts,
+            model: model,
+            outputDir: outputDir
+        }).catch(e => {
+            console.error('[rooibos] failed to write coverage reports:', e);
+            saveRawCapture(rawCounts);
+        });
+    }
+
     async function doExit(emitAppExit = false) {
+        // don't kill the process while coverage reports are still being written
+        await coverageReportPromise;
         if (emitAppExit) {
             (telnet as any).beginAppExit();
         }
@@ -105,6 +221,22 @@ async function main() {
 
     telnet.on('console-output', (output) => {
         console.log(output);
+
+        for (const line of output.split('\n')) {
+            if (line.includes('+-=-coverage-counts:start')) {
+                capturingCounts = true;
+                coverageBuffer = [];
+                continue;
+            }
+            if (line.includes('+-=-coverage-counts:end')) {
+                capturingCounts = false;
+                writeCoverageFromCounts(coverageBuffer.join('\n'));
+                continue;
+            }
+            if (capturingCounts) {
+                coverageBuffer.push(line);
+            }
+        }
 
         //check for Fails or Crashes
         let failMatches = failRegex.exec(output);
@@ -143,12 +275,15 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        const outFile = bsConfig.outFile;
-        console.log(`Deploying ${outFile} to ${host}`);
+        // With --no-build, deploy the staging dir we just zipped; otherwise fall back to the
+        // bsconfig-driven outFile that the rooibos build just produced.
+        const packagePath = deployZipPath ?? path.resolve(process.cwd(), bsConfig.outFile);
+        console.log(`Deploying ${packagePath} to ${host}`);
+        // roku-deploy v4 replaced publish({ host, outDir, outFile }) with sideload({ device, zip }).
         await rokuDeploy.sideload({
             password: password,
             device: device,
-            zip: path.resolve(process.cwd(), outFile)
+            zip: packagePath
         });
     }
 

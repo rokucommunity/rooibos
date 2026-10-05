@@ -15,6 +15,7 @@ import { RooibosSession } from './lib/rooibos/RooibosSession';
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
+import { normalizeCodeCoverage } from './lib/rooibos/RooibosConfig';
 import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { MockUtil } from './lib/rooibos/MockUtil';
@@ -65,9 +66,7 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.showOnlyFailures === undefined) {
             config.showOnlyFailures = true;
         }
-        if (config.isRecordingCodeCoverage === undefined) {
-            config.isRecordingCodeCoverage = false;
-        }
+        normalizeCodeCoverage(config);
         if (config.isGlobalMethodMockingEnabled === undefined) {
             config.isGlobalMethodMockingEnabled = false;
         }
@@ -92,7 +91,8 @@ export class RooibosPlugin implements CompilerPlugin {
             '**/*.spec.bs',
             '**/roku_modules/**/*',
             '**/source/main.bs',
-            '**/source/rooibos/**/*'
+            '**/source/rooibos/**/*',
+            '**/components/rooibos/**/*'
         ];
 
         // Set default coverage exclusions, or merge with defaults if available.
@@ -155,6 +155,9 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     beforeProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
+        // coverage ids are transpile-order counters; a program can transpile more than
+        // once, so all cross-file coverage state resets per pass
+        this.codeCoverageProcessor.onBeforeProgramTranspile(program);
         this.session.prepareForTranspile(editor, program, this.mockUtil);
 
         //this must happen before bsc's `beforeFileTranspile` (which runs before ours), so bsc will inline any enums/constants used in the `@params`
@@ -165,7 +168,7 @@ export class RooibosPlugin implements CompilerPlugin {
 
     afterProgramTranspile(program: Program, entries: TranspileObj[], editor: AstEditor) {
         this.session.addLaunchHookFileIfNotPresent();
-        this.codeCoverageProcessor.generateMetadata(this.config.isRecordingCodeCoverage, program);
+        this.codeCoverageProcessor.generateMetadata(this.config.codeCoverage, program);
     }
 
     beforeFileTranspile(event: BeforeFileTranspileEvent) {
@@ -236,13 +239,13 @@ export class RooibosPlugin implements CompilerPlugin {
         return true;
     }
     shouldAddCodeCoverageToFile(file: BscFile) {
-        if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
+        if (!isBrsFile(file) || !this.config.codeCoverage) {
             return false;
         } else if (!this.config.coverageExcludedFiles) {
             return true;
         } else {
             for (let filter of this.config.coverageExcludedFiles) {
-                if (minimatch(file.pkgPath, filter, { dot: true })) {
+                if (minimatch(file.pkgPath, filter, { dot: true, nocase: true })) {
                     return false;
                 }
             }
@@ -257,7 +260,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.globalMethodMockingExcludedFiles) {
-                if (minimatch(file.pkgPath, filter, { dot: true })) {
+                if (minimatch(file.pkgPath, filter, { dot: true, nocase: true })) {
                     // console.log('±±±skipping file', file.pkgPath);
                     return false;
                 }
