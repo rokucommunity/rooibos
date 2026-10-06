@@ -3790,7 +3790,7 @@ describe('RooibosPlugin', () => {
                 ]);
             });
 
-            it('flags unknown enum members', async () => {
+            it('flags unknown enum members', () => {
                 program.setFile('source/test.spec.bs', `
                     enum Types
                         TYPE_1 = "type1"
@@ -3805,10 +3805,7 @@ describe('RooibosPlugin', () => {
                         end function
                     end class
                 `);
-                //bsc v1 transpiles an unknown enum member to `floatliteral`, exactly as it does for the same expression in handwritten code
-                expect(await getTranspiledRawParams()).to.eql([
-                    '[floatliteral]'
-                ]);
+                program.validate();
                 expect(getNonMainDiagnostics().map(x => x.message)).to.eql([
                     DiagnosticMessages.cannotFindName('NOT_A_MEMBER', 'Types.NOT_A_MEMBER', 'Types', 'enum').message
                 ]);
