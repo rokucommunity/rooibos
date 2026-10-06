@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [5.17.0](https://github.com/rokucommunity/rooibos/compare/5.16.6...v5.17.0) - 2026-10-06
+### Added
+ - Add Roku Cloud Emulator (RCE) support in the CLI ([#447](https://github.com/rokucommunity/rooibos/pull/447))
+### Changed
+ - Istanbul HTML code coverage reports and improved coverage accuracy ([#275](https://github.com/rokucommunity/rooibos/pull/275))
+ - Security enhancements ([#444](https://github.com/rokucommunity/rooibos/pull/444), [#446](https://github.com/rokucommunity/rooibos/pull/446))
+
+
+
 ## [5.16.6](https://github.com/rokucommunity/rooibos/compare/5.16.5...v5.16.6) - 2026-10-01
 ### Changed
  - Process every test suite in a file, not just the first ([#441](https://github.com/rokucommunity/rooibos/pull/441))
