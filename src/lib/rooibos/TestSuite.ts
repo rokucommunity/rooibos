@@ -7,7 +7,7 @@ import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '.
 import type { RooibosAnnotation } from './Annotation';
 
 import type { TestGroup } from './TestGroup';
-import { addOverriddenMethod, sanitizeBsJsonString } from './Utils';
+import { addOverriddenMethod, addParamsToTestSuiteData, sanitizeBsJsonString } from './Utils';
 import type { RooibosSession } from './RooibosSession';
 
 const nativeNodeNames = Object.keys(nodes);
@@ -110,7 +110,17 @@ export class TestSuite extends TestBlock {
 
     public addDataFunctions(editor: Editor) {
         if (this.isIncluded) {
-            addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`, editor);
+            const method = addOverriddenMethod(this.file, this.annotation.annotation, this.classStatement, 'getTestSuiteData', `return ${this.asText()}`, editor);
+            if (method) {
+                //same order as the `rawParams` placeholders in `asText()`
+                const paramExpressionsList = [];
+                for (const testGroup of [...this.testGroups.values()].filter((tg) => tg.isIncluded)) {
+                    for (const testCase of [...testGroup.testCases].filter((tc) => tc.isIncluded && tc.rawParams)) {
+                        paramExpressionsList.push(testCase.rawParams);
+                    }
+                }
+                addParamsToTestSuiteData(this.file, method, paramExpressionsList, editor);
+            }
         }
     }
 

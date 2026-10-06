@@ -1,11 +1,13 @@
 import type { BrsFile, CallExpression, MethodStatement, ClassStatement, ExpressionStatement } from 'brighterscript';
-import { CallfuncExpression, FunctionStatement, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement, Parser, SourceMapConsumer, Position, isMethodStatement } from 'brighterscript';
+import { CallfuncExpression, FunctionStatement, DottedGetExpression, Program, ProgramBuilder, util, standardizePath as s, PrintStatement, Parser, SourceMapConsumer, Position, isMethodStatement, isDottedGetExpression } from 'brighterscript';
+import { DiagnosticMessages } from 'brighterscript/dist/DiagnosticMessages';
 import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
 import undent from 'undent';
 import { getFileLookups } from './lib/rooibos/Utils';
-import { expectFunctionContents } from './testHelpers.spec';
+import { CodeCoverageLineType } from './lib/rooibos/CodeCoverageProcessor';
+import { expectFunctionContents, expectZeroDiagnostics } from './testHelpers.spec';
 let tmpPath = s`${process.cwd()}/.tmp`;
 let _rootDir = s`${tmpPath}/rootDir`;
 let outDir = s`${tmpPath}/staging`;
@@ -902,6 +904,269 @@ describe('RooibosPlugin', () => {
             expect(contents).to.include('m.currentAssertLineNumber');
             // The namespace call must be transpiled correctly as underscored function
             expect(contents).to.include('some_space_assertEqual(1, 1)');
+        });
+
+        describe('multiple suites in one file', () => {
+            function getSuiteMethodContents(className: string, methodName: string) {
+                return getFunctionContents(getContents('test.spec.brs'), `__${className}_method_${methodName}`);
+            }
+
+            function expectSuiteProcessed(className: string) {
+                expect(getContents('test.spec.brs'), `${className} has no test suite data`).to.include(`function __${className}_method_getTestSuiteData()`);
+                expect(getTestFunctionContents({ className: className }), `${className} assertions were not rewritten`).to.include('m.currentAssertLineNumber');
+            }
+
+            it('adds test suite data and rewrites assertions in every suite', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+
+                    @suite("third suite")
+                    class ThirdTest extends rooibos.BaseTestSuite
+                        @describe("groupC")
+                        @it("is test3")
+                        function _()
+                            m.assertEqual(3, 3)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('FirstTest');
+                expectSuiteProcessed('SecondTest');
+                expectSuiteProcessed('ThirdTest');
+            });
+
+            it('rewrites hook assertions in every suite', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @beforeEach
+                        function groupBeforeEach()
+                            m.assertTrue(true)
+                        end function
+
+                        @it("is test1")
+                        function _()
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+
+                        @beforeEach
+                        function groupBeforeEach()
+                            m.assertTrue(true)
+                        end function
+
+                        @it("is test2")
+                        function _()
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expect(getSuiteMethodContents('FirstTest', 'groupBeforeEach')).to.include('m.currentAssertLineNumber');
+                expect(getSuiteMethodContents('SecondTest', 'groupBeforeEach')).to.include('m.currentAssertLineNumber');
+            });
+
+            it('rewrites expectCalled in every suite', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            obj = {}
+                            m.expectCalled(obj.foo())
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            obj = {}
+                            m.expectCalled(obj.foo())
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expect(getTestFunctionContents({ className: 'FirstTest' })).to.include('m._expectCalled(');
+                expect(getTestFunctionContents({ className: 'SecondTest' })).to.include('m._expectCalled(');
+            });
+
+            it('keeps suites with identical group and test names separate', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("group")
+                        @it("is a test")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("group")
+                        @it("is a test")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('FirstTest');
+                expectSuiteProcessed('SecondTest');
+                //each assertion is rewritten exactly once
+                expect(getTestFunctionContents({ className: 'FirstTest' }).match(/m\.currentAssertLineNumber/g)).to.have.lengthOf(1);
+                expect(getTestFunctionContents({ className: 'SecondTest' }).match(/m\.currentAssertLineNumber/g)).to.have.lengthOf(1);
+            });
+
+            it('supports several node suites for the same component', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @SGNode("Group")
+                    @suite("first node suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @SGNode("Group")
+                    @suite("second node suite - with special characters")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('FirstTest');
+                expectSuiteProcessed('SecondTest');
+                const firstXml = getComponentContents('rooibos/generated/first_node_suite.xml');
+                const secondXml = getComponentContents('rooibos/generated/second_node_suite___with_special_characters.xml');
+                expect(firstXml).to.include('<component name="first_node_suite" extends="Group">');
+                expect(secondXml).to.include('<component name="second_node_suite___with_special_characters" extends="Group">');
+                expect(firstXml).to.include('uri="pkg:/source/test.spec.brs"');
+                expect(secondXml).to.include('uri="pkg:/source/test.spec.brs"');
+            });
+
+            it('supports mixing node and non-node suites', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("plain suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @SGNode("Group")
+                    @suite("node suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('FirstTest');
+                expectSuiteProcessed('SecondTest');
+            });
+
+            it('only processes the @only suite when another suite in the file is not included', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @only
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+                `);
+                program.validate();
+                await builder.transpile();
+                expect(plugin.session.sessionInfo.testSuitesToRun.map(x => x.name)).to.eql(['second suite']);
+                expect(getContents('test.spec.brs')).not.to.include('function __FirstTest_method_getTestSuiteData()');
+                expect(getTestFunctionContents({ className: 'FirstTest' })).not.to.include('m.currentAssertLineNumber');
+                expectSuiteProcessed('SecondTest');
+            });
+
+            it('still processes later suites when an earlier suite in the file is ignored', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @ignore
+                    @suite("first suite")
+                    class FirstTest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+                        @it("is test1")
+                        function _()
+                            m.assertEqual(1, 1)
+                        end function
+                    end class
+
+                    @suite("second suite")
+                    class SecondTest extends rooibos.BaseTestSuite
+                        @describe("groupB")
+                        @it("is test2")
+                        function _()
+                            m.assertEqual(2, 2)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expectZeroDiagnostics(program);
+                await builder.transpile();
+                expectSuiteProcessed('SecondTest');
+            });
         });
 
         it('handles groups that start with numbers', async () => {
@@ -2595,6 +2860,51 @@ describe('RooibosPlugin', () => {
                 `);
             });
 
+            it('emits a bare return in as-void and sub hooks (return invalid fails device compile)', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @beforeEach
+                        function _be() as void
+                            m.assertTrue(true)
+                        end function
+
+                        @afterEach
+                        sub _ae()
+                            m.assertTrue(true)
+                        end sub
+
+                        @it("test1")
+                        function _()
+                            m.assertTrue(true)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
+                await builder.transpile();
+                const fileContents = getContents('test.spec.brs');
+                expectFunctionContents(fileContents, '__ATest_method__be', `
+                    m.currentAssertLineNumber = 8
+                    m.assertTrue(true)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
+                `);
+                expectFunctionContents(fileContents, '__ATest_method__ae', `
+                    m.currentAssertLineNumber = 13
+                    m.assertTrue(true)
+                    if m.currentResult?.isFail = true then
+                        m.done()
+                        return
+                    end if
+                `);
+            });
+
             it('transpiles expectNotCalled inside afterEach', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
@@ -2861,6 +3171,942 @@ describe('RooibosPlugin', () => {
         });
     });
 
+    describe('@params', () => {
+        /**
+         * Strips insignificant whitespace (outside of string literals) so generated code can be compared regardless of formatting.
+         * Newline-separated array/AA elements are converted to comma-separated ones.
+         */
+        function normalize(text: string) {
+            return text.trim().split(/("(?:[^"]|"")*")/).map((part, i) => {
+                if (i % 2 === 1) {
+                    return part;
+                }
+                return part
+                    .replace(/\s*\n\s*/g, ',')
+                    .replace(/\s+/g, '')
+                    .replace(/,+/g, ',')
+                    .replace(/([[{:]),/g, '$1')
+                    .replace(/,([\]}])/g, '$1');
+            }).join('');
+        }
+
+        /**
+         * Transpile the program and return the normalized `rawParams` value for every test case in `source/test.spec.brs`
+         */
+        async function getTranspiledRawParams(filename = 'test.spec.brs') {
+            program.validate();
+            await builder.transpile();
+            const contents = getContents(filename);
+            const result: string[] = [];
+            const regex = /rawParams:([\s\S]*?)\n\s*paramTestIndex:/g;
+            let match: RegExpExecArray;
+            while ((match = regex.exec(contents))) {
+                result.push(normalize(match[1]));
+            }
+            return result;
+        }
+
+        function getTestCases(suiteName = 'ATest', groupName = 'groupA') {
+            return plugin.session.sessionInfo.testSuites.get(suiteName).testGroups.get(groupName).testCases;
+        }
+
+        function getNonMainDiagnostics() {
+            //ignore the "no main function" warning
+            return program.getDiagnostics().filter(x => x.code !== 'RBS2213');
+        }
+
+        describe('literal values', () => {
+            it('supports strings', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params("hello", "world")
+                        @params("", "with spaces in it")
+                        @params("http://some.url?a=1&b=2", "!@#$%^&*()")
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["hello","world"]',
+                    '["","with spaces in it"]',
+                    '["http://some.url?a=1&b=2","!@#$%^&*()"]'
+                ]);
+                expect(getNonMainDiagnostics()).to.be.empty;
+            });
+
+            it('supports integers, including negatives', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(0, 1)
+                        @params(-1, 100)
+                        @params(-100, -2147483648)
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[0,1]',
+                    '[-1,100]',
+                    '[-100,-2147483648]'
+                ]);
+            });
+
+            it('supports floats', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(1.5, -2.25)
+                        @params(0.1, 3.0)
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[1.5,-2.25]',
+                    '[0.1,3.0]'
+                ]);
+            });
+
+            it('supports hex integers', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(&hFF, -&h10)
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[&hFF,-&h10]'
+                ]);
+            });
+
+            it('does not mangle strings that contain the word null', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params("null", "nullable", { "isNull": "not null" })
+                        function _(a, b, c)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["null","nullable",{"isNull":"not null"}]'
+                ]);
+            });
+
+            it('supports booleans in any case', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(true, false)
+                        @params(TRUE, False)
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[true,false]',
+                    '[TRUE,False]'
+                ]);
+            });
+
+            it('supports invalid', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(invalid, "a")
+                        @params("b", invalid)
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[invalid,"a"]',
+                    '["b",invalid]'
+                ]);
+            });
+
+            it('supports simple template strings', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(\`hello\`)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["hello"]'
+                ]);
+            });
+
+            it('supports arrays', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(["one", "two", "three"], "String")
+                        @params([1, 2, 3], "Integer")
+                        @params([true, false], "Boolean")
+                        @params([], "Empty")
+                        @params([1, "two", true, invalid, -5], "Mixed")
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[["one","two","three"],"String"]',
+                    '[[1,2,3],"Integer"]',
+                    '[[true,false],"Boolean"]',
+                    '[[],"Empty"]',
+                    '[[1,"two",true,invalid,-5],"Mixed"]'
+                ]);
+            });
+
+            it('supports nested arrays', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params([[true, true], [false, [1, 2]]])
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[[[true,true],[false,[1,2]]]]'
+                ]);
+            });
+
+            it('supports associative arrays with quoted and unquoted keys', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params({ "quoted": "a", unquoted: 1 })
+                        @params({})
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[{"quoted":"a",unquoted:1}]',
+                    '[{}]'
+                ]);
+            });
+
+            it('supports nested associative arrays and arrays', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params({ "a": { "b": [1, { "c": true }] }, "d": invalid }, [{ "e": -1.5 }])
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[{"a":{"b":[1,{"c":true}]},"d":invalid},[{"e":-1.5}]]'
+                ]);
+            });
+
+            it('supports multi-line params', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params([
+                            1,
+                            2
+                        ], {
+                            "a": "b"
+                        })
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[[1,2],{"a":"b"}]'
+                ]);
+            });
+
+            it('flags unresolvable identifiers', () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(someUnknownVariable, Some.Unknown.Thing)
+                        @params([notAThing], { "a": alsoNotAThing })
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(getNonMainDiagnostics().map(x => x.message)).to.eql([
+                    DiagnosticMessages.cannotFindName('someUnknownVariable').message,
+                    DiagnosticMessages.cannotFindName('Some').message,
+                    DiagnosticMessages.cannotFindName('notAThing').message,
+                    DiagnosticMessages.cannotFindName('alsoNotAThing').message
+                ]);
+            });
+
+            it('transpiles expressions as-is', async () => {
+                program.setFile('source/test.spec.bs', `
+                    function getValue()
+                        return 1
+                    end function
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(1 + 2, getValue(), "a" + "b")
+                        function _(a, b, c)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[1+2,getValue(),"a"+"b"]'
+                ]);
+                expect(getNonMainDiagnostics()).to.be.empty;
+            });
+        });
+
+        describe('test case generation', () => {
+            it('creates one test case per @params annotation with the correct metadata', async () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(1)
+                        @params(2)
+                        @params(3)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql(['[1]', '[2]', '[3]']);
+                const testCases = getTestCases();
+                expect(testCases.map(x => x.paramTestIndex)).to.eql([0, 1, 2]);
+                expect(testCases.map(x => x.isParamTest)).to.eql([true, true, true]);
+                expect(testCases.map(x => x.expectedNumberOfParams)).to.eql([1, 1, 1]);
+                expect(testCases.map(x => x.paramLineNumber)).to.eql([5, 6, 7]);
+            });
+
+            it('marks @onlyparams test cases as solo', () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(1)
+                        @onlyparams(2)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(getTestCases().map(x => x.isSolo)).to.eql([false, true]);
+            });
+
+            it('marks @ignoreparams test cases as ignored', () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(1)
+                        @ignoreparams(2)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(getTestCases().map(x => x.isIgnored)).to.eql([false, true]);
+            });
+
+            it('flags params whose count does not match the function signature', () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(1, 2)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(getNonMainDiagnostics().map(x => x.code)).to.eql(['RBS2206']);
+            });
+        });
+
+        describe('enums', () => {
+            it('supports string enum members (from the issue)', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                        TYPE_2 = "type2"
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("Testing some function")
+                        @params(Types.TYPE_1)
+                        @params(Types.TYPE_2)
+                        sub _(typeStr as string)
+                        end sub
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["type1"]',
+                    '["type2"]'
+                ]);
+                expect(getNonMainDiagnostics()).to.be.empty;
+            });
+
+            it('supports implicit and explicit integer enum members', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Direction
+                        up
+                        down
+                        left = 10
+                        right
+                        back = -5
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Direction.up, Direction.down, Direction.left, Direction.right, Direction.back)
+                        function _(a, b, c, d, e)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[0,1,10,11,-5]'
+                ]);
+            });
+
+            it('supports float enum members', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Ratio
+                        half = 0.5
+                        negative = -1.25
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Ratio.half, Ratio.negative)
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[0.5,-1.25]'
+                ]);
+            });
+
+            it('supports hex integer enum members', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Color
+                        red = &hFF0000
+                        next
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Color.red, Color.next)
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    `[&hFF0000,${0xFF0001}]`
+                ]);
+            });
+
+            it('resolves enum names case-insensitively', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(types.type_1)
+                        @params(TYPES.Type_1)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["type1"]',
+                    '["type1"]'
+                ]);
+            });
+
+            it('supports enums declared in another file', async () => {
+                program.setFile('source/enums.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                    end enum
+                `);
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Types.TYPE_1)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["type1"]'
+                ]);
+                expect(getNonMainDiagnostics()).to.be.empty;
+            });
+
+            it('supports fully-qualified namespaced enums', async () => {
+                program.setFile('source/enums.bs', `
+                    namespace Alpha.Beta
+                        enum Types
+                            TYPE_1 = "type1"
+                        end enum
+                    end namespace
+                `);
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Alpha.Beta.Types.TYPE_1)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["type1"]'
+                ]);
+            });
+
+            it('supports enums referenced relative to the suite namespace', async () => {
+                program.setFile('source/test.spec.bs', `
+                    namespace Alpha
+                        enum Types
+                            TYPE_1 = "type1"
+                        end enum
+
+                        @suite
+                        class ATest
+                            @describe("groupA")
+                            @it("test")
+                            @params(Types.TYPE_1)
+                            @params(Alpha.Types.TYPE_1)
+                            function _(a)
+                            end function
+                        end class
+                    end namespace
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["type1"]',
+                    '["type1"]'
+                ]);
+            });
+
+            it('supports enums nested inside arrays and associative arrays', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                        TYPE_2 = "type2"
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params([Types.TYPE_1, Types.TYPE_2], { "type": Types.TYPE_1, nested: { list: [Types.TYPE_2] } })
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[["type1","type2"],{"type":"type1",nested:{list:["type2"]}}]'
+                ]);
+            });
+
+            it('supports mixing enums with literal values', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Types.TYPE_1, "expected", 1, true, invalid)
+                        function _(a, b, c, d, e)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["type1","expected",1,true,invalid]'
+                ]);
+            });
+
+            it('flags unknown enum members', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Types.NOT_A_MEMBER)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                //bsc v1 transpiles an unknown enum member to `floatliteral`, exactly as it does for the same expression in handwritten code
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[floatliteral]'
+                ]);
+                expect(getNonMainDiagnostics().map(x => x.message)).to.eql([
+                    DiagnosticMessages.cannotFindName('NOT_A_MEMBER', 'Types.NOT_A_MEMBER', 'Types', 'enum').message
+                ]);
+            });
+
+            it('does not flag enum references in params as unknown names', () => {
+                program.setFile('source/test.spec.bs', `
+                    namespace Alpha
+                        enum Types
+                            TYPE_1 = "type1"
+                        end enum
+                    end namespace
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Alpha.Types.TYPE_1)
+                        @onlyparams(Alpha.Types.TYPE_1)
+                        @ignoreparams(Alpha.Types.TYPE_1)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(getNonMainDiagnostics()).to.be.empty;
+            });
+
+            it('still flags unknown names in params', () => {
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(NotAThing.TYPE_1)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(getNonMainDiagnostics().map(x => x.message)).to.eql([
+                    DiagnosticMessages.cannotFindName('NotAThing').message
+                ]);
+            });
+
+            it('still validates the param count when using enums', () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Types.TYPE_1, Types.TYPE_1)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(getNonMainDiagnostics().map(x => x.code)).to.eql(['RBS2206']);
+            });
+
+            it('supports enums in node tests', async () => {
+                program.setFile('source/test.spec.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                    end enum
+
+                    @suite
+                    @SGNode("Group")
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Types.TYPE_1)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["type1"]'
+                ]);
+            });
+
+            it('does not permanently modify the annotation AST', async () => {
+                const file = program.setFile<BrsFile>('source/test.spec.bs', `
+                    enum Types
+                        TYPE_1 = "type1"
+                    end enum
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Types.TYPE_1)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql(['["type1"]']);
+                const cls = file.ast.statements.find(x => x.constructor.name === 'ClassStatement') as ClassStatement;
+                const method = cls.body.find(x => isMethodStatement(x)) as MethodStatement;
+                const paramsAnnotation = method.annotations.find(x => x.name.toLowerCase() === 'params');
+                expect(paramsAnnotation.getArguments()).to.eql([null]);
+                expect(isDottedGetExpression(paramsAnnotation.call.args[0])).to.be.true;
+            });
+        });
+
+        describe('constants', () => {
+            it('supports string, number, and boolean constants', async () => {
+                program.setFile('source/test.spec.bs', `
+                    const NAME = "bob"
+                    const AGE = 42
+                    const HEIGHT = 1.8
+                    const NEGATIVE = -7
+                    const IS_ADMIN = true
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(NAME, AGE, HEIGHT, NEGATIVE, IS_ADMIN)
+                        function _(a, b, c, d, e)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["bob",42,1.8,(-7),true]'
+                ]);
+                expect(getNonMainDiagnostics()).to.be.empty;
+            });
+
+            it('supports invalid constants', async () => {
+                program.setFile('source/test.spec.bs', `
+                    const NOTHING = invalid
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(NOTHING)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[invalid]'
+                ]);
+            });
+
+            it('supports array and associative array constants', async () => {
+                program.setFile('source/test.spec.bs', `
+                    const LIST = [1, "two", true]
+                    const MAP = { "a": 1, b: [2, 3] }
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(LIST, MAP)
+                        function _(a, b)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[([1,"two",true]),({"a":1,b:[2,3]})]'
+                ]);
+            });
+
+            it('supports constants declared in another file', async () => {
+                program.setFile('source/constants.bs', `
+                    const NAME = "bob"
+                `);
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(NAME)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["bob"]'
+                ]);
+            });
+
+            it('supports fully-qualified namespaced constants', async () => {
+                program.setFile('source/constants.bs', `
+                    namespace Alpha.Beta
+                        const NAME = "bob"
+                    end namespace
+                `);
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Alpha.Beta.NAME)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["bob"]'
+                ]);
+            });
+
+            it('supports constants referenced relative to the suite namespace', async () => {
+                program.setFile('source/test.spec.bs', `
+                    namespace Alpha
+                        const NAME = "bob"
+
+                        @suite
+                        class ATest
+                            @describe("groupA")
+                            @it("test")
+                            @params(NAME)
+                            @params(Alpha.NAME)
+                            function _(a)
+                            end function
+                        end class
+                    end namespace
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["bob"]',
+                    '["bob"]'
+                ]);
+            });
+
+            it('supports constants whose values reference other constants and enums', async () => {
+                program.setFile('source/constants.bs', `
+                    namespace Alpha
+                        enum Types
+                            TYPE_1 = "type1"
+                        end enum
+                        const BASE = "base"
+                        const ALIAS = Alpha.BASE
+                        const FROM_ENUM = Alpha.Types.TYPE_1
+                        const COMPOSITE = [ALIAS, { "type": FROM_ENUM }]
+                    end namespace
+                `);
+                program.setFile('source/test.spec.bs', `
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(Alpha.ALIAS, Alpha.FROM_ENUM, Alpha.COMPOSITE)
+                        function _(a, b, c)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '["base","type1",(["base",{"type":"type1"}])]'
+                ]);
+            });
+
+            it('does not hang on circular constant references', async () => {
+                program.setFile('source/test.spec.bs', `
+                    const A = B
+                    const B = A
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(A)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[A]'
+                ]);
+            });
+
+            it('supports constants with expression values', async () => {
+                program.setFile('source/test.spec.bs', `
+                    const SUM = 1 + 2
+
+                    @suite
+                    class ATest
+                        @describe("groupA")
+                        @it("test")
+                        @params(SUM)
+                        function _(a)
+                        end function
+                    end class
+                `);
+                expect(await getTranspiledRawParams()).to.eql([
+                    '[(1+2)]'
+                ]);
+            });
+        });
+    });
+
     describe('does not prevent component scope validation of node tests', () => {
         it('does not prevent valid scope based diagnostics for node tests', () => {
             program.setFile('components/customComponent.xml', `
@@ -3011,15 +4257,17 @@ describe('RooibosPlugin', () => {
             program.validate();
             await builder.build();
 
-            //both halves of the coverage component reach the staging dir
+            //every part of the coverage component reaches the staging dir
             expect(getComponentContents('rooibos/CodeCoverage.xml')).to.include('CodeCoverage');
             const brs = getComponentContents('rooibos/CodeCoverage.brs');
-            //the placeholders are substituted with the coverage data gathered during prepare
-            expect(brs).to.not.include('#EXPECTED_MAP#');
-            expect(brs).to.not.include('#FILE_PATH_MAP#');
-            expect(brs).to.include('m.top.expectedMap = {"1"');
-            //the file path map is populated (path separators differ per platform)
-            expect(brs).to.match(/m\.top\.filePathMap = \{"1":".*code\.brs"/);
+            //the wire-protocol line types are substituted from the TS enum
+            expect(brs).to.include(`= ${CodeCoverageLineType.function} then ' #LINE_TYPE_FUNCTION#`);
+            expect(brs).to.include(`= ${CodeCoverageLineType.branch} then ' #LINE_TYPE_BRANCH#`);
+            expect(brs).to.include(`= ${CodeCoverageLineType.code} then ' #LINE_TYPE_CODE#`);
+            //the coverage model gathered during prepare ships as a JSON asset
+            const model = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+            expect(model.files.map((file) => file.sourceFile)).to.eql(['source/code.bs']);
+            expect(model.files[0].functions.map((func) => func.name)).to.eql(['getValue']);
         });
 
         it('includes the coverage component in the build file list exactly once', async () => {
@@ -3055,6 +4303,7 @@ describe('RooibosPlugin', () => {
 
             expect(buildFilePaths.filter(x => x.endsWith('CodeCoverage.brs'))).to.have.lengthOf(1);
             expect(buildFilePaths.filter(x => x.endsWith('CodeCoverage.xml'))).to.have.lengthOf(1);
+            expect(buildFilePaths.filter(x => x.endsWith('CodeCoverage.json'))).to.have.lengthOf(1);
         });
 
         it('does not emit duplicate generated files across repeated builds', async () => {
@@ -3187,7 +4436,7 @@ describe('RooibosPlugin', () => {
                         "throwOnFailedAssertion": false
                         "keepAppOpen": true
                         "shutdownDelay": 400
-                        "isRecordingCodeCoverage": false
+                        "codeCoverage": false
                     }
                 end function
                 function __rooibos_RuntimeConfig_method_getTestSuiteClassMap() as dynamic
@@ -3274,7 +4523,7 @@ describe('RooibosPlugin', () => {
                         "throwOnFailedAssertion": false
                         "keepAppOpen": true
                         "shutdownDelay": 400
-                        "isRecordingCodeCoverage": false
+                        "codeCoverage": false
                     }
                 `;
 
@@ -3506,19 +4755,24 @@ function getComponentContents(filename: string) {
     );
 }
 
-function getTestFunctionContents(className = 'ATest', index = 0) {
+function getTestFunctionContents(classNameOrOptions: string | { className?: string; index?: number } = 'ATest', index = 0) {
+    let className = classNameOrOptions as string;
+    if (typeof classNameOrOptions === 'object') {
+        className = classNameOrOptions.className ?? 'ATest';
+        index = classNameOrOptions.index ?? 0;
+    }
     const contents = getContents('test.spec.brs');
     const funcNameRegex = new RegExp(`__${className}_method_rooiboos_test_case_.*_${index}`);
 
     return getFunctionContents(contents, funcNameRegex);
 }
 
-function getFunctionContents(rawCode: string, functionNameRegex: RegExp) {
+function getFunctionContents(rawCode: string, functionName: RegExp | string) {
     const { ast } = Parser.parse(rawCode);
     const funcStmt = ast.statements.find(stmt => {
         if (stmt instanceof FunctionStatement) {
             const funcName = stmt.tokens.name.text;
-            return functionNameRegex.test(funcName);
+            return typeof functionName === 'string' ? funcName === functionName : functionName.test(funcName);
         }
         return false;
     }) as FunctionStatement;

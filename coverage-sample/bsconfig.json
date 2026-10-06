@@ -30,7 +30,7 @@
         "ts-node/register"
     ],
     "rooibos": {
-        "showOnlyFailures": true,
+        "showOnlyFailures": false,
         "catchCrashes": true,
         "colorizeOutput": true,
         "lineWidth": 70,
@@ -38,7 +38,7 @@
         "sendHomeOnFinish": false,
         "keepAppOpen": true,
         "isGlobalMethodMockingEnabled": true,
-        "codeCoverage": false,
+        "codeCoverage": true,
         "reporters": [
             "mocha"
         ]
