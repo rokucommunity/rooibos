@@ -28,6 +28,106 @@ namespace tests
         end function
 
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        @describe("eqValues with circular and deep structures")
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        @it("treats an associative array containing itself as equal to itself")
+        function _()
+            ' circular detection requires roUtils (Roku OS 15.0+); older firmware keeps the legacy recursion cap
+            if createObject("roUtils") = invalid then return invalid
+
+            a = { name: "a" }
+            a.self = a
+            m.assertTrue(rooibos.common.eqValues(a, a))
+        end function
+
+        @it("treats distinct but structurally identical cyclic associative arrays as equal")
+        function _()
+            if createObject("roUtils") = invalid then return invalid
+
+            a = { name: "x" }
+            a.self = a
+            b = { name: "x" }
+            b.self = b
+            m.assertTrue(rooibos.common.eqValues(a, b))
+            m.assertTrue(rooibos.common.eqAssocArray(a, b))
+        end function
+
+        @it("treats asymmetrically unrolled cycles as equal")
+        function _()
+            if createObject("roUtils") = invalid then return invalid
+
+            a = { name: "x" }
+            a.self = a
+            b = { name: "x" }
+            b.self = { name: "x", self: b }
+            m.assertTrue(rooibos.common.eqValues(a, b))
+        end function
+
+        @it("treats cyclic associative arrays differing in a leaf value as not equal")
+        function _()
+            if createObject("roUtils") = invalid then return invalid
+
+            a = { name: "x" }
+            a.self = a
+            b = { name: "y" }
+            b.self = b
+            m.assertFalse(rooibos.common.eqValues(a, b))
+
+            c = { name: "x" }
+            c.self = { name: "y", self: c }
+            m.assertFalse(rooibos.common.eqValues(a, c))
+        end function
+
+        @it("handles cyclic arrays")
+        function _()
+            if createObject("roUtils") = invalid then return invalid
+
+            first = [1]
+            first.push(first)
+            second = [1]
+            second.push(second)
+            m.assertTrue(rooibos.common.eqValues(first, first))
+            m.assertTrue(rooibos.common.eqArray(first, second))
+
+            third = [2]
+            third.push(third)
+            m.assertFalse(rooibos.common.eqValues(first, third))
+        end function
+
+        @it("compares deeply nested associative arrays without a depth cap")
+        function _()
+            if createObject("roUtils") = invalid then return invalid
+
+            m.assertTrue(rooibos.common.eqValues(m.buildNestedAA(40, "leaf"), m.buildNestedAA(40, "leaf")))
+            m.assertFalse(rooibos.common.eqValues(m.buildNestedAA(40, "leaf"), m.buildNestedAA(40, "other")))
+        end function
+
+        @it("compares deeply nested arrays without a depth cap")
+        function _()
+            if createObject("roUtils") = invalid then return invalid
+
+            m.assertTrue(rooibos.common.eqValues(m.buildNestedArray(40, "leaf"), m.buildNestedArray(40, "leaf")))
+            m.assertFalse(rooibos.common.eqValues(m.buildNestedArray(40, "leaf"), m.buildNestedArray(40, "other")))
+        end function
+
+        function buildNestedAA(depth as integer, leaf as string) as object
+            result = { value: leaf }
+            for i = 1 to depth
+                result = { child: result }
+            end for
+            return result
+        end function
+
+        function buildNestedArray(depth as integer, leaf as string) as object
+            result = [leaf]
+            for i = 1 to depth
+                result = [result]
+            end for
+            return result
+        end function
+
+        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         @describe("makePathStubbable")
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
