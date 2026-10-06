@@ -1012,13 +1012,13 @@ Or, with an instance URL:
 npx rooibos --project bsconfig.json --instance-url <url> --password <password>
 ```
 
-Pass `--host`, `--esn` or `--instance-url`, but only one of them. A `host` in your bsconfig or `ROKU_HOST` is ignored when you target an emulator. A password (`--password`, the `password` in your bsconfig, or `ROKU_PASSWORD`) is still required to deploy.
+Pass `--host`, `--esn` or `--instance-url`, but only one of them. `ROKU_HOST` is ignored when you target an emulator. A password (`--password` or `ROKU_PASSWORD`) is still required to deploy.
 
 ### Options
 
   - `--project` - path to your `bsconfig.json`. Defaults to `./bsconfig.json`.
-  - `--host` - host of the Roku device. Overrides the `host` in your bsconfig. Falls back to `ROKU_HOST`.
-  - `--password` - password of the Roku device. Overrides the `password` in your bsconfig. Falls back to `ROKU_PASSWORD`.
+  - `--host` - host of the Roku device. Falls back to `ROKU_HOST`.
+  - `--password` - password of the Roku device. Falls back to `ROKU_PASSWORD`.
   - `--esn` - ESN of a Roku Cloud Emulator device to run on. Requires a token.
   - `--instance-url` - URL of a Roku Cloud Emulator instance to run on. Requires a token.
   - `--token` - Roku Cloud Emulator access token, used with `--esn` or `--instance-url`. Falls back to `ROKU_RCE_TOKEN`.

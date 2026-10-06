@@ -6,7 +6,7 @@ import type { DeviceConfig } from 'roku-deploy';
  * message when the inputs are missing or contradictory. Neither the token nor any
  * message built here ever contains the token value.
  */
-export function resolveCliDevice(argv: CliDeviceArguments, bsConfig: { host?: string }, env: NodeJS.ProcessEnv): ResolvedCliDevice {
+export function resolveCliDevice(argv: CliDeviceArguments, env: NodeJS.ProcessEnv): ResolvedCliDevice {
     const host = readSingleValue('--host', argv.host);
     const esn = readSingleValue('--esn', argv.esn);
     const instanceUrl = readSingleValue('--instance-url', argv.instanceUrl);
@@ -38,7 +38,7 @@ export function resolveCliDevice(argv: CliDeviceArguments, bsConfig: { host?: st
         return { device: { instanceUrl: instanceUrl, rceToken: rceToken }, label: `RCE instance ${instanceUrl}` };
     }
 
-    const resolvedHost = host ?? bsConfig.host ?? env.ROKU_HOST;
+    const resolvedHost = host ?? env.ROKU_HOST;
     if (!resolvedHost) {
         throw new Error('You must provide a target device. (--host, or ROKU_HOST in .env; or for a Roku Cloud Emulator, --esn or --instance-url with --token or ROKU_RCE_TOKEN)');
     }
