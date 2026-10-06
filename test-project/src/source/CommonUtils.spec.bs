@@ -22,6 +22,47 @@ namespace tests
             m.assertEqual(rooibos.Common.asMultilineString(objB), `{\n  "a": 157.3332977294921875\n}`)
         end function
 
+        @it("renders circular references as [Circular]")
+        function _()
+            ' cycle detection requires roUtils (Roku OS 15.0+); older firmware uses a depth guard instead
+            if createObject("roUtils") = invalid then return invalid
+
+            aa = {}
+            aa.self = aa
+            m.assertEqual(rooibos.common.asMultilineString(aa), `{\n  "self": [Circular]\n}`)
+
+            arr = [1]
+            arr.push(arr)
+            m.assertEqual(rooibos.common.asMultilineString(arr), `[\n  1,\n  [Circular]\n]`)
+        end function
+
+        @it("renders a shared non-cyclic child in full each time")
+        function _()
+            child = { x: 1 }
+            parent = { a: child, b: child }
+            m.assertEqual(rooibos.common.asMultilineString(parent), `{\n  "a": {\n    "x": 1\n  },\n  "b": {\n    "x": 1\n  }\n}`)
+        end function
+
+        @it("fails assertEqual on differing cyclic associative arrays without crashing")
+        function _()
+            if createObject("roUtils") = invalid then return invalid
+
+            first = { name: "x" }
+            first.self = first
+            second = { name: "y" }
+            second.self = second
+
+            m.assertEqual(first, second)
+            isFail = m.currentResult.isFail
+            actualText = m.currentResult.actual
+            expectedText = m.currentResult.expected
+            m.currentResult.Reset()
+
+            m.assertTrue(isFail)
+            m.assertTrue(actualText.inStr("[Circular]") > -1)
+            m.assertTrue(expectedText.inStr("[Circular]") > -1)
+        end function
+
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         @describe("asString()")
         '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -36,5 +77,26 @@ namespace tests
             m.assertEqual(rooibos.Common.asString(objA), `{a:157.3333282470703125}`)
             m.assertEqual(rooibos.Common.asString(objB), `{a:157.3332977294921875}`)
         end function
+
+        @it("renders circular references as [Circular]")
+        function _()
+            if createObject("roUtils") = invalid then return invalid
+
+            aa = {}
+            aa.self = aa
+            m.assertEqual(rooibos.common.asString(aa), "{self:[Circular]}")
+
+            arr = [1]
+            arr.push(arr)
+            m.assertEqual(rooibos.common.asString(arr), "[1, [Circular]]")
+        end function
+
+        @it("renders a shared non-cyclic child in full each time")
+        function _()
+            child = { x: 1 }
+            parent = { a: child, b: child }
+            m.assertEqual(rooibos.common.asString(parent), "{a:{x:1}b:{x:1}}")
+        end function
+
     end class
 end namespace
