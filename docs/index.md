@@ -995,12 +995,40 @@ The test runner CLI will:
 3. send the Roku's console output to `stdout`
 4. exit with status `0` on success, or `1` on failure.
 
-Other options:
+### Running on a Roku Cloud Emulator
 
+Instead of a physical device on your network, you can run your tests on a Roku Cloud Emulator (RCE). Because the emulator is reachable over the internet, your CI no longer needs a self-hosted runner on the same network as a Roku.
+
+You need an RCE access token, plus either the ESN of the emulator device or the URL of an emulator instance. Keep the token out of your command line and shell history by providing it through the `ROKU_RCE_TOKEN` environment variable (or your CI's secrets store):
+
+```
+export ROKU_RCE_TOKEN=<your token>
+npx rooibos --project bsconfig.json --esn <ESN> --password <password>
+```
+
+Or, with an instance URL:
+
+```
+npx rooibos --project bsconfig.json --instance-url <url> --password <password>
+```
+
+Pass `--host`, `--esn` or `--instance-url`, but only one of them. `ROKU_HOST` is ignored when you target an emulator. A password (`--password` or `ROKU_PASSWORD`) is still required to deploy.
+
+### Options
+
+  - `--project` - path to your `bsconfig.json`. Defaults to `./bsconfig.json`.
+  - `--host` - host of the Roku device. Falls back to `ROKU_HOST`.
+  - `--password` - password of the Roku device. Falls back to `ROKU_PASSWORD`.
+  - `--esn` - ESN of a Roku Cloud Emulator device to run on. Requires a token.
+  - `--instance-url` - URL of a Roku Cloud Emulator instance to run on. Requires a token.
+  - `--token` - Roku Cloud Emulator access token, used with `--esn` or `--instance-url`. Falls back to `ROKU_RCE_TOKEN`.
+  - `--log-level` - one of `error`, `warn`, `log`, `info` or `debug`.
   - `--coverage-dir` - directory to write coverage reports into when code coverage is on: `lcov.info`, `coverage-final.json` and an `html/` report. Defaults to `./coverage`.
   - `--code-coverage` - turn code coverage on (or off with `--no-code-coverage`) for the CLI's build, overriding the `codeCoverage` setting in your bsconfig. Has no effect with `--no-build`, since the package is already built.
   - `--staging-dir` - path to the built package directory (staging output). With `--no-build` this is zipped and deployed as-is; otherwise it overrides where the build stages.
   - `--no-build` - skip the internal build and deploy an existing staging directory (from `--staging-dir` or the bsconfig). It must have been built with the rooibos plugin.
+
+Environment variables (`ROKU_HOST`, `ROKU_PASSWORD`, `ROKU_RCE_TOKEN`) can also be placed in a `.env` file in the directory you run the CLI from. Variables already set in the environment take precedence over the file.
 
 
 ## Integrating with your CI
@@ -1014,6 +1042,13 @@ continuousIntegration: build
 	echo "Running Rooibos Unit Tests"
 	npx rooibos --project=<test project bsconfig.json> --host=${ROKU_DEV_TARGET} --password=${ROKU_DEV_PASSWORD}
 
+```
+
+To run in CI without a Roku on your network, target a Roku Cloud Emulator by storing your RCE token as a CI secret exposed as `ROKU_RCE_TOKEN`:
+
+```
+continuousIntegration: build
+	npx rooibos --project=<test project bsconfig.json> --esn=${ROKU_RCE_ESN} --password=${ROKU_DEV_PASSWORD}
 ```
 
 Alternately, you can manually deploy the app after it has been built, and check the output. Because the test output has a convenient status at the end of the output, you can simply parse the last line of output from the telnet session to ascertain if your CI build's test succeeded or failed.
@@ -1327,6 +1362,25 @@ jobs:
       - uses: actions/checkout@v4
       - run: npm ci && npm run build:tests
       - run: npx rooibos --project bsconfig-tests.json --host $ROKU_HOST --password $ROKU_PASSWORD
+      - uses: coverallsapp/github-action@v2
+        with:
+          file: coverage/lcov.info
+```
+
+With a Roku Cloud Emulator you can use a regular GitHub-hosted runner instead, since no local network access is needed. Store the token as a repository secret:
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      ROKU_RCE_TOKEN: ${{ secrets.ROKU_RCE_TOKEN }}
+      ROKU_RCE_ESN: ${{ secrets.ROKU_RCE_ESN }}
+      ROKU_PASSWORD: ${{ secrets.ROKU_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build:tests
+      - run: npx rooibos --project bsconfig-tests.json --esn $ROKU_RCE_ESN --password $ROKU_PASSWORD
       - uses: coverallsapp/github-action@v2
         with:
           file: coverage/lcov.info

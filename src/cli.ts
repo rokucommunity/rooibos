@@ -10,6 +10,8 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import type { CoverageMap as CoverageModelJson } from './lib/rooibos/CodeCoverageProcessor';
 import { resolveCliRooibosConfig } from './lib/rooibos/RooibosConfig';
+import { resolveCliDevice } from './lib/rooibos/resolveCliDevice';
+import type { ResolvedCliDevice } from './lib/rooibos/resolveCliDevice';
 import { loadCoverageModel, writeCoverageReportsFromCounts } from './lib/rooibos/CoverageReporter';
 
 /**
@@ -38,24 +40,30 @@ function loadDotEnv(envPath = '.env') {
 
 loadDotEnv();
 
+// Resolved once by the argument check below, so main() can rely on a valid target and password.
+let password: string;
+let target: ResolvedCliDevice;
+
 let options = yargs
     .usage('$0', 'Rooibos: a simple, flexible, fun Brightscript test framework for Roku Scenegraph apps')
     .help('help', 'View help information about this tool.')
     .option('project', { type: 'string', description: 'Path to a bsconfig.json project file.' })
-    .option('host', { type: 'string', description: 'Host of the Roku device to connect to. Overrides value in bsconfig file.' })
-    .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Overrides value in bsconfig file.' })
+    .option('host', { type: 'string', description: 'Host of the Roku device to connect to. Falls back to ROKU_HOST.' })
+    .option('esn', { type: 'string', description: 'ESN of a Roku Cloud Emulator device to run on. Requires --token or ROKU_RCE_TOKEN. Cannot be combined with --host or --instance-url.' })
+    .option('instance-url', { type: 'string', description: 'URL of a Roku Cloud Emulator instance to run on. Requires --token or ROKU_RCE_TOKEN. Cannot be combined with --host or --esn.' })
+    .option('token', { type: 'string', description: 'Roku Cloud Emulator access token (used with --esn or --instance-url). Falls back to the ROKU_RCE_TOKEN environment variable.' })
+    .option('password', { type: 'string', description: 'Password of the Roku device to connect to. Falls back to ROKU_PASSWORD.' })
     .option('log-level', { type: 'string', defaultDescription: '"log"', description: 'The log level. Value can be "error", "warn", "log", "info", "debug".' })
     .option('coverage-dir', { type: 'string', default: './coverage', description: 'Directory to write coverage reports into when codeCoverage is on: lcov.info, coverage-final.json and an html/ report.' })
     .option('code-coverage', { type: 'boolean', description: 'Turn code coverage on (or off with --no-code-coverage) for the CLI\'s build, overriding the rooibos block of the bsconfig. Has no effect with --no-build.' })
     .option('staging-dir', { type: 'string', description: 'Path to the built package directory (staging output). With --no-build this is zipped and deployed as-is; otherwise it overrides where the build stages. Coverage models are read from here.' })
     .option('build', { type: 'boolean', default: true, description: 'Pass --no-build to skip the internal bsc build and deploy an existing staging directory (from --staging-dir or the bsconfig). Assumes it was built with the rooibos plugin so coverage helpers are present.' })
     .check((argv) => {
-        if (!argv.host && !process.env.ROKU_HOST) {
-            return new Error('You must provide a host. (--host, or ROKU_HOST in .env)');
-        }
-        if (!argv.password && !process.env.ROKU_PASSWORD) {
+        password = argv.password ?? process.env.ROKU_PASSWORD;
+        if (!password) {
             return new Error('You must provide a password. (--password, or ROKU_PASSWORD in .env)');
         }
+        target = resolveCliDevice({ host: argv.host, esn: argv.esn, instanceUrl: argv['instance-url'], token: argv.token }, process.env);
         if (!argv.project) {
             console.log('No project file specified. Using "./bsconfig.json"');
 
@@ -83,13 +91,11 @@ async function main() {
         console.warn('[rooibos] --code-coverage/--no-code-coverage has no effect with --no-build: the existing package was already built, so its coverage setting is whatever it was built with');
     }
 
-    const host = options.host ?? bsConfig.host ?? process.env.ROKU_HOST;
-    const password = options.password ?? bsConfig.password ?? process.env.ROKU_PASSWORD;
+    const { device, label: deviceLabel } = target;
 
     const logLevel = LogLevel[options['log-level']] ?? bsConfig.logLevel;
-    // roku-deploy v4 and roku-debug 0.24 address the target via a device config rather than
-    // a bare `host` string.
-    const device = { host: host };
+    // roku-deploy v4 and roku-debug 0.24 address the target via a device config (resolved
+    // by the argument check) rather than a bare `host` string.
     const rokuDeploy = new RokuDeploy();
     const skipBuild = options.build === false;
 
@@ -143,8 +149,9 @@ async function main() {
         const builder = new ProgramBuilder();
         builder.logger.logLevel = logLevel;
         // --staging-dir (if given) flows into bsc as its stagingDir via the spread
+        const { token: _token, esn: _esn, 'instance-url': _instanceUrlKebab, instanceUrl: _instanceUrl, ...buildOptions } = options;
         await builder.run(<any>{
-            ...options,
+            ...buildOptions,
             ...(rooibosConfig ? { rooibos: rooibosConfig } : {}),
             retainStagingDir: true,
             createPackage: true
@@ -278,7 +285,7 @@ async function main() {
         // With --no-build, deploy the staging dir we just zipped; otherwise fall back to the
         // bsconfig-driven outFile that the rooibos build just produced.
         const packagePath = deployZipPath ?? path.resolve(process.cwd(), bsConfig.outFile);
-        console.log(`Deploying ${packagePath} to ${host}`);
+        console.log(`Deploying ${packagePath} to ${deviceLabel}`);
         // roku-deploy v4 replaced publish({ host, outDir, outFile }) with sideload({ device, zip }).
         await rokuDeploy.sideload({
             password: password,
