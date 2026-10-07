@@ -63,23 +63,13 @@
     },
     "overrides": {
         "serialize-javascript": "^7.0.5",
-        "brace-expansion@^1": "^1.1.21",
-        "brace-expansion@^2": "^2.1.7",
-        "brace-expansion@^5": "^5.0.12",
-        "browserslist": "^4.28.8",
-        "form-data@^2": "^2.5.6",
-        "ip-address": "^10.7.1",
         "postman-request": {
             "qs": "^6.16.0"
         },
         "js-yaml@^3": "^3.15.2",
         "js-yaml@^4": "^4.3.2",
-        "linkify-it": "^6.1.0",
-        "markdown-it": "^14.3.1",
-        "ws": "^8.21.3",
         "istanbul-lib-processinfo": "^3.0.1",
-        "uuid": "^11.1.1",
-        "@babel/core": "^7.29.7"
+        "uuid": "^11.1.1"
     },
     "main": "dist/plugin.js",
     "bin": {
