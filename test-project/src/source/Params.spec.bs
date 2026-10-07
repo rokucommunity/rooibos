@@ -34,5 +34,29 @@ namespace tests
         function _(arg1, expectedValue)
             m.assertEqual(arg1, expectedValue)
         end function
+
+        @it("supports enums and constants")
+        @params(ParamTypes.TYPE_1, "type1")
+        @params(tests.ParamTypes.TYPE_2, "type2")
+        @params(ParamNumbers.two, 2)
+        @params(PARAM_NAME, "bob")
+        @params([ParamTypes.TYPE_1, PARAM_NAME], ["type1", "bob"])
+        @params({ "type": ParamTypes.TYPE_2 }, { "type": "type2" })
+        function _(arg1, expectedValue)
+            m.assertEqual(arg1, expectedValue)
+        end function
     end class
+
+    enum ParamTypes
+        TYPE_1 = "type1"
+        TYPE_2 = "type2"
+    end enum
+
+    enum ParamNumbers
+        zero
+        one
+        two
+    end enum
+
+    const PARAM_NAME = "bob"
 end namespace
