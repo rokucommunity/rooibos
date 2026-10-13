@@ -2,6 +2,8 @@ import type { BrsFile, BscFile, Program, XmlFile } from 'brighterscript';
 import { Editor, standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
+import type { CoverageMap } from './CodeCoverageProcessor';
+import { CodeCoverageLineType } from './CodeCoverageProcessor';
 import * as fastGlob from 'fast-glob';
 import type { TestSuite } from './TestSuite';
 import { RooibosLogPrefix } from '../utils/Diagnostics';
@@ -33,6 +35,9 @@ export class FileFactory {
             '**/*.{bs,brs,xml}',
             '!**/bslib.brs',
             '!**/manifest',
+            // the component DEFINITION always ships (bsc validates the createObject in
+            // Rooibos.bs against it), but the node is only created - and the coverage
+            // model JSON only written - when coverage is enabled
             '**/CodeCoverage.{brs,xml}',
             '**/RooibosScene.xml'
         ], {
@@ -93,13 +98,21 @@ export class FileFactory {
         return contents;
     }
 
-    public createCoverageComponent(program: Program, coverageMap: any, filepathMap: Map<number, string>) {
-        let template = this.coverageComponentBrsTemplate;
-        template = template.replace(/\"\#EXPECTED_MAP\#\"/g, JSON.stringify(coverageMap ?? {}));
-        template = template.replace(/\"\#FILE_PATH_MAP\#\"/g, JSON.stringify(filepathMap ?? {}));
+    public createCoverageComponent(program: Program, baseCoverageReport: CoverageMap) {
+        // Force-substitute the wire-protocol line-type literals from the TS enum (the
+        // template's #LINE_TYPE_*# markers anchor them) so the consumer can never drift
+        // from what the injected reporters emit.
+        const componentBrs = this.coverageComponentBrsTemplate
+            .replace(/[=] \d+ then ' #LINE_TYPE_FUNCTION#/, `= ${CodeCoverageLineType.function} then ' #LINE_TYPE_FUNCTION#`)
+            .replace(/[=] \d+ then ' #LINE_TYPE_BRANCH#/, `= ${CodeCoverageLineType.branch} then ' #LINE_TYPE_BRANCH#`)
+            .replace(/[=] \d+ then ' #LINE_TYPE_CODE#/, `= ${CodeCoverageLineType.code} then ' #LINE_TYPE_CODE#`);
 
         return [
-            this.addGeneratedFile(program, 'components/rooibos/CodeCoverage.brs', template),
+            // The report is written as a sidecar JSON asset that CodeCoverage.brs parses at
+            // runtime. Embedding it as a code literal broke real apps: the map for a large app
+            // is several MB and Roku refuses to compile any .brs file of 2MiB or more (&hb9).
+            this.addGeneratedFile(program, 'components/rooibos/CodeCoverage.json', JSON.stringify(baseCoverageReport ?? { files: [] })),
+            this.addGeneratedFile(program, 'components/rooibos/CodeCoverage.brs', componentBrs),
             this.addGeneratedFile(program, 'components/rooibos/CodeCoverage.xml', this.coverageComponentXmlTemplate)
         ].filter((f) => f !== undefined);
     }

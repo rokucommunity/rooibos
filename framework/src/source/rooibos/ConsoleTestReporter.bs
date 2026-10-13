@@ -72,12 +72,12 @@ namespace rooibos
             m.printLine(0, "  Passed: " + rooibos.common.AsString(m.allStats.passedCount))
             m.printLine(0, "  Crashed: " + rooibos.common.AsString(m.allStats.crashedCount))
             m.printLine(0, "  Failed: " + rooibos.common.AsString(m.allStats.failedCount))
-            m.printLine(0, "  Ignored: " + rooibos.common.AsString(ignoredInfo.count))
+            m.printLine(0, "  Ignored: " + rooibos.common.AsString(m.allStats.ignoredCount))
             m.printLine(0, "  Time: " + rooibos.common.AsString(m.allStats.time) + "ms")
             m.printLine()
             m.printLine()
 
-            if ignoredInfo.count > 0 then
+            if m.allStats.ignoredCount > 0 then
                 m.printLine(0, "IGNORED TESTS:")
                 for each ignoredItemName in ignoredInfo.items
                     m.printLine(1, ignoredItemName)

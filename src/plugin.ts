@@ -4,13 +4,15 @@ import type {
     ProgramBuilder,
     XmlFile,
     OnPrepareFileEvent,
+    BeforePrepareFileEvent,
     BeforeBuildProgramEvent,
     AfterProvideFileEvent,
     BeforeProvideProgramEvent,
     AfterRemoveFileEvent,
     AfterProvideProgramEvent,
     AfterValidateProgramEvent,
-    AfterPrepareProgramEvent
+    AfterPrepareProgramEvent,
+    ValidateScopeEvent
 } from 'brighterscript';
 import {
     isBrsFile,
@@ -22,11 +24,15 @@ import { RooibosSession } from './lib/rooibos/RooibosSession';
 import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
+import { normalizeCodeCoverage } from './lib/rooibos/RooibosConfig';
 import * as minimatch from 'minimatch';
 import * as path from 'path';
 import { MockUtil } from './lib/rooibos/MockUtil';
-import { getScopeForSuite } from './lib/rooibos/Utils';
+import { getScopeForSuite, getUnresolvedNameDiagnostics } from './lib/rooibos/Utils';
+import { AnnotationType, getAnnotationType } from './lib/rooibos/Annotation';
 import { RooibosLogPrefix } from './lib/utils/Diagnostics';
+
+const paramsValidationTag = 'rooibos-params-validation';
 
 export class RooibosPlugin implements CompilerPlugin {
 
@@ -74,9 +80,7 @@ export class RooibosPlugin implements CompilerPlugin {
         if (config.showOnlyFailures === undefined) {
             config.showOnlyFailures = true;
         }
-        if (config.isRecordingCodeCoverage === undefined) {
-            config.isRecordingCodeCoverage = false;
-        }
+        normalizeCodeCoverage(config);
         if (config.isGlobalMethodMockingEnabled === undefined) {
             config.isGlobalMethodMockingEnabled = false;
         }
@@ -171,8 +175,16 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     beforeBuildProgram(event: BeforeBuildProgramEvent) {
+        // coverage ids are build-order counters; a program can build more than
+        // once, so all cross-file coverage state resets per pass
+        this.codeCoverageProcessor.onBeforeBuildProgram(event.program);
         const createdFiles = this.session.prepareForTranspile(event.editor, event.program, this.mockUtil);
         this.addFilesToBuild(event.files, createdFiles);
+
+        //this must happen before bsc's `prepareFile` (which runs before ours), so bsc will inline any enums/constants used in the `@params`
+        for (const testSuite of this.session.sessionInfo.testSuitesToRun) {
+            testSuite.addDataFunctions(event.editor);
+        }
 
         //generate the entry point here (rather than after the build) so it flows through prepare/serialize/write
         const launchHookFile = this.session.addLaunchHookFileIfNotPresent(event.program);
@@ -197,12 +209,23 @@ export class RooibosPlugin implements CompilerPlugin {
         }
     }
 
+    beforePrepareFile(event: BeforePrepareFileEvent) {
+        if (this.shouldSkipFile(event.file)) {
+            return;
+        }
+        //coverage must instrument the source as written, before bsc's own `prepareFile` rewrites it
+        //(i.e. lowering a ternary assignment into an if/else statement)
+        if (isBrsFile(event.file) && this.shouldAddCodeCoverageToFile(event.file)) {
+            this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
+        }
+    }
+
     prepareFile(event: OnPrepareFileEvent) {
         if (this.shouldSkipFile(event.file)) {
             return;
         }
-        let testSuite = this.session.sessionInfo.testSuitesToRun.find((ts) => ts.file.pkgPath === event.file.pkgPath);
-        if (testSuite) {
+        const testSuites = this.session.sessionInfo.testSuitesToRun.filter((ts) => ts.file.pkgPath === event.file.pkgPath);
+        for (const testSuite of testSuites) {
             const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
             if (noEarlyExit) {
@@ -211,7 +234,6 @@ export class RooibosPlugin implements CompilerPlugin {
 
             const modifiedTestCases = new Set();
             const modifiedHookFunctions = new Set();
-            testSuite.addDataFunctions(event.editor as any);
             for (let group of [...testSuite.testGroups.values()].filter((tg) => tg.isIncluded)) {
                 for (const hookName of [group.setupFunctionName, group.tearDownFunctionName, group.beforeEachFunctionName, group.afterEachFunctionName]) {
                     if (hookName) {
@@ -234,9 +256,6 @@ export class RooibosPlugin implements CompilerPlugin {
         }
 
         if (isBrsFile(event.file)) {
-            if (this.shouldAddCodeCoverageToFile(event.file)) {
-                this.codeCoverageProcessor.addCodeCoverage(event.file, event.editor);
-            }
             if (this.shouldEnableGlobalMocksOnFile(event.file)) {
                 this.mockUtil.enableGlobalMethodMocks(event.file, event.editor);
             }
@@ -244,9 +263,26 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     afterPrepareProgram(event: AfterPrepareProgramEvent) {
-        //coverage metadata is gathered during `prepareFile`, so it isn't complete until every file is prepared
-        const coverageFiles = this.codeCoverageProcessor.generateMetadata(event.program);
+        //coverage metadata is gathered during `beforePrepareFile`, so it isn't complete until every file is prepared
+        const coverageFiles = this.codeCoverageProcessor.generateMetadata(this.config.codeCoverage, event.program);
         this.addFilesToBuild(event.files, coverageFiles);
+    }
+
+    validateScope(event: ValidateScopeEvent) {
+        event.program.diagnostics.clearByFilter({ scope: event.scope, tag: paramsValidationTag });
+        for (const testSuite of this.session.sessionInfo.testSuites.values()) {
+            if (getScopeForSuite(testSuite) !== event.scope) {
+                continue;
+            }
+            for (const statement of testSuite.classStatement?.body ?? []) {
+                for (const annotation of statement.annotations ?? []) {
+                    const annotationType = getAnnotationType(annotation.name);
+                    if (annotationType === AnnotationType.Params || annotationType === AnnotationType.SoloParams || annotationType === AnnotationType.IgnoreParams) {
+                        event.program.diagnostics.register(getUnresolvedNameDiagnostics(annotation), { scope: event.scope, tags: [paramsValidationTag] });
+                    }
+                }
+            }
+        }
     }
 
     afterValidateProgram(event: AfterValidateProgramEvent) {
@@ -274,7 +310,7 @@ export class RooibosPlugin implements CompilerPlugin {
         return true;
     }
     shouldAddCodeCoverageToFile(file: BscFile) {
-        if (!isBrsFile(file) || !this.config.isRecordingCodeCoverage) {
+        if (!isBrsFile(file) || !this.config.codeCoverage) {
             return false;
             //rooibos' own generated files (the framework, and the generated entry point) are never instrumented
         } else if (this.fileFactory.isIgnoredFile(file)) {
@@ -283,7 +319,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.coverageExcludedFiles) {
-                if (minimatch(file.destPath, filter, { dot: true })) {
+                if (minimatch(file.destPath, filter, { dot: true, nocase: true })) {
                     return false;
                 }
             }
@@ -298,7 +334,7 @@ export class RooibosPlugin implements CompilerPlugin {
             return true;
         } else {
             for (let filter of this.config.globalMethodMockingExcludedFiles) {
-                if (minimatch(file.destPath, filter, { dot: true })) {
+                if (minimatch(file.destPath, filter, { dot: true, nocase: true })) {
                     // console.log('±±±skipping file', file.pkgPath);
                     return false;
                 }

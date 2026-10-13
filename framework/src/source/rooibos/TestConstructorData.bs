@@ -76,7 +76,8 @@ namespace rooibos
         catchCrashes as boolean
         throwOnFailedAssertion as boolean
         keepAppOpen as boolean
-        isRecordingCodeCoverage as boolean
+        shutdownDelay as integer
+        codeCoverage as boolean
     end interface
 
 end namespace

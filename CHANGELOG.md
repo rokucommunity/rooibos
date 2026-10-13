@@ -221,6 +221,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [5.17.0](https://github.com/rokucommunity/rooibos/compare/5.16.6...v5.17.0) - 2026-10-06
+### Added
+ - Add Roku Cloud Emulator (RCE) support via CLI ([#447](https://github.com/rokucommunity/rooibos/pull/447))
+### Changed
+ - Istanbul HTML code coverage reports and improved coverage accuracy ([#275](https://github.com/rokucommunity/rooibos/pull/275))
+ - Security enhancements ([#444](https://github.com/rokucommunity/rooibos/pull/444), [#446](https://github.com/rokucommunity/rooibos/pull/446))
+
+
+
+## [5.16.6](https://github.com/rokucommunity/rooibos/compare/5.16.5...v5.16.6) - 2026-10-01
+### Changed
+ - Process every test suite in a file, not just the first ([#441](https://github.com/rokucommunity/rooibos/pull/441))
+ - Support enums and constants in @params annotations ([#438](https://github.com/rokucommunity/rooibos/pull/438))
+ - Security enhancements ([#426](https://github.com/rokucommunity/rooibos/pull/426), [#429](https://github.com/rokucommunity/rooibos/pull/429), [#439](https://github.com/rokucommunity/rooibos/pull/439))
+ - upgrade to [brighterscript@0.73.5](https://github.com/rokucommunity/brighterscript/blob/v0.73.5/CHANGELOG.md#0735---2026-09-15). Notable changes since 0.73.3:
+     - Fix crash stripping sourceMappingURL comment from non-transpiled files ([#1821](https://github.com/rokucommunity/brighterscript/pull/1821))
+     - Tolerate older BrsTranspileState in continue back-transpile ([#1812](https://github.com/rokucommunity/brighterscript/pull/1812))
+     - Security enhancements ([#1804](https://github.com/rokucommunity/brighterscript/pull/1804), [#1805](https://github.com/rokucommunity/brighterscript/pull/1805))
+     - Locate the super() call when injecting field initializers ([#1803](https://github.com/rokucommunity/brighterscript/pull/1803))
+ - upgrade to [roku-debug@0.24.6](https://github.com/rokucommunity/roku-debug/blob/v0.24.6/CHANGELOG.md#0246---2026-10-01). Notable changes since 0.24.3:
+     - Security enhancements ([#419](https://github.com/rokucommunity/roku-debug/pull/419), [#427](https://github.com/rokucommunity/roku-debug/pull/427))
+ - upgrade to [roku-deploy@4.0.0-alpha.9](https://github.com/rokucommunity/roku-deploy/blob/v4.0.0-alpha.9/CHANGELOG.md#400-alpha9---2026-09-28). Notable changes since 4.0.0-alpha.5:
+     - Security enhancements ([#422](https://github.com/rokucommunity/roku-deploy/pull/422))
+     - upgrade to [@rokucommunity/logger@0.4.2](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#042---2026-09-02). Notable changes since 0.4.1:
+         - Security enhancements ([#38](https://github.com/rokucommunity/logger/pull/38), [#39](https://github.com/rokucommunity/logger/pull/39))
+### Fixed
+ - Fixed ignored tests count reporting in the summary output ([#435](https://github.com/rokucommunity/rooibos/pull/435))
+
+
+
+## [5.16.5](https://github.com/rokucommunity/rooibos/compare/5.16.4...v5.16.5) - 2026-09-09
+### Changed
+ - Security enhancements ([#405](https://github.com/rokucommunity/rooibos/pull/405), [#406](https://github.com/rokucommunity/rooibos/pull/406), [#407](https://github.com/rokucommunity/rooibos/pull/407), [#409](https://github.com/rokucommunity/rooibos/pull/409), [#410](https://github.com/rokucommunity/rooibos/pull/410), [#411](https://github.com/rokucommunity/rooibos/pull/411), [#412](https://github.com/rokucommunity/rooibos/pull/412), [#414](https://github.com/rokucommunity/rooibos/pull/414), [#421](https://github.com/rokucommunity/rooibos/pull/421))
+ - Make before-exit sleep duration configurable ([#418](https://github.com/rokucommunity/rooibos/pull/418))
+ - Run stubCall/expectCalled/expectNotCalled rewrites in setUp/tearDown/beforeEach/afterEach hooks ([#403](https://github.com/rokucommunity/rooibos/pull/403))
+ - upgrade to [brighterscript@0.73.3](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0733---2026-09-09). Notable changes since 0.72.5:
+     - Security enhancements ([#1733](https://github.com/rokucommunity/brighterscript/pull/1733), [#1763](https://github.com/rokucommunity/brighterscript/pull/1763), [#1764](https://github.com/rokucommunity/brighterscript/pull/1764), [#1766](https://github.com/rokucommunity/brighterscript/pull/1766), [#1773](https://github.com/rokucommunity/brighterscript/pull/1773), [#1774](https://github.com/rokucommunity/brighterscript/pull/1774), [#1775](https://github.com/rokucommunity/brighterscript/pull/1775), [#1782](https://github.com/rokucommunity/brighterscript/pull/1782), [#1796](https://github.com/rokucommunity/brighterscript/pull/1796))
+ - upgrade to [roku-debug@0.24.3](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#0243---2026-09-09). Notable changes since 0.23.11:
+     - Security enhancements ([#369](https://github.com/rokucommunity/roku-debug/pull/369), [#372](https://github.com/rokucommunity/roku-debug/pull/372), [#387](https://github.com/rokucommunity/roku-debug/pull/387), [#402](https://github.com/rokucommunity/roku-debug/pull/402), [#403](https://github.com/rokucommunity/roku-debug/pull/403), [#407](https://github.com/rokucommunity/roku-debug/pull/407), [#412](https://github.com/rokucommunity/roku-debug/pull/412), [#414](https://github.com/rokucommunity/roku-debug/pull/414), [#417](https://github.com/rokucommunity/roku-debug/pull/417))
+ - upgrade to [roku-deploy@3.18.4](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3184---2026-09-02). Notable changes since 3.17.6:
+     - Security enhancements ([#293](https://github.com/rokucommunity/roku-deploy/pull/293), [#345](https://github.com/rokucommunity/roku-deploy/pull/345))
+ - upgrade to [@rokucommunity/bslint@0.8.46](https://github.com/rokucommunity/bslint/blob/master/CHANGELOG.md#0846---2026-09-09). Notable changes since 0.8.43:
+     - Security enhancements ([#186](https://github.com/rokucommunity/bslint/pull/186), [#196](https://github.com/rokucommunity/bslint/pull/196), [#198](https://github.com/rokucommunity/bslint/pull/198), [#203](https://github.com/rokucommunity/bslint/pull/203))
+ - upgrade to [ropm@0.11.11](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#01111---2026-09-09). Notable changes since 0.11.8:
+     - Security enhancements ([#147](https://github.com/rokucommunity/ropm/pull/147), [#152](https://github.com/rokucommunity/ropm/pull/152), [#154](https://github.com/rokucommunity/ropm/pull/154), [#156](https://github.com/rokucommunity/ropm/pull/156), [#159](https://github.com/rokucommunity/ropm/pull/159))
+### Fixed
+ - Fix coverage instrumentation changing constructor execution order ([#355](https://github.com/rokucommunity/rooibos/pull/355))
+ - fix: skip assertion tracking injection for namespace function calls ([#385](https://github.com/rokucommunity/rooibos/pull/385))
+
+
+
+## [5.16.4](https://github.com/rokucommunity/rooibos/compare/5.16.3...v5.16.4) - 2026-06-10
+### Changed
+ - Make tests less brittle - removes full transpile string checks ([#396](https://github.com/rokucommunity/rooibos/pull/396))
+ - Security enhancements
+ - upgrade to [brighterscript@0.72.5](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0725---2026-06-10). Notable changes since 0.72.2:
+   - Security enhancements
+ - upgrade to [roku-debug@0.23.11](https://github.com/rokucommunity/roku-debug/blob/master/CHANGELOG.md#02311---2026-06-04). Notable changes since 0.23.8:
+     - Fix pressHomeButton crash in disconnectRequest ([#358](https://github.com/rokucommunity/roku-debug/pull/358))
+     - Security enhancements
+ - upgrade to [roku-deploy@3.17.6](https://github.com/rokucommunity/roku-deploy/blob/master/CHANGELOG.md#3176---2026-06-04). Notable changes since 3.17.4:
+     - Fix case-insensitive matching for absolute `files.src` glob patterns on case-insensitive file systems ([#279](https://github.com/rokucommunity/roku-deploy/pull/279))
+     - Preserve `!` glob-negation prefix in standardizePath ([#277](https://github.com/rokucommunity/roku-deploy/pull/277))
+     - Security enhancements
+ - upgrade to [ropm@0.11.8](https://github.com/rokucommunity/ropm/blob/master/CHANGELOG.md#0118---2026-05-30). Notable changes since 0.11.7:
+     - Security enhancements
+
+
+
 ## [5.16.3](https://github.com/rokucommunity/rooibos/compare/5.16.2...v5.16.3) - 2026-05-20
 ### Changed
  - Update ropm to 0.11.7 and remove lodash override ([#391](https://github.com/rokucommunity/rooibos/pull/391))

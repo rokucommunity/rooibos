@@ -1,0 +1,36 @@
+namespace bench
+
+    ' Single-line `if` with no else. The spec always passes a truthy value, so the implicit
+    ' "not taken" (else) branch should report 0 hits. Regression sample for the inline-if
+    ' double-counting bug (the line is counted by the wrapped condition AND by the
+    ' reportLine inserted before the inline clause).
+    function inlineAlwaysTrue(flag as boolean) as integer
+        if flag then return 1
+        return 0
+    end function
+
+    ' Same shape as above but with a block-form if, as a control: not-taken branch should
+    ' correctly be 0 hits.
+    function blockAlwaysTrue(flag as boolean) as integer
+        if flag then
+            return 1
+        end if
+        return 0
+    end function
+
+    ' Nested inline ifs on one line: the line must be counted once per call, and the outer
+    ' (always true) implicit-else branch must report 0 hits.
+    function nestedInlineAlwaysTrue(outer as boolean, inner as boolean) as integer
+        if outer then if inner then return 1
+        return 0
+    end function
+
+    ' Inline `for` clause: the if line must be counted once per call, and the outer
+    ' (always true) implicit-else branch must report 0 hits.
+    function inlineForAlwaysTrue(flag as boolean) as integer
+        total = 0
+        if flag then for i = 0 to 1 : total += i : end for
+        return total
+    end function
+
+end namespace

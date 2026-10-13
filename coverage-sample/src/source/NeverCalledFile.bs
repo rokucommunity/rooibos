@@ -1,0 +1,18 @@
+namespace bench
+
+    ' This file is intentionally never referenced by any spec or by Main. Every executable
+    ' line should report 0 hits, and the file should be reported as MISS! under MISSED FILES
+    ' in the console summary.
+    function untestedAdd(a as integer, b as integer) as integer
+        total = a + b
+        return total
+    end function
+
+    function untestedLabel(a as integer) as string
+        if a > 0 then
+            return "pos"
+        end if
+        return "non-pos"
+    end function
+
+end namespace

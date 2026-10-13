@@ -1,0 +1,40 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+
+namespace bench
+
+    @suite
+    class InlineIfAlwaysTrueTests extends rooibos.BaseTestSuite
+
+        @describe("inline if - condition always true")
+
+        @it("takes the inline then arm on every call")
+        function _()
+            m.assertEqual(bench.inlineAlwaysTrue(true), 1)
+            m.assertEqual(bench.inlineAlwaysTrue(true), 1)
+            m.assertEqual(bench.inlineAlwaysTrue(true), 1)
+        end function
+
+        @it("takes the block then arm on every call (control)")
+        function _()
+            m.assertEqual(bench.blockAlwaysTrue(true), 1)
+            m.assertEqual(bench.blockAlwaysTrue(true), 1)
+            m.assertEqual(bench.blockAlwaysTrue(true), 1)
+        end function
+
+        @it("nested inline if with outer always true")
+        function _()
+            m.assertEqual(bench.nestedInlineAlwaysTrue(true, true), 1)
+            m.assertEqual(bench.nestedInlineAlwaysTrue(true, true), 1)
+            m.assertEqual(bench.nestedInlineAlwaysTrue(true, true), 1)
+        end function
+
+        @it("inline for clause with outer always true")
+        function _()
+            m.assertEqual(bench.inlineForAlwaysTrue(true), 1)
+            m.assertEqual(bench.inlineForAlwaysTrue(true), 1)
+            m.assertEqual(bench.inlineForAlwaysTrue(true), 1)
+        end function
+
+    end class
+
+end namespace
