@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.57](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.56...v6.0.0-alpha.57) - 2026-10-14
+### Changed
+ - Merge master (5.17.0) into v6, porting coverage to bsc v1 ([#449](https://github.com/rokucommunity/rooibos/pull/449))
+ - Security enhancements ([#440](https://github.com/rokucommunity/rooibos/pull/440), [#445](https://github.com/rokucommunity/rooibos/pull/445), [#452](https://github.com/rokucommunity/rooibos/pull/452))
+ - upgrade to [brighterscript@1.0.0-alpha.57](https://github.com/rokucommunity/brighterscript/blob/v1.0.0-alpha.57/CHANGELOG.md#100-alpha57---2026-10-13). Notable changes since 1.0.0-alpha.56:
+     - Add goto and label diagnostics ([#1893](https://github.com/rokucommunity/brighterscript/pull/1893))
+     - Add spread operator support ([#1839](https://github.com/rokucommunity/brighterscript/pull/1839))
+     - Add `select case` statement ([#1826](https://github.com/rokucommunity/brighterscript/pull/1826))
+     - Add diagnostic for print statements over the device limit ([#1858](https://github.com/rokucommunity/brighterscript/pull/1858))
+     - Add diagnostic for functions over the device variable limit ([#1859](https://github.com/rokucommunity/brighterscript/pull/1859))
+     - Report control-flow unreachable code ([#1889](https://github.com/rokucommunity/brighterscript/pull/1889))
+     - Fade inactive conditional compile branches ([#1887](https://github.com/rokucommunity/brighterscript/pull/1887))
+     - Security enhancements ([#1855](https://github.com/rokucommunity/brighterscript/pull/1855), [#1874](https://github.com/rokucommunity/brighterscript/pull/1874), [#1883](https://github.com/rokucommunity/brighterscript/pull/1883), [#1891](https://github.com/rokucommunity/brighterscript/pull/1891))
+     - Read namespaceLookup once per linkSymbolTable ([#1877](https://github.com/rokucommunity/brighterscript/pull/1877))
+     - Compare callables, not ranges, when relating duplicate functions ([#1869](https://github.com/rokucommunity/brighterscript/pull/1869))
+     - Fix conditional compile evaluation ([#1886](https://github.com/rokucommunity/brighterscript/pull/1886))
+     - Fix #else if chain at end of file reporting unexpected-token ([#1888](https://github.com/rokucommunity/brighterscript/pull/1888))
+     - fix: function doc comment resolution and hover ([#1871](https://github.com/rokucommunity/brighterscript/pull/1871))
+     - Fix remaining no-unsafe-argument violations and raise rule to 'error' ([#1849](https://github.com/rokucommunity/brighterscript/pull/1849))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.57](https://github.com/rokucommunity/bslint/blob/v1.0.0-alpha.57/CHANGELOG.md#100-alpha57---2026-10-14). Notable changes since 1.0.0-alpha.56:
+     - Use BrighterScript v1.0.0-alpha.57 ([#229](https://github.com/rokucommunity/bslint/pull/229))
+     - Security enhancements ([#219](https://github.com/rokucommunity/bslint/pull/219), [#222](https://github.com/rokucommunity/bslint/pull/222))
+     - Remove unreachable-code rule (moving to brighterscript) ([#228](https://github.com/rokucommunity/bslint/pull/228))
+
+
+
 ## [6.0.0-alpha.56](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.55...v6.0.0-alpha.56) - 2026-09-27
 ### Changed
  - Upgrade brighterscript and bslint to alpha.56 ([#436](https://github.com/rokucommunity/rooibos/pull/436))
