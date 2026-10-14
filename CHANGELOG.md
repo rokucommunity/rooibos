@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.57](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.56...v6.0.0-alpha.57) - 2026-10-14
+### Changed
+ - Updated to BSc and bslint v1.alpha-57 ([#454](https://github.com/rokucommunity/rooibos/pull/454))
+ - Merge master (5.17.0) into v6, porting coverage to bsc v1 ([#449](https://github.com/rokucommunity/rooibos/pull/449))
+ - Security enhancements ([#440](https://github.com/rokucommunity/rooibos/pull/440), [#445](https://github.com/rokucommunity/rooibos/pull/445), [#452](https://github.com/rokucommunity/rooibos/pull/452))
+
+
+
 ## [6.0.0-alpha.56](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.55...v6.0.0-alpha.56) - 2026-09-27
 ### Changed
  - Upgrade brighterscript and bslint to alpha.56 ([#436](https://github.com/rokucommunity/rooibos/pull/436))
