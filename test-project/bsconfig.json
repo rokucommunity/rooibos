@@ -5,11 +5,13 @@
         "source/**/*.*",
         "components/**/*.*"
     ],
-    "autoImportComponentScript": true,
     "createPackage": false,
     "outDir": "dist",
     "retainStagingDir": true,
-    "sourceMap": true,
+    "compilerOptions": {
+        "autoImportComponentScript": true,
+        "sourceMap": true
+    },
     "plugins": [
         "@rokucommunity/bslint",
         "../src/plugin.ts"

@@ -1538,11 +1538,12 @@ describe('RooibosPlugin', () => {
             });
         });
 
-        describe('conditional compile constants declared after the `#if` that tests them', () => {
+        describe('conditional compile constants', () => {
             // the device treats a not-yet-declared constant as false; bsc flags it, so suppress that
             // here to reach the code paths a relaxed bsc would allow
+            // bsc v1 adds diagnostics for inactive conditional paths - filtered here for less noise
             beforeEach(() => {
-                builder.options.diagnosticFilters = ['hash-const-does-not-exist'];
+                builder.options.diagnosticFilters.push('hash-const-does-not-exist', 'inactive-conditional-compile-branch');
             });
 
             it('passes locals assigned in the compiled branch to an extracted condition helper', async () => {
@@ -1594,525 +1595,1028 @@ describe('RooibosPlugin', () => {
                 expect(report.files[0].functions.map((func) => func.name)).to.eql(['test', 'test$anon0', 'test$anon1']);
                 expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4, 5, 7, 8]);
             });
-        });
 
-        it('instruments only the live `#else if` arm of a conditional compile chain', async () => {
-            program.setFile('source/code.bs', `
-                #const SECOND = true
-                sub test()
-                    #if false
-                        print "first"
-                    #else if SECOND
-                        print "second"
-                    #else
-                        print "third"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.match(/RBS_CC_0_reportLine\(7\)\r?\n\s*print "second"/);
-            expect(a).to.not.match(/RBS_CC_0_reportLine\(\d+\)\r?\n\s*print "(first|third)"/);
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([7]);
-        });
-
-        it('instruments only the live `#elseif` arm of a conditional compile chain', async () => {
-            program.setFile('source/code.bs', `
-                #const SECOND = true
-                sub test()
-                    #if false
-                        print "first"
-                    #elseif SECOND
-                        print "second"
-                    #else
-                        print "third"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.match(/RBS_CC_0_reportLine\(7\)\r?\n\s*print "second"/);
-            expect(a).to.not.match(/RBS_CC_0_reportLine\(\d+\)\r?\n\s*print "(first|third)"/);
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([7]);
-        });
-
-        it('resolves a `#const` aliasing another constant (accepted by bsc, but a compile error on device)', async () => {
-            // the device only accepts the literals true/false on the right of `#const` (&h94), but
-            // bsc v1 builds this, so the instrumentation follows bsc and resolves the alias
-            program.setFile('source/code.bs', `
-                #const A = true
-                #const B = A
-                sub test()
-                    #if B
-                        print "on"
-                    #else
-                        print "off"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.match(/RBS_CC_0_reportLine\(6\)\r?\n\s*print "on"/);
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
-        });
-
-        it('does not instrument a true `#if` nested inside a dead block', async () => {
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if false
-                        #if true
-                            print "nested"
+            it('instruments only the live `#else if` arm of a conditional compile chain', async () => {
+                builder.options.diagnosticFilters.push('inactive-conditional-compile-branch');
+                program.setFile('source/code.bs', `
+                    #const SECOND = true
+                    sub test()
+                        #if false
+                            print "first"
+                        #else if SECOND
+                            print "second"
+                        #else
+                            print "third"
                         #end if
-                    #else
-                        print "outer else"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if false
-                        #if true
-                            print "nested"
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.match(/RBS_CC_0_reportLine\(7\)\r?\n\s*print "second"/);
+                expect(a).to.not.match(/RBS_CC_0_reportLine\(\d+\)\r?\n\s*print "(first|third)"/);
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([7]);
+            });
+
+            it('instruments only the live `#elseif` arm of a conditional compile chain', async () => {
+                program.setFile('source/code.bs', `
+                    #const SECOND = true
+                    sub test()
+                        #if false
+                            print "first"
+                        #elseif SECOND
+                            print "second"
+                        #else
+                            print "third"
                         #end if
-                    #else
-                        RBS_CC_0_reportLine(8)
-                        print "outer else"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([8]);
-        });
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.match(/RBS_CC_0_reportLine\(7\)\r?\n\s*print "second"/);
+                expect(a).to.not.match(/RBS_CC_0_reportLine\(\d+\)\r?\n\s*print "(first|third)"/);
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([7]);
+            });
 
-        it('instruments only the first live arm of an `#if true` / `#else if true` chain', async () => {
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if true
-                        print "first"
-                    #else if true
-                        print "second"
-                    #else
-                        print "third"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if true
-                        RBS_CC_0_reportLine(4)
-                        print "first"
-                    #else if true
-                        print "second"
-                    #else
-                        print "third"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
-        });
+            it('resolves a `#const` aliasing another constant (accepted by bsc, but a compile error on device)', async () => {
+                // the device only accepts the literals true/false on the right of `#const` (&h94), but
+                // bsc v1 builds this, so the instrumentation follows bsc and resolves the alias
+                builder.options.diagnosticFilters.push('invalid-hash-const-value');
+                program.setFile('source/code.bs', `
+                    #const A = true
+                    #const B = A
+                    sub test()
+                        #if B
+                            print "on"
+                        #else
+                            print "off"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.match(/RBS_CC_0_reportLine\(6\)\r?\n\s*print "on"/);
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
+            });
 
-        it('evaluates `#if` against the manifest bs_const values (DEBUG=true)', async () => {
-            fsExtra.outputFileSync(s`${_rootDir}/manifest`, 'title=test\nbs_const=DEBUG=true\n');
-            program.loadManifest();
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if DEBUG
-                        print "debug"
-                    #else
-                        print "release"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if DEBUG
-                        RBS_CC_0_reportLine(4)
-                        print "debug"
-                    #else
-                        print "release"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
-        });
+            it('does not instrument a true `#if` nested inside a dead block', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if false
+                            #if true
+                                print "nested"
+                            #end if
+                        #else
+                            print "outer else"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if false
+                            #if true
+                                print "nested"
+                            #end if
+                        #else
+                            RBS_CC_0_reportLine(8)
+                            print "outer else"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([8]);
+            });
 
-        it('evaluates `#if` against the manifest bs_const values (DEBUG=false)', async () => {
-            fsExtra.outputFileSync(s`${_rootDir}/manifest`, 'title=test\nbs_const=DEBUG=false\n');
-            program.loadManifest();
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if DEBUG
-                        print "debug"
-                    #else
-                        print "release"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if DEBUG
-                        print "debug"
-                    #else
-                        RBS_CC_0_reportLine(6)
-                        print "release"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
-        });
+            it('instruments only the first live arm of an `#if true` / `#else if true` chain', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if true
+                            print "first"
+                        #else if true
+                            print "second"
+                        #else
+                            print "third"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if true
+                            RBS_CC_0_reportLine(4)
+                            print "first"
+                        #else if true
+                            print "second"
+                        #else
+                            print "third"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
+            });
 
-        it('names a live anonymous function by its position among the compiled ones', async () => {
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if false
-                        a = function()
-                            print "dead"
+            it('evaluates `#if` against the manifest bs_const values (DEBUG=true)', async () => {
+                fsExtra.outputFileSync(s`${_rootDir}/manifest`, 'title=test\nbs_const=DEBUG=true\n');
+                program.loadManifest();
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if DEBUG
+                            print "debug"
+                        #else
+                            print "release"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if DEBUG
+                            RBS_CC_0_reportLine(4)
+                            print "debug"
+                        #else
+                            print "release"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
+            });
+
+            it('evaluates `#if` against the manifest bs_const values (DEBUG=false)', async () => {
+                fsExtra.outputFileSync(s`${_rootDir}/manifest`, 'title=test\nbs_const=DEBUG=false\n');
+                program.loadManifest();
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if DEBUG
+                            print "debug"
+                        #else
+                            print "release"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if DEBUG
+                            print "debug"
+                        #else
+                            RBS_CC_0_reportLine(6)
+                            print "release"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
+            });
+
+            it('names a live anonymous function by its position among the compiled ones', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if false
+                            a = function()
+                                print "dead"
+                            end function
+                        #end if
+                        b = function()
+                            print "live"
                         end function
-                    #end if
-                    b = function()
-                        print "live"
-                    end function
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].functions.map((func) => func.name)).to.eql(['test', 'test$anon0']);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([8, 9]);
-        });
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].functions.map((func) => func.name)).to.eql(['test', 'test$anon0']);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([8, 9]);
+            });
 
-        it('instruments only the compiled branch of `#if true`', async () => {
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if true
-                        print "then"
-                    #else
-                        print "else"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if true
-                        RBS_CC_0_reportLine(4)
-                        print "then"
-                    #else
-                        print "else"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
-        });
+            it('instruments only the compiled branch of `#if true`', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if true
+                            print "then"
+                        #else
+                            print "else"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if true
+                            RBS_CC_0_reportLine(4)
+                            print "then"
+                        #else
+                            print "else"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
+            });
 
-        it('instruments only the compiled branch of `#if false`', async () => {
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if false
-                        print "then"
-                    #else
-                        print "else"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if false
-                        print "then"
-                    #else
-                        RBS_CC_0_reportLine(6)
-                        print "else"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
-        });
+            it('instruments only the compiled branch of `#if false`', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if false
+                            print "then"
+                        #else
+                            print "else"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if false
+                            print "then"
+                        #else
+                            RBS_CC_0_reportLine(6)
+                            print "else"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
+            });
 
-        it('instruments only the compiled branch of `#if not true`', async () => {
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if not true
-                        print "then"
-                    #else
-                        print "else"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if not true
-                        print "then"
-                    #else
-                        RBS_CC_0_reportLine(6)
-                        print "else"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
-        });
+            it('instruments only the compiled branch of `#if not true`', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if not true
+                            print "then"
+                        #else
+                            print "else"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if not true
+                            print "then"
+                        #else
+                            RBS_CC_0_reportLine(6)
+                            print "else"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
+            });
 
-        it('only takes `#const` declarations from the compiled branch (DEBUG = true)', async () => {
-            program.setFile('source/code.bs', `
-                #const DEBUG = true
-                #if DEBUG
-                    #const LOGGING = true
-                #else
-                    #const LOGGING = false
-                #end if
-                sub test()
-                    #if LOGGING
-                        print "log-on"
-                    #else
-                        print "log-off"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if LOGGING
-                        RBS_CC_0_reportLine(10)
-                        print "log-on"
-                    #else
-                        print "log-off"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([10]);
-        });
-
-        it('only takes `#const` declarations from the compiled branch (DEBUG = false)', async () => {
-            program.setFile('source/code.bs', `
-                #const DEBUG = false
-                #if DEBUG
-                    #const LOGGING = true
-                #else
-                    #const LOGGING = false
-                #end if
-                sub test()
-                    #if LOGGING
-                        print "log-on"
-                    #else
-                        print "log-off"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if LOGGING
-                        print "log-on"
-                    #else
-                        RBS_CC_0_reportLine(12)
-                        print "log-off"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([12]);
-        });
-
-        it('treats a constant declared only in a dead branch as false', async () => {
-            program.setFile('source/code.bs', `
-                #if false
-                    #const FEATURE = true
-                #end if
-                sub test()
-                    #if FEATURE
-                        print "on"
-                    #else
-                        print "off"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            //the device treats it as false, but bsc flags a `#if` on a constant that isn't declared (yet)
-            expect(program.getDiagnostics().map((diagnostic) => diagnostic.code)).to.eql(['hash-const-does-not-exist']);
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if FEATURE
-                        print "on"
-                    #else
-                        RBS_CC_0_reportLine(9)
-                        print "off"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([9]);
-        });
-
-        it('takes `#const` declarations from a nested `#if` inside a compiled branch', async () => {
-            program.setFile('source/code.bs', `
-                #const OUTER = true
-                #if OUTER
-                    #if not false
-                        #const INNER = true
-                    #else
-                        #const INNER = false
-                    #end if
-                #end if
-                sub test()
-                    #if INNER
-                        print "inner"
-                    #else
-                        print "no inner"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if INNER
-                        RBS_CC_0_reportLine(12)
-                        print "inner"
-                    #else
-                        print "no inner"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([12]);
-        });
-
-        it('evaluates `#const` declarations inside a function body in source order', async () => {
-            program.setFile('source/code.bs', `
-                sub test()
-                    #if LATE
-                        print "early on"
-                    #else
-                        print "early off"
-                    #end if
-                    #const LATE = true
-                    #if LATE
-                        print "late on"
-                    #else
-                        print "late off"
-                    #end if
-                end sub
-            `);
-            program.validate();
-            //the device treats it as false, but bsc flags a `#if` on a constant that isn't declared (yet)
-            expect(program.getDiagnostics().map((diagnostic) => diagnostic.code)).to.eql(['hash-const-does-not-exist']);
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
-                    #if LATE
-                        print "early on"
-                    #else
-                        RBS_CC_0_reportLine(6)
-                        print "early off"
-                    #end if
-                    #const LATE = true
-                    #if LATE
-                        RBS_CC_0_reportLine(10)
-                        print "late on"
-                    #else
-                        print "late off"
-                    #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6, 10]);
-        });
-
-        it('adds code coverage to the active branch of conditional compile statements', async () => {
-            program.setFile('source/code.bs', `
-                #const DEBUG = true
-                sub test()
+            it('only takes `#const` declarations from the compiled branch (DEBUG = true)', async () => {
+                program.setFile('source/code.bs', `
+                    #const DEBUG = true
                     #if DEBUG
-                        print "debug"
+                        #const LOGGING = true
                     #else
-                        print "not debug"
+                        #const LOGGING = false
                     #end if
-                end sub
-            `);
-            program.validate();
-            expect(program.getDiagnostics()).to.be.empty;
-            await builder.transpile();
-            const a = getContents('source/code.brs');
-            // the device only compiles the active branch, so only it is instrumented and counted
-            expect(a).to.include(undent(`
-                sub test()
-                    RBS_CC_0_reportFunction(0)
+                    sub test()
+                        #if LOGGING
+                            print "log-on"
+                        #else
+                            print "log-off"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if LOGGING
+                            RBS_CC_0_reportLine(10)
+                            print "log-on"
+                        #else
+                            print "log-off"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([10]);
+            });
+
+            it('only takes `#const` declarations from the compiled branch (DEBUG = false)', async () => {
+                program.setFile('source/code.bs', `
+                    #const DEBUG = false
                     #if DEBUG
-                        RBS_CC_0_reportLine(5)
-                        print "debug"
+                        #const LOGGING = true
                     #else
-                        print "not debug"
+                        #const LOGGING = false
                     #end if
-                end sub
-            `));
-            const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
-            expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([5]);
+                    sub test()
+                        #if LOGGING
+                            print "log-on"
+                        #else
+                            print "log-off"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if LOGGING
+                            print "log-on"
+                        #else
+                            RBS_CC_0_reportLine(12)
+                            print "log-off"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([12]);
+            });
+
+            it('treats a constant declared only in a dead branch as false', async () => {
+                program.setFile('source/code.bs', `
+                    #if false
+                        #const FEATURE = true
+                    #end if
+                    sub test()
+                        #if FEATURE
+                            print "on"
+                        #else
+                            print "off"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if FEATURE
+                            print "on"
+                        #else
+                            RBS_CC_0_reportLine(9)
+                            print "off"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([9]);
+            });
+
+            it('takes `#const` declarations from a nested `#if` inside a compiled branch', async () => {
+                program.setFile('source/code.bs', `
+                    #const OUTER = true
+                    #if OUTER
+                        #if not false
+                            #const INNER = true
+                        #else
+                            #const INNER = false
+                        #end if
+                    #end if
+                    sub test()
+                        #if INNER
+                            print "inner"
+                        #else
+                            print "no inner"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if INNER
+                            RBS_CC_0_reportLine(12)
+                            print "inner"
+                        #else
+                            print "no inner"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([12]);
+            });
+
+            it('evaluates `#const` declarations inside a function body in source order', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if LATE
+                            print "early on"
+                        #else
+                            print "early off"
+                        #end if
+                        #const LATE = true
+                        #if LATE
+                            print "late on"
+                        #else
+                            print "late off"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if LATE
+                            print "early on"
+                        #else
+                            RBS_CC_0_reportLine(6)
+                            print "early off"
+                        #end if
+                        #const LATE = true
+                        #if LATE
+                            RBS_CC_0_reportLine(10)
+                            print "late on"
+                        #else
+                            print "late off"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6, 10]);
+            });
+
+            it('adds code coverage to the active branch of conditional compile statements', async () => {
+                program.setFile('source/code.bs', `
+                    #const DEBUG = true
+                    sub test()
+                        #if DEBUG
+                            print "debug"
+                        #else
+                            print "not debug"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                // the device only compiles the active branch, so only it is instrumented and counted
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if DEBUG
+                            RBS_CC_0_reportLine(5)
+                            print "debug"
+                        #else
+                            print "not debug"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([5]);
+            });
+        });
+
+        describe('conditional compile constants - with diagnostics', () => {
+            // the device treats a not-yet-declared constant as false; bsc flags it, so suppress that
+            // here to reach the code paths a relaxed bsc would allow
+            beforeEach(() => {
+                builder.options.diagnosticFilters.push('hash-const-does-not-exist', 'inactive-conditional-compile-branch');
+            });
+
+            it('passes locals assigned in the compiled branch to an extracted condition helper', async () => {
+                (plugin as any).codeCoverageProcessor.limits.expressionBudget = 3;
+                program.setFile('source/code.bs', `
+                    sub test(p)
+                        #if not LATE
+                            v = true
+                        #end if
+                        if p and v and p and v and p
+                            print "x"
+                        end if
+                        #const LATE = true
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const a = getContents('source/code.brs');
+                // the assignment is compiled, so it is instrumented...
+                expect(a).to.match(/RBS_CC_0_reportLine\(4\)\r?\n\s*v = true/);
+                // ...and the helper receives it rather than reading an uninitialized local
+                expect(a).to.match(/if RBS_CC_0_reportLine\(6\) and \(RBS_CC_0_cx0\(p, v\)\)/);
+                expect(a).to.include('function RBS_CC_0_cx0(p, v)');
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4, 6, 7]);
+            });
+
+            it('names anonymous functions in the compiled branch by their position', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if not LATE
+                            a = function()
+                                print "a"
+                            end function
+                            b = function()
+                                print "b"
+                            end function
+                        #end if
+                        #const LATE = true
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].functions.map((func) => func.name)).to.eql(['test', 'test$anon0', 'test$anon1']);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4, 5, 7, 8]);
+            });
+
+            it('instruments only the live `#else if` arm of a conditional compile chain', async () => {
+                builder.options.diagnosticFilters.push('inactive-conditional-compile-branch');
+                program.setFile('source/code.bs', `
+                    #const SECOND = true
+                    sub test()
+                        #if false
+                            print "first"
+                        #else if SECOND
+                            print "second"
+                        #else
+                            print "third"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.match(/RBS_CC_0_reportLine\(7\)\r?\n\s*print "second"/);
+                expect(a).to.not.match(/RBS_CC_0_reportLine\(\d+\)\r?\n\s*print "(first|third)"/);
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([7]);
+            });
+
+            it('instruments only the live `#elseif` arm of a conditional compile chain', async () => {
+                program.setFile('source/code.bs', `
+                    #const SECOND = true
+                    sub test()
+                        #if false
+                            print "first"
+                        #elseif SECOND
+                            print "second"
+                        #else
+                            print "third"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.match(/RBS_CC_0_reportLine\(7\)\r?\n\s*print "second"/);
+                expect(a).to.not.match(/RBS_CC_0_reportLine\(\d+\)\r?\n\s*print "(first|third)"/);
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([7]);
+            });
+
+            it('resolves a `#const` aliasing another constant (accepted by bsc, but a compile error on device)', async () => {
+                // the device only accepts the literals true/false on the right of `#const` (&h94), but
+                // bsc v1 builds this, so the instrumentation follows bsc and resolves the alias
+                builder.options.diagnosticFilters.push('invalid-hash-const-value');
+                program.setFile('source/code.bs', `
+                    #const A = true
+                    #const B = A
+                    sub test()
+                        #if B
+                            print "on"
+                        #else
+                            print "off"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.match(/RBS_CC_0_reportLine\(6\)\r?\n\s*print "on"/);
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
+            });
+
+            it('does not instrument a true `#if` nested inside a dead block', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if false
+                            #if true
+                                print "nested"
+                            #end if
+                        #else
+                            print "outer else"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if false
+                            #if true
+                                print "nested"
+                            #end if
+                        #else
+                            RBS_CC_0_reportLine(8)
+                            print "outer else"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([8]);
+            });
+
+            it('instruments only the first live arm of an `#if true` / `#else if true` chain', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if true
+                            print "first"
+                        #else if true
+                            print "second"
+                        #else
+                            print "third"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if true
+                            RBS_CC_0_reportLine(4)
+                            print "first"
+                        #else if true
+                            print "second"
+                        #else
+                            print "third"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
+            });
+
+            it('evaluates `#if` against the manifest bs_const values (DEBUG=true)', async () => {
+                fsExtra.outputFileSync(s`${_rootDir}/manifest`, 'title=test\nbs_const=DEBUG=true\n');
+                program.loadManifest();
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if DEBUG
+                            print "debug"
+                        #else
+                            print "release"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if DEBUG
+                            RBS_CC_0_reportLine(4)
+                            print "debug"
+                        #else
+                            print "release"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
+            });
+
+            it('evaluates `#if` against the manifest bs_const values (DEBUG=false)', async () => {
+                fsExtra.outputFileSync(s`${_rootDir}/manifest`, 'title=test\nbs_const=DEBUG=false\n');
+                program.loadManifest();
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if DEBUG
+                            print "debug"
+                        #else
+                            print "release"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if DEBUG
+                            print "debug"
+                        #else
+                            RBS_CC_0_reportLine(6)
+                            print "release"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
+            });
+
+            it('names a live anonymous function by its position among the compiled ones', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if false
+                            a = function()
+                                print "dead"
+                            end function
+                        #end if
+                        b = function()
+                            print "live"
+                        end function
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].functions.map((func) => func.name)).to.eql(['test', 'test$anon0']);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([8, 9]);
+            });
+
+            it('instruments only the compiled branch of `#if true`', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if true
+                            print "then"
+                        #else
+                            print "else"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if true
+                            RBS_CC_0_reportLine(4)
+                            print "then"
+                        #else
+                            print "else"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([4]);
+            });
+
+            it('instruments only the compiled branch of `#if false`', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if false
+                            print "then"
+                        #else
+                            print "else"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if false
+                            print "then"
+                        #else
+                            RBS_CC_0_reportLine(6)
+                            print "else"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
+            });
+
+            it('instruments only the compiled branch of `#if not true`', async () => {
+                program.setFile('source/code.bs', `
+                    sub test()
+                        #if not true
+                            print "then"
+                        #else
+                            print "else"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if not true
+                            print "then"
+                        #else
+                            RBS_CC_0_reportLine(6)
+                            print "else"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([6]);
+            });
+
+            it('only takes `#const` declarations from the compiled branch (DEBUG = true)', async () => {
+                program.setFile('source/code.bs', `
+                    #const DEBUG = true
+                    #if DEBUG
+                        #const LOGGING = true
+                    #else
+                        #const LOGGING = false
+                    #end if
+                    sub test()
+                        #if LOGGING
+                            print "log-on"
+                        #else
+                            print "log-off"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if LOGGING
+                            RBS_CC_0_reportLine(10)
+                            print "log-on"
+                        #else
+                            print "log-off"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([10]);
+            });
+
+            it('only takes `#const` declarations from the compiled branch (DEBUG = false)', async () => {
+                program.setFile('source/code.bs', `
+                    #const DEBUG = false
+                    #if DEBUG
+                        #const LOGGING = true
+                    #else
+                        #const LOGGING = false
+                    #end if
+                    sub test()
+                        #if LOGGING
+                            print "log-on"
+                        #else
+                            print "log-off"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if LOGGING
+                            print "log-on"
+                        #else
+                            RBS_CC_0_reportLine(12)
+                            print "log-off"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([12]);
+            });
+
+            it('takes `#const` declarations from a nested `#if` inside a compiled branch', async () => {
+                program.setFile('source/code.bs', `
+                    #const OUTER = true
+                    #if OUTER
+                        #if not false
+                            #const INNER = true
+                        #else
+                            #const INNER = false
+                        #end if
+                    #end if
+                    sub test()
+                        #if INNER
+                            print "inner"
+                        #else
+                            print "no inner"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if INNER
+                            RBS_CC_0_reportLine(12)
+                            print "inner"
+                        #else
+                            print "no inner"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([12]);
+            });
+
+            it('adds code coverage to the active branch of conditional compile statements', async () => {
+                program.setFile('source/code.bs', `
+                    #const DEBUG = true
+                    sub test()
+                        #if DEBUG
+                            print "debug"
+                        #else
+                            print "not debug"
+                        #end if
+                    end sub
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+                const a = getContents('source/code.brs');
+                // the device only compiles the active branch, so only it is instrumented and counted
+                expect(a).to.include(undent(`
+                    sub test()
+                        RBS_CC_0_reportFunction(0)
+                        #if DEBUG
+                            RBS_CC_0_reportLine(5)
+                            print "debug"
+                        #else
+                            print "not debug"
+                        #end if
+                    end sub
+                `));
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files[0].lines.map((line) => line.lineNumber)).to.deep.equal([5]);
+            });
         });
 
         it('does not instrument the generated rooibosMain entry point', async () => {
