@@ -8,6 +8,7 @@ import { RokuDeploy } from 'roku-deploy';
 import * as fs from 'fs';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
+import * as os from 'os';
 import type { CoverageMap as CoverageModelJson } from './lib/rooibos/CodeCoverageProcessor';
 import { resolveCliRooibosConfig } from './lib/rooibos/RooibosConfig';
 import { resolveCliDevice } from './lib/rooibos/resolveCliDevice';
@@ -99,28 +100,21 @@ async function main() {
     const rokuDeploy = new RokuDeploy();
     const skipBuild = options.build === false;
 
+    // bsc v1 stages the built package contents in `outDir` (the deprecated stagingDir and
+    // stagingFolderPath fields were already folded into it above); --staging-dir overrides it.
+    const stagingDirOverride = options['staging-dir'] ? path.resolve(String(options['staging-dir'])) : undefined;
+    const buildOutDir = stagingDirOverride ?? path.resolve(bsConfig.outDir);
+
     /**
      * Ordered candidate locations for the built package contents: the --staging-dir
-     * override, then the bsconfig staging fields, then roku-deploy's default staging
-     * location (used when no staging dir is configured anywhere).
+     * override, then the bsconfig's outDir.
      */
     function stagingDirCandidates(): string[] {
-        const candidates: string[] = [];
-        if (options['staging-dir']) {
-            candidates.push(path.resolve(String(options['staging-dir'])));
-        }
-        for (const staging of [(bsConfig as any).stagingDir, bsConfig.stagingFolderPath]) {
-            if (staging) {
-                candidates.push(path.resolve(String(staging)));
-            }
-        }
-        const outDir = bsConfig.outFile ? path.dirname(String(bsConfig.outFile)) : './out';
-        candidates.push(path.resolve(outDir, '.roku-deploy-staging'));
-        return candidates;
+        return [...new Set([stagingDirOverride, path.resolve(bsConfig.outDir)].filter((candidate) => candidate !== undefined))];
     }
 
     // Resolved path to the .zip we'll actually deploy when skipping the build. We zip the
-    // staging dir into out/rooibos-prebuilt.zip ourselves rather than handing the directory
+    // staging dir into a temp-dir zip ourselves rather than handing the directory
     // straight to sideload({ dir }), because that path does not forward file patterns and
     // would drop the source-map exclusion below. A directory is required either way - the
     // coverage model (components/rooibos/CodeCoverage.json) must be readable from it.
@@ -136,8 +130,14 @@ async function main() {
             console.error(`[rooibos] the staging dir must be a directory, not a file: ${stagingDir}`);
             process.exit(1);
         }
-        const zipped = path.resolve('out/rooibos-prebuilt.zip');
-        fs.mkdirSync(path.dirname(zipped), { recursive: true });
+        // the zip must live outside the staging dir (bsc v1 stages into ./out by default), or the
+        // next --no-build run would pack this zip into the new one
+        const zipDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rooibos-'));
+        // every exit path (including failures before the sideload and the process.exit calls) runs this
+        process.on('exit', () => {
+            fsExtra.removeSync(zipDir);
+        });
+        const zipped = path.join(zipDir, 'rooibos-prebuilt.zip');
         console.log(`Zipping pre-built staging dir ${stagingDir} -> ${zipped}`);
         // Exclude source maps - they're useful in the staging dir but shouldn't ship
         // in the package (they bloat channel size and Roku has no use for them).
@@ -148,13 +148,14 @@ async function main() {
     } else {
         const builder = new ProgramBuilder();
         builder.logger.logLevel = logLevel;
-        // --staging-dir (if given) flows into bsc as its stagingDir via the spread
-        const { token: _token, esn: _esn, 'instance-url': _instanceUrlKebab, instanceUrl: _instanceUrl, ...buildOptions } = options;
+        // --staging-dir (if given) becomes bsc's outDir; passing it as the deprecated stagingDir
+        // would be ignored whenever the bsconfig sets outDir
+        const { token: _token, esn: _esn, 'instance-url': _instanceUrlKebab, instanceUrl: _instanceUrl, 'staging-dir': _stagingDirKebab, stagingDir: _stagingDir, ...buildOptions } = options;
         await builder.run(<any>{
             ...buildOptions,
+            ...(stagingDirOverride ? { outDir: stagingDirOverride } : {}),
             ...(rooibosConfig ? { rooibos: rooibosConfig } : {}),
-            retainStagingDir: true,
-            createPackage: true
+            retainStagingDir: true
         });
     }
 
@@ -282,15 +283,22 @@ async function main() {
 
     //deploy a .zip package of your project to a roku device
     async function deployBuiltFiles() {
-        // With --no-build, deploy the staging dir we just zipped; otherwise fall back to the
-        // bsconfig-driven outFile that the rooibos build just produced.
-        const packagePath = deployZipPath ?? path.resolve(process.cwd(), bsConfig.outFile);
-        console.log(`Deploying ${packagePath} to ${deviceLabel}`);
-        // roku-deploy v4 replaced publish({ host, outDir, outFile }) with sideload({ device, zip }).
+        // With --no-build, deploy the staging dir we just zipped; otherwise sideload the
+        // outDir that the rooibos build just staged.
+        if (deployZipPath) {
+            console.log(`Deploying ${deployZipPath} to ${deviceLabel}`);
+            await rokuDeploy.sideload({
+                password: password,
+                device: device,
+                zip: deployZipPath
+            });
+            return;
+        }
+        console.log(`Deploying ${buildOutDir} to ${deviceLabel}`);
         await rokuDeploy.sideload({
             password: password,
             device: device,
-            zip: packagePath
+            dir: buildOutDir
         });
     }
 

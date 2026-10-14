@@ -16,19 +16,19 @@
     "typeRoots": [
       "./node_modules/@types"
     ],
+    "allowSyntheticDefaultImports": true,
+    "lib": [
+      "es2017",
+      "es2019.array",
+      "esnext",
+      "dom"
+    ],
     "types": [
       "node",
       "mocha",
       "chai"
     ]
   },
-  "allowSyntheticDefaultImports": true,
-  "lib": [
-    "es2017",
-    "es2019.array",
-    "esnext",
-    "dom"
-  ],
   "outDir": "./dist",
   "exclude": [
     "node_modules/**/*"

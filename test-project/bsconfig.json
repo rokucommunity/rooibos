@@ -5,18 +5,20 @@
         "source/**/*.*",
         "components/**/*.*"
     ],
-    "autoImportComponentScript": true,
     "createPackage": false,
-    "stagingDir": "dist",
+    "outDir": "dist",
     "retainStagingDir": true,
-    "sourceMap": true,
+    "compilerOptions": {
+        "autoImportComponentScript": true,
+        "sourceMap": true
+    },
     "plugins": [
         "@rokucommunity/bslint",
         "../src/plugin.ts"
     ],
     "diagnosticFilters": [
         {
-            "src": "**/roku_modules/**/*.*",
+            "files": "**/roku_modules/**/*.*",
             "codes": [
                 1107,
                 1009
