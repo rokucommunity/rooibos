@@ -482,6 +482,103 @@ describe('MockUtil', () => {
 
         });
 
+        describe('xml script blocks', () => {
+
+            it('enables mocking on functions in a CDATA script block', async () => {
+                program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                            function getValue(a)
+                                return a
+                            end function
+                        ]]></script>
+                    </component>
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.build();
+                let a = getContents('components/Widget.xml');
+                let b = undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                    function getValue(a)
+                        __stubs_globalAa = getGlobalAa()
+                        if RBS_SM_1_getMocksByFunctionName()["getvalue"] <> invalid
+                            __stubOrMockResult = RBS_SM_1_getMocksByFunctionName()["getvalue"].callback(a)
+                            return __stubOrMockResult
+                        else if type(__stubs_globalAa?.__globalStubs?.getvalue).endsWith("Function")
+                            __stubFunction = __stubs_globalAa.__globalStubs.getvalue
+                            __stubOrMockResult = __stubFunction(a)
+                            return __stubOrMockResult
+                        else if __stubs_globalAa?.__globalStubs <> invalid and __stubs_globalAa.__globalStubs.doesExist("getvalue")
+                            value = __stubs_globalAa.__globalStubs.getvalue
+                            return value
+                        end if
+                        return a
+                    end function
+
+                    function RBS_SM_1_getMocksByFunctionName()
+                        if m._rMocksByFunctionName = invalid
+                            m._rMocksByFunctionName = {}
+                        end if
+                        return m._rMocksByFunctionName
+                    end function
+                    ]]></script>
+                        <script type="text/brightscript" uri="pkg:/source/bslib.brs" />
+                    </component>
+                `;
+                expect(a.trimEnd()).to.equal(b);
+            });
+
+            it('gives each CDATA script block its own mock lookup', async () => {
+                program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                            function getFirst()
+                                return 1
+                            end function
+                        ]]></script>
+                        <script type="text/brightscript"><![CDATA[
+                            function getSecond()
+                                return 2
+                            end function
+                        ]]></script>
+                    </component>
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.build();
+                let a = getContents('components/Widget.xml');
+                const [first, second] = a.split(']]></script>');
+                expect(first).to.include('if RBS_SM_1_getMocksByFunctionName()["getfirst"] <> invalid');
+                expect(first).to.include('function RBS_SM_1_getMocksByFunctionName()');
+                expect(second).to.include('if RBS_SM_2_getMocksByFunctionName()["getsecond"] <> invalid');
+                expect(second).to.include('function RBS_SM_2_getMocksByFunctionName()');
+            });
+
+            it('excludes xml files matching globalMethodMockingExcludedFiles', async () => {
+                program.setFile('components/rooibos/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                            function getValue(a)
+                                return a
+                            end function
+                        ]]></script>
+                    </component>
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.build();
+                let a = getContents('components/rooibos/Widget.xml');
+                expect(a).not.to.include('__stubs_globalAa');
+                expect(a).not.to.include('RBS_SM_');
+            });
+        });
+
         it('excludes files from coverage', async () => {
             const source = `
                 sub foo()

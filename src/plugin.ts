@@ -210,8 +210,8 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     beforePrepareBrsCodeSegment(event: BeforePrepareBrsCodeSegmentEvent) {
-        //only the BrightScript in .brs/.bs files is processed (not the `<script>` blocks of xml files)
-        if (!isBrsFile(event.file) || this.shouldSkipFile(event.file)) {
+        //runs for all BrightScript: `.brs`/`.bs` files and the `<script>` blocks of xml files
+        if (this.shouldSkipFile(event.file)) {
             return;
         }
         //coverage must instrument the source as written, before bsc's own `prepareBrsCodeSegment` rewrites it
@@ -222,11 +222,12 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     prepareBrsCodeSegment(event: PrepareBrsCodeSegmentEvent) {
-        //only the BrightScript in .brs/.bs files is processed (not the `<script>` blocks of xml files)
-        if (!isBrsFile(event.file) || this.shouldSkipFile(event.file)) {
+        //runs for all BrightScript: `.brs`/`.bs` files and the `<script>` blocks of xml files
+        if (this.shouldSkipFile(event.file)) {
             return;
         }
-        const testSuites = this.session.sessionInfo.testSuitesToRun.filter((ts) => ts.file.pkgPath === event.file.pkgPath);
+        //test suites only live in .brs/.bs files
+        const testSuites = isBrsFile(event.file) ? this.session.sessionInfo.testSuitesToRun.filter((ts) => ts.file.pkgPath === event.file.pkgPath) : [];
         for (const testSuite of testSuites) {
             const scope = getScopeForSuite(testSuite);
             let noEarlyExit = testSuite.annotation.noEarlyExit;
@@ -310,7 +311,7 @@ export class RooibosPlugin implements CompilerPlugin {
         return true;
     }
     shouldAddCodeCoverageToFile(file: BscFile) {
-        if (!isBrsFile(file) || !this.config.codeCoverage) {
+        if (!file.codeSegments?.length || !this.config.codeCoverage) {
             return false;
             //rooibos' own generated files (the framework, and the generated entry point) are never instrumented
         } else if (this.fileFactory.isIgnoredFile(file)) {
@@ -328,7 +329,7 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     shouldEnableGlobalMocksOnFile(file: BscFile) {
-        if (!isBrsFile(file) || !this.config.isGlobalMethodMockingEnabled) {
+        if (!file.codeSegments?.length || !this.config.isGlobalMethodMockingEnabled) {
             return false;
         } else if (!this.config.globalMethodMockingExcludedFiles) {
             return true;

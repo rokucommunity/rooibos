@@ -3026,6 +3026,61 @@ describe('RooibosPlugin', () => {
                 expect(plugin.session.globalStubbedMethods.has('globalfn')).to.be.true;
             });
 
+            it('stubs functions declared in a component CDATA script block', async () => {
+                destroyProgram();
+                setupProgram({
+                    rootDir: _rootDir,
+                    stagingDir: outDir,
+                    //workaround for bsc bug where outDir does not fall back to stagingDir
+                    outDir: outDir,
+                    rooibos: {
+                        isGlobalMethodMockingEnabled: true,
+                        isGlobalMethodMockingEfficientMode: true
+                    }
+                });
+
+                program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                            function getValue()
+                                return "real"
+                            end function
+
+                            function notStubbed()
+                                return "real"
+                            end function
+                        ]]></script>
+                    </component>
+                `);
+                program.setFile('components/test.spec.bs', `
+                    @suite
+                    @SGNode("Widget")
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @it("test1")
+                        function _()
+                            m.stubCall(getValue, function()
+                                return "stubbed"
+                            end function)
+                            m.assertEqual(getValue(), "stubbed")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
+                await builder.transpile();
+                expect(plugin.session.globalStubbedMethods.has('getvalue')).to.be.true;
+
+                //the stubbed function in the CDATA block checks for its stub
+                const script = getComponentContents('Widget.xml').split('<![CDATA[')[1].split(']]>')[0];
+                expect(getFunctionContents(script, 'getValue')).to.include('if RBS_SM_1_getMocksByFunctionName()["getvalue"] <> invalid');
+                expect(script).to.include('function RBS_SM_1_getMocksByFunctionName()');
+                //efficient mode leaves the functions no test stubs alone
+                expect(getFunctionContents(script, 'notStubbed')).not.to.include('__stubs_globalAa');
+            });
+
             it('walks each hook method at most once even when reused across groups', async () => {
                 program.setFile('source/test.spec.bs', `
                     @suite
