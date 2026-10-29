@@ -1,4 +1,4 @@
-import type { AnnotationExpression, ArrayLiteralExpression, BrsFile, BscType, BsDiagnostic, ClassStatement, Editor, Expression, FunctionStatement, MethodStatement, Statement } from 'brighterscript';
+import type { AnnotationExpression, ArrayLiteralExpression, AstNode, BrsCodeSegment, BrsFile, BscType, BsDiagnostic, ClassStatement, Editor, Expression, FunctionStatement, MethodStatement, Statement } from 'brighterscript';
 import { createIdentifier, DottedGetExpression, TypeExpression, VariableExpression, ParseMode, Parser, SymbolTypeFlag, WalkMode, createStringLiteral, isAAMemberExpression, isAALiteralExpression, isArrayLiteralExpression, isCallExpression, isCallfuncExpression, isDottedGetExpression, isFunctionStatement, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isVoidType, isXmlScope, isDynamicType, isEnumType, isNamespaceType, walkArray } from 'brighterscript';
 import { DiagnosticMessages } from 'brighterscript/dist/DiagnosticMessages';
 import type { CachedLookups } from 'brighterscript/dist/astUtils/CachedLookups';
@@ -49,7 +49,7 @@ function createMethod(file: BrsFile, name: string, body: string) {
         });
         f.parse(text);
         return {
-            method: (f.ast.statements[0] as ClassStatement).body[0] as MethodStatement,
+            method: (f.codeSegments[0].ast.statements[0] as ClassStatement).body[0] as MethodStatement,
             text: text,
             diagnostics: []//f.program.
         };
@@ -271,7 +271,7 @@ export function addParamsToTestSuiteData(file: BrsFile, method: MethodStatement,
         clones.forEach(addReferences);
     }
 
-    const fileReferences = getFileLookups(file).expressions;
+    const fileReferences = getCodeSegmentLookups(getCodeSegmentForNode(file, method)).expressions;
     editor.edit(() => {
         for (const expression of references) {
             fileReferences.add(expression);
@@ -294,13 +294,29 @@ export function getScopeForSuite(testSuite: TestSuite) {
     }
 }
 
-export function getFileLookups(file: BrsFile): CachedLookups {
+export function getCodeSegmentLookups(codeSegment: BrsCodeSegment): CachedLookups {
     // eslint-disable-next-line @typescript-eslint/dot-notation
-    return file['_cachedLookups'] as CachedLookups;
+    return codeSegment['_cachedLookups'] as CachedLookups;
+}
+
+/**
+ * Find the code segment of the file whose AST contains the given node
+ */
+export function getCodeSegmentForNode(file: BrsFile, node: AstNode): BrsCodeSegment | undefined {
+    let root = node;
+    while (root.parent) {
+        root = root.parent;
+    }
+    return file.codeSegments.find((codeSegment) => codeSegment.ast === root);
 }
 
 export function getMainFunctionStatement(file: BrsFile) {
-    return file.ast.statements.find((fs) => isFunctionStatement(fs) && fs.tokens.name.text.toLowerCase() === 'main') as FunctionStatement;
+    for (const codeSegment of file.codeSegments) {
+        const mainFunction = codeSegment.ast.statements.find((fs) => isFunctionStatement(fs) && fs.tokens.name.text.toLowerCase() === 'main') as FunctionStatement;
+        if (mainFunction) {
+            return mainFunction;
+        }
+    }
 }
 
 

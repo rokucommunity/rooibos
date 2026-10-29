@@ -1069,9 +1069,9 @@ describe('RooibosPlugin', () => {
                 Object.defineProperty(synthetic, 'location', { value: undefined });
                 Object.defineProperty(synthetic.func, 'location', { value: undefined });
                 Object.defineProperty(synthetic.func.body.statements[0], 'location', { value: undefined });
-                file.ast.statements.push(synthetic);
+                file.codeSegments[0].ast.statements.push(synthetic);
 
-                const alpha = file.ast.statements[0] as FunctionStatement;
+                const alpha = file.codeSegments[0].ast.statements[0] as FunctionStatement;
 
                 // a synthetic statement grafted into a real function
                 const grafted = Parser.parse(`m.__grafted = true`).ast.statements[0];
