@@ -311,7 +311,7 @@ export class RooibosPlugin implements CompilerPlugin {
         return true;
     }
     shouldAddCodeCoverageToFile(file: BscFile) {
-        if (!file.codeSegments?.length || !this.config.codeCoverage) {
+        if (!util.getCodeSegments(file)?.length || !this.config.codeCoverage) {
             return false;
             //rooibos' own generated files (the framework, and the generated entry point) are never instrumented
         } else if (this.fileFactory.isIgnoredFile(file)) {
@@ -329,7 +329,7 @@ export class RooibosPlugin implements CompilerPlugin {
     }
 
     shouldEnableGlobalMocksOnFile(file: BscFile) {
-        if (!file.codeSegments?.length || !this.config.isGlobalMethodMockingEnabled) {
+        if (!util.getCodeSegments(file)?.length || !this.config.isGlobalMethodMockingEnabled) {
             return false;
         } else if (!this.config.globalMethodMockingExcludedFiles) {
             return true;

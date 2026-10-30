@@ -22,7 +22,7 @@
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "github:rokucommunity/brighterscript#bc4ec87bcb2f601305176f9c7eb81752dbaea510",
+        "brighterscript": "github:rokucommunity/brighterscript#9e9e3255c75a346f9784f25367674a6c85b5e3d4",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
         "istanbul-lib-coverage": "^3.2.2",

@@ -559,6 +559,33 @@ describe('MockUtil', () => {
                 expect(second).to.include('function RBS_SM_2_getMocksByFunctionName()');
             });
 
+            it('skips files that provide no code segments (an xml file without CDATA script blocks, or an asset)', async () => {
+                const xmlFile = program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript" uri="Widget.brs" />
+                    </component>
+                `);
+                program.setFile('components/Widget.brs', `
+                    function getValue()
+                        return 1
+                    end function
+                `);
+                const assetFile = program.setFile('images/logo.png', '');
+                expect(util.getCodeSegments(xmlFile)).to.be.undefined;
+                expect(util.getCodeSegments(assetFile)).to.be.undefined;
+                expect(plugin.shouldEnableGlobalMocksOnFile(xmlFile)).to.be.false;
+                expect(plugin.shouldEnableGlobalMocksOnFile(assetFile)).to.be.false;
+
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.build();
+
+                expect(getContents('components/Widget.xml')).not.to.include('RBS_SM_');
+                //the script the xml imports still gets mocks
+                expect(getContents('components/Widget.brs')).to.include('RBS_SM_1_getMocksByFunctionName()["getvalue"]');
+            });
+
             it('excludes xml files matching globalMethodMockingExcludedFiles', async () => {
                 program.setFile('components/rooibos/Widget.xml', undent`
                     <?xml version="1.0" encoding="utf-8" ?>

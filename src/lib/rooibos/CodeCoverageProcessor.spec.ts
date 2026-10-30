@@ -533,6 +533,35 @@ describe('RooibosPlugin', () => {
                 ]);
             });
 
+            it('skips files that provide no code segments (an xml file without CDATA script blocks, or an asset)', async () => {
+                const xmlFile = program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript" uri="Widget.brs" />
+                    </component>
+                `);
+                program.setFile('components/Widget.brs', `
+                    function getValue()
+                        return 1
+                    end function
+                `);
+                const assetFile = program.setFile('images/logo.png', '');
+                expect(util.getCodeSegments(xmlFile)).to.be.undefined;
+                expect(util.getCodeSegments(assetFile)).to.be.undefined;
+                expect(plugin.shouldAddCodeCoverageToFile(xmlFile)).to.be.false;
+                expect(plugin.shouldAddCodeCoverageToFile(assetFile)).to.be.false;
+
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                expect(getContents('components/Widget.xml')).not.to.include('RBS_CC_');
+                //the script the xml imports is still instrumented
+                expect(getContents('components/Widget.brs')).to.include('RBS_CC_0_reportLine(3)');
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files.map((f) => f.sourceFile)).to.eql(['components/Widget.brs']);
+            });
+
             it('excludes xml files matching coverageExcludedFiles', async () => {
                 program.setFile('components/rooibos/Widget.xml', undent`
                     <?xml version="1.0" encoding="utf-8" ?>
