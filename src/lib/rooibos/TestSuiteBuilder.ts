@@ -30,7 +30,7 @@ import {
     diagnosticTestWithArgsButNoParams
 } from '../utils/Diagnostics';
 import type { RooibosSession } from './RooibosSession';
-import { getFileLookups } from './Utils';
+import { getCodeSegmentLookups } from './Utils';
 
 export class TestSuiteBuilder {
     constructor(public session: RooibosSession) {
@@ -46,17 +46,19 @@ export class TestSuiteBuilder {
         this.file = file;
         let suites = [];
         try {
-            for (let cs of getFileLookups(file).classStatements) {
+            for (const codeSegment of file.codeSegments) {
+                for (let cs of getCodeSegmentLookups(codeSegment).classStatements) {
 
-                //a test is comprised of a comment block; followed by a class
-                let annotation = RooibosAnnotation.getAnnotation(file, cs)?.blockAnnotation;
+                    //a test is comprised of a comment block; followed by a class
+                    let annotation = RooibosAnnotation.getAnnotation(file, cs)?.blockAnnotation;
 
-                if (annotation) {
-                    if (annotation.annotationType === AnnotationType.TestSuite) {
-                        this.addSuiteIfValid(file, annotation, cs, suites);
-                    } else {
-                        diagnosticWrongAnnotation(file, cs, 'Expected a TestSuite annotation, got: ' + annotation.annotationType);
-                        throw new Error('bad test suite');
+                    if (annotation) {
+                        if (annotation.annotationType === AnnotationType.TestSuite) {
+                            this.addSuiteIfValid(file, annotation, cs, suites);
+                        } else {
+                            diagnosticWrongAnnotation(file, cs, 'Expected a TestSuite annotation, got: ' + annotation.annotationType);
+                            throw new Error('bad test suite');
+                        }
                     }
                 }
             }

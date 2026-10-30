@@ -452,6 +452,137 @@ describe('RooibosPlugin', () => {
                 expect(a.match(/(?<!function )RBS_CC_0_reportFunction\(/g)).to.have.length(4);
             });
         });
+        describe('xml script blocks', () => {
+
+            it('adds code coverage to a CDATA script block, using the line numbers of the xml file', async () => {
+                program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                            function getValue(a)
+                                if a = 1
+                                    return "one"
+                                end if
+                                return "other"
+                            end function
+                        ]]></script>
+                    </component>
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const script = getContents('components/Widget.xml').split('<![CDATA[')[1].split(']]>')[0];
+                expect(script).to.include(undent`
+                    function getValue(a)
+                        RBS_CC_0_reportFunction(0)
+                        if RBS_CC_0_reportLine(5) and (a = 1)
+                            RBS_CC_0_reportBranch(0, 0)
+                            RBS_CC_0_reportLine(6)
+                            return "one"
+                        end if
+                        RBS_CC_0_reportLine(8)
+                        return "other"
+                    end function
+                `);
+                //the coverage api lives in the script block too, so the component can call it
+                expect(script).to.include('function RBS_CC_0_reportLine(lineNumber)');
+                expect(script).to.include('function RBS_CC_0_reportBranch(blockId, branchId)');
+                expect(script).to.include('function RBS_CC_0_reportFunction(functionId)');
+
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files).to.have.lengthOf(1);
+                expect(report.files[0].sourceFile).to.equal('components/Widget.xml');
+                expect(report.files[0].lines.map((l) => l.lineNumber)).to.eql([5, 6, 8]);
+                expect(report.files[0].functions.map((f) => [f.name, f.startLine, f.endLine])).to.eql([['getValue', 4, 9]]);
+                expect(report.files[0].blocks[0].branches.map((b) => b.line)).to.eql([5]);
+            });
+
+            it('gives each CDATA script block of an xml file its own coverage entry', async () => {
+                program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                            function getFirst()
+                                return 1
+                            end function
+                        ]]></script>
+                        <script type="text/brightscript"><![CDATA[
+                            function getSecond()
+                                return 2
+                            end function
+                        ]]></script>
+                    </component>
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                const [first, second] = getContents('components/Widget.xml').split(']]></script>');
+                expect(first).to.include('RBS_CC_0_reportLine(5)');
+                expect(first).to.include('function RBS_CC_0_reportLine(lineNumber)');
+                expect(first).not.to.include('RBS_CC_1_');
+                expect(second).to.include('RBS_CC_1_reportLine(10)');
+                expect(second).to.include('function RBS_CC_1_reportLine(lineNumber)');
+                expect(second).not.to.include('RBS_CC_0_');
+
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files.map((f) => [f.sourceFile, f.lines.map((l) => l.lineNumber), f.functions.map((fn) => fn.name)])).to.eql([
+                    ['components/Widget.xml', [5], ['getFirst']],
+                    ['components/Widget.xml', [10], ['getSecond']]
+                ]);
+            });
+
+            it('skips files that provide no code segments (an xml file without CDATA script blocks, or an asset)', async () => {
+                const xmlFile = program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript" uri="Widget.brs" />
+                    </component>
+                `);
+                program.setFile('components/Widget.brs', `
+                    function getValue()
+                        return 1
+                    end function
+                `);
+                const assetFile = program.setFile('images/logo.png', '');
+                expect(util.getCodeSegments(xmlFile)).to.be.undefined;
+                expect(util.getCodeSegments(assetFile)).to.be.undefined;
+                expect(plugin.shouldAddCodeCoverageToFile(xmlFile)).to.be.false;
+                expect(plugin.shouldAddCodeCoverageToFile(assetFile)).to.be.false;
+
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                expect(getContents('components/Widget.xml')).not.to.include('RBS_CC_');
+                //the script the xml imports is still instrumented
+                expect(getContents('components/Widget.brs')).to.include('RBS_CC_0_reportLine(3)');
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files.map((f) => f.sourceFile)).to.eql(['components/Widget.brs']);
+            });
+
+            it('excludes xml files matching coverageExcludedFiles', async () => {
+                program.setFile('components/rooibos/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                            function getValue(a)
+                                return a
+                            end function
+                        ]]></script>
+                    </component>
+                `);
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+                await builder.transpile();
+
+                expect(getContents('components/rooibos/Widget.xml')).not.to.include('RBS_CC_');
+                const report = fsExtra.readJsonSync(s`${outDir}/components/rooibos/CodeCoverage.json`);
+                expect(report.files).to.eql([]);
+            });
+        });
+
         describe('basic bs tests', () => {
 
             it('adds code coverage to a bs file', async () => {
@@ -1069,9 +1200,9 @@ describe('RooibosPlugin', () => {
                 Object.defineProperty(synthetic, 'location', { value: undefined });
                 Object.defineProperty(synthetic.func, 'location', { value: undefined });
                 Object.defineProperty(synthetic.func.body.statements[0], 'location', { value: undefined });
-                file.ast.statements.push(synthetic);
+                file.codeSegments[0].ast.statements.push(synthetic);
 
-                const alpha = file.ast.statements[0] as FunctionStatement;
+                const alpha = file.codeSegments[0].ast.statements[0] as FunctionStatement;
 
                 // a synthetic statement grafted into a real function
                 const grafted = Parser.parse(`m.__grafted = true`).ast.statements[0];

@@ -1,4 +1,4 @@
-import type { BrsFile, CallExpression, Editor, Expression, FunctionStatement, NamespaceStatement, ProgramBuilder, Scope } from 'brighterscript';
+import type { BrsCodeSegment, CallExpression, Editor, Expression, FunctionStatement, NamespaceStatement, ProgramBuilder, Scope } from 'brighterscript';
 import { ParseMode, Parser, SymbolTypeFlag, WalkMode, createVisitor, isCallExpression, isClassStatement, isDottedGetExpression, isNamespaceStatement, isVariableExpression } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import undent from 'undent';
@@ -6,7 +6,7 @@ import type { RooibosSession } from './RooibosSession';
 import { diagnosticErrorProcessingFile, RooibosLogPrefix } from '../utils/Diagnostics';
 import type { TestCase } from './TestCase';
 import type { TestSuite } from './TestSuite';
-import { functionRequiresReturnValue, getAllDottedGetParts, getFileLookups, getScopeForSuite } from './Utils';
+import { functionRequiresReturnValue, getAllDottedGetParts, getCodeSegmentLookups, getScopeForSuite } from './Utils';
 
 export class MockUtil {
 
@@ -33,28 +33,28 @@ export class MockUtil {
     private processedStatements: Set<FunctionStatement>;
     private astEditor: Editor;
 
-    enableGlobalMethodMocks(file: BrsFile, astEditor: Editor) {
+    enableGlobalMethodMocks(codeSegment: BrsCodeSegment, astEditor: Editor) {
         if (this.config.isGlobalMethodMockingEnabled) {
-            this._processFile(file, astEditor);
+            this._processFile(codeSegment, astEditor);
         }
     }
 
-    _processFile(file: BrsFile, astEditor: Editor) {
+    _processFile(codeSegment: BrsCodeSegment, astEditor: Editor) {
         this.fileId++;
         this.processedStatements = new Set<FunctionStatement>();
         this.astEditor = astEditor;
-        // console.log('processing global methods on ', file.pkgPath);
-        for (let functionStatement of getFileLookups(file).functionStatements) {
-            this.enableMockOnFunction(file, functionStatement);
+        // console.log('processing global methods on ', codeSegment.pkgPath);
+        for (let functionStatement of getCodeSegmentLookups(codeSegment).functionStatements) {
+            this.enableMockOnFunction(functionStatement);
         }
 
-        this.filePathMap[this.fileId] = file.pkgPath;
+        this.filePathMap[this.fileId] = codeSegment.pkgPath;
         if (this.processedStatements.size > 0) {
-            this.addBrsAPIText(file);
+            this.addBrsAPIText(codeSegment);
         }
     }
 
-    private enableMockOnFunction(file: BrsFile, functionStatement: FunctionStatement) {
+    private enableMockOnFunction(functionStatement: FunctionStatement) {
         if (isClassStatement(functionStatement.parent?.parent)) {
             // console.log('skipping class', functionStatement.parent?.parent?.name?.text);
             return;
@@ -108,12 +108,11 @@ export class MockUtil {
         this.astEditor.arrayUnshift(functionStatement.func.body.statements, ...astCodeToInject);
 
         this.processedStatements.add(functionStatement);
-        file.needsTranspiled = true;
     }
 
-    addBrsAPIText(file: BrsFile) {
+    addBrsAPIText(codeSegment: BrsCodeSegment) {
         const func = Parser.parse(this.brsFileAdditions.replace(/\#ID\#/g, this.fileId.toString().trim())).ast.statements;
-        this.astEditor.arrayPush(file.ast.statements, ...func);
+        this.astEditor.arrayPush(codeSegment.ast.statements, ...func);
     }
 
 

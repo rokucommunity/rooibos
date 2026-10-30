@@ -1,4 +1,4 @@
-import type { BrsFile, BscFile, Program, XmlFile } from 'brighterscript';
+import type { BscFile, Program } from 'brighterscript';
 import { Editor, standardizePath as s } from 'brighterscript';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -117,7 +117,7 @@ export class FileFactory {
         ].filter((f) => f !== undefined);
     }
 
-    public isIgnoredFile(file: BrsFile | XmlFile): boolean {
+    public isIgnoredFile(file: BscFile): boolean {
         let name = file.pkgPath.toLowerCase();
         let result = this.addedFrameworkFiles.find((f) => {
             return name === f.pkgPath.toLowerCase();
