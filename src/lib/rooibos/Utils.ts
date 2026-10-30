@@ -1,5 +1,7 @@
-import type { AnnotationExpression, ArrayLiteralExpression, AstEditor, BrsFile, ClassStatement, DottedGetExpression, Expression, FunctionStatement, MethodStatement, Statement } from 'brighterscript';
-import { ParseMode, Parser, TokenKind, WalkMode, createStringLiteral, isAAMemberExpression, isAALiteralExpression, isArrayLiteralExpression, isCallExpression, isCallfuncExpression, isCommentStatement, isDottedGetExpression, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isXmlScope, walkArray } from 'brighterscript';
+import type { AnnotationExpression, ArrayLiteralExpression, BrsFile, BscType, BsDiagnostic, ClassStatement, Editor, Expression, FunctionStatement, MethodStatement, Statement } from 'brighterscript';
+import { createIdentifier, DottedGetExpression, TypeExpression, VariableExpression, ParseMode, Parser, SymbolTypeFlag, WalkMode, createStringLiteral, isAAMemberExpression, isAALiteralExpression, isArrayLiteralExpression, isCallExpression, isCallfuncExpression, isDottedGetExpression, isFunctionStatement, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isVoidType, isXmlScope, isDynamicType, isEnumType, isNamespaceType, walkArray } from 'brighterscript';
+import { DiagnosticMessages } from 'brighterscript/dist/DiagnosticMessages';
+import type { CachedLookups } from 'brighterscript/dist/astUtils/CachedLookups';
 import { diagnosticCorruptTestProduced } from '../utils/Diagnostics';
 import type { TestSuite } from './TestSuite';
 
@@ -7,7 +9,7 @@ import type { TestSuite } from './TestSuite';
  * Add a generated method to the class.
  * @returns the added method, or undefined if the source could not be parsed
  */
-export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: AstEditor): MethodStatement | undefined {
+export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpression, target: ClassStatement, name: string, source: string, editor: Editor): MethodStatement | undefined {
     let { method, diagnostics, text } = createMethod(file, name, source);
 
     if (method.func.body.statements.length > 0) {
@@ -28,7 +30,7 @@ export function addOverriddenMethod(file: BrsFile, annotation: AnnotationExpress
  *
  * This is a HACK to be able to build the same MethodStatement instance as the version of brighterscript we're running against. (because otherwise, some older versions
  * of bsc (like the one rooibos depends on) have a bug that doesn't transpile the method name correctly in some instances)
- * @param file any file from the host program's version of BrighterScript. (we're going to utilize its `constructor` and `parse` functions to create a new MethodStatement instance)
+ * @param file any file from the host program's version of  (we're going to utilize its `constructor` and `parse` functions to create a new MethodStatement instance)
  * @param name name of the method to create
  * @param body string text containing the body of the method
  */
@@ -42,21 +44,23 @@ function createMethod(file: BrsFile, name: string, body: string) {
     `;
     try {
         //parse a new instance of a file, so we can abuse its `parse` function, which will use the _current_ version of the MethodStatement class
-        const f: BrsFile = new (file.constructor as any)(file.srcPath, file.pkgPath, file.program);
+        const f: BrsFile = new (file.constructor as any)({
+            srcPath: file.srcPath, destPath: file.destPath, pkgPath: file.pkgPath, program: file.program
+        });
         f.parse(text);
         return {
             method: (f.ast.statements[0] as ClassStatement).body[0] as MethodStatement,
             text: text,
-            diagnostics: f.diagnostics
+            diagnostics: []//f.program.
         };
     } catch (e) {
         console.error(`Error generating method '${name}' while using the host bsc version. Falling back to embedded Parser.parse`, {
             cause: e
         });
 
-        const { statements, diagnostics } = Parser.parse(text, { mode: ParseMode.BrighterScript });
+        const { ast, diagnostics } = Parser.parse(text, { mode: ParseMode.BrighterScript });
         return {
-            method: (statements[0] as ClassStatement).body[0] as MethodStatement,
+            method: (ast.statements[0] as ClassStatement).body[0] as MethodStatement,
             text: text,
             diagnostics: diagnostics
         };
@@ -68,22 +72,26 @@ export function sanitizeBsJsonString(text: string) {
 }
 
 export function functionRequiresReturnValue(statement: FunctionStatement) {
-    const returnTypeToken = statement.func.returnTypeToken;
-    const functionType = statement.func.functionType;
-    return !((functionType?.kind === TokenKind.Sub && (returnTypeToken === undefined || returnTypeToken?.kind === TokenKind.Void)) || returnTypeToken?.kind === TokenKind.Void);
+    const functionReturnType = statement.func.getType({ flags: SymbolTypeFlag.typetime }).returnType;
+    return !isVoidType(functionReturnType);
 }
 
 export function getAllDottedGetParts(dg: DottedGetExpression) {
-    let parts = [dg?.name?.text];
+
+    // TODO - Similar function in utils
+
+    let parts = [dg?.tokens.name?.text];
     let nextPart = dg.obj;
     while (isDottedGetExpression(nextPart) || isVariableExpression(nextPart)) {
-        parts.push(nextPart?.name?.text);
+        parts.push(nextPart?.tokens.name?.text);
         nextPart = isDottedGetExpression(nextPart) ? nextPart.obj : undefined;
     }
     return parts.reverse();
 }
 
 export function getRootObjectFromDottedGet(value: DottedGetExpression) {
+    // TODO - Similar function in utils
+
     let root;
     if (isDottedGetExpression(value) || isIndexedGetExpression(value)) {
 
@@ -99,6 +107,8 @@ export function getRootObjectFromDottedGet(value: DottedGetExpression) {
 }
 
 export function getStringPathFromDottedGet(value: DottedGetExpression) {
+    // TODO - Similar function in utils
+
     let parts = [getPathValuePartAsString(value)];
     let root;
     root = value.obj;
@@ -118,18 +128,19 @@ export function getPathValuePartAsString(expr: Expression) {
         return undefined;
     }
     if (isVariableExpression(expr)) {
-        return expr.name.text;
+        return expr.tokens.name.text;
     }
     if (!expr) {
         return undefined;
     }
     if (isDottedGetExpression(expr)) {
-        return expr.name.text;
+        return expr.tokens.name.text;
     } else if (isIndexedGetExpression(expr)) {
-        if (isLiteralExpression(expr.index)) {
-            return `${expr.index.token.text.replace(/^"/, '').replace(/"$/, '')}`;
-        } else if (isVariableExpression(expr.index)) {
-            return `${expr.index.name.text}`;
+        const firstIndex = expr.indexes[0];
+        if (isLiteralExpression(firstIndex)) {
+            return `${firstIndex.tokens.value.text.replace(/^"/, '').replace(/"$/, '')}`;
+        } else if (isVariableExpression(firstIndex)) {
+            return `${firstIndex.tokens.name.text}`;
         }
     }
 }
@@ -149,18 +160,89 @@ export function linkAnnotationToStatement(annotation: AnnotationExpression, stat
 }
 
 /**
+ * bsc validates names by walking the AST, which never visits annotations, so unknown names in
+ * `@params` arguments would go unreported. Find them the same way: resolve each name chain
+ * (`a`, `a.b.c`) left to right and report the first part that does not resolve.
+ * The annotation must already be linked into the AST (see `linkAnnotationToStatement`).
+ */
+export function getUnresolvedNameDiagnostics(annotation: AnnotationExpression): BsDiagnostic[] {
+    const diagnostics: BsDiagnostic[] = [];
+    const expressions: Expression[] = [];
+    for (const argument of annotation?.call?.args ?? []) {
+        expressions.push(argument);
+        argument.walk((node) => {
+            expressions.push(node as Expression);
+        }, { walkMode: WalkMode.visitExpressionsRecursive });
+    }
+    for (const expression of expressions) {
+        const isChainHead = (isVariableExpression(expression) || isDottedGetExpression(expression)) &&
+            !(isDottedGetExpression(expression.parent) && expression.parent.obj === expression);
+        if (isChainHead) {
+            const diagnostic = getUnresolvedNameDiagnostic(expression);
+            if (diagnostic) {
+                diagnostics.push(diagnostic);
+            }
+        }
+    }
+    return diagnostics;
+}
+
+function getUnresolvedNameDiagnostic(chainHead: DottedGetExpression | VariableExpression): BsDiagnostic | undefined {
+    const parts: Array<DottedGetExpression | VariableExpression> = [];
+    let part: Expression = chainHead;
+    while (isDottedGetExpression(part)) {
+        parts.unshift(part);
+        part = part.obj;
+    }
+    if (!isVariableExpression(part)) {
+        //chains rooted in a call, literal, etc. have nothing to look up by name
+        return undefined;
+    }
+    parts.unshift(part);
+
+    for (let index = 0; index < parts.length; index++) {
+        const type = parts[index].getType({ flags: SymbolTypeFlag.runtime });
+        //an unknown enum member resolves to dynamic rather than to an unresolvable type
+        const isUnknownEnumMember = index > 0 && isDynamicType(type) && isEnumType(parts[index - 1].getType({ flags: SymbolTypeFlag.runtime }));
+        if (type?.isResolvable() && !isUnknownEnumMember) {
+            continue;
+        }
+        const name = parts[index].tokens.name.text;
+        let message: { message: string; code: string | number };
+        if (index === 0) {
+            message = DiagnosticMessages.cannotFindName(name);
+        } else {
+            const fullName = parts.slice(0, index + 1).map((x) => x.tokens.name.text).join('.');
+            const parentType = parts[index - 1].getType({ flags: SymbolTypeFlag.runtime });
+            let parentTypeDescriptor: string;
+            if (isEnumType(parentType)) {
+                parentTypeDescriptor = 'enum';
+            } else if (isNamespaceType(parentType)) {
+                parentTypeDescriptor = 'namespace';
+            }
+            message = DiagnosticMessages.cannotFindName(name, fullName, parentType?.toString(), parentTypeDescriptor);
+        }
+        return {
+            ...message,
+            location: parts[index].tokens.name.location
+        } as BsDiagnostic;
+    }
+    return undefined;
+}
+
+/**
  * Fill the `rawParams: []` placeholders in a generated `getTestSuiteData` method with clones of each test case's actual `@params` argument expressions.
- * The clones are registered in the file's references, so bsc's own pre-transpile processing (i.e. inlining enums and constants) applies to them
- * exactly like it does for handwritten code. This must run before bsc's `beforeFileTranspile` (i.e. during `beforeProgramTranspile`).
+ * The clones are registered in the file's cached expression lookups, so bsc's own pre-transpile processing (i.e. inlining enums and constants) applies to them
+ * exactly like it does for handwritten code. This must run before bsc's `prepareFile` (i.e. during `beforeBuildProgram`).
  * @param file the file containing the test suite
  * @param method the generated `getTestSuiteData` method
  * @param paramExpressionsList the `@params` argument expressions for each placeholder, in the order they appear in the method
  * @param editor the editor used to make (and later undo) the changes
  */
-export function addParamsToTestSuiteData(file: BrsFile, method: MethodStatement, paramExpressionsList: Expression[][], editor: AstEditor) {
+export function addParamsToTestSuiteData(file: BrsFile, method: MethodStatement, paramExpressionsList: Expression[][], editor: Editor) {
     const placeholders: ArrayLiteralExpression[] = [];
     method.walk((node) => {
-        if (isAAMemberExpression(node) && node.keyToken.text === 'rawParams' && isArrayLiteralExpression(node.value)) {
+        if (isAAMemberExpression(node) && node.tokens.key.text === 'rawParams' && isArrayLiteralExpression(node.value)) {
             placeholders.push(node.value);
         }
     }, { walkMode: WalkMode.visitExpressionsRecursive });
@@ -170,9 +252,7 @@ export function addParamsToTestSuiteData(file: BrsFile, method: MethodStatement,
         references.add(expression);
         if (isArrayLiteralExpression(expression)) {
             for (const element of expression.elements) {
-                if (!isCommentStatement(element)) {
-                    addReferences(element);
-                }
+                addReferences(element);
             }
         } else if (isAALiteralExpression(expression)) {
             for (const member of expression.elements) {
@@ -191,7 +271,7 @@ export function addParamsToTestSuiteData(file: BrsFile, method: MethodStatement,
         clones.forEach(addReferences);
     }
 
-    const fileReferences = file.parser.references.expressions;
+    const fileReferences = getFileLookups(file).expressions;
     editor.edit(() => {
         for (const expression of references) {
             fileReferences.add(expression);
@@ -212,4 +292,33 @@ export function getScopeForSuite(testSuite: TestSuite) {
     } else {
         return testSuite.file.program.getFirstScopeForFile(testSuite.file);
     }
+}
+
+export function getFileLookups(file: BrsFile): CachedLookups {
+    // eslint-disable-next-line @typescript-eslint/dot-notation
+    return file['_cachedLookups'] as CachedLookups;
+}
+
+export function getMainFunctionStatement(file: BrsFile) {
+    return file.ast.statements.find((fs) => isFunctionStatement(fs) && fs.tokens.name.text.toLowerCase() === 'main') as FunctionStatement;
+}
+
+
+export function getTypeExpressionFromBscType(type: BscType) {
+    // This should probably exist in brighterscript
+    const typeName = type.toString();
+    const typeParts = typeName.split('.');
+    let i = 0;
+    let innerExpression: DottedGetExpression | VariableExpression;
+    while (i < typeParts.length) {
+        if (i === 0) {
+            innerExpression = new VariableExpression({ name: createIdentifier(typeParts[i]) });
+        } else {
+            innerExpression = new DottedGetExpression({ obj: innerExpression, name: createIdentifier(typeParts[i]) });
+        }
+        i++;
+    }
+    return new TypeExpression({
+        expression: innerExpression
+    });
 }

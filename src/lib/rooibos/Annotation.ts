@@ -227,7 +227,7 @@ export class RooibosAnnotation {
         if (isSolo) {
             this.hasSoloParams = true;
         }
-        this.params.push(new AnnotationParams(annotation, annotation.range.start.line, annotation.call?.args ?? [], isIgnore, isSolo, noCatch));
+        this.params.push(new AnnotationParams(annotation, annotation.location?.range.start.line, annotation.call?.args ?? [], isIgnore, isSolo, noCatch));
     }
 
 }

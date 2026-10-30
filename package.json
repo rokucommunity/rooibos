@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "5.17.0",
+    "version": "6.0.0-alpha.57",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "scripts": {
         "preversion": "npm run build && npm run lint && npm run test",
@@ -22,7 +22,7 @@
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "^0.73.5",
+        "brighterscript": "^1.0.0-alpha.57",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
         "istanbul-lib-coverage": "^3.2.2",
@@ -31,7 +31,7 @@
         "minimatch": "^3.0.4",
         "roku-debug": "^0.24.6",
         "roku-deploy": "^4.0.0-alpha.9",
-        "rooibos_promises": "npm:@rokucommunity/promises@^0.5.0",
+        "rooibos_promises": "npm:@rokucommunity/promises@^0.7.0",
         "source-map": "^0.7.3",
         "undent": "^1.0.1",
         "vscode-languageserver": "~6.1.1",
@@ -39,7 +39,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^0.8.46",
+        "@rokucommunity/bslint": "^1.0.0-alpha.57",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",
@@ -70,7 +70,13 @@
         "typescript": "^4.7.2"
     },
     "overrides": {
-        "serialize-javascript": "^7",
+        "serialize-javascript": "^7.0.5",
+        "postman-request": {
+            "qs": "^6.16.0"
+        },
+        "js-yaml@^3": "^3.15.2",
+        "js-yaml@^4": "^4.3.2",
+        "istanbul-lib-processinfo": "^3.0.1",
         "uuid": "^11.1.1"
     },
     "main": "dist/plugin.js",

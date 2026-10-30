@@ -1,5 +1,5 @@
-import type { AstEditor, CallExpression, DottedGetExpression, Expression, FunctionExpression, NamespaceContainer, Scope } from 'brighterscript';
-import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode, util, createVisitor, isCallExpression, WalkMode, createVariableExpression, isCallfuncExpression, isVariableExpression } from 'brighterscript';
+import type { Editor, CallExpression, DottedGetExpression, Expression, FunctionExpression, NamespaceContainer, Scope } from 'brighterscript';
+import { ArrayLiteralExpression, createInvalidLiteral, createStringLiteral, createToken, isDottedGetExpression, TokenKind, isFunctionExpression, Parser, ParseMode, util, createVisitor, isCallExpression, WalkMode, createVariableExpression, isCallfuncExpression, isVariableExpression, SymbolTypeFlag } from 'brighterscript';
 import { diagnosticErrorProcessingFile } from '../utils/Diagnostics';
 import type { RooibosAnnotation } from './Annotation';
 import type { TestCase } from './TestCase';
@@ -28,23 +28,23 @@ export class TestGroup extends TestBlock {
         this.hasAsyncTests ||= testCase.isAsync;
     }
 
-    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
-        let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === testCase.funcName.toLowerCase());
+    public modifyAssertions(testCase: TestCase, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+        let func = this.testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === testCase.funcName.toLowerCase());
         this.modifyAssertionsInFunction(func, noEarlyExit, editor, namespaceLookup, scope);
     }
 
-    public modifyAssertionsForHook(hookFuncName: string, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+    public modifyAssertionsForHook(hookFuncName: string, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         if (!hookFuncName) {
             return;
         }
-        let func = this.testSuite.classStatement.methods.find((m) => m.name.text.toLowerCase() === hookFuncName.toLowerCase());
+        let func = this.testSuite.classStatement.methods.find((m) => m.tokens.name.text.toLowerCase() === hookFuncName.toLowerCase());
         if (!func) {
             return;
         }
         this.modifyAssertionsInFunction(func, noEarlyExit, editor, namespaceLookup, scope);
     }
 
-    private modifyAssertionsInFunction(func: any, noEarlyExit: boolean, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+    private modifyAssertionsInFunction(func: any, noEarlyExit: boolean, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         //for each method
         //if assertion
         //wrap with if is not fail
@@ -60,10 +60,10 @@ export class TestGroup extends TestBlock {
                         // `return invalid` in subs and `function ... as void` alike. An
                         // explicit return type trumps the keyword (`sub x() as string` is
                         // legal and must return a value).
-                        let returnTypeText = enclosingFunc?.returnTypeToken?.text.toLowerCase();
-                        let isVoidReturn = returnTypeText ? returnTypeText === 'void' : enclosingFunc?.functionType.kind === TokenKind.Sub;
+                        let returnTypeText = enclosingFunc?.returnTypeExpression?.getName()?.toLowerCase();
+                        let isVoidReturn = returnTypeText ? returnTypeText === 'void' : enclosingFunc?.tokens.functionType?.kind === TokenKind.Sub;
                         let assertRegex = /(?:fail|assert(?:[a-z0-9]*)|expect(?:[a-z0-9]*)|stubCall)/i;
-                        if (dge && assertRegex.test(dge.name.text)) {
+                        if (dge && assertRegex.test(dge.tokens.name.text)) {
                             // get the path to the call expression
                             // `m`.assert*(...)
                             // `m.testSuite`.assert*(...)
@@ -80,16 +80,13 @@ export class TestGroup extends TestBlock {
                                     return;
                                 }
 
-                                if (dge.name.text === 'stubCall') {
+                                if (dge.tokens.name.text === 'stubCall') {
                                     this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                     return expressionStatement;
 
                                 } else {
 
-                                    if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
-                                        this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
-                                    }
-                                    if (dge.name.text === 'expectCalled' || dge.name.text === 'expectNotCalled') {
+                                    if (dge.tokens.name.text === 'expectCalled' || dge.tokens.name.text === 'expectNotCalled') {
                                         this.modifyModernRooibosExpectCallExpression(callExpression, editor, namespaceLookup, scope);
                                     }
 
@@ -97,7 +94,7 @@ export class TestGroup extends TestBlock {
                                         const trailingLine = Parser.parse(`if ${callPath}.currentResult?.isFail = true then ${callPath}.done() : return ${isVoidReturn ? '' : 'invalid'}`).ast.statements[0];
                                         editor.arraySplice(owner, key + 1, 0, trailingLine);
                                     }
-                                    const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${callExpression.range.start.line + 1}`).ast.statements[0];
+                                    const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${callExpression.location?.range.start.line + 1}`).ast.statements[0];
                                     editor.arraySplice(owner, key, 0, leadingLine);
                                 }
                             }
@@ -108,26 +105,27 @@ export class TestGroup extends TestBlock {
                 walkMode: WalkMode.visitStatementsRecursive
             });
         } catch (e) {
-            console.error(e);
-            diagnosticErrorProcessingFile(this.testSuite.file, e.message);
+            //console.error(e);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            diagnosticErrorProcessingFile(this.testSuite.file, (e as Error).message);
         }
     }
 
-    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: AstEditor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
+    private modifyModernRooibosExpectCallExpression(callExpression: CallExpression, editor: Editor, namespaceLookup: Map<string, NamespaceContainer>, scope: Scope) {
         let isNotCalled = false;
         let isStubCall = false;
 
         //modify args
         let arg0 = callExpression.args[0];
         if (isDottedGetExpression(callExpression.callee)) {
-            const nameText = callExpression.callee.name.text;
+            const nameText = callExpression.callee.tokens.name.text;
             isNotCalled = nameText === 'expectNotCalled';
             isStubCall = nameText === 'stubCall';
 
             if (isStubCall && this.shouldNotModifyStubCall(arg0, namespaceLookup, scope)) {
                 return;
             }
-            editor.setProperty(callExpression.callee.name, 'text', `_${nameText}`);
+            editor.setProperty(callExpression.callee.tokens.name, 'text', `_${nameText}`);
         }
 
         if (isCallExpression(arg0) && isDottedGetExpression(arg0.callee)) {
@@ -150,7 +148,11 @@ export class TestGroup extends TestBlock {
                     let functionName = nameParts.join('_').toLowerCase();
                     editor.removeFromArray(callExpression.args, 0);
                     if (!isNotCalled && !isStubCall) {
-                        const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                        const expectedArgs = new ArrayLiteralExpression({
+                            elements: arg0.args,
+                            open: createToken(TokenKind.LeftSquareBracket),
+                            close: createToken(TokenKind.RightSquareBracket)
+                        });
                         editor.addToArray(callExpression.args, 0, expectedArgs);
                     }
                     editor.addToArray(callExpression.args, 0, createInvalidLiteral());
@@ -159,11 +161,15 @@ export class TestGroup extends TestBlock {
                     editor.addToArray(callExpression.args, 0, createVariableExpression(functionName));
                     this.testSuite.session.globalStubbedMethods.add(functionName);
                 } else {
-                    let functionName = arg0.callee.name.text;
+                    let functionName = arg0.callee.tokens.name.text;
                     let fullPath = getStringPathFromDottedGet(arg0.callee.obj as DottedGetExpression);
                     editor.removeFromArray(callExpression.args, 0);
                     if (!isNotCalled && !isStubCall) {
-                        const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                        const expectedArgs = new ArrayLiteralExpression({
+                            elements: arg0.args,
+                            open: createToken(TokenKind.LeftSquareBracket),
+                            close: createToken(TokenKind.RightSquareBracket)
+                        });
                         editor.addToArray(callExpression.args, 0, expectedArgs);
                     }
                     editor.addToArray(callExpression.args, 0, fullPath ?? createInvalidLiteral());
@@ -173,7 +179,7 @@ export class TestGroup extends TestBlock {
                 }
             }
         } else if (isDottedGetExpression(arg0)) {
-            let functionName = arg0.name.text;
+            let functionName = arg0.tokens.name.text;
             let fullPath = getStringPathFromDottedGet(arg0.obj as DottedGetExpression);
             arg0 = callExpression.args[0] as DottedGetExpression;
             editor.removeFromArray(callExpression.args, 0);
@@ -185,14 +191,18 @@ export class TestGroup extends TestBlock {
             editor.addToArray(callExpression.args, 0, createStringLiteral(functionName));
             editor.addToArray(callExpression.args, 0, (arg0 as DottedGetExpression).obj);
         } else if (isCallfuncExpression(arg0)) {
-            let functionName = arg0.methodName.text;
+            let functionName = arg0.tokens.methodName.text;
             editor.removeFromArray(callExpression.args, 0);
             if (isNotCalled || isStubCall) {
                 //TODO in future we can improve is notCalled to know which callFunc function it is
                 // const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName)], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
                 // editor.addToArray(callExpression.args, 0, expectedArgs);
             } else {
-                const expectedArgs = new ArrayLiteralExpression([createStringLiteral(functionName), ...arg0.args], createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                const expectedArgs = new ArrayLiteralExpression({
+                    elements: [createStringLiteral(functionName), ...arg0.args],
+                    open: createToken(TokenKind.LeftSquareBracket),
+                    close: createToken(TokenKind.RightSquareBracket)
+                });
                 editor.addToArray(callExpression.args, 0, expectedArgs);
             }
             let fullPath = getStringPathFromDottedGet(arg0.callee as DottedGetExpression);
@@ -204,7 +214,11 @@ export class TestGroup extends TestBlock {
             let functionName = arg0.callee.getName(ParseMode.BrightScript);
             editor.removeFromArray(callExpression.args, 0);
             if (!isNotCalled && !isStubCall) {
-                const expectedArgs = new ArrayLiteralExpression(arg0.args, createToken(TokenKind.LeftSquareBracket), createToken(TokenKind.RightSquareBracket));
+                const expectedArgs = new ArrayLiteralExpression({
+                    elements: arg0.args,
+                    open: createToken(TokenKind.LeftSquareBracket),
+                    close: createToken(TokenKind.RightSquareBracket)
+                });
                 editor.addToArray(callExpression.args, 0, expectedArgs);
             }
             editor.addToArray(callExpression.args, 0, createInvalidLiteral());
@@ -222,7 +236,7 @@ export class TestGroup extends TestBlock {
             return scope.getCallableByName(functionName);
         } else if (isVariableExpression(arg0)) {
             return (
-                scope.symbolTable.hasSymbol(arg0.getName(ParseMode.BrightScript)) ||
+                scope.symbolTable.hasSymbol(arg0.getName(ParseMode.BrightScript), SymbolTypeFlag.runtime) ||
                 scope.getCallableByName(arg0.getName(ParseMode.BrighterScript))
             );
         }
@@ -239,7 +253,7 @@ export class TestGroup extends TestBlock {
                 isIgnored: ${this.isIgnored}
                 isAsync: ${this.isAsync}
                 filename: "${this.pkgPath}"
-                lineNumber: "${this.annotation.annotation.range.start.line + 1}"
+                lineNumber: ${this.annotation.annotation.location.range.start.line + 1}
                 setupFunctionName: "${this.setupFunctionName || ''}"
                 tearDownFunctionName: "${this.tearDownFunctionName || ''}"
                 beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"

@@ -4,7 +4,7 @@ import { Parser } from 'brighterscript';
 import { functionRequiresReturnValue, getAllDottedGetParts, getPathValuePartAsString, getRootObjectFromDottedGet, getStringPathFromDottedGet, sanitizeBsJsonString } from './Utils';
 
 function parseExpression<T = DottedGetExpression>(text: string): T {
-    const { statements } = Parser.parse(`value = ${text}`);
+    const { statements } = Parser.parse(`value = ${text}`).ast;
     return (statements[0] as any).value as T;
 }
 
@@ -47,7 +47,7 @@ describe('Utils', () => {
     describe('getRootObjectFromDottedGet', () => {
         it('walks to the root variable of a dotted chain', () => {
             const root = getRootObjectFromDottedGet(parseExpression('alpha.beta.gamma'));
-            expect((root).name.text).to.equal('alpha');
+            expect((root).tokens.name.text).to.equal('alpha');
         });
 
         it('returns a non-dotted expression unchanged', () => {
@@ -59,7 +59,7 @@ describe('Utils', () => {
     describe('getStringPathFromDottedGet', () => {
         it('builds a string literal for a plain dotted path', () => {
             const literal = getStringPathFromDottedGet(parseExpression('alpha.beta.gamma'));
-            expect(literal.token.text).to.equal('"alpha.beta.gamma"');
+            expect(literal.tokens.value.text).to.equal('"alpha.beta.gamma"');
         });
 
         it('returns undefined when the chain contains a call', () => {
@@ -68,12 +68,12 @@ describe('Utils', () => {
 
         it('uses the literal key of an indexed get', () => {
             const literal = getStringPathFromDottedGet(parseExpression('alpha["key"].gamma'));
-            expect(literal.token.text).to.equal('"alpha.key.gamma"');
+            expect(literal.tokens.value.text).to.equal('"alpha.key.gamma"');
         });
 
         it('uses the variable name of an indexed get', () => {
             const literal = getStringPathFromDottedGet(parseExpression('alpha[key].gamma'));
-            expect(literal.token.text).to.equal('"alpha.key.gamma"');
+            expect(literal.tokens.value.text).to.equal('"alpha.key.gamma"');
         });
     });
 
