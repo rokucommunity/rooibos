@@ -94,7 +94,7 @@ export class TestGroup extends TestBlock {
                                         const trailingLine = Parser.parse(`if ${callPath}.currentResult?.isFail = true then ${callPath}.done() : return ${isVoidReturn ? '' : 'invalid'}`).ast.statements[0];
                                         editor.arraySplice(owner, key + 1, 0, trailingLine);
                                     }
-                                    const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${callExpression.location?.range.start.line + 1}`).ast.statements[0];
+                                    const leadingLine = Parser.parse(`${callPath}.currentAssertLineNumber = ${util.getStartPosition(callExpression)?.line + 1}`).ast.statements[0];
                                     editor.arraySplice(owner, key, 0, leadingLine);
                                 }
                             }
@@ -253,7 +253,7 @@ export class TestGroup extends TestBlock {
                 isIgnored: ${this.isIgnored}
                 isAsync: ${this.isAsync}
                 filename: "${this.pkgPath}"
-                lineNumber: ${this.annotation.annotation.location.range.start.line + 1}
+                lineNumber: ${util.getStartPosition(this.annotation.annotation).line + 1}
                 setupFunctionName: "${this.setupFunctionName || ''}"
                 tearDownFunctionName: "${this.tearDownFunctionName || ''}"
                 beforeEachFunctionName: "${this.beforeEachFunctionName || ''}"

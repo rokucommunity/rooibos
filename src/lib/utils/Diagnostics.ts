@@ -1,5 +1,5 @@
 import type { BrsFile, ClassStatement, FunctionStatement, Statement, BscFile, AnnotationExpression, BsDiagnostic } from 'brighterscript';
-import { DiagnosticSeverity, Range, util } from 'brighterscript';
+import { DiagnosticSeverity, util } from 'brighterscript';
 
 import type { AnnotationType, RooibosAnnotation } from '../rooibos/Annotation';
 
@@ -30,8 +30,9 @@ function addDiagnosticForStatement(
     statement: Statement,
     severity: DiagnosticSeverity = DiagnosticSeverity.Error
 ) {
-    let line = statement.location.range.start.line;
-    let col = statement.location.range.start.character;
+    const start = util.getStartPosition(statement);
+    const line = start?.line ?? 0;
+    const col = start?.character ?? 0;
     file.program?.diagnostics.register(
         createDiagnostic(file, code, message, line, col, line, 999999, severity),
         { tags: ['rooibos'] }
@@ -46,11 +47,10 @@ function addDiagnosticForAnnotation(
     severity: DiagnosticSeverity = DiagnosticSeverity.Error,
     endChar?: number
 ) {
-    let line = annotation.location.range.start.line;
-    let col = annotation.location.range.start.character;
+    const range = util.getLocation(annotation)?.range ?? util.createRange(0, 0, 0, 0);
 
     file.program?.diagnostics.register(
-        createDiagnostic(file, code, message, line, col, annotation.location.range.end.line, annotation.location.range.end.character + 9999, severity),
+        createDiagnostic(file, code, message, range.start.line, range.start.character, range.end.line, range.end.character + 9999, severity),
         { tags: ['rooibos'] }
     );
 }
@@ -68,7 +68,7 @@ function createDiagnostic(
     const diagnostic = {
         code: `RBS${code}`,
         message: message,
-        location: util.createLocationFromFileRange(bscFile, Range.create(startLine, startCol, endLine, endCol)),
+        location: util.createLocationFromFileRange(bscFile, util.createRange(startLine, startCol, endLine, endCol)),
         severity: severity
     };
     return diagnostic;

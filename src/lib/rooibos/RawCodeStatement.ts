@@ -6,7 +6,6 @@ import type {
 } from 'brighterscript';
 import {
     AstNodeKind,
-    Range,
     Statement,
     util
 } from 'brighterscript';
@@ -25,7 +24,6 @@ export class RawCodeStatement extends Statement {
         //raw code has no position in any parsed source, so it is a synthetic node
         util.setBounds(this);
     }
-    private fakeRange = Range.create(1, 1, 1, 99999);
 
     readonly kind = AstNodeKind.Body;
 
@@ -33,19 +31,16 @@ export class RawCodeStatement extends Statement {
     public readonly endPosition: number;
     public readonly sourceInfo: SourceInfo | undefined;
 
-    get location() {
-        return util.createLocationFromFileRange(this.sourceFile, this.fakeRange);
-    }
-
     public transpile(state: BrsTranspileState) {
         //indent every line with the current transpile indent level (except the first line, because that's pre-indented by bsc)
         let source = this.source.replace(/\r?\n/g, (match, newline) => {
             return state.newline + state.indent();
         });
 
+        //synthetic code has no source position to map back to
         return [new SourceNode(
-            this.fakeRange.start.line + 1,
-            this.fakeRange.start.character,
+            null,
+            null,
             this.sourceFile ? this.sourceFile.srcPath : state.srcPath,
             source
         )];

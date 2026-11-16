@@ -191,7 +191,7 @@ export class TestSuiteBuilder {
         return `rooiboos_test_case_${md5sum.digest('hex')}_${this.testSuite.registeredTestCount++}`;
     }
     public createTestCases(statement: MethodStatement, annotation: RooibosAnnotation): boolean {
-        const lineNumber = statement.func.location.range.start.line;
+        const lineNumber = util.getStartPosition(statement.func).line;
         const numberOfArgs = statement.func.parameters.length;
         const numberOfParams = annotation.params.length;
         const sanitizedTestName = this.createTestCaseFunctionName();

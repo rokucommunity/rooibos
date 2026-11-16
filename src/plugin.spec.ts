@@ -4775,8 +4775,7 @@ function getFunctionContents(rawCode: string, functionName: RegExp | string) {
     }) as FunctionStatement;
 
     if (funcStmt) {
-        const start = funcStmt.func.body.location.range.start;
-        const end = funcStmt.func.body.location.range.end;
+        const { start, end } = util.getLocation(funcStmt.func.body).range;
         const lines = rawCode.split(/\r?\n/);
         const extractedLines = lines.slice(start.line, end.line + 1);
         return undent(extractedLines.join('\n'));
