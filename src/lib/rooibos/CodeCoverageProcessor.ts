@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Parser, WalkMode, InternalWalkMode, createVisitor, isConditionalCompileStatement, isBlock, walkArray, isLiteralExpression, isNamespaceStatement, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isMethodStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement, isExpressionStatement, util } from 'brighterscript';
-import type { AssignmentStatement, AstNode, BrsFile, CallExpression, ConditionalCompileConstStatement, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, NamespaceStatement, Program, ProgramBuilder, Range, Statement } from 'brighterscript';
+import type { AssignmentStatement, AstNode, BrsFile, CallExpression, ConditionalCompileConstStatement, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, Locatable, NamespaceStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
@@ -157,8 +157,8 @@ export class CodeCoverageProcessor {
     /** Condition helper functions generated this file, appended to the AST after the walk. */
     private pendingHelpers: Array<{ helper: FunctionStatement; namespace: NamespaceStatement | undefined }>;
     private helperCounter: number;
-    /** Range of the statement currently being extracted; used to clamp foreign-grafted expression ranges. */
-    private ladderStatementRange: Range | undefined;
+    /** The statement currently being extracted; used to clamp foreign-grafted expression positions. */
+    private ladderStatement: Statement | undefined;
     /** Human-readable notes about instrumentation that was reshaped or skipped, printed per file. */
     private coverageWarnings: string[];
     /**
@@ -275,10 +275,10 @@ export class CodeCoverageProcessor {
         // statements grafted in by other plugins have no range - nothing to anchor a
         // line entry to, so they transpile untouched.
         const simpleStatement = (ds: Statement, parent?: Statement, owner?: any, key?: any) => {
-            if (!ds.location?.range) {
+            if (!ds.sourceInfo) {
                 return;
             }
-            this.addStatement(ds, ds.location?.range.start.line, true);
+            this.addStatement(ds, util.getStartPosition(ds).line, true);
             // An inline clause (`if c then return 1`) shares its line with an if whose own
             // report already fired; a second report would double the line's hit count.
             if (this.isLineReportedByIf(ds)) {
@@ -314,8 +314,9 @@ export class CodeCoverageProcessor {
                 // clause - line-granular tracking can't see it (the if line itself ran),
                 // but the arm's branch hit count is exactly the clause's execution count.
                 // nyc paints the TS equivalent (`if (x) return y;`) red this way.
-                const isInlineArm = statement.location?.range.start.line === statement.location?.range.end.line &&
-                    statement.location?.range.start.line + 1 === reserved.line;
+                const armRange = util.getLocation(statement)?.range;
+                const isInlineArm = armRange?.start.line === armRange?.end.line &&
+                    armRange?.start.line + 1 === reserved.line;
                 // Both arms anchor to the if-statement's line so the I/E badge appears
                 // next to the `if` keyword in the rendered HTML, matching nyc's TS output.
                 blockEntry.branches.push({
@@ -323,8 +324,8 @@ export class CodeCoverageProcessor {
                     line: reserved.line,
                     totalHit: 0,
                     ...(isInlineArm ? {
-                        sc: statement.location?.range.start.character,
-                        ec: statement.location?.range.end.character - 1
+                        sc: armRange.start.character,
+                        ec: armRange.end.character - 1
                     } : {})
                 });
 
@@ -332,20 +333,20 @@ export class CodeCoverageProcessor {
                 this.astEditor.addToArray(statement.statements, 0, parsed);
             },
             ForStatement: (ds, parent, owner, key) => {
-                if (!ds.location?.range) {
+                if (!ds.sourceInfo) {
                     return;
                 }
-                this.addStatement(ds, ds.location?.range.start.line);
+                this.addStatement(ds, util.getStartPosition(ds).line);
                 // token-text mutation must go through the editor so bsc's post-transpile
                 // rollback restores the source AST - a later transpile of the same program
                 // re-instruments from pristine tokens (same for while/for-each/try below)
                 this.prefixKeywordWithLineReport(ds, ds.tokens.for, 'for');
             },
             TryCatchStatement: (tryCatch, parent, owner, key) => {
-                if (!tryCatch.location?.range) {
+                if (!tryCatch.sourceInfo) {
                     return;
                 }
-                this.addStatement(tryCatch, tryCatch.location?.range.start.line);
+                this.addStatement(tryCatch, util.getStartPosition(tryCatch).line);
                 // Prefix the `try` token with a reportLine call so the try line gets counted
                 // at runtime. Done via token-text mutation (same pattern as ForStatement /
                 // WhileStatement / ForEachStatement) rather than arraySplice; splicing the
@@ -357,9 +358,10 @@ export class CodeCoverageProcessor {
                 // shows up through statement coverage of its body lines.
             },
             IfStatement: (ifStatement, parent, owner, key) => {
-                if (!ifStatement.location?.range) {
+                if (!ifStatement.sourceInfo) {
                     return;
                 }
+                const ifLine = util.getStartPosition(ifStatement).line;
                 // Restructure over-long elseif ladders before the walker descends into them.
                 // The compiler's &hae if-table is per-chain (~270 arms plain / ~260 once the
                 // arm bodies carry instrumentation), so `else if` becomes `else` + nested `if`
@@ -378,7 +380,7 @@ export class CodeCoverageProcessor {
                 const reservedId = this.blockId++;
                 this.allocatedIfBlocks.set(ifStatement, {
                     blockId: reservedId,
-                    line: ifStatement.location?.range.start.line + 1
+                    line: ifLine + 1
                 });
                 this.foundBlocks.push({
                     id: reservedId,
@@ -414,16 +416,16 @@ export class CodeCoverageProcessor {
                     }
                 }
                 if (lineAlreadyReported) {
-                    this.addStatement(ifStatement, ifStatement.location?.range.start.line);
+                    this.addStatement(ifStatement, ifLine);
                 } else if (wrapFits) {
-                    this.addStatement(ifStatement, ifStatement.location?.range.start.line);
+                    this.addStatement(ifStatement, ifLine);
                     this.markLineReportedByIf(ifStatement);
                     const conditionWrap = new BinaryExpression({
                         // Anchor to the if-statement's own range, NOT the condition's: other
                         // plugins (e.g. an is.* inliner) can graft replacement expressions into
                         // the condition that still carry ranges from a different source file,
                         // which would make this report a bogus line number.
-                        left: new RawCodeExpression(this.getReportLineHitFuncCallText(ifStatement.location?.range.start.line, ifStatement)),
+                        left: new RawCodeExpression(this.getReportLineHitFuncCallText(ifLine, ifStatement)),
                         operator: createToken(TokenKind.And),
                         right: new GroupingExpression({
                             leftParen: createToken(TokenKind.LeftParen),
@@ -442,13 +444,13 @@ export class CodeCoverageProcessor {
                 } else if (Array.isArray(owner)) {
                     // The condition is too hot to touch but this `if` sits in a statement list,
                     // so report its line with a plain statement inserted just before it.
-                    this.addStatement(ifStatement, ifStatement.location?.range.start.line);
+                    this.addStatement(ifStatement, ifLine);
                     this.markLineReportedByIf(ifStatement);
                     this.convertStatementToCoverageStatement(ifStatement, owner, key);
                 } else {
                     // An `else if` arm has no statement slot to fall back to; leave its line
                     // out of the report rather than risking an &hae on the device.
-                    this.coverageWarnings.push(`line ${ifStatement.location?.range.start.line + 1}: else-if condition too complex to instrument; line hit not tracked`);
+                    this.coverageWarnings.push(`line ${ifLine + 1}: else-if condition too complex to instrument; line hit not tracked`);
                 }
             },
             GotoStatement: simpleStatement,
@@ -462,17 +464,17 @@ export class CodeCoverageProcessor {
             IncrementStatement: simpleStatement,
             AugmentedAssignmentStatement: simpleStatement,
             WhileStatement: (ds) => {
-                if (!ds.location?.range) {
+                if (!ds.sourceInfo) {
                     return;
                 }
-                this.addStatement(ds, ds.location?.range.start.line);
+                this.addStatement(ds, util.getStartPosition(ds).line);
                 this.prefixKeywordWithLineReport(ds, ds.tokens.while, 'while');
             },
             ForEachStatement: (ds) => {
-                if (!ds.location?.range) {
+                if (!ds.sourceInfo) {
                     return;
                 }
-                this.addStatement(ds, ds.location?.range.start.line);
+                this.addStatement(ds, util.getStartPosition(ds).line);
                 this.prefixKeywordWithLineReport(ds, ds.tokens.forEach, 'for each');
             },
             AssignmentStatement: (ds, parent, owner, key) => {
@@ -512,13 +514,13 @@ export class CodeCoverageProcessor {
                 // into a generated helper that lowers it to a short-circuit ladder of simple
                 // statements - full branch fidelity with no expression-size ceiling.
                 if (process.env.RBS_CC_DEBUG) {
-                    console.log(`[rbs-cc-debug] line ${(expr.location?.range?.start.line ?? 0) + 1}: hasFn=${stats.hasFunctionExpression} boolCtx=${this.isInBooleanContext(expr)}`);
+                    console.log(`[rbs-cc-debug] line ${(util.getStartPosition(expr)?.line ?? 0) + 1}: hasFn=${stats.hasFunctionExpression} boolCtx=${this.isInBooleanContext(expr)}`);
                 }
                 if (!stats.hasFunctionExpression && this.isInBooleanContext(expr) && this.tryExtractBooleanExpression(expr)) {
                     return;
                 }
                 this.markLogicalSubtreeProcessed(expr);
-                this.coverageWarnings.push(`line ${(expr.location?.range?.start.line ?? 0) + 1}: expression too complex to instrument for branch coverage; branch hits in it are not tracked`);
+                this.coverageWarnings.push(`line ${(util.getStartPosition(expr)?.line ?? 0) + 1}: expression too complex to instrument for branch coverage; branch hits in it are not tracked`);
             },
             NullCoalescingExpression: (expr) => {
                 if (this.processedExpressions.has(expr)) {
@@ -791,50 +793,55 @@ export class CodeCoverageProcessor {
 
     /**
      * Line/column anchor for a branch entry. Other plugins (e.g. an expression inliner) can
-     * graft replacement expressions into a statement that still carry ranges from a
+     * graft replacement expressions into a statement that still carry positions from a
      * DIFFERENT source file; using those verbatim would put branch badges on nonsense
-     * lines and could collide with real lines elsewhere in this file. When an expression's
-     * range falls outside its containing statement, anchor to the statement's start line
+     * lines and could collide with real lines elsewhere in this file. When an expression
+     * doesn't sit inside its containing statement, anchor to the statement's start line
      * and drop the column wrap.
      */
     private branchAnchor(expr: Expression): { line: number; column?: number; endColumn?: number } {
         const statement = expr.findAncestor<Statement>(isStatement);
-        if (statement && this.isOutsideRange(expr, statement.location?.range)) {
-            return { line: (statement.location?.range?.start.line ?? 0) + 1 };
+        if (statement && this.isOutside(expr, statement)) {
+            return { line: (util.getStartPosition(statement)?.line ?? 0) + 1 };
         }
         // Column ranges are only meaningful for single-line expressions: a multi-line
         // arm's end column belongs to a different line, and pinning it to the start line
         // would hand Istanbul an inverted (end-before-start) span that garbles the HTML
         // highlight. Multi-line arms anchor by line/indent instead, like if-arm blocks.
-        if (expr.location?.range.start.line !== expr.location?.range.end.line) {
-            return { line: expr.location?.range.start.line + 1 };
+        const range = util.getLocation(expr)?.range;
+        if (range?.start.line !== range?.end.line) {
+            return { line: range?.start.line + 1 };
         }
         return {
-            line: expr.location?.range.start.line + 1,
-            column: expr.location?.range.start.character,
-            endColumn: expr.location?.range.end.character - 1
+            line: range?.start.line + 1,
+            column: range?.start.character,
+            endColumn: range?.end.character - 1
         };
     }
 
     /**
-     * True when this expression's range lies outside its containing statement - the
+     * True when this expression doesn't sit inside its containing statement - the
      * fingerprint of code grafted in by another plugin (e.g. an expression inliner), whose
-     * ranges point into a different source file. Branch entries for such code would render
+     * positions point into a different source file. Branch entries for such code would render
      * as misplaced badges for logic the user cannot see in this file (nyc on TS reports
      * nothing for build-time-inlined helpers either), so branch instrumentation skips it.
      */
     private isForeignExpression(expr: Expression): boolean {
         const statement = expr.findAncestor<Statement>(isStatement);
-        return !!statement && this.isOutsideRange(expr, statement.location?.range);
+        return !!statement && this.isOutside(expr, statement);
     }
 
-    private isOutsideRange(expr: Expression, range: Range | undefined): boolean {
-        // creator-built nodes carry no range at all - same treatment as a foreign range
-        if (!expr.location?.range || !range) {
+    /**
+     * True when `node` doesn't start inside `container` in the same source.
+     * Creator-built nodes have no source at all, so they count as outside
+     */
+    private isOutside(node: Locatable | undefined, container: Locatable | undefined): boolean {
+        if (!node?.sourceInfo || !container?.sourceInfo) {
             return true;
         }
-        const line = expr.location?.range.start.line;
-        return line < range.start.line || line > range.end.line;
+        return node.sourceInfo !== container.sourceInfo ||
+            node.startPosition < container.startPosition ||
+            node.startPosition > container.endPosition;
     }
 
     /**
@@ -1080,7 +1087,7 @@ export class CodeCoverageProcessor {
             debug?.('tree normalized to a leaf');
             return false;
         }
-        this.ladderStatementRange = root.findAncestor<Statement>(isStatement)?.location?.range;
+        this.ladderStatement = root.findAncestor<Statement>(isStatement);
 
         // Generate the ladder body (records block/branch entries as it goes, so count the
         // rollback point first in case we bail on size).
@@ -1233,9 +1240,9 @@ export class CodeCoverageProcessor {
             };
             gather(binary.left);
             gather(binary.right);
-            return { op: op, children: children, range: binary.location?.range };
+            return { op: op, children: children, node: binary };
         }
-        return { leaf: node, range: node.location?.range };
+        return { leaf: node, node: node };
     }
 
     /**
@@ -1319,22 +1326,22 @@ export class CodeCoverageProcessor {
                 if (child.leaf) {
                     return { id: index, ...this.branchAnchor(child.leaf), totalHit: 0 };
                 }
-                // op-run child: clamp its (possibly inliner-grafted) range to the statement
+                // op-run child: clamp its (possibly inliner-grafted) position to the statement
                 // being extracted, same rule as branchAnchor
-                const statementRange = this.ladderStatementRange;
-                const childLine = child.range.start.line;
-                if (statementRange && (childLine < statementRange.start.line || childLine > statementRange.end.line)) {
-                    return { id: index, line: statementRange.start.line + 1, totalHit: 0 };
+                const statement = this.ladderStatement;
+                if (statement?.sourceInfo && this.isOutside(child.node, statement)) {
+                    return { id: index, line: util.getStartPosition(statement).line + 1, totalHit: 0 };
                 }
+                const childRange = util.getLocation(child.node).range;
                 // multi-line runs get no column range, same rule as branchAnchor
-                if (childLine !== child.range.end.line) {
-                    return { id: index, line: childLine + 1, totalHit: 0 };
+                if (childRange.start.line !== childRange.end.line) {
+                    return { id: index, line: childRange.start.line + 1, totalHit: 0 };
                 }
                 return {
                     id: index,
-                    line: childLine + 1,
-                    column: child.range.start.character,
-                    endColumn: child.range.end.character - 1,
+                    line: childRange.start.line + 1,
+                    column: childRange.start.character,
+                    endColumn: childRange.end.character - 1,
                     totalHit: 0
                 };
             })
@@ -1355,20 +1362,18 @@ export class CodeCoverageProcessor {
         return `__rbs_ph_${index}__`;
     }
 
-    /** True when a ladder node (leaf or sub-run) carries an inliner-grafted foreign range. */
+    /** True when a ladder node (leaf or sub-run) carries an inliner-grafted foreign position. */
     private isForeignLadderNode(node: LogicalTreeNode): boolean {
         if (node.leaf) {
             return this.isForeignExpression(node.leaf);
         }
-        if (!node.range) {
+        if (!node.node?.sourceInfo) {
             return true;
         }
-        const statementRange = this.ladderStatementRange;
-        if (!statementRange) {
+        if (!this.ladderStatement?.sourceInfo) {
             return false;
         }
-        const line = node.range.start.line;
-        return line < statementRange.start.line || line > statementRange.end.line;
+        return this.isOutside(node.node, this.ladderStatement);
     }
 
 
@@ -1456,12 +1461,12 @@ export class CodeCoverageProcessor {
             this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
             return;
         }
-        this.astEditor.setProperty(keywordToken, 'text', `${this.getReportLineHitFuncCallText(statement.location?.range.start.line, statement)}: ${keyword}`);
+        this.astEditor.setProperty(keywordToken, 'text', `${this.getReportLineHitFuncCallText(util.getStartPosition(statement)?.line, statement)}: ${keyword}`);
     }
 
     private isLineReportedByIf(statement: Statement): boolean {
         const func = statement.findAncestor<FunctionExpression>(isFunctionExpression);
-        return this.ifReportedLines.get(func)?.has(statement.location?.range.start.line) ?? false;
+        return this.ifReportedLines.get(func)?.has(util.getStartPosition(statement)?.line) ?? false;
     }
 
     private markLineReportedByIf(statement: Statement) {
@@ -1469,7 +1474,7 @@ export class CodeCoverageProcessor {
         if (!this.ifReportedLines.has(func)) {
             this.ifReportedLines.set(func, new Set());
         }
-        this.ifReportedLines.get(func).add(statement.location?.range.start.line);
+        this.ifReportedLines.get(func).add(util.getStartPosition(statement)?.line);
     }
 
     private convertStatementToCoverageStatement(statement: Statement, owner: any, key: any) {
@@ -1477,7 +1482,7 @@ export class CodeCoverageProcessor {
             return;
         }
 
-        const lineNumber = statement.location?.range.start.line;
+        const lineNumber = util.getStartPosition(statement)?.line;
         const callText = this.getReportLineHitFuncCallText(lineNumber, statement);
         // Queue the splice; flushed after the walk so we don't disrupt the visitor descending
         // into this statement's children. owner is captured by reference; the statement's index
@@ -1512,7 +1517,7 @@ export class CodeCoverageProcessor {
                 lineNumber: oneIndexed,
                 totalHit: 0
             };
-            const endLine = statement.location?.range.end.line + 1;
+            const endLine = util.getLocation(statement)?.range.end.line + 1;
             if (includeSpan && endLine > oneIndexed) {
                 entry.el = endLine;
             }
@@ -1571,7 +1576,7 @@ export class CodeCoverageProcessor {
         // Creator-built functions grafted in by other plugins have no range (and often no
         // functionStatement) - nothing to anchor an FN entry to, so they aren't tracked.
         // Reported from the field as a per-file "reading 'start'" transpile error.
-        if (!originalFunc?.location?.range) {
+        if (!originalFunc?.sourceInfo) {
             this.processedFunctions.add(originalFunc);
             return;
         }
@@ -1598,10 +1603,11 @@ export class CodeCoverageProcessor {
             func: originalFunc,
             callText: this.getReportFunctionHitFuncCallText(this.foundFunctions.length, statement)
         });
+        const funcRange = util.getLocation(originalFunc).range;
         this.foundFunctions.push({
             name: name,
-            startLine: originalFunc.location?.range.start.line + 1,
-            endLine: originalFunc.location?.range.end.line + 1,
+            startLine: funcRange.start.line + 1,
+            endLine: funcRange.end.line + 1,
             totalHit: 0
         });
     }
@@ -1716,5 +1722,6 @@ interface LogicalTreeNode {
     op?: 'and' | 'or';
     children?: LogicalTreeNode[];
     leaf?: Expression;
-    range: Range;
+    /** The expression this tree node was built from (the binary for an op run, the leaf itself otherwise) */
+    node: Expression;
 }

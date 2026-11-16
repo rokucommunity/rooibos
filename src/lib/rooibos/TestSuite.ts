@@ -1,5 +1,6 @@
 import * as path from 'path';
 import type { Editor, BrsFile, ClassStatement } from 'brighterscript';
+import { util } from 'brighterscript';
 import { nodes } from 'brighterscript/dist/roku-types';
 
 import { diagnosticNodeTestIllegalNode, diagnosticNodeTestRequiresNode } from '../utils/Diagnostics';
@@ -151,7 +152,7 @@ export class TestSuite extends TestBlock {
       pkgPath: "${this.pkgPath}"
       destPath: "${this.destPath}"
       filePath: "${this.filePath}"
-      lineNumber: ${this.classStatement.location.range.start.line + 1}
+      lineNumber: ${util.getStartPosition(this.classStatement).line + 1}
       valid: ${this.isValid}
       hasFailures: ${this.hasFailures}
       hasSoloTests: ${this.hasSoloTests}

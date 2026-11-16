@@ -1,4 +1,4 @@
-import type { AnnotationExpression, ArrayLiteralExpression, BrsFile, BscType, BsDiagnostic, ClassStatement, Editor, Expression, FunctionStatement, MethodStatement, Statement } from 'brighterscript';
+import type { AnnotationExpression, ArrayLiteralExpression, BrsFile, BscType, BsDiagnosticInput, ClassStatement, Editor, Expression, FunctionStatement, MethodStatement, Statement } from 'brighterscript';
 import { createIdentifier, DottedGetExpression, TypeExpression, VariableExpression, ParseMode, Parser, SymbolTypeFlag, WalkMode, createStringLiteral, isAAMemberExpression, isAALiteralExpression, isArrayLiteralExpression, isCallExpression, isCallfuncExpression, isDottedGetExpression, isFunctionStatement, isIndexedGetExpression, isLiteralExpression, isVariableExpression, isVoidType, isXmlScope, isDynamicType, isEnumType, isNamespaceType, walkArray } from 'brighterscript';
 import { DiagnosticMessages } from 'brighterscript/dist/DiagnosticMessages';
 import type { CachedLookups } from 'brighterscript/dist/astUtils/CachedLookups';
@@ -165,8 +165,8 @@ export function linkAnnotationToStatement(annotation: AnnotationExpression, stat
  * (`a`, `a.b.c`) left to right and report the first part that does not resolve.
  * The annotation must already be linked into the AST (see `linkAnnotationToStatement`).
  */
-export function getUnresolvedNameDiagnostics(annotation: AnnotationExpression): BsDiagnostic[] {
-    const diagnostics: BsDiagnostic[] = [];
+export function getUnresolvedNameDiagnostics(annotation: AnnotationExpression): BsDiagnosticInput[] {
+    const diagnostics: BsDiagnosticInput[] = [];
     const expressions: Expression[] = [];
     for (const argument of annotation?.call?.args ?? []) {
         expressions.push(argument);
@@ -187,7 +187,7 @@ export function getUnresolvedNameDiagnostics(annotation: AnnotationExpression): 
     return diagnostics;
 }
 
-function getUnresolvedNameDiagnostic(chainHead: DottedGetExpression | VariableExpression): BsDiagnostic | undefined {
+function getUnresolvedNameDiagnostic(chainHead: DottedGetExpression | VariableExpression): BsDiagnosticInput | undefined {
     const parts: Array<DottedGetExpression | VariableExpression> = [];
     let part: Expression = chainHead;
     while (isDottedGetExpression(part)) {
@@ -224,8 +224,8 @@ function getUnresolvedNameDiagnostic(chainHead: DottedGetExpression | VariableEx
         }
         return {
             ...message,
-            location: parts[index].tokens.name.location
-        } as BsDiagnostic;
+            location: parts[index].tokens.name
+        } as BsDiagnosticInput;
     }
     return undefined;
 }
