@@ -6,6 +6,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [6.0.0-alpha.58](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.57...v6.0.0-alpha.58) - 2026-11-16
+### Changed
+ - Use the BrighterScript v1 position api instead of the deprecated location getters ([#464](https://github.com/rokucommunity/rooibos/pull/464))
+ - Upgrade to brighterscript@1.0.0-alpha.58 ([#463](https://github.com/rokucommunity/rooibos/pull/463))
+ - Security enhancements ([#459](https://github.com/rokucommunity/rooibos/pull/459), [#461](https://github.com/rokucommunity/rooibos/pull/461))
+ - upgrade to [roku-debug@0.24.7](https://github.com/rokucommunity/roku-debug/blob/v0.24.7/CHANGELOG.md#0247---2026-10-21). Notable changes since 0.24.6:
+     - Free the component library port before a restart relaunches ([#434](https://github.com/rokucommunity/roku-debug/pull/434))
+     - Security enhancements ([#431](https://github.com/rokucommunity/roku-debug/pull/431), [#432](https://github.com/rokucommunity/roku-debug/pull/432))
+     - upgrade to [brighterscript@0.73.7](https://github.com/rokucommunity/brighterscript/blob/v0.73.7/CHANGELOG.md#0737---2026-10-13). Notable changes since 0.73.5:
+         - Security enhancements ([#1854](https://github.com/rokucommunity/brighterscript/pull/1854), [#1873](https://github.com/rokucommunity/brighterscript/pull/1873), [#1875](https://github.com/rokucommunity/brighterscript/pull/1875), [#1882](https://github.com/rokucommunity/brighterscript/pull/1882))
+ - upgrade to [roku-deploy@4.0.0-alpha.10](https://github.com/rokucommunity/roku-deploy/blob/v4.0.0-alpha.10/CHANGELOG.md#400-alpha10---2026-10-20). Notable changes since 4.0.0-alpha.9:
+     - Add RceManagementApiError with the server's error code and message ([#454](https://github.com/rokucommunity/roku-deploy/pull/454))
+     - Add createSocket and getDestPath to the RokuDeploy class ([#436](https://github.com/rokucommunity/roku-deploy/pull/436))
+     - Accept --esn, --instanceUrl and --rceToken on every device command ([#449](https://github.com/rokucommunity/roku-deploy/pull/449))
+     - Reject unknown CLI commands and options ([#447](https://github.com/rokucommunity/roku-deploy/pull/447))
+     - Security enhancements ([#431](https://github.com/rokucommunity/roku-deploy/pull/431), [#440](https://github.com/rokucommunity/roku-deploy/pull/440), [#446](https://github.com/rokucommunity/roku-deploy/pull/446))
+     - Give device methods named result types instead of raw HttpResponse ([#417](https://github.com/rokucommunity/roku-deploy/pull/417))
+     - Map CLI --host and sideload --dir onto the library's options ([#434](https://github.com/rokucommunity/roku-deploy/pull/434))
+     - Fix per-device settings being silently ignored in the devices registry ([#414](https://github.com/rokucommunity/roku-deploy/pull/414))
+ - upgrade to [@rokucommunity/bslint@1.0.0-alpha.58](https://github.com/rokucommunity/bslint/blob/v1.0.0-alpha.58/CHANGELOG.md#100-alpha58---2026-11-16). Notable changes since 1.0.0-alpha.57:
+     - Add no-redundant-script-import and missing-component-extends rules ([#237](https://github.com/rokucommunity/bslint/pull/237))
+     - Migrate to brighterscript v1 offset-based locations ([#238](https://github.com/rokucommunity/bslint/pull/238))
+     - Upgrade to brighterscript@1.0.0-alpha.58 ([#239](https://github.com/rokucommunity/bslint/pull/239))
+     - Don't crash type-reassignment on a value with no type ([#240](https://github.com/rokucommunity/bslint/pull/240))
+     - Security enhancements ([#235](https://github.com/rokucommunity/bslint/pull/235))
+     - Skip var tracking in inactive #if blocks ([#227](https://github.com/rokucommunity/bslint/pull/227))
+     - upgrade to [brighterscript@1.0.0-alpha.58](https://github.com/rokucommunity/brighterscript/blob/v1.0.0-alpha.58/CHANGELOG.md#100-alpha58---2026-11-16). Notable changes since 1.0.0-alpha.57:
+         - Support optional chaining on callfunc ([#1920](https://github.com/rokucommunity/brighterscript/pull/1920))
+         - Support severity-based diagnostic filtering ([#1930](https://github.com/rokucommunity/brighterscript/pull/1930))
+         - Add diagnostic for files over the device literal limit ([#1862](https://github.com/rokucommunity/brighterscript/pull/1862))
+         - Add diagnostic for functions over the device goto label limit ([#1861](https://github.com/rokucommunity/brighterscript/pull/1861))
+         - Warn when assigning to a member of an AA read from a node field ([#1975](https://github.com/rokucommunity/brighterscript/pull/1975))
+         - Flag missing observer callbacks ([#1919](https://github.com/rokucommunity/brighterscript/pull/1919))
+         - Flag parameters whose type designator conflicts with their `as` type ([#1921](https://github.com/rokucommunity/brighterscript/pull/1921))
+         - Validate regex literals ([#1915](https://github.com/rokucommunity/brighterscript/pull/1915))
+         - Refactor Location tracking to be an offset-based Locatable model ([#1845](https://github.com/rokucommunity/brighterscript/pull/1845))
+         - Run BscPlugin's work in after* hooks so plugins always run first ([#1946](https://github.com/rokucommunity/brighterscript/pull/1946))
+         - Link BrsFile symbols in validateFile, validate in afterValidateFile ([#1947](https://github.com/rokucommunity/brighterscript/pull/1947))
+         - Let type designators win over conflicting parameter `as` types ([#1965](https://github.com/rokucommunity/brighterscript/pull/1965))
+         - Allow same-line annotations inside function bodies ([#1916](https://github.com/rokucommunity/brighterscript/pull/1916))
+         - Allow a colon before a single-line `if` ([#1925](https://github.com/rokucommunity/brighterscript/pull/1925))
+         - Allow regex literals in return statements ([#1922](https://github.com/rokucommunity/brighterscript/pull/1922))
+         - Fix false "cannot find name" caused by a field's type chain ([#1971](https://github.com/rokucommunity/brighterscript/pull/1971))
+         - Fix lost cross-scope diagnostics after editing a file shared by multiple scopes ([#1932](https://github.com/rokucommunity/brighterscript/pull/1932))
+         - Remove lint-style redundant-import, missing-extends, and unnecessary-codebehind diagnostics ([#1964](https://github.com/rokucommunity/brighterscript/pull/1964))
+
+
+
 ## [6.0.0-alpha.57](https://github.com/rokucommunity/rooibos/compare/6.0.0-alpha.56...v6.0.0-alpha.57) - 2026-10-14
 ### Changed
  - Updated to BSc and bslint v1.alpha-57 ([#454](https://github.com/rokucommunity/rooibos/pull/454))
