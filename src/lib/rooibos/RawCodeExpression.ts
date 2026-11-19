@@ -1,9 +1,5 @@
-import type {
-    BscFile,
-    WalkOptions,
-    WalkVisitor
-} from 'brighterscript';
-import { Expression, Range } from 'brighterscript';
+import type { AstNodeKind, BscFile, SourceInfo, WalkOptions, WalkVisitor } from 'brighterscript';
+import { Expression, util } from 'brighterscript';
 import type { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 
 import { SourceNode } from 'source-map';
@@ -11,25 +7,32 @@ import { SourceNode } from 'source-map';
 export class RawCodeExpression extends Expression {
     constructor(
         public source: string,
-        public sourceFile?: BscFile,
-        public range: Range = Range.create(1, 1, 1, 99999)
+        public sourceFile?: BscFile
     ) {
         super();
+        //raw code has no position in any parsed source, so it is a synthetic node
+        util.setBounds(this);
     }
+    readonly kind = 'RawCodeExpression' as AstNodeKind;
 
-    public clone() {
-        return new RawCodeExpression(this.source, this.sourceFile, this.range);
-    }
+    public readonly startPosition: number;
+    public readonly endPosition: number;
+    public readonly sourceInfo: SourceInfo | undefined;
 
     public transpile(state: BrsTranspileState) {
+        //synthetic code has no source position to map back to
         return [new SourceNode(
-            this.range.start.line + 1,
-            this.range.start.character,
-            this.sourceFile ? this.sourceFile.pathAbsolute : state.srcPath,
+            null,
+            null,
+            this.sourceFile ? this.sourceFile.srcPath : state.srcPath,
             this.source
         )];
     }
     public walk(visitor: WalkVisitor, options: WalkOptions) {
         //nothing to walk
+    }
+
+    public clone() {
+        return new RawCodeExpression(this.source, this.sourceFile);
     }
 }

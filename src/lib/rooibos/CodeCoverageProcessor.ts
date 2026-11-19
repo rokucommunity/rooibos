@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Parser, WalkMode, createVisitor, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isMethodStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement, isExpressionStatement, util } from 'brighterscript';
-import type { AssignmentStatement, BrsFile, CallExpression, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, Program, ProgramBuilder, Range, Statement } from 'brighterscript';
+import { Parser, WalkMode, InternalWalkMode, createVisitor, isConditionalCompileStatement, isBlock, walkArray, isLiteralExpression, isNamespaceStatement, BinaryExpression, Block, createToken, TokenKind, GroupingExpression, isForStatement, isFunctionExpression, ParseMode, isFunctionStatement, isMethodStatement, isCallExpression, isVariableExpression, isIfStatement, isWhileStatement, isBinaryExpression, isGroupingExpression, isUnaryExpression, isDottedGetExpression, isIndexedGetExpression, isCallfuncExpression, isTernaryExpression, isNullCoalescingExpression, isArrayLiteralExpression, isAALiteralExpression, isAAMemberExpression, isStatement, isExpressionStatement, util } from 'brighterscript';
+import type { AssignmentStatement, AstNode, BrsFile, CallExpression, ConditionalCompileConstStatement, Editor, Expression, ExpressionStatement, FunctionExpression, FunctionStatement, IfStatement, Locatable, NamespaceStatement, Program, ProgramBuilder, Statement } from 'brighterscript';
 import type { RooibosConfig } from './RooibosConfig';
 import { RawCodeExpression } from './RawCodeExpression';
 import type { FileFactory } from './FileFactory';
@@ -14,38 +14,6 @@ export enum CodeCoverageLineType {
     condition = 2,
     branch = 3,
     function = 4
-}
-
-/**
- * Empirically measured device limits (Roku Ultra, OS 15.3.5, confirmed by binary-search
- * sideload probing - see docs). The relevant compile error is &hae "Internal limit size
- * exceeded", which is raised PER EXPRESSION when one statement's expression holds too much
- * logical-operator/call complexity:
- *  - a plain `a or b or ...` chain compiles up to 29 operators
- *  - a flat or-chain of calls `f() or g() or ...` compiles up to ~22 terms
- *  - recursively NESTED wrapper calls (the old rooibos branch wrap) die at 8 terms
- * Statements-per-function, literals-per-function and call-nesting depth showed no limit
- * (50k+ / 100+ deep all compile), so statement-level insertions are effectively free.
- */
-interface ExpressionStats {
-    /** number of and/or operators in the subtree */
-    logicalOps: number;
-    /** number of call expressions in the subtree */
-    calls: number;
-    /** number of maximal same-operator runs (a `binary-expr` group in Istanbul terms) */
-    runs: number;
-    /** sum, over every and/or operator, of how many call-argument boundaries enclose it */
-    logicalOpsInCalls: number;
-    /** true when the subtree contains an anonymous function - blocks helper extraction */
-    hasFunctionExpression: boolean;
-}
-
-/** Normalized logical tree used for helper-function extraction. Leaf nodes have no `op`. */
-interface LogicalTreeNode {
-    op?: 'and' | 'or';
-    children?: LogicalTreeNode[];
-    leaf?: Expression;
-    range: Range;
 }
 
 export class CodeCoverageProcessor {
@@ -187,10 +155,10 @@ export class CodeCoverageProcessor {
     /** IfStatements that are the elseBranch of another IfStatement (i.e. `else if` arms). */
     private elseIfChildren: Set<IfStatement>;
     /** Condition helper functions generated this file, appended to the AST after the walk. */
-    private pendingHelpers: Array<Statement>;
+    private pendingHelpers: Array<{ helper: FunctionStatement; namespace: NamespaceStatement | undefined }>;
     private helperCounter: number;
-    /** Range of the statement currently being extracted; used to clamp foreign-grafted expression ranges. */
-    private ladderStatementRange: Range | undefined;
+    /** The statement currently being extracted; used to clamp foreign-grafted expression positions. */
+    private ladderStatement: Statement | undefined;
     /** Human-readable notes about instrumentation that was reshaped or skipped, printed per file. */
     private coverageWarnings: string[];
     /**
@@ -198,6 +166,10 @@ export class CodeCoverageProcessor {
      * files whose projected post-instrumentation size would break Roku's 2MiB file cap.
      */
     private fileMode: 'full' | 'functionOnly';
+    /** The conditional compile blocks the device compiles for the file being processed (see findLiveConditionalCompileBlocks). */
+    private liveConditionalCompileBlocks: Set<Block>;
+    /** Whether the file being processed has any conditional compile statements at all. */
+    private hasConditionalCompile: boolean;
     /**
      * Internal instrumentation thresholds. These are deliberately not part of the public
      * rooibos config surface - the instrumentation reshapes itself automatically against
@@ -226,20 +198,20 @@ export class CodeCoverageProcessor {
         // the task node - the component definition itself still ships so bsc can
         // validate the createObject call against it
         if (!isUsingCoverage) {
-            return;
+            return [];
         }
-        this.fileFactory.createCoverageComponent(program, this.baseCoverageReport);
+        return this.fileFactory.createCoverageComponent(program, this.baseCoverageReport);
     }
 
     /**
-     * Resets every cross-file accumulator. bsc can transpile the same program more than
-     * once (watch mode, retries, staged builds), and file ids are transpile-order
+     * Resets every cross-file accumulator. bsc can build the same program more than
+     * once (watch mode, retries, staged builds), and file ids are build-order
      * counters: carrying state across passes bakes DIFFERENT ids into the second pass's
      * output while the model keeps entries from every pass, so runtime entries resolve
      * against the wrong file's model entry (e.g. a branch entry for a file whose model
      * has no blocks - a device crash).
      */
-    public onBeforeProgramTranspile(program: Program) {
+    public onBeforeBuildProgram(program: Program) {
         this.fileId = 0;
         this.processedFunctions = new Set<FunctionExpression>();
         this.projectRoot = this.resolveProjectRoot(program);
@@ -303,10 +275,10 @@ export class CodeCoverageProcessor {
         // statements grafted in by other plugins have no range - nothing to anchor a
         // line entry to, so they transpile untouched.
         const simpleStatement = (ds: Statement, parent?: Statement, owner?: any, key?: any) => {
-            if (!ds.range) {
+            if (!ds.sourceInfo) {
                 return;
             }
-            this.addStatement(ds, ds.range.start.line, true);
+            this.addStatement(ds, util.getStartPosition(ds).line, true);
             // An inline clause (`if c then return 1`) shares its line with an if whose own
             // report already fired; a second report would double the line's hit count.
             if (this.isLineReportedByIf(ds)) {
@@ -342,8 +314,9 @@ export class CodeCoverageProcessor {
                 // clause - line-granular tracking can't see it (the if line itself ran),
                 // but the arm's branch hit count is exactly the clause's execution count.
                 // nyc paints the TS equivalent (`if (x) return y;`) red this way.
-                const isInlineArm = statement.range.start.line === statement.range.end.line &&
-                    statement.range.start.line + 1 === reserved.line;
+                const armRange = util.getLocation(statement)?.range;
+                const isInlineArm = armRange?.start.line === armRange?.end.line &&
+                    armRange?.start.line + 1 === reserved.line;
                 // Both arms anchor to the if-statement's line so the I/E badge appears
                 // next to the `if` keyword in the rendered HTML, matching nyc's TS output.
                 blockEntry.branches.push({
@@ -351,8 +324,8 @@ export class CodeCoverageProcessor {
                     line: reserved.line,
                     totalHit: 0,
                     ...(isInlineArm ? {
-                        sc: statement.range.start.character,
-                        ec: statement.range.end.character - 1
+                        sc: armRange.start.character,
+                        ec: armRange.end.character - 1
                     } : {})
                 });
 
@@ -360,20 +333,20 @@ export class CodeCoverageProcessor {
                 this.astEditor.addToArray(statement.statements, 0, parsed);
             },
             ForStatement: (ds, parent, owner, key) => {
-                if (!ds.range) {
+                if (!ds.sourceInfo) {
                     return;
                 }
-                this.addStatement(ds, ds.range.start.line);
+                this.addStatement(ds, util.getStartPosition(ds).line);
                 // token-text mutation must go through the editor so bsc's post-transpile
                 // rollback restores the source AST - a later transpile of the same program
                 // re-instruments from pristine tokens (same for while/for-each/try below)
-                this.prefixKeywordWithLineReport(ds, ds.forToken, 'for');
+                this.prefixKeywordWithLineReport(ds, ds.tokens.for, 'for');
             },
             TryCatchStatement: (tryCatch, parent, owner, key) => {
-                if (!tryCatch.range) {
+                if (!tryCatch.sourceInfo) {
                     return;
                 }
-                this.addStatement(tryCatch, tryCatch.range.start.line);
+                this.addStatement(tryCatch, util.getStartPosition(tryCatch).line);
                 // Prefix the `try` token with a reportLine call so the try line gets counted
                 // at runtime. Done via token-text mutation (same pattern as ForStatement /
                 // WhileStatement / ForEachStatement) rather than arraySplice; splicing the
@@ -385,9 +358,10 @@ export class CodeCoverageProcessor {
                 // shows up through statement coverage of its body lines.
             },
             IfStatement: (ifStatement, parent, owner, key) => {
-                if (!ifStatement.range) {
+                if (!ifStatement.sourceInfo) {
                     return;
                 }
+                const ifLine = util.getStartPosition(ifStatement).line;
                 // Restructure over-long elseif ladders before the walker descends into them.
                 // The compiler's &hae if-table is per-chain (~270 arms plain / ~260 once the
                 // arm bodies carry instrumentation), so `else if` becomes `else` + nested `if`
@@ -406,7 +380,7 @@ export class CodeCoverageProcessor {
                 const reservedId = this.blockId++;
                 this.allocatedIfBlocks.set(ifStatement, {
                     blockId: reservedId,
-                    line: ifStatement.range.start.line + 1
+                    line: ifLine + 1
                 });
                 this.foundBlocks.push({
                     id: reservedId,
@@ -434,7 +408,7 @@ export class CodeCoverageProcessor {
                     // exists to guard. Hop through parens/not the same way isInBooleanContext
                     // does to find the logical root.
                     let extractionRoot: Expression = ifStatement.condition;
-                    while (isGroupingExpression(extractionRoot) || (isUnaryExpression(extractionRoot) && extractionRoot.operator.kind === TokenKind.Not)) {
+                    while (isGroupingExpression(extractionRoot) || (isUnaryExpression(extractionRoot) && extractionRoot.tokens.operator.kind === TokenKind.Not)) {
                         extractionRoot = isGroupingExpression(extractionRoot) ? extractionRoot.expression : extractionRoot.right;
                     }
                     if (isBinaryExpression(extractionRoot) && this.isLogicalBinary(extractionRoot)) {
@@ -442,22 +416,23 @@ export class CodeCoverageProcessor {
                     }
                 }
                 if (lineAlreadyReported) {
-                    this.addStatement(ifStatement, ifStatement.range.start.line);
+                    this.addStatement(ifStatement, ifLine);
                 } else if (wrapFits) {
-                    this.addStatement(ifStatement, ifStatement.range.start.line);
+                    this.addStatement(ifStatement, ifLine);
                     this.markLineReportedByIf(ifStatement);
-                    const conditionWrap = new BinaryExpression(
+                    const conditionWrap = new BinaryExpression({
                         // Anchor to the if-statement's own range, NOT the condition's: other
                         // plugins (e.g. an is.* inliner) can graft replacement expressions into
                         // the condition that still carry ranges from a different source file,
                         // which would make this report a bogus line number.
-                        new RawCodeExpression(this.getReportLineHitFuncCallText(ifStatement.range.start.line, ifStatement)),
-                        createToken(TokenKind.And),
-                        new GroupingExpression({
-                            left: createToken(TokenKind.LeftParen),
-                            right: createToken(TokenKind.RightParen)
-                        }, ifStatement.condition)
-                    );
+                        left: new RawCodeExpression(this.getReportLineHitFuncCallText(ifLine, ifStatement)),
+                        operator: createToken(TokenKind.And),
+                        right: new GroupingExpression({
+                            leftParen: createToken(TokenKind.LeftParen),
+                            rightParen: createToken(TokenKind.RightParen),
+                            expression: ifStatement.condition
+                        })
+                    });
                     // Mark our synthetic AND as processed so the BinaryExpression visitor doesn't
                     // try to wrap its operands - this And exists purely to fire reportLine before
                     // the user's condition runs, not as a real branch decision.
@@ -469,37 +444,37 @@ export class CodeCoverageProcessor {
                 } else if (Array.isArray(owner)) {
                     // The condition is too hot to touch but this `if` sits in a statement list,
                     // so report its line with a plain statement inserted just before it.
-                    this.addStatement(ifStatement, ifStatement.range.start.line);
+                    this.addStatement(ifStatement, ifLine);
                     this.markLineReportedByIf(ifStatement);
                     this.convertStatementToCoverageStatement(ifStatement, owner, key);
                 } else {
                     // An `else if` arm has no statement slot to fall back to; leave its line
                     // out of the report rather than risking an &hae on the device.
-                    this.coverageWarnings.push(`line ${ifStatement.range.start.line + 1}: else-if condition too complex to instrument; line hit not tracked`);
+                    this.coverageWarnings.push(`line ${ifLine + 1}: else-if condition too complex to instrument; line hit not tracked`);
                 }
             },
             GotoStatement: simpleStatement,
             ReturnStatement: simpleStatement,
-            ExitWhileStatement: simpleStatement,
-            ExitForStatement: simpleStatement,
+            ExitStatement: simpleStatement,
             ContinueStatement: simpleStatement,
             ThrowStatement: simpleStatement,
             PrintStatement: simpleStatement,
             DottedSetStatement: simpleStatement,
             IndexedSetStatement: simpleStatement,
             IncrementStatement: simpleStatement,
+            AugmentedAssignmentStatement: simpleStatement,
             WhileStatement: (ds) => {
-                if (!ds.range) {
+                if (!ds.sourceInfo) {
                     return;
                 }
-                this.addStatement(ds, ds.range.start.line);
+                this.addStatement(ds, util.getStartPosition(ds).line);
                 this.prefixKeywordWithLineReport(ds, ds.tokens.while, 'while');
             },
             ForEachStatement: (ds) => {
-                if (!ds.range) {
+                if (!ds.sourceInfo) {
                     return;
                 }
-                this.addStatement(ds, ds.range.start.line);
+                this.addStatement(ds, util.getStartPosition(ds).line);
                 this.prefixKeywordWithLineReport(ds, ds.tokens.forEach, 'for each');
             },
             AssignmentStatement: (ds, parent, owner, key) => {
@@ -510,7 +485,7 @@ export class CodeCoverageProcessor {
             },
             ExpressionStatement: (ds, parent, owner, key) => {
                 // never instrument our own injected RBS_CC_ calls
-                if (isCallExpression(ds.expression) && isVariableExpression(ds.expression.callee) && ds.expression.callee.name.text.startsWith('RBS_CC_')) {
+                if (isCallExpression(ds.expression) && isVariableExpression(ds.expression.callee) && ds.expression.callee.tokens.name.text.startsWith('RBS_CC_')) {
                     return;
                 }
                 simpleStatement(ds, parent, owner, key);
@@ -539,13 +514,13 @@ export class CodeCoverageProcessor {
                 // into a generated helper that lowers it to a short-circuit ladder of simple
                 // statements - full branch fidelity with no expression-size ceiling.
                 if (process.env.RBS_CC_DEBUG) {
-                    console.log(`[rbs-cc-debug] line ${(expr.range?.start.line ?? 0) + 1}: hasFn=${stats.hasFunctionExpression} boolCtx=${this.isInBooleanContext(expr)}`);
+                    console.log(`[rbs-cc-debug] line ${(util.getStartPosition(expr)?.line ?? 0) + 1}: hasFn=${stats.hasFunctionExpression} boolCtx=${this.isInBooleanContext(expr)}`);
                 }
                 if (!stats.hasFunctionExpression && this.isInBooleanContext(expr) && this.tryExtractBooleanExpression(expr)) {
                     return;
                 }
                 this.markLogicalSubtreeProcessed(expr);
-                this.coverageWarnings.push(`line ${(expr.range?.start.line ?? 0) + 1}: expression too complex to instrument for branch coverage; branch hits in it are not tracked`);
+                this.coverageWarnings.push(`line ${(util.getStartPosition(expr)?.line ?? 0) + 1}: expression too complex to instrument for branch coverage; branch hits in it are not tracked`);
             },
             NullCoalescingExpression: (expr) => {
                 if (this.processedExpressions.has(expr)) {
@@ -628,7 +603,10 @@ export class CodeCoverageProcessor {
                 this.astEditor.setProperty(ternary, 'alternate', wrappedAlternate);
             }
         });
-        file.ast.walk(this.fileMode === 'functionOnly' ? functionOnlyVisitor : fullVisitor, { walkMode: WalkMode.visitAllRecursive });
+        // Only the conditional compile branches the device compiles are instrumented (and
+        // counted), matching how code excluded by `#if` never reaches the device at all.
+        this.liveConditionalCompileBlocks = this.findLiveConditionalCompileBlocks(file);
+        file.ast.walk(this.onlyLiveCode(this.fileMode === 'functionOnly' ? functionOnlyVisitor : fullVisitor), { walkMode: this.withAllConditionalCompileBlocks(WalkMode.visitAllRecursive) });
 
         // Apply queued reportFunction insertions now that the walk is finished. Doing this
         // during the walk would shift the function body's first statement and prevent the
@@ -659,15 +637,18 @@ export class CodeCoverageProcessor {
         }
 
         // Append any condition-helper functions generated by tryExtractBooleanExpression.
-        for (const helper of this.pendingHelpers) {
-            this.astEditor.arrayPush(file.ast.statements, helper);
+        for (const { helper, namespace } of this.pendingHelpers) {
+            const body = namespace ? namespace.body : file.ast;
+            this.astEditor.arrayPush(body.statements, helper);
+            //link the helper (and the expressions grafted into it) into the AST
+            walkArray(body.statements, () => { }, { walkMode: WalkMode.visitAllRecursive }, body, (statement) => statement === helper);
             this.addedStatements.add(helper);
         }
 
         this.addBrsAPIText(file, astEditor);
 
         this.baseCoverageReport.files[this.fileId] = {
-            sourceFile: file.pkgPath.replace('pkg:', '.').replace(/\\/g, '/'),
+            sourceFile: file.destPath.replace('pkg:', '.').replace(/\\/g, '/'),
             sourcePath: this.repoRelativeSourcePath(file.srcPath),
             lines: this.foundLines.sort((a, b) => a.lineNumber - b.lineNumber),
             lineTotalFound: this.foundLines.length,
@@ -683,6 +664,87 @@ export class CodeCoverageProcessor {
         for (const message of this.coverageWarnings) {
             console.log(`[rooibos coverage] ${file.pkgPath}: ${message}`);
         }
+    }
+
+    /**
+     * Finds the `#if`/`#else` blocks the device compiles - the single source of truth for
+     * conditional compile liveness in every walk over this file. The device evaluates the file
+     * in source order, starting from the manifest's bs_const values: each `#const` takes effect
+     * only when it sits in a compiled branch, and each `#if` sees only the constants declared
+     * before it (a name never declared in a compiled branch is false). bsc's walker evaluates
+     * each `#if` against the map it is given at the moment it reaches it, so declaring constants
+     * into that map as the walk passes them replays exactly that.
+     */
+    private findLiveConditionalCompileBlocks(file: BrsFile): Set<Block> {
+        const bsConsts = this.createSeededConditionalCompileConstants(file);
+        const liveBlocks = new Set<Block>();
+        this.hasConditionalCompile = false;
+        file.ast.walk(createVisitor({
+            // every outermost `#if` is in compiled code, so this sees at least one if the file has any
+            ConditionalCompileStatement: () => {
+                this.hasConditionalCompile = true;
+            },
+            ConditionalCompileConstStatement: (statement) => {
+                this.declareConditionalCompileConstant(statement, bsConsts);
+            },
+            Block: (block, parent) => {
+                if (isConditionalCompileStatement(parent)) {
+                    liveBlocks.add(block);
+                }
+            }
+        }), { walkMode: WalkMode.visitStatementsRecursive, bsConsts: bsConsts });
+        return liveBlocks;
+    }
+
+    /**
+     * Every walk visits all conditional compile blocks and leaves the liveness decision to
+     * `onlyLiveCode`, rather than letting bsc's walker evaluate `#if`s on its own.
+     */
+    private withAllConditionalCompileBlocks(walkMode: number): number {
+        // eslint-disable-next-line no-bitwise
+        return walkMode | InternalWalkMode.visitFalseConditionalCompilationBlocks;
+    }
+
+    /** Wraps a visitor so it never sees code in a conditional compile block the device doesn't compile. */
+    private onlyLiveCode<T extends (node: AstNode, parent?: AstNode, owner?: any, key?: any) => any>(visitor: T): T {
+        return ((node: AstNode, parent?: AstNode, owner?: any, key?: any) => {
+            return this.isInLiveCode(node) ? visitor(node, parent, owner, key) : undefined;
+        }) as T;
+    }
+
+    private isInLiveCode(node: AstNode): boolean {
+        if (!this.hasConditionalCompile) {
+            return true;
+        }
+        let child = node;
+        let ancestor = node.parent;
+        while (ancestor) {
+            if (isConditionalCompileStatement(ancestor) && isBlock(child) && !this.liveConditionalCompileBlocks.has(child)) {
+                return false;
+            }
+            child = ancestor;
+            ancestor = ancestor.parent;
+        }
+        return true;
+    }
+
+    /** The manifest's bs_const values, plus the `true`/`false` literals bsc looks up by their (lower-cased) text. */
+    private createSeededConditionalCompileConstants(file: BrsFile): Map<string, boolean> {
+        const bsConsts = new Map<string, boolean>(file.ast.getBsConsts() ?? []);
+        bsConsts.set('true', true);
+        bsConsts.set('false', false);
+        return bsConsts;
+    }
+
+    private declareConditionalCompileConstant(statement: ConditionalCompileConstStatement, bsConsts: Map<string, boolean>) {
+        const value = statement.assignment.value;
+        let isTrue = false;
+        if (isLiteralExpression(value)) {
+            isTrue = value.tokens.value.text.toLowerCase() === 'true';
+        } else if (isVariableExpression(value)) {
+            isTrue = bsConsts.get(value.tokens.name.text.toLowerCase()) === true;
+        }
+        bsConsts.set(statement.assignment.tokens.name.text.toLowerCase(), isTrue);
     }
 
     /**
@@ -726,55 +788,60 @@ export class CodeCoverageProcessor {
     }
 
     private isLogicalBinary(node: any): node is BinaryExpression {
-        return isBinaryExpression(node) && (node.operator.kind === TokenKind.And || node.operator.kind === TokenKind.Or);
+        return isBinaryExpression(node) && (node.tokens.operator.kind === TokenKind.And || node.tokens.operator.kind === TokenKind.Or);
     }
 
     /**
      * Line/column anchor for a branch entry. Other plugins (e.g. an expression inliner) can
-     * graft replacement expressions into a statement that still carry ranges from a
+     * graft replacement expressions into a statement that still carry positions from a
      * DIFFERENT source file; using those verbatim would put branch badges on nonsense
-     * lines and could collide with real lines elsewhere in this file. When an expression's
-     * range falls outside its containing statement, anchor to the statement's start line
+     * lines and could collide with real lines elsewhere in this file. When an expression
+     * doesn't sit inside its containing statement, anchor to the statement's start line
      * and drop the column wrap.
      */
     private branchAnchor(expr: Expression): { line: number; column?: number; endColumn?: number } {
         const statement = expr.findAncestor<Statement>(isStatement);
-        if (statement && this.isOutsideRange(expr, statement.range)) {
-            return { line: (statement.range?.start.line ?? 0) + 1 };
+        if (statement && this.isOutside(expr, statement)) {
+            return { line: (util.getStartPosition(statement)?.line ?? 0) + 1 };
         }
         // Column ranges are only meaningful for single-line expressions: a multi-line
         // arm's end column belongs to a different line, and pinning it to the start line
         // would hand Istanbul an inverted (end-before-start) span that garbles the HTML
         // highlight. Multi-line arms anchor by line/indent instead, like if-arm blocks.
-        if (expr.range.start.line !== expr.range.end.line) {
-            return { line: expr.range.start.line + 1 };
+        const range = util.getLocation(expr)?.range;
+        if (range?.start.line !== range?.end.line) {
+            return { line: range?.start.line + 1 };
         }
         return {
-            line: expr.range.start.line + 1,
-            column: expr.range.start.character,
-            endColumn: expr.range.end.character - 1
+            line: range?.start.line + 1,
+            column: range?.start.character,
+            endColumn: range?.end.character - 1
         };
     }
 
     /**
-     * True when this expression's range lies outside its containing statement - the
+     * True when this expression doesn't sit inside its containing statement - the
      * fingerprint of code grafted in by another plugin (e.g. an expression inliner), whose
-     * ranges point into a different source file. Branch entries for such code would render
+     * positions point into a different source file. Branch entries for such code would render
      * as misplaced badges for logic the user cannot see in this file (nyc on TS reports
      * nothing for build-time-inlined helpers either), so branch instrumentation skips it.
      */
     private isForeignExpression(expr: Expression): boolean {
         const statement = expr.findAncestor<Statement>(isStatement);
-        return !!statement && this.isOutsideRange(expr, statement.range);
+        return !!statement && this.isOutside(expr, statement);
     }
 
-    private isOutsideRange(expr: Expression, range: Range | undefined): boolean {
-        // creator-built nodes carry no range at all - same treatment as a foreign range
-        if (!expr.range || !range) {
+    /**
+     * True when `node` doesn't start inside `container` in the same source.
+     * Creator-built nodes have no source at all, so they count as outside
+     */
+    private isOutside(node: Locatable | undefined, container: Locatable | undefined): boolean {
+        if (!node?.sourceInfo || !container?.sourceInfo) {
             return true;
         }
-        const line = expr.range.start.line;
-        return line < range.start.line || line > range.end.line;
+        return node.sourceInfo !== container.sourceInfo ||
+            node.startPosition < container.startPosition ||
+            node.startPosition > container.endPosition;
     }
 
     /**
@@ -801,11 +868,11 @@ export class CodeCoverageProcessor {
             if (this.isLogicalBinary(node)) {
                 stats.logicalOps++;
                 stats.logicalOpsInCalls += callDepth;
-                if (parentLogicalOp !== node.operator.kind) {
+                if (parentLogicalOp !== node.tokens.operator.kind) {
                     stats.runs++;
                 }
-                visit(node.left, callDepth, node.operator.kind);
-                visit(node.right, callDepth, node.operator.kind);
+                visit(node.left, callDepth, node.tokens.operator.kind);
+                visit(node.right, callDepth, node.tokens.operator.kind);
                 return;
             }
             if (isCallExpression(node) || isCallfuncExpression(node)) {
@@ -836,7 +903,9 @@ export class CodeCoverageProcessor {
             }
             if (isIndexedGetExpression(node)) {
                 visit(node.obj, callDepth, null);
-                visit((node as any).index, callDepth, null);
+                for (const index of node.indexes ?? []) {
+                    visit(index, callDepth, null);
+                }
                 return;
             }
             if (isTernaryExpression(node)) {
@@ -893,13 +962,13 @@ export class CodeCoverageProcessor {
      * argument and hit the &hae expression cap at just 8 terms.
      */
     private applyFlatLeafWraps(root: BinaryExpression) {
-        const opKind = root.operator.kind;
+        const opKind = root.tokens.operator.kind;
         const leaves: Array<{ holder: BinaryExpression; side: 'left' | 'right'; node: Expression }> = [];
         const collect = (bin: BinaryExpression) => {
             this.processedExpressions.add(bin);
             for (const side of ['left', 'right'] as const) {
                 const child = bin[side];
-                if (isBinaryExpression(child) && child.operator.kind === opKind) {
+                if (isBinaryExpression(child) && child.tokens.operator.kind === opKind) {
                     collect(child);
                 } else {
                     leaves.push({ holder: bin, side: side, node: child });
@@ -966,7 +1035,7 @@ export class CodeCoverageProcessor {
                 ancestor = ancestor.parent;
                 continue;
             }
-            if (isUnaryExpression(ancestor) && ancestor.operator.kind === TokenKind.Not && ancestor.right === child) {
+            if (isUnaryExpression(ancestor) && ancestor.tokens.operator.kind === TokenKind.Not && ancestor.right === child) {
                 child = ancestor;
                 ancestor = ancestor.parent;
                 continue;
@@ -1018,7 +1087,7 @@ export class CodeCoverageProcessor {
             debug?.('tree normalized to a leaf');
             return false;
         }
-        this.ladderStatementRange = root.findAncestor<Statement>(isStatement)?.range;
+        this.ladderStatement = root.findAncestor<Statement>(isStatement);
 
         // Generate the ladder body (records block/branch entries as it goes, so count the
         // rollback point first in case we bail on size).
@@ -1035,6 +1104,12 @@ export class CodeCoverageProcessor {
         }
 
         const helperName = `RBS_CC_${this.fileId}_cx${this.helperCounter++}`;
+        // The helper is declared in the same namespace as the function it was extracted from:
+        // bsc resolves namespace-relative references (`isReady()` for `ns.isReady()`) through the
+        // node's ancestors when it transpiles, so the grafted leaves must stay inside that
+        // namespace. The call site then uses the helper's full transpiled name.
+        const namespace = func.findAncestor<NamespaceStatement>(isNamespaceStatement);
+        const helperCallName = namespace ? `${namespace.getName(ParseMode.BrightScript)}_${helperName}` : helperName;
         const paramList = freeVars.join(', ');
         const helperSource = `function ${helperName}(${paramList})\n${lines.join('\n')}\nend function`;
         const parsed = Parser.parse(helperSource, { mode: ParseMode.BrighterScript }).ast.statements[0] as FunctionStatement;
@@ -1054,10 +1129,10 @@ export class CodeCoverageProcessor {
         const graftedIndexes = new Set<number>();
         parsed.walk(createVisitor({
             VariableExpression: (variable, parent, owner, key) => {
-                if (!variable.name.text.startsWith('__rbs_ph_') || owner === undefined || key === undefined) {
+                if (!variable.tokens.name.text.startsWith('__rbs_ph_') || owner === undefined || key === undefined) {
                     return;
                 }
-                const index = parseInt(variable.name.text.slice('__rbs_ph_'.length), 10);
+                const index = parseInt(variable.tokens.name.text.slice('__rbs_ph_'.length), 10);
                 const original = leafExpressions[index];
                 owner[key] = graftedIndexes.has(index) ? (original as any).clone() : original;
                 graftedIndexes.add(index);
@@ -1071,7 +1146,7 @@ export class CodeCoverageProcessor {
         }
 
         // Swap the original expression for `helperName(args...)`.
-        const template = Parser.parse(`__rbs_extracted__ = ${helperName}(${paramList})`).ast.statements[0] as AssignmentStatement;
+        const template = Parser.parse(`__rbs_extracted__ = ${helperCallName}(${paramList})`).ast.statements[0] as AssignmentStatement;
         if (!this.replaceExpression(root, template.value)) {
             debug?.('could not replace expression in parent');
             this.foundBlocks.length = foundBlocksMark;
@@ -1079,7 +1154,7 @@ export class CodeCoverageProcessor {
             return false;
         }
 
-        this.pendingHelpers.push(parsed);
+        this.pendingHelpers.push({ helper: parsed, namespace: namespace });
         this.markLogicalSubtreeProcessed(root);
         return true;
     }
@@ -1088,30 +1163,29 @@ export class CodeCoverageProcessor {
     private collectLocalNames(func: FunctionExpression): Set<string> {
         const names = new Set<string>();
         for (const param of func.parameters ?? []) {
-            names.add(param.name.text.toLowerCase());
+            names.add(param.tokens.name.text.toLowerCase());
         }
-        func.body.walk(createVisitor({
+        func.body.walk(this.onlyLiveCode(createVisitor({
             AssignmentStatement: (s) => {
-                names.add(s.name.text.toLowerCase());
+                names.add(s.tokens.name.text.toLowerCase());
             },
-            ForEachStatement: (s: any) => {
-                const item = s.item?.text ?? s.tokens?.item?.text;
+            ForEachStatement: (s) => {
+                const item = s.tokens.item?.text;
                 if (item) {
                     names.add(item.toLowerCase());
                 }
             },
-            CatchStatement: (s: any) => {
-                const exceptionVar = s.exceptionVariable?.text ?? s.tokens?.exceptionVariable?.text;
-                if (exceptionVar) {
-                    names.add(exceptionVar.toLowerCase());
+            CatchStatement: (s) => {
+                if (isVariableExpression(s.exceptionVariableExpression)) {
+                    names.add(s.exceptionVariableExpression.tokens.name.text.toLowerCase());
                 }
             },
-            IncrementStatement: (s: any) => {
+            IncrementStatement: (s) => {
                 if (isVariableExpression(s.value)) {
-                    names.add(s.value.name.text.toLowerCase());
+                    names.add(s.value.tokens.name.text.toLowerCase());
                 }
             }
-        }), { walkMode: WalkMode.visitStatementsRecursive });
+        })), { walkMode: this.withAllConditionalCompileBlocks(WalkMode.visitStatementsRecursive) });
         return names;
     }
 
@@ -1126,7 +1200,7 @@ export class CodeCoverageProcessor {
         const seen = new Set<string>();
         root.walk(createVisitor({
             VariableExpression: (variable) => {
-                const text = variable.name.text;
+                const text = variable.tokens.name.text;
                 const lower = text.toLowerCase();
                 if (lower === 'm' || !localNames.has(lower) || seen.has(lower)) {
                     return;
@@ -1150,14 +1224,14 @@ export class CodeCoverageProcessor {
         }
         if (this.isLogicalBinary(node)) {
             const binary = node;
-            const op = binary.operator.kind === TokenKind.And ? 'and' : 'or';
+            const op = binary.tokens.operator.kind === TokenKind.And ? 'and' : 'or';
             const children: LogicalTreeNode[] = [];
             const gather = (candidate: Expression) => {
                 let inner: Expression = candidate;
                 while (isGroupingExpression(inner)) {
                     inner = inner.expression;
                 }
-                if (this.isLogicalBinary(inner) && ((inner.operator.kind === TokenKind.And ? 'and' : 'or') === op)) {
+                if (this.isLogicalBinary(inner) && ((inner.tokens.operator.kind === TokenKind.And ? 'and' : 'or') === op)) {
                     gather(inner.left);
                     gather(inner.right);
                 } else {
@@ -1166,9 +1240,9 @@ export class CodeCoverageProcessor {
             };
             gather(binary.left);
             gather(binary.right);
-            return { op: op, children: children, range: binary.range };
+            return { op: op, children: children, node: binary };
         }
-        return { leaf: node, range: node.range };
+        return { leaf: node, node: node };
     }
 
     /**
@@ -1252,22 +1326,22 @@ export class CodeCoverageProcessor {
                 if (child.leaf) {
                     return { id: index, ...this.branchAnchor(child.leaf), totalHit: 0 };
                 }
-                // op-run child: clamp its (possibly inliner-grafted) range to the statement
+                // op-run child: clamp its (possibly inliner-grafted) position to the statement
                 // being extracted, same rule as branchAnchor
-                const statementRange = this.ladderStatementRange;
-                const childLine = child.range.start.line;
-                if (statementRange && (childLine < statementRange.start.line || childLine > statementRange.end.line)) {
-                    return { id: index, line: statementRange.start.line + 1, totalHit: 0 };
+                const statement = this.ladderStatement;
+                if (statement?.sourceInfo && this.isOutside(child.node, statement)) {
+                    return { id: index, line: util.getStartPosition(statement).line + 1, totalHit: 0 };
                 }
+                const childRange = util.getLocation(child.node).range;
                 // multi-line runs get no column range, same rule as branchAnchor
-                if (childLine !== child.range.end.line) {
-                    return { id: index, line: childLine + 1, totalHit: 0 };
+                if (childRange.start.line !== childRange.end.line) {
+                    return { id: index, line: childRange.start.line + 1, totalHit: 0 };
                 }
                 return {
                     id: index,
-                    line: childLine + 1,
-                    column: child.range.start.character,
-                    endColumn: child.range.end.character - 1,
+                    line: childRange.start.line + 1,
+                    column: childRange.start.character,
+                    endColumn: childRange.end.character - 1,
                     totalHit: 0
                 };
             })
@@ -1288,20 +1362,18 @@ export class CodeCoverageProcessor {
         return `__rbs_ph_${index}__`;
     }
 
-    /** True when a ladder node (leaf or sub-run) carries an inliner-grafted foreign range. */
+    /** True when a ladder node (leaf or sub-run) carries an inliner-grafted foreign position. */
     private isForeignLadderNode(node: LogicalTreeNode): boolean {
         if (node.leaf) {
             return this.isForeignExpression(node.leaf);
         }
-        if (!node.range) {
+        if (!node.node?.sourceInfo) {
             return true;
         }
-        const statementRange = this.ladderStatementRange;
-        if (!statementRange) {
+        if (!this.ladderStatement?.sourceInfo) {
             return false;
         }
-        const line = node.range.start.line;
-        return line < statementRange.start.line || line > statementRange.end.line;
+        return this.isOutside(node.node, this.ladderStatement);
     }
 
 
@@ -1342,7 +1414,7 @@ export class CodeCoverageProcessor {
             arms++;
             if (arms > this.maxChainArms) {
                 const rest = current.elseBranch;
-                this.astEditor.setProperty(current as any, 'elseBranch', new Block([rest], rest.range));
+                this.astEditor.setProperty(current as any, 'elseBranch', new Block({ statements: [rest] }));
                 return;
             }
             current = current.elseBranch;
@@ -1377,7 +1449,7 @@ export class CodeCoverageProcessor {
      */
     private isSuperCallStatement(statement: Statement | undefined): boolean {
         return isExpressionStatement(statement) && isCallExpression(statement.expression) &&
-            util.findBeginningVariableExpression(statement.expression.callee as any)?.name?.text?.toLowerCase() === 'super';
+            util.findBeginningVariableExpression(statement.expression.callee as any)?.tokens?.name?.text?.toLowerCase() === 'super';
     }
 
     /**
@@ -1389,12 +1461,12 @@ export class CodeCoverageProcessor {
             this.ensureFunctionTracked(statement, ParseMode.BrighterScript);
             return;
         }
-        this.astEditor.setProperty(keywordToken, 'text', `${this.getReportLineHitFuncCallText(statement.range.start.line, statement)}: ${keyword}`);
+        this.astEditor.setProperty(keywordToken, 'text', `${this.getReportLineHitFuncCallText(util.getStartPosition(statement)?.line, statement)}: ${keyword}`);
     }
 
     private isLineReportedByIf(statement: Statement): boolean {
         const func = statement.findAncestor<FunctionExpression>(isFunctionExpression);
-        return this.ifReportedLines.get(func)?.has(statement.range.start.line) ?? false;
+        return this.ifReportedLines.get(func)?.has(util.getStartPosition(statement)?.line) ?? false;
     }
 
     private markLineReportedByIf(statement: Statement) {
@@ -1402,7 +1474,7 @@ export class CodeCoverageProcessor {
         if (!this.ifReportedLines.has(func)) {
             this.ifReportedLines.set(func, new Set());
         }
-        this.ifReportedLines.get(func).add(statement.range.start.line);
+        this.ifReportedLines.get(func).add(util.getStartPosition(statement)?.line);
     }
 
     private convertStatementToCoverageStatement(statement: Statement, owner: any, key: any) {
@@ -1410,7 +1482,7 @@ export class CodeCoverageProcessor {
             return;
         }
 
-        const lineNumber = statement.range.start.line;
+        const lineNumber = util.getStartPosition(statement)?.line;
         const callText = this.getReportLineHitFuncCallText(lineNumber, statement);
         // Queue the splice; flushed after the walk so we don't disrupt the visitor descending
         // into this statement's children. owner is captured by reference; the statement's index
@@ -1445,7 +1517,7 @@ export class CodeCoverageProcessor {
                 lineNumber: oneIndexed,
                 totalHit: 0
             };
-            const endLine = statement.range.end.line + 1;
+            const endLine = util.getLocation(statement)?.range.end.line + 1;
             if (includeSpan && endLine > oneIndexed) {
                 entry.el = endLine;
             }
@@ -1475,6 +1547,22 @@ export class CodeCoverageProcessor {
      * the function (using parent-function indices for nested anonymous expressions) so
      * each function is registered exactly once even when reached via multiple call sites.
      */
+    /**
+     * The anonymous functions declared directly inside `func` (not inside one of its own
+     * nested functions), in source order.
+     */
+    private getChildFunctionExpressions(func: FunctionExpression): FunctionExpression[] {
+        const children: FunctionExpression[] = [];
+        func.body.walk(this.onlyLiveCode(createVisitor({
+            FunctionExpression: (child) => {
+                if (child.findAncestor<FunctionExpression>(isFunctionExpression) === func) {
+                    children.push(child);
+                }
+            }
+        })), { walkMode: this.withAllConditionalCompileBlocks(WalkMode.visitAllRecursive) });
+        return children;
+    }
+
     private ensureFunctionTracked(statement: Statement, parseMode: ParseMode) {
         let originalFunc: FunctionExpression;
         if (isFunctionStatement(statement) || isMethodStatement(statement)) {
@@ -1488,19 +1576,22 @@ export class CodeCoverageProcessor {
         // Creator-built functions grafted in by other plugins have no range (and often no
         // functionStatement) - nothing to anchor an FN entry to, so they aren't tracked.
         // Reported from the field as a per-file "reading 'start'" transpile error.
-        if (!originalFunc?.range) {
+        if (!originalFunc?.sourceInfo) {
             this.processedFunctions.add(originalFunc);
             return;
         }
         let func: FunctionExpression = originalFunc;
 
         let nameParts = [];
-        while (func.parentFunction) {
-            let index = func.parentFunction.childFunctionExpressions.indexOf(func);
+        let parentFunc = func.findAncestor<FunctionExpression>(isFunctionExpression);
+        while (parentFunc) {
+            let index = this.getChildFunctionExpressions(parentFunc).indexOf(func);
             nameParts.unshift(`anon${index}`);
-            func = func.parentFunction;
+            func = parentFunc;
+            parentFunc = func.findAncestor<FunctionExpression>(isFunctionExpression);
         }
-        nameParts.unshift(func.functionStatement?.getName(parseMode) ?? `anonymous`);
+        const functionStatement = func.parent;
+        nameParts.unshift(isFunctionStatement(functionStatement) || isMethodStatement(functionStatement) ? functionStatement.getName(parseMode) : `anonymous`);
         const name = nameParts.join('$');
 
         this.processedFunctions.add(originalFunc);
@@ -1512,10 +1603,11 @@ export class CodeCoverageProcessor {
             func: originalFunc,
             callText: this.getReportFunctionHitFuncCallText(this.foundFunctions.length, statement)
         });
+        const funcRange = util.getLocation(originalFunc).range;
         this.foundFunctions.push({
             name: name,
-            startLine: originalFunc.range.start.line + 1,
-            endLine: originalFunc.range.end.line + 1,
+            startLine: funcRange.start.line + 1,
+            endLine: funcRange.end.line + 1,
             totalHit: 0
         });
     }
@@ -1599,4 +1691,37 @@ interface LineCoverage {
      * paints the whole statement.
      */
     el?: number;
+}
+
+/**
+ * Empirically measured device limits (Roku Ultra, OS 15.3.5, confirmed by binary-search
+ * sideload probing - see docs). The relevant compile error is &hae "Internal limit size
+ * exceeded", which is raised PER EXPRESSION when one statement's expression holds too much
+ * logical-operator/call complexity:
+ *  - a plain `a or b or ...` chain compiles up to 29 operators
+ *  - a flat or-chain of calls `f() or g() or ...` compiles up to ~22 terms
+ *  - recursively NESTED wrapper calls (the old rooibos branch wrap) die at 8 terms
+ * Statements-per-function, literals-per-function and call-nesting depth showed no limit
+ * (50k+ / 100+ deep all compile), so statement-level insertions are effectively free.
+ */
+interface ExpressionStats {
+    /** number of and/or operators in the subtree */
+    logicalOps: number;
+    /** number of call expressions in the subtree */
+    calls: number;
+    /** number of maximal same-operator runs (a `binary-expr` group in Istanbul terms) */
+    runs: number;
+    /** sum, over every and/or operator, of how many call-argument boundaries enclose it */
+    logicalOpsInCalls: number;
+    /** true when the subtree contains an anonymous function - blocks helper extraction */
+    hasFunctionExpression: boolean;
+}
+
+/** Normalized logical tree used for helper-function extraction. Leaf nodes have no `op`. */
+interface LogicalTreeNode {
+    op?: 'and' | 'or';
+    children?: LogicalTreeNode[];
+    leaf?: Expression;
+    /** The expression this tree node was built from (the binary for an op run, the leaf itself otherwise) */
+    node: Expression;
 }

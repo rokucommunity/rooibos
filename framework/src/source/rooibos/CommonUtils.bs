@@ -32,7 +32,7 @@ namespace rooibos.common
         if not rooibos.common.isNotEmptyString(functionName) or not rooibos.common.isNotEmptyString(filename) then
             return invalid
         end if
-        mapFunction = RBSFM_getFunctionsForFile(filename) 'bs:disable-line 1140 LINT1001
+        mapFunction as function = RBSFM_getFunctionsForFile(filename) 'bs:disable-line 1140 LINT1001
         if mapFunction <> invalid then
             map = mapFunction()
             if type(map) = "roAssociativeArray" then
@@ -56,7 +56,7 @@ namespace rooibos.common
         filenames = RBSFM_getFilenames() 'bs:disable-line 1140 LINT1001
         for i = 0 to filenames.count() - 1
             filename = filenames[i]
-            mapFunction = RBSFM_getFunctionsForFile(filename) 'bs:disable-line 1140 LINT1001
+            mapFunction as function = RBSFM_getFunctionsForFile(filename) 'bs:disable-line 1140 LINT1001
             if mapFunction <> invalid then
                 map = mapFunction()
                 if type(map) = "roAssociativeArray" then
@@ -467,7 +467,7 @@ namespace rooibos.common
     ' @param {Dynamic} compareAttribute - attribute to use for comparisons
     ' @param {Boolean} caseSensitive - indicates if comparisons are case sensitive
     ' @returns {Integer} element index if array contains a value, else return -1
-    function findElementIndexInArray(array as dynamic, value as dynamic, compareAttribute = invalid as dynamic, caseSensitive = false as boolean, callCount = 0 as integer) as integer
+    function findElementIndexInArray(array as dynamic, value as dynamic, compareAttribute = invalid as dynamic, caseSensitive = false as boolean, callCount = 0 as integer) as integer  'bs:disable-line: LINT1006
         if callCount = 0 and not rooibos.common.isArray(array) then
             array = rooibos.common.asArray(array)
         end if
@@ -483,7 +483,7 @@ namespace rooibos.common
                 if rooibos.common.eqValues(compareValue, value, callCount + 1) then
                     return i
                 end if
-            next
+            end for
         end if
         return -1
     end function
@@ -638,7 +638,7 @@ namespace rooibos.common
                 if val2Type <> "roSGNode" then
                     return false
                 else
-                    return Value1.isSameNode(Value2)
+                    return (Value1 as roSGNode).isSameNode(Value2)
                 end if
             else if valType = "<uninitialized>" and val2Type = "<uninitialized>" then
                 ' Both values are uninitialized, so they are equal

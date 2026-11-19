@@ -116,7 +116,7 @@ namespace tests
         function _()
             item = {
                 service: invalid
-            }
+            } as roSGNode
             m.expectCalled(item.service@.say("hello"), "hi")
 
             m.assertEqual(item.service@.say("hello"), "hi")
@@ -128,7 +128,7 @@ namespace tests
                 service: {
                     caller: invalid
                 }
-            }
+            } as roSGNode
             m.expectCalled(item.service.caller@.say("hello"), "hi")
 
             m.assertEqual(item.service.caller@.say("hello"), "hi")
@@ -164,7 +164,7 @@ namespace tests
         function _()
             item = {
                 service: invalid
-            }
+            } as roSGNode
             m.stubCall(item.service@.say(), "hi")
 
             m.assertEqual(item.service@.say("hello"), "hi")
@@ -176,7 +176,7 @@ namespace tests
                 service: {
                     caller: invalid
                 }
-            }
+            } as roSGNode
             m.stubCall(item.service.caller@.say(), "hi")
 
             m.assertEqual(item.service.caller@.say("hello"), "hi")

@@ -1,5 +1,9 @@
 <component name='RooibosScene' extends='Scene'>
     <interface>
+        <field id="rooibosTestResult" type="assocarray"/>
+        <field id="testText" type="string" alias="statusLabel.text" />
+        <field id="failedText" type="string" alias="failedLabel.text" />
+        <field id="statusColor" type="string" alias="statusBackground.color" />
         <function name='Rooibos_CreateTestNode' />
     </interface>
 
@@ -7,8 +11,10 @@
 
 
     <children>
-        <LayoutGroup>
-            <Label text='Rooibos tests are running' />
+        <Rectangle id="statusBackground" color="#444444" width="1920" height="1080" />
+        <LayoutGroup translation="[960, 540]" vertAlignment="center" horizAlignment="center">
+            <Label id="statusLabel" text='Rooibos is running tests' width="1800" />
+            <Label id="failedLabel" text="" translation="[0, 100]" width="1800" wrap="true" maxLines="15"/>
         </LayoutGroup>
     </children>
 </component>

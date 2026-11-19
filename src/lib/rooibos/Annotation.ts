@@ -1,4 +1,5 @@
 import type { AnnotationExpression, BrsFile, Expression, Statement } from 'brighterscript';
+import { util } from 'brighterscript';
 import { diagnosticNoTestNameDefined, diagnosticMultipleDescribeAnnotations, diagnosticMultipleTestOnFunctionDefined, diagnosticSlowAnnotationRequiresNumber } from '../utils/Diagnostics';
 import { linkAnnotationToStatement } from './Utils';
 
@@ -227,7 +228,7 @@ export class RooibosAnnotation {
         if (isSolo) {
             this.hasSoloParams = true;
         }
-        this.params.push(new AnnotationParams(annotation, annotation.range.start.line, annotation.call?.args ?? [], isIgnore, isSolo, noCatch));
+        this.params.push(new AnnotationParams(annotation, util.getStartPosition(annotation)?.line, annotation.call?.args ?? [], isIgnore, isSolo, noCatch));
     }
 
 }

@@ -1,11 +1,13 @@
 import type {
     BscFile,
+    SourceInfo,
     WalkOptions,
     WalkVisitor
 } from 'brighterscript';
 import {
-    Range,
-    Statement
+    AstNodeKind,
+    Statement,
+    util
 } from 'brighterscript';
 
 import { SourceNode } from 'source-map';
@@ -13,17 +15,21 @@ import { SourceNode } from 'source-map';
 import type { BrsTranspileState } from 'brighterscript/dist/parser/BrsTranspileState';
 
 export class RawCodeStatement extends Statement {
+
     constructor(
         public source: string,
-        public sourceFile?: BscFile,
-        public range: Range = Range.create(1, 1, 1, 99999)
+        public sourceFile?: BscFile
     ) {
         super();
+        //raw code has no position in any parsed source, so it is a synthetic node
+        util.setBounds(this);
     }
 
-    public clone() {
-        return new RawCodeStatement(this.source, this.sourceFile, this.range);
-    }
+    readonly kind = AstNodeKind.Body;
+
+    public readonly startPosition: number;
+    public readonly endPosition: number;
+    public readonly sourceInfo: SourceInfo | undefined;
 
     public transpile(state: BrsTranspileState) {
         //indent every line with the current transpile indent level (except the first line, because that's pre-indented by bsc)
@@ -31,14 +37,19 @@ export class RawCodeStatement extends Statement {
             return state.newline + state.indent();
         });
 
+        //synthetic code has no source position to map back to
         return [new SourceNode(
-            this.range.start.line + 1,
-            this.range.start.character,
-            this.sourceFile ? this.sourceFile.pathAbsolute : state.srcPath,
+            null,
+            null,
+            this.sourceFile ? this.sourceFile.srcPath : state.srcPath,
             source
         )];
     }
     public walk(visitor: WalkVisitor, options: WalkOptions) {
         //nothing to walk
+    }
+
+    public clone() {
+        return new RawCodeStatement(this.source, this.sourceFile);
     }
 }
