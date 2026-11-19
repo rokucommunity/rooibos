@@ -1,11 +1,11 @@
 import type {
     BscFile,
+    SourceInfo,
     WalkOptions,
     WalkVisitor
 } from 'brighterscript';
 import {
     AstNodeKind,
-    Range,
     Statement,
     util
 } from 'brighterscript';
@@ -21,14 +21,15 @@ export class RawCodeStatement extends Statement {
         public sourceFile?: BscFile
     ) {
         super();
+        //raw code has no position in any parsed source, so it is a synthetic node
+        util.setBounds(this);
     }
-    private fakeRange = Range.create(1, 1, 1, 99999);
 
     readonly kind = AstNodeKind.Body;
 
-    get location() {
-        return util.createLocationFromFileRange(this.sourceFile, this.fakeRange);
-    }
+    public readonly startPosition: number;
+    public readonly endPosition: number;
+    public readonly sourceInfo: SourceInfo | undefined;
 
     public transpile(state: BrsTranspileState) {
         //indent every line with the current transpile indent level (except the first line, because that's pre-indented by bsc)
@@ -36,9 +37,10 @@ export class RawCodeStatement extends Statement {
             return state.newline + state.indent();
         });
 
+        //synthetic code has no source position to map back to
         return [new SourceNode(
-            this.fakeRange.start.line + 1,
-            this.fakeRange.start.character,
+            null,
+            null,
             this.sourceFile ? this.sourceFile.srcPath : state.srcPath,
             source
         )];

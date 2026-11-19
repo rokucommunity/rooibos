@@ -1,6 +1,6 @@
 {
     "name": "rooibos-roku",
-    "version": "6.0.0-alpha.57",
+    "version": "6.0.0-alpha.58",
     "description": "simple, flexible, fun brightscript test framework for roku scenegraph apps - roku brighterscript plugin",
     "scripts": {
         "preversion": "npm run build && npm run lint && npm run test",
@@ -22,15 +22,15 @@
         "package": "npm run build && npm pack"
     },
     "dependencies": {
-        "brighterscript": "github:rokucommunity/brighterscript#9e9e3255c75a346f9784f25367674a6c85b5e3d4",
+        "brighterscript": "github:rokucommunity/brighterscript#136f91b7bdea6a033af09dcf062b4daa2d8b3e38",
         "fast-glob": "^3.2.12",
         "fs-extra": "^10.1.0",
         "istanbul-lib-coverage": "^3.2.2",
         "istanbul-lib-report": "^3.0.0",
         "istanbul-reports": "^3.0.2",
         "minimatch": "^3.0.4",
-        "roku-debug": "^0.24.6",
-        "roku-deploy": "^4.0.0-alpha.9",
+        "roku-debug": "^0.24.7",
+        "roku-deploy": "^4.0.0-alpha.10",
         "rooibos_promises": "npm:@rokucommunity/promises@^0.7.0",
         "source-map": "^0.7.3",
         "undent": "^1.0.1",
@@ -39,7 +39,7 @@
         "yargs": "^16.2.0"
     },
     "devDependencies": {
-        "@rokucommunity/bslint": "^1.0.0-alpha.57",
+        "@rokucommunity/bslint": "^1.0.0-alpha.58",
         "@types/chai": "^4.1.2",
         "@types/events": "^3.0.0",
         "@types/fs-extra": "^5.0.1",

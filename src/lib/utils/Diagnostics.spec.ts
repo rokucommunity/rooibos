@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Range, util } from 'brighterscript';
+import { util } from 'brighterscript';
 import * as Diagnostics from './Diagnostics';
 
 describe('Diagnostics', () => {
@@ -19,8 +19,8 @@ describe('Diagnostics', () => {
                 }
             }
         };
-        statement = { location: { range: Range.create(4, 2, 4, 10) }, tokens: { name: { text: 'foo' } } };
-        annotation = { location: { range: Range.create(2, 0, 2, 20) } };
+        statement = util.assignLocation({ tokens: { name: { text: 'foo' } } } as any, util.createLocation(4, 2, 4, 10));
+        annotation = util.assignLocation({} as any, util.createLocation(2, 0, 2, 20));
         rooibosAnnotation = { name: 'my group', annotation: annotation, file: file };
     });
 

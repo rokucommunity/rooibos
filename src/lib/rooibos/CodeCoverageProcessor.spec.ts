@@ -1193,20 +1193,19 @@ describe('RooibosPlugin', () => {
 
                 const file = program.getFile<BrsFile>('source/code.bs');
 
-                // a synthetic top-level function, no ranges anywhere
+                // a synthetic top-level function, no positions anywhere
                 const synthetic = Parser.parse(`function __synthetic()\n    y = 2\nend function`).ast.statements[0] as FunctionStatement;
-                // range is a getter computed from token ranges; token-less creator-built
-                // nodes make it return undefined, which defineProperty mirrors here
-                Object.defineProperty(synthetic, 'location', { value: undefined });
-                Object.defineProperty(synthetic.func, 'location', { value: undefined });
-                Object.defineProperty(synthetic.func.body.statements[0], 'location', { value: undefined });
+                // creator-built nodes have no sourceInfo; clearing it here mirrors that
+                Object.defineProperty(synthetic, 'sourceInfo', { value: undefined });
+                Object.defineProperty(synthetic.func, 'sourceInfo', { value: undefined });
+                Object.defineProperty(synthetic.func.body.statements[0], 'sourceInfo', { value: undefined });
                 file.codeSegments[0].ast.statements.push(synthetic);
 
                 const alpha = file.codeSegments[0].ast.statements[0] as FunctionStatement;
 
                 // a synthetic statement grafted into a real function
                 const grafted = Parser.parse(`m.__grafted = true`).ast.statements[0];
-                Object.defineProperty(grafted, 'location', { value: undefined });
+                Object.defineProperty(grafted, 'sourceInfo', { value: undefined });
                 alpha.func.body.statements.push(grafted);
 
                 // a synthetic operand grafted into a real condition (inliner-style)
@@ -1214,7 +1213,7 @@ describe('RooibosPlugin', () => {
                 const condition = ifStatement.condition as any;
                 const operand = Parser.parse(`__value = __isInlined()`).ast.statements[0] as any;
                 const syntheticCall = operand.value;
-                Object.defineProperty(syntheticCall, 'location', { value: undefined });
+                Object.defineProperty(syntheticCall, 'sourceInfo', { value: undefined });
                 syntheticCall.parent = condition;
                 condition.right = syntheticCall;
 

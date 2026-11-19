@@ -1,7 +1,7 @@
 import * as chai from 'chai';
 const expect = chai.expect;
 import type { TestCase } from './lib/rooibos/TestCase';
-import { FunctionStatement, Parser, standardizePath as s } from 'brighterscript';
+import { FunctionStatement, Parser, standardizePath as s, util } from 'brighterscript';
 import type { BsDiagnostic, CodeDescription, DiagnosticRelatedInformation, DiagnosticSeverity, DiagnosticTag, ParseOptions } from 'brighterscript';
 import type { Range } from 'vscode-languageserver';
 import * as fsExtra from 'fs-extra';
@@ -157,7 +157,7 @@ export function getFunctionContents(rawCode: string, functionName: RegExp | stri
         return stmt instanceof FunctionStatement && (typeof functionName === 'string' ? stmt.tokens.name.text === functionName : functionName.test(stmt.tokens.name.text));
     }) as FunctionStatement | undefined;
 
-    const bodyRange = funcStmt?.func.body.location?.range;
+    const bodyRange = funcStmt ? util.getLocation(funcStmt.func.body)?.range : undefined;
     if (bodyRange) {
         const lines = rawCode.split(/\r?\n/);
         const extractedLines = lines.slice(bodyRange.start.line, bodyRange.end.line + 1);
