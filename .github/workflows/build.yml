@@ -18,6 +18,20 @@ jobs:
           node-version: "18.20.4"
           architecture: 'x64' # fix for macos-latest
       - run: npm ci
+      # TEMPORARY: brighterscript is pinned to an unreleased git commit (see package.json). brighterscript has no
+      # `prepare` script, so npm installs that commit without its compiled `dist` folder. Build the same commit here.
+      # Remove this step once rooibos depends on a published brighterscript version again.
+      - name: Build pinned brighterscript
+        shell: bash
+        run: |
+          BSC_SHA=$(node -p "require('./package-lock.json').packages['node_modules/brighterscript'].resolved.split('#')[1]")
+          git clone https://github.com/rokucommunity/brighterscript.git ../brighterscript-pinned
+          git -C ../brighterscript-pinned checkout "$BSC_SHA"
+          (cd ../brighterscript-pinned && npm ci && npm run build)
+          rm -rf node_modules/brighterscript/dist
+          cp -r ../brighterscript-pinned/dist node_modules/brighterscript/dist
+          # link the `bsc` bin, which npm skipped because `dist/cli.js` didn't exist at install time
+          npm rebuild brighterscript --ignore-scripts
       - run: npm run preversion
       - run: npm run build-test-project
       - name: Publish code coverage to coveralls

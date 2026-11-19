@@ -261,7 +261,14 @@ export function buildCoverageDataFromModel(model: CoverageMapJson, counts: Conde
             });
         });
 
-        data[resolvedPath] = fileCoverage;
+        if (data[resolvedPath]) {
+            //several code segments can live in one source file (i.e. the `<script>` blocks of an xml file)
+            const merged = libCoverage.createFileCoverage(data[resolvedPath]);
+            merged.merge(fileCoverage);
+            data[resolvedPath] = merged.toJSON() as FileCoverageData;
+        } else {
+            data[resolvedPath] = fileCoverage;
+        }
     });
     return data;
 }

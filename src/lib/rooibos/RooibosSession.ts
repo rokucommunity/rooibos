@@ -128,9 +128,12 @@ export class RooibosSession {
 
     addTestRunnerMetadata(editor: Editor) {
         let runtimeConfig = this._builder.program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
-        const classStatement = runtimeConfig?.ast?.findChild<ClassStatement>((node) => {
-            return isClassStatement(node) && node.tokens?.name?.text?.toLowerCase() === 'runtimeconfig';
-        });
+        let classStatement: ClassStatement;
+        for (const codeSegment of runtimeConfig?.codeSegments ?? []) {
+            classStatement ??= codeSegment.ast.findChild<ClassStatement>((node) => {
+                return isClassStatement(node) && node.tokens?.name?.text?.toLowerCase() === 'runtimeconfig';
+            });
+        }
         if (classStatement) {
             this.updateRunTimeConfigFunction(classStatement, editor);
             this.updateVersionTextFunction(classStatement, editor);

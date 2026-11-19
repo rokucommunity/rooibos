@@ -152,6 +152,40 @@ describe('CoverageReporter', () => {
             const data = buildCoverageDataFromModel(model, new Map(), tmpPath);
             expect(Object.keys(data)).to.eql([path.join(tmpPath, 'source', 'a.bs')]);
         });
+
+        it('merges the entries of several code segments in one source file (i.e. the CDATA script blocks of an xml file)', () => {
+            function makeSegment(line: number, name: string) {
+                return {
+                    sourceFile: 'components/Widget.xml',
+                    sourcePath: 'components/Widget.xml',
+                    lines: [{ lineNumber: line + 1, totalHit: 0 }],
+                    lineTotalFound: 1,
+                    lineTotalHit: 0,
+                    functions: [{ name: name, totalHit: 0, startLine: line, endLine: line + 2 }],
+                    functionTotalFound: 1,
+                    functionTotalHit: 0,
+                    blocks: [{ id: 0, isIfArm: true, branches: [{ id: 0, totalHit: 0, line: line + 1 }, { id: 1, totalHit: 0, line: line + 1 }] }],
+                    branchTotalFound: 2,
+                    branchTotalHit: 0
+                };
+            }
+            const model = { files: [makeSegment(4, 'getFirst'), makeSegment(9, 'getSecond')] } as CoverageModelJson;
+            const counts = parseCoverageCounts([
+                '{"i":0,"l":{"0":3},"f":{"0":3},"b":{"0":[2,1]}}',
+                '{"i":1,"l":{"0":7},"f":{"0":7},"b":{"0":[0,7]}}'
+            ].join('\n'));
+
+            const data = buildCoverageDataFromModel(model, counts, tmpPath);
+            const filePath = path.join(tmpPath, 'components', 'Widget.xml');
+            expect(Object.keys(data)).to.eql([filePath]);
+            const fc = data[filePath];
+            //both segments' statements, functions and branches are kept, each with its own hits
+            expect(Object.values(fc.statementMap).map((x) => x.start.line)).to.eql([5, 10]);
+            expect(Object.values(fc.s)).to.eql([3, 7]);
+            expect(Object.values(fc.fnMap).map((x) => x.name)).to.eql(['getFirst', 'getSecond']);
+            expect(Object.values(fc.f)).to.eql([3, 7]);
+            expect(Object.values(fc.b)).to.eql([[2, 1], [0, 7]]);
+        });
     });
 
     describe('writeCoverageReportsFromCounts', () => {

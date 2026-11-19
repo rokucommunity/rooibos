@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { RooibosPlugin } from './plugin';
 import * as fsExtra from 'fs-extra';
 import undent from 'undent';
-import { getFileLookups } from './lib/rooibos/Utils';
+import { getCodeSegmentLookups } from './lib/rooibos/Utils';
 import { CodeCoverageLineType } from './lib/rooibos/CodeCoverageProcessor';
 import { expectFunctionContents, expectZeroDiagnostics } from './testHelpers.spec';
 let tmpPath = s`${process.cwd()}/.tmp`;
@@ -867,7 +867,7 @@ describe('RooibosPlugin', () => {
             `);
 
             //verify the AST was restored after transpile
-            const cls = file.ast.statements[0] as ClassStatement;
+            const cls = file.codeSegments[0].ast.statements[0] as ClassStatement;
             expect(cls.body.find((x) => {
                 return isMethodStatement(x) && x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
@@ -1284,7 +1284,7 @@ describe('RooibosPlugin', () => {
             `);
 
             //verify the AST was restored after transpile
-            const cls = file.ast.statements[0] as ClassStatement;
+            const cls = file.codeSegments[0].ast.statements[0] as ClassStatement;
             expect(cls.body.find((x) => {
                 return isMethodStatement(x) && x.tokens.name?.text.toLowerCase() === 'getTestSuiteData'.toLowerCase();
             })).not.to.exist;
@@ -1340,7 +1340,7 @@ describe('RooibosPlugin', () => {
                 end sub
             `);
             //the AST should not have been permanently modified
-            const statements = (file.parser.ast.statements[0] as FunctionStatement).func.body.statements;
+            const statements = (file.codeSegments[0].ast.statements[0] as FunctionStatement).func.body.statements;
             expect(statements).to.be.lengthOf(1);
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
@@ -1365,7 +1365,7 @@ describe('RooibosPlugin', () => {
                 end sub
             `);
             //the AST should not have been permanently modified
-            const statements = (file.parser.ast.statements[0] as FunctionStatement).func.body.statements;
+            const statements = (file.codeSegments[0].ast.statements[0] as FunctionStatement).func.body.statements;
             expect(statements).to.be.lengthOf(1);
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
@@ -1399,7 +1399,7 @@ describe('RooibosPlugin', () => {
                 end sub
             `);
             //the AST should not have been permanently modified
-            const statements = (file.parser.ast.statements[0] as FunctionStatement).func.body.statements;
+            const statements = (file.codeSegments[0].ast.statements[0] as FunctionStatement).func.body.statements;
             expect(statements).to.be.lengthOf(1);
             expect(statements[0]).to.be.instanceof(PrintStatement);
         });
@@ -2663,7 +2663,7 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
-                const testMethod = ((file.ast.statements[0] as ClassStatement).members[0] as MethodStatement);
+                const testMethod = ((file.codeSegments[0].ast.statements[0] as ClassStatement).members[0] as MethodStatement);
 
                 const call1 = (testMethod.func.body.statements[1] as ExpressionStatement).expression as CallExpression;
                 expect(call1.args).to.be.lengthOf(1);
@@ -2704,7 +2704,7 @@ describe('RooibosPlugin', () => {
                     end if
                 `);
                 //verify original code does not remain modified after the transpile cycle
-                const testMethod = ((file.ast.statements[0] as ClassStatement).members[0] as MethodStatement);
+                const testMethod = ((file.codeSegments[0].ast.statements[0] as ClassStatement).members[0] as MethodStatement);
                 const call = (testMethod.func.body.statements[0] as ExpressionStatement).expression as CallExpression;
                 const arg0 = call.args[0] as DottedGetExpression;
                 expect(call.args).to.be.lengthOf(1);
@@ -3024,6 +3024,61 @@ describe('RooibosPlugin', () => {
                 expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
                 await builder.transpile();
                 expect(plugin.session.globalStubbedMethods.has('globalfn')).to.be.true;
+            });
+
+            it('stubs functions declared in a component CDATA script block', async () => {
+                destroyProgram();
+                setupProgram({
+                    rootDir: _rootDir,
+                    stagingDir: outDir,
+                    //workaround for bsc bug where outDir does not fall back to stagingDir
+                    outDir: outDir,
+                    rooibos: {
+                        isGlobalMethodMockingEnabled: true,
+                        isGlobalMethodMockingEfficientMode: true
+                    }
+                });
+
+                program.setFile('components/Widget.xml', undent`
+                    <?xml version="1.0" encoding="utf-8" ?>
+                    <component name="Widget" extends="Group">
+                        <script type="text/brightscript"><![CDATA[
+                            function getValue()
+                                return "real"
+                            end function
+
+                            function notStubbed()
+                                return "real"
+                            end function
+                        ]]></script>
+                    </component>
+                `);
+                program.setFile('components/test.spec.bs', `
+                    @suite
+                    @SGNode("Widget")
+                    class ATest extends Rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @it("test1")
+                        function _()
+                            m.stubCall(getValue, function()
+                                return "stubbed"
+                            end function)
+                            m.assertEqual(getValue(), "stubbed")
+                        end function
+                    end class
+                `);
+                program.validate();
+                expect(program.getDiagnostics().filter((d) => d.code !== 'RBS2213')).to.be.empty;
+                await builder.transpile();
+                expect(plugin.session.globalStubbedMethods.has('getvalue')).to.be.true;
+
+                //the stubbed function in the CDATA block checks for its stub
+                const script = getComponentContents('Widget.xml').split('<![CDATA[')[1].split(']]>')[0];
+                expect(getFunctionContents(script, 'getValue')).to.include('if RBS_SM_1_getMocksByFunctionName()["getvalue"] <> invalid');
+                expect(script).to.include('function RBS_SM_1_getMocksByFunctionName()');
+                //efficient mode leaves the functions no test stubs alone
+                expect(getFunctionContents(script, 'notStubbed')).not.to.include('__stubs_globalAa');
             });
 
             it('walks each hook method at most once even when reused across groups', async () => {
@@ -3907,7 +3962,7 @@ describe('RooibosPlugin', () => {
                     end class
                 `);
                 expect(await getTranspiledRawParams()).to.eql(['["type1"]']);
-                const cls = file.ast.statements.find(x => x.constructor.name === 'ClassStatement') as ClassStatement;
+                const cls = file.codeSegments[0].ast.statements.find(x => x.constructor.name === 'ClassStatement') as ClassStatement;
                 const method = cls.body.find(x => isMethodStatement(x)) as MethodStatement;
                 const paramsAnnotation = method.annotations.find(x => x.name.toLowerCase() === 'params');
                 expect(paramsAnnotation.getArguments()).to.eql([null]);
@@ -4369,7 +4424,7 @@ describe('RooibosPlugin', () => {
 
             function findMethod(methodName: string) {
                 const file = program.getFile<BrsFile>('source/rooibos/RuntimeConfig.bs');
-                let classStatement = getFileLookups(file).classStatementMap.get('rooibos.runtimeconfig');
+                let classStatement = getCodeSegmentLookups(file.codeSegments[0]).classStatementMap.get('rooibos.runtimeconfig');
                 const method = classStatement.methods.find(x => x.tokens.name.text.toLowerCase() === methodName.toLowerCase());
                 return method;
             }
